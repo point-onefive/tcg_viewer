@@ -621,16 +621,14 @@ html.lenis, html.lenis body {
 
 .board-tile {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   cursor: grab;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.board-tile:active {
+.board-tile:active,
+.board-tile--dragging {
   cursor: grabbing;
 }
 
@@ -698,6 +696,12 @@ html.lenis, html.lenis body {
   transform: scale(1);
 }
 
+/* While dragging, suppress the X entirely so it never lingers under the cursor */
+.board-tile--dragging .board-tile__remove {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
 .board-tile__remove:hover {
   background: #000;
 }
@@ -712,13 +716,8 @@ html.lenis, html.lenis body {
 }
 
 .board-tile__name {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 2px;
+  /* deprecated — no caption is rendered; kept only in case of cached CSS */
+  display: none;
 }
 
 /* Variant dots - bottom center */
