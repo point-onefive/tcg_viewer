@@ -1,12 +1,30 @@
-# TCG Viewer — Project Documentation
+# CARD WALL - Project Documentation
 
-> Last updated: April 20, 2026 (R2 pipeline complete — real card images live)
+> Last updated: April 20, 2026 (CARD WALL brand + full pack coverage + light default + depth band)
 
 ---
 
 ## What This Is
 
-A premium card gallery web app for One Piece TCG (and future TCG collections). Built for a "luxury product photography" aesthetic — buttery scroll, Studio Dark/Light themes, virtualized card wall, lightbox viewer, and a cursor spotlight (ChromaGrid) effect.
+A premium card gallery web app for One Piece TCG (and future TCG collections). Built for a "luxury product photography" aesthetic: buttery scroll, light/dark themes, virtualized card wall, and a fan-out lightbox for alternate arts.
+
+**Brand:** CARD WALL - unified two-panel lockup (pixel mascot chip + inverted black wordmark).
+
+**Live repo:** [point-onefive/tcg_viewer](https://github.com/point-onefive/tcg_viewer) (private)
+
+---
+
+## Current State
+
+- **1,661 unique base cards** (collapsed from 2,628 raw printings), **518 with alternate-art variants**
+- **35 sets** covering OP-01 through OP-10, ST-01 through ST-21, EB-01/02, PRB-01, plus PROMO and EXCLUSIVES buckets
+- **2,627 images live on Cloudflare R2** (`https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/`)
+- **Default theme: light.** Themed focus ring (no browser-default blue).
+- **Collection header** sits on a lifted `--bg-surface` band (hairline borders + 1px drop) for depth against the page `--bg`.
+- **Variant-card discovery:** cards with alternates render with a 2-sheet stacked-deck visual + animated sway + dominant-color glow. Fans out on hover.
+- **Lightbox:** minimal fan-out viewer showing base + all variant arts. Navigation: click, keyboard (L/R pages cards, U/D steps variants), mouse wheel / trackpad, touch swipe.
+- **Header:** 48px frosted backdrop-blur bar, unified pill controls (collection, search, set filter, zoom slider, theme toggle).
+- **Collections:** one-piece (active); pokemon, magic, yu-gi-oh as `(coming soon)`.
 
 ---
 
@@ -16,15 +34,14 @@ A premium card gallery web app for One Piece TCG (and future TCG collections). B
 |---|---|---|
 | Framework | Next.js 15.5 (App Router, Turbopack) | Fast builds, RSC, Vercel-native |
 | Language | TypeScript | Type safety |
-| Styling | Tailwind v4 (`@tailwindcss/postcss`) | Utility-first, v4 CSS-first config |
+| Styling | Tailwind v4 (`@tailwindcss/postcss`) + hand-written CSS vars | Utility-first, v4 CSS-first config |
 | Scroll | Lenis 1.2.3 | Smooth inertia scroll |
 | Virtualization | TanStack Virtual (`useWindowVirtualizer`) | Window-native virtual rows, no scroll container |
-| Animation | Motion (Framer) | Hover animations only |
-| GSAP | gsap 3.x | ChromaGrid cursor tracking (quickSetter) |
+| Animation | Motion (Framer) | Lightbox spring, hover polish |
 | State | Zustand + persist | zoom, theme, filters, lightbox |
 | Fonts | Space Grotesk (`--font-display`), Inter (`--font-body`) | |
 | Images | Cloudflare R2 | Self-hosted, egress-free CDN |
-| Deployment | Vercel | |
+| Deployment | Vercel (not yet deployed) | |
 
 ---
 
@@ -34,39 +51,39 @@ A premium card gallery web app for One Piece TCG (and future TCG collections). B
 tcg_viewer/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx              # Root page — assembles all components
-│   │   ├── layout.tsx            # HTML shell, font variables, ThemeProvider, SmoothScroll
-│   │   └── globals.css           # CSS vars, theme tokens, ChromaGrid, zoom slider styles
+│   │   ├── page.tsx              # Root page, assembles Header + CardGrid + LightboxViewer
+│   │   ├── layout.tsx            # HTML shell, font vars, ThemeProvider, SmoothScroll
+│   │   └── globals.css           # CSS vars, theme tokens, card-tile, stacked-deck,
+│   │                             #   lightbox, zoom slider
 │   ├── components/
 │   │   ├── gallery/
-│   │   │   ├── card-grid.tsx     # Virtualized card wall (useWindowVirtualizer)
-│   │   │   ├── card-tile.tsx     # Individual card — hover effects, spotlight
-│   │   │   ├── chroma-overlay.tsx # Full-screen cursor spotlight overlay (GSAP)
-│   │   │   ├── header.tsx        # Search, set filter, zoom slider, theme toggle
-│   │   │   ├── lightbox-viewer.tsx # Full-screen lightbox, keyboard nav
+│   │   │   ├── card-grid.tsx     # Virtualized wall, GAP=14, HEADER_H=48, viewport-aware zoom
+│   │   │   ├── card-tile.tsx     # Card tile with stacked-deck hint when variants exist
+│   │   │   ├── header.tsx        # 48px frosted bar, unified pill controls
+│   │   │   ├── lightbox-viewer.tsx # Fan-out variant viewer, spring animation, keyboard nav
 │   │   │   └── theme-toggle.tsx  # Dark/light theme button
 │   │   ├── smooth-scroll.tsx     # Lenis instance + RAF loop
 │   │   └── theme-provider.tsx    # Sets data-theme on <html>, mounted guard
 │   └── lib/
-│       ├── types.ts              # Card, CardSet types
-│       ├── store.ts              # Zustand store (zoom, theme, filters, lightbox)
-│       ├── data.ts               # getCards() / getSets() — uses real data if present, else mock
-│       ├── cards-generated.json  # GENERATED + GITIGNORED — run npm run cards:all
-│       └── sets-generated.json   # GENERATED + GITIGNORED — run npm run cards:all
+│       ├── types.ts              # Card (with variants[], metadata), CardSet
+│       ├── store.ts              # Zustand: zoom, theme, filters, lightbox
+│       ├── data.ts               # getCards() / getSets(), real data with mock fallback
+│       ├── cards-generated.json  # GENERATED + GITIGNORED - 1,661 unique base cards
+│       └── sets-generated.json   # GENERATED + GITIGNORED - 35 sets
 ├── scripts/
-│   ├── fetch-card-data.mjs       # Pulls card JSONs from vegapull-records (GitHub)
-│   ├── generate-card-data.mjs    # Maps raw JSON → Card type, writes cards-generated.json
-│   ├── download-images.mjs       # Downloads card images (zip or CDN method)
-│   └── upload-to-r2.mjs          # Uploads public/cards/ to Cloudflare R2 (concurrency=5, retry)
-├── data/                         # GITIGNORED — raw JSON + upload progress marker
-│   ├── cards.json                # Raw vegapull output
-│   ├── packs.json                # Pack metadata
-│   ├── english-images.zip        # 761MB image archive (delete after extracting)
-│   └── uploaded.json             # Upload resume marker — tracks completed files
+│   ├── fetch-card-data.mjs       # Pulls card JSONs from vegapull-records
+│   ├── generate-card-data.mjs    # Raw -> Card type, canonical set names, collapses variants
+│   ├── download-images.mjs       # Downloads card images (zip or CDN)
+│   └── upload-to-r2.mjs          # Uploads public/cards/ to R2 (concurrency=5, retry, resume)
+├── data/                         # GITIGNORED
+│   ├── cards.json
+│   ├── packs.json
+│   ├── english-images.zip        # 761MB image archive
+│   └── uploaded.json             # R2 upload progress marker
 ├── public/
-│   └── cards/                    # GITIGNORED — 2627 local PNGs (source of truth before R2)
-├── next.config.js                # Image domain allowlist (includes R2 hostname)
-├── .env.local                    # GITIGNORED — secrets (see Secrets section below)
+│   └── cards/                    # GITIGNORED - 2,627 local PNGs
+├── next.config.js                # Image domain allowlist (R2 hostname)
+├── .env.local                    # GITIGNORED - secrets
 ├── .gitignore
 └── PROJECT.md                    # This file
 ```
@@ -77,13 +94,13 @@ tcg_viewer/
 
 | Key | Type | Default | Persisted |
 |---|---|---|---|
-| `zoom` | `number` (1–12) | `5` | ✅ |
-| `theme` | `'dark' \| 'light'` | `'dark'` | ✅ |
-| `searchQuery` | `string` | `''` | ❌ |
-| `activeSet` | `string \| null` | `null` | ❌ |
-| `activeRarity` | `string \| null` | `null` | ❌ |
-| `activeColor` | `string \| null` | `null` | ❌ |
-| `lightboxCardId` | `string \| null` | `null` | ❌ |
+| `zoom` | `number` (1 to 12) | `5` | yes |
+| `theme` | `'dark' \| 'light'` | `'dark'` | yes |
+| `searchQuery` | `string` | `''` | no |
+| `activeSet` | `string \| null` | `null` | no |
+| `activeRarity` | `string \| null` | `null` | no |
+| `activeColor` | `string \| null` | `null` | no |
+| `lightboxCardId` | `string \| null` | `null` | no |
 
 ---
 
@@ -91,52 +108,66 @@ tcg_viewer/
 
 ### Source
 
-[`vegapull-records`](https://github.com/coko7/vegapull-records) — community dataset scraped from the official Bandai site (`en.onepiece-cardgame.com`). English dataset updated April 27, 2025.
+[`vegapull-records`](https://github.com/coko7/vegapull-records), community dataset scraped from `en.onepiece-cardgame.com`. English dataset updated April 27, 2025.
 
-**Available packs:** OP-01 through OP-10, ST-01 through ST-21, EB-01/02, PRB-01 → **2,406 real cards**
+### Normalization
 
-**Per-card fields:** `id`, `name`, `rarity`, `category`, `colors[]`, `cost`, `power`, `counter`, `attributes[]`, `types[]`, `effect`, `trigger`, `img_full_url`
+The pipeline collapses alternate-art printings into a single canonical card:
 
-Image URL pattern on Bandai CDN: `https://en.onepiece-cardgame.com/images/cardlist/card/{ID}.png?{cache_buster}`
+- Raw dataset: **2,628 card entries** (includes `_p1`, `_p2`, `_r1` variant IDs)
+- After canonicalization: **1,661 unique base cards**, **518 of which have `variants[]`**
+- Each variant stores its own `id`, `imageUrl`, `rarity`, and a human label (`Parallel`, `Alt Art`, `Manga`, etc.)
+- Set names are hand-mapped to canonical titles (e.g. `Starter - Straw Hat Crew` instead of raw pack names)
+
+### Card type (`src/lib/types.ts`)
+
+```ts
+type Variant = { id: string; imageUrl: string; rarity?: string; label?: string }
+type Card = {
+  id: string            // base card id, e.g. OP01-001
+  code: string
+  name: string
+  setCode: string
+  setName: string       // canonical, not raw pack name
+  releaseDate?: string
+  releaseOrder?: number
+  rarity?: string
+  category?: string     // LEADER / CHARACTER / EVENT / STAGE
+  colors?: string[]
+  cost?: number
+  power?: number
+  counter?: number
+  attributes?: string[]
+  types?: string[]
+  effect?: string
+  trigger?: string
+  imageUrl: string      // R2 URL for base art
+  primaryColor?: string // dominant color hex, drives UI tint (stack, glow)
+  variants?: Variant[]  // alternate arts if any
+}
+```
 
 ### NPM Scripts
 
 ```bash
-npm run cards:fetch      # Pull all pack JSONs → data/cards.json (200ms/request, ~30s total)
-npm run cards:generate   # Map to Card type → src/lib/cards-generated.json (R2 URLs baked in)
-npm run cards:all        # fetch + generate in sequence
+npm run cards:fetch      # Pull pack JSONs -> data/cards.json
+npm run cards:generate   # Normalize -> src/lib/cards-generated.json (R2 URLs baked in)
+npm run cards:all        # fetch + generate
 
-npm run cards:images     # Download pre-built 761MB zip from GitHub release (recommended)
-npm run cards:images:cdn # Download one-by-one from Bandai CDN at 2 req/s (slow ~40min)
+npm run cards:images     # Download pre-built 761MB zip from GitHub release (fastest)
+npm run cards:images:cdn # Download one-by-one from Bandai CDN at 2 req/s
 
-npm run r2:upload        # Upload public/cards/ → R2 (concurrency=5, retry, resumable)
+npm run r2:upload        # Upload public/cards/ -> R2 (concurrency=5, retry, resumable)
 ```
 
 ### Full One-Time Setup Flow
 
 ```bash
-# 1. Fetch metadata
-npm run cards:all
-
-# 2. Download images (761MB zip, fastest)
-npm run cards:images
-# → public/cards/{CARD_ID}.png (2627 files including alternate arts)
-
-# 3. Upload to R2 (resumable — re-run if it fails, skips already-done files)
-npm run r2:upload
-
-# 4. Regenerate with R2 URLs (already done — IMAGE_BASE is set in generate-card-data.mjs)
-npm run cards:generate
+npm run cards:all        # 1. Metadata
+npm run cards:images     # 2. Images (761MB zip)
+npm run r2:upload        # 3. Upload to R2 (resumable)
+npm run cards:generate   # 4. Regenerate with R2 URLs baked in
 ```
-
-### Image Variants in the Zip
-
-The zip contains both base cards and alternate arts:
-- `OP01-001.png` — base card (what the gallery uses)
-- `OP01-001_p1.png`, `_p2.png` — parallel/alternate art prints
-- `OP01-001_r1.png` — rainbow/special treatment
-
-All variants are uploaded to R2. The gallery currently links to base IDs only (`{ID}.png`).
 
 ---
 
@@ -147,57 +178,59 @@ All variants are uploaded to R2. The gallery currently links to base IDs only (`
 | Bucket name | `tcg-viewer` |
 | Account ID | `ea61e9c39953b4007182b6e35fdab347` |
 | S3 API endpoint | `https://ea61e9c39953b4007182b6e35fdab347.r2.cloudflarestorage.com/tcg-viewer` |
-| Public development URL | `https://pub-6d5072ccd26a467db70791436c203abb.r2.dev` |
-| Image path format | `https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/{CARD_ID}.png` |
-| Location | Eastern North America (ENAM) |
-| Status | ✅ Live — 2,627 images uploaded |
+| Public dev URL | `https://pub-6d5072ccd26a467db70791436c203abb.r2.dev` |
+| Image path | `https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/{CARD_ID}.png` |
+| Status | Live, 2,627 images uploaded |
 
-### Secrets (stored in `.env.local` — never committed)
+Secrets live in `.env.local` (never committed):
 
 ```
-CLOUDFLARE_API_TOKEN=<your-token>
+CLOUDFLARE_API_TOKEN=<token>
 CLOUDFLARE_ACCOUNT_ID=ea61e9c39953b4007182b6e35fdab347
 R2_BUCKET=tcg-viewer
 R2_PUBLIC_URL=https://pub-6d5072ccd26a467db70791436c203abb.r2.dev
 ```
 
-To recreate the API token: [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) → Create Token → Custom Token → **Account / Cloudflare R2 Storage / Edit**.
-
-### Upload Script Notes
-
-- `scripts/upload-to-r2.mjs` uses the Cloudflare REST API directly (no wrangler needed)
-- Concurrency=5 to avoid 429 rate limits
-- Exponential backoff: 2s → 4s → 8s → 16s on 429/502/503
-- Resumable: progress tracked in `data/uploaded.json` — re-run safely after failures
-- Images stored under `cards/` prefix in the bucket
+Upload script uses the Cloudflare REST API directly. Concurrency=5, exponential backoff on 429/502/503, resumable via `data/uploaded.json`.
 
 ---
 
 ## Key Implementation Decisions
 
-### Virtualization: `useWindowVirtualizer` not `useVirtualizer`
+### Virtualization: `useWindowVirtualizer`
 
-Using window-native scroll (not a scroll container `div`) so Lenis can own the scroll event. `useVirtualizer` with a ref container broke Lenis. `useWindowVirtualizer` measures against `window.scrollY` directly.
+Using window-native scroll (not a scroll container) so Lenis owns the scroll event. `scrollMargin: 48` accounts for the fixed header.
 
-### Hydration guard in `card-grid.tsx`
+### Hydration guard
 
-`window.innerWidth` is unavailable during SSR. Added a `mounted` state — card grid renders `null` server-side and mounts after first client render. Eliminates React hydration mismatch errors.
+`window.innerWidth` is unavailable during SSR. `card-grid.tsx` renders `null` server-side and mounts after first client render.
 
 ### Zoom system
 
-Zoom level 1–12 (stored in Zustand, persisted). `zoomToColumns(zoom, windowWidth, windowHeight)` maps zoom to a column count, with a viewport-height-aware floor so a card always fits fully in the viewport vertically (no half-cut cards at max zoom-out).
+Zoom 1 to 12 (persisted). `zoomToColumns(zoom, windowWidth, windowHeight)` with a viewport-height-aware floor so a card always fits fully vertically (no half-cut cards at max zoom-out).
 
-### ChromaGrid cursor spotlight
+### Variant indicator: stacked-deck metaphor
 
-A `position: fixed; z-index: 10` div with a `radial-gradient` background that has a transparent hole at `--x, --y` (cursor position) and fades to near-black outside the radius. GSAP `quickSetter` drives `--x`/`--y` CSS variables with `power3.out` easing for a lagging spotlight feel.
+Cards with `variants[]` render two peek sheets (`card-tile__stack--1` and `--2`) behind the main tile:
 
-**Why not `backdrop-filter + mask-image`:** Tried this first — completely unreliable when Lenis and Motion create transform stacking contexts that break backdrop sampling. Replaced with solid radial-gradient overlay; works everywhere.
+- Vivid card-color paper (85%/55% color-mix gradient) with color-tinted inner borders and colored box-shadow glow
+- Gentle 3.4s sway animation drifting between two offset/rotation positions
+- Main tile has a pulsing drop-shadow in the dominant color (12px to 22px)
+- On hover, animation halts and the stack fans out (18px / 9 deg) with intensified glow
 
-**Mobile:** No `pointermove` on touch → overlay stays in `is-idle` state (45% dim). Acceptable UX for now.
+Chosen after iterating through rarity-based glows, breathing outlines, and `+N` badges, all of which conflicted with the cards' own inner white borders.
+
+### Header
+
+48px fixed frosted bar (`backdrop-filter: blur(18px) saturate(140%)` over `bg` at 78% opacity) with a 1px bottom border. Inner container matches the grid: `max-w-[1800px]` + `px-4`. Controls grouped into matching pills separated by a vertical divider.
+
+### Grid GAP
+
+`GAP = 14` px between cards (previously 6, felt cramped at max zoom).
 
 ### Scroll performance
 
-Removed all scroll-triggered entrance animations from `CardTile`. Only `whileHover` animations remain (Motion). `overscan = 12` rows keeps above/below rows pre-rendered.
+No scroll-triggered entrance animations. Only hover on tiles. `overscan = 12` rows pre-rendered above/below.
 
 ---
 
@@ -208,29 +241,34 @@ Two themes via `data-theme` attribute on `<html>`:
 | Token | Dark | Light |
 |---|---|---|
 | `--bg` | `#0a0a0a` | `#f5f5f5` |
-| `--surface` | `#141414` | `#ffffff` |
-| `--border` | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.08)` |
-| `--text` | `#e8e8e8` | `#1a1a1a` |
+| `--bg-surface` | `#141414` | `#ffffff` |
+| `--border-subtle` | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.08)` |
+| `--text-primary` | `#e8e8e8` | `#1a1a1a` |
 | `--text-muted` | `rgba(255,255,255,0.4)` | `rgba(0,0,0,0.4)` |
+
+---
+
+## Style Rules
+
+- **No em dashes (U+2014)** anywhere in the codebase: code, comments, JSX text, UI copy, data files, docs, commit messages. Use hyphens, commas, parentheses, or separate sentences.
 
 ---
 
 ## Adding Future TCG Collections
 
-The data layer is collection-agnostic. To add e.g. Pokémon TCG:
+The data layer is collection-agnostic. To add Pokemon TCG, for example:
 
-1. Add a new fetcher script in `scripts/` that outputs `data/pokemon-cards.json` in the same shape as One Piece
-2. Add a `collection` field to the `Card` type
-3. Add a collection switcher to the header (store `activeCollection` in Zustand)
-4. R2 structure: use prefixes — `cards/op/`, `cards/pokemon/`, etc.
-5. Images upload to separate R2 prefix per game
+1. New fetcher in `scripts/` outputting `data/pokemon-cards.json` in the same shape
+2. Add `collection` field to the `Card` type
+3. Collection switcher in the header (store `activeCollection` in Zustand)
+4. R2 prefixes: `cards/op/`, `cards/pokemon/`, etc.
 
 ---
 
 ## Dev Commands
 
 ```bash
-npm run dev          # Start dev server (localhost:3000, Turbopack)
+npm run dev          # Dev server (localhost:3001, Turbopack)
 npm run build        # Production build
 npm run lint         # ESLint
 npx tsc --noEmit     # Type check
@@ -240,10 +278,9 @@ npx tsc --noEmit     # Type check
 
 ## What's Left / Future Work
 
-- [ ] Add alternate art variant toggle in card tile (show `_p1`, `_p2` versions)
-- [ ] Add card detail metadata panel in lightbox (cost, power, effect text, types)
-- [ ] Add custom domain to R2 bucket for production (replace `pub-xxx.r2.dev` URL)
 - [ ] Deploy to Vercel (connect GitHub repo, add env vars)
-- [ ] New TCG collections — see "Adding Future TCG Collections" section above
-- [ ] Mobile: ChromaGrid follows touch position (currently stays in idle dim on mobile)
-- [ ] OP-11 and beyond — re-run `npm run cards:all` + `npm run r2:upload` when new sets release
+- [ ] Custom domain for R2 bucket (replace `pub-xxx.r2.dev` URL)
+- [ ] Card detail metadata panel in lightbox (cost, power, effect, types) if desired
+- [ ] Additional TCG collections (see above)
+- [ ] OP-11+ re-ingest when new sets release (`npm run cards:all` + `npm run r2:upload`)
+- [ ] Mobile responsive pass for header controls (currently hidden below md breakpoint)

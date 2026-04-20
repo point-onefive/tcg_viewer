@@ -48,7 +48,7 @@ export function CardTile({ card }: CardTileProps) {
       onMouseMove={handleMouseMove}
       role="button"
       tabIndex={0}
-      aria-label={`${card.name} — ${card.code}`}
+      aria-label={`${card.name} - ${card.code}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -56,7 +56,7 @@ export function CardTile({ card }: CardTileProps) {
         }
       }}
     >
-      {/* Stacked card hint — sits behind the main tile when variants exist */}
+      {/* Stacked card hint - sits behind the main tile when variants exist */}
       {hasVariants && (
         <>
           <div className="card-tile__stack card-tile__stack--2" aria-hidden />
@@ -69,7 +69,7 @@ export function CardTile({ card }: CardTileProps) {
 
         <Image
           src={card.imageSmall}
-          alt={`${card.name} — ${card.code}`}
+          alt={`${card.name} - ${card.code}`}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 200px"
           className="card-tile__image"
@@ -80,7 +80,7 @@ export function CardTile({ card }: CardTileProps) {
         {/* Cursor-following shine */}
         <div className="card-tile__shine" />
 
-        {/* Color accent bar — bottom edge on hover */}
+        {/* Color accent bar - bottom edge on hover */}
         <div className="card-tile__colorbar" />
       </div>
     </div>

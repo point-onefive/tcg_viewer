@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { Card, CardSet } from '@/lib/types'
-import { useStore } from '@/lib/store'
+import { useStore, COLLECTIONS } from '@/lib/store'
 import { CardTile } from './card-tile'
 
 const GAP = 14
@@ -14,7 +14,7 @@ interface CardGridProps {
 }
 
 const CARD_RATIO = 7 / 5 // height / width
-const HEADER_H = 80    // px reserved for fixed header
+const HEADER_H = 48    // px reserved for fixed header
 
 // Minimum columns so that 1 full card fits within the viewport height
 function minColumnsForViewport(windowWidth: number, windowHeight: number): number {
@@ -36,7 +36,8 @@ function zoomToColumns(zoom: number, windowWidth: number, windowHeight: number) 
 }
 
 export function CardGrid({ cards, sets }: CardGridProps) {
-  const { searchQuery, activeSet, activeRarity, activeColor, zoom } = useStore()
+  const { searchQuery, activeSet, activeRarity, activeColor, activeCollection, zoom } = useStore()
+  const collectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
   const [mounted, setMounted] = useState(false)
   const [windowWidth, setWindowWidth] = useState(1200)
   const [windowHeight, setWindowHeight] = useState(800)
@@ -100,7 +101,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   const estimateSize = useCallback(
     (index: number) => {
-      if (rowMeta[index] === 'header') return 64
+      if (rowMeta[index] === 'header') return 44
       const padding = 32
       const containerWidth = Math.min(window.innerWidth, 1800) - padding
       const cardWidth = (containerWidth - GAP * (columns - 1)) / columns
@@ -113,7 +114,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     count: mounted ? rows.length : 0,
     estimateSize,
     overscan: 12,
-    scrollMargin: 80,
+    scrollMargin: 48,
   })
 
   if (!mounted) {
@@ -132,7 +133,49 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   return (
     <div className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800 }}>
-      <div className="h-20" />
+      {/* Fixed 48px header spacer */}
+      <div style={{ height: 48 }} />
+
+      {/* Collection title - top-level grouping (collection > set).
+          Sits on a lifted surface panel to create depth against the page bg. */}
+      <div
+        className="-mx-4 md:-mx-4 px-4 md:px-4 py-3 md:py-3.5"
+        style={{
+          background: 'var(--bg-surface)',
+          borderTop: '1px solid var(--border-subtle)',
+          borderBottom: '1px solid var(--border-subtle)',
+          boxShadow: '0 1px 0 0 var(--border-subtle)',
+        }}
+      >
+        <div
+          className="text-[10px] tracking-[0.22em] uppercase mb-1"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Collection
+        </div>
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h2
+            className="uppercase"
+            style={{
+              fontFamily: 'var(--font-display)',
+              color: 'var(--text-primary)',
+              fontSize: 'clamp(20px, 2.4vw, 28px)',
+              fontWeight: 700,
+              letterSpacing: '-0.015em',
+              lineHeight: 1,
+            }}
+          >
+            {collectionName}
+          </h2>
+          <span
+            className="text-[11px] tracking-[0.16em] uppercase"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {filtered.length.toLocaleString()} cards
+            {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
+          </span>
+        </div>
+      </div>
 
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((virtualRow) => {
@@ -145,11 +188,11 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             return (
               <div
                 key={"header-" + set.setCode}
-                className="absolute top-0 left-0 w-full flex flex-col justify-end pb-3"
+                className="absolute top-0 left-0 w-full flex flex-col justify-end pb-2"
                 style={{ height: virtualRow.size, transform: "translateY(" + top + "px)" }}
               >
                 <div
-                  className="w-full mb-3"
+                  className="w-full mb-2"
                   style={{ height: 1, background: 'var(--border-subtle)' }}
                 />
                 <div className="flex items-baseline gap-2.5">

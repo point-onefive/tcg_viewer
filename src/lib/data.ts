@@ -15,7 +15,7 @@ try {
   _realCards = cardsJson
   _realSets = setsJson
 } catch {
-  // File not generated yet — fall through to mock data below
+  // File not generated yet - fall through to mock data below
 }
 
 // ---------------------------------------------------------------------------

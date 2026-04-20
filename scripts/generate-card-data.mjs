@@ -4,7 +4,7 @@
  *
  * Key behaviours:
  * - Uses canonical set names (hardcoded), ignoring pack metadata which is unreliable
- * - Collapses variant suffixes (_p1, _p2, _r1) — one tile per base card ID
+ * - Collapses variant suffixes (_p1, _p2, _r1) - one tile per base card ID
  * - Preserves all gameplay metadata: cost, power, counter, effect, trigger, types, attributes
  *
  * Run after fetch-card-data.mjs.
@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const CARDS_JSON = join(ROOT, 'data', 'cards.json')
+const PACKS_JSON = join(ROOT, 'data', 'packs.json')
 const OUT_CARDS = join(ROOT, 'src', 'lib', 'cards-generated.json')
 const OUT_SETS = join(ROOT, 'src', 'lib', 'sets-generated.json')
 
@@ -27,9 +28,10 @@ if (!existsSync(CARDS_JSON)) {
 }
 
 const rawCards = JSON.parse(readFileSync(CARDS_JSON, 'utf8'))
+const rawPacks = existsSync(PACKS_JSON) ? JSON.parse(readFileSync(PACKS_JSON, 'utf8')) : []
 
 // Canonical set names keyed by setCode prefix.
-// These are the OFFICIAL English names — do not use pack metadata for naming.
+// These are the OFFICIAL English names - do not use pack metadata for naming.
 const SET_META = {
   'OP01': { name: 'Romance Dawn',              date: '2022-07-22', order: 1 },
   'OP02': { name: 'Paramount War',             date: '2022-12-02', order: 2 },
@@ -41,31 +43,47 @@ const SET_META = {
   'OP08': { name: 'Two Legends',               date: '2024-05-24', order: 8 },
   'OP09': { name: 'Emperors in the New World', date: '2024-08-30', order: 9 },
   'OP10': { name: 'Royal Blood',               date: '2024-11-08', order: 10 },
-  'ST01': { name: 'Starter — Straw Hat Crew',  date: '2022-07-08', order: 11 },
-  'ST02': { name: 'Starter — Worst Generation',date: '2022-07-08', order: 12 },
-  'ST03': { name: 'Starter — Seven Warlords',  date: '2022-07-08', order: 13 },
-  'ST04': { name: 'Starter — Animal Kingdom',  date: '2022-12-02', order: 14 },
-  'ST05': { name: 'Starter — Film Edition',    date: '2023-03-10', order: 15 },
-  'ST06': { name: 'Starter — Absolute Justice',date: '2023-07-28', order: 16 },
-  'ST07': { name: 'Starter — Big Mom Pirates', date: '2023-07-28', order: 17 },
-  'ST08': { name: 'Starter — Monkey D. Luffy', date: '2023-07-28', order: 18 },
-  'ST09': { name: 'Starter — Yamato',          date: '2023-08-25', order: 19 },
-  'ST10': { name: 'Ultra Deck — Three Captains',date: '2023-11-10', order: 20 },
-  'ST11': { name: 'Starter — Uta',             date: '2023-11-10', order: 21 },
-  'ST12': { name: 'Starter — Zoro & Sanji',    date: '2024-02-09', order: 22 },
-  'ST13': { name: 'Ultra Deck — Three Brothers',date: '2024-02-09', order: 23 },
-  'ST14': { name: 'Starter — 3D2Y',            date: '2024-05-24', order: 24 },
-  'ST15': { name: 'Starter — Red Edward Newgate',date: '2024-08-30', order: 25 },
-  'ST16': { name: 'Starter — Green Uta',       date: '2024-11-08', order: 26 },
-  'ST17': { name: 'Starter — Blue Doflamingo', date: '2024-11-08', order: 27 },
-  'ST18': { name: 'Starter — Purple Luffy',    date: '2024-11-08', order: 28 },
-  'ST19': { name: 'Starter — Black Smoker',    date: '2025-03-07', order: 29 },
-  'ST20': { name: 'Starter — Yellow Katakuri', date: '2025-03-07', order: 30 },
-  'ST21': { name: 'Starter EX — Gear5',        date: '2025-03-07', order: 31 },
-  'EB01': { name: 'Extra — Memorial Collection',date: '2024-01-26', order: 32 },
-  'EB02': { name: 'Extra — Anime 25th Collection',date: '2025-01-24', order: 33 },
-  'PRB01':{ name: 'Premium — Card The Best',   date: '2024-09-27', order: 34 },
-  'P':    { name: 'Promo',                     date: '',           order: 35 },
+  'OP11': { name: 'A Fist of Divine Speed',    date: '2025-03-07', order: 11 },
+  'OP12': { name: 'Legacy of the Master',      date: '2025-06-13', order: 12 },
+  'ST01': { name: 'Starter - Straw Hat Crew',  date: '2022-07-08', order: 20 },
+  'ST02': { name: 'Starter - Worst Generation',date: '2022-07-08', order: 21 },
+  'ST03': { name: 'Starter - Seven Warlords',  date: '2022-07-08', order: 22 },
+  'ST04': { name: 'Starter - Animal Kingdom',  date: '2022-12-02', order: 23 },
+  'ST05': { name: 'Starter - Film Edition',    date: '2023-03-10', order: 24 },
+  'ST06': { name: 'Starter - Absolute Justice',date: '2023-07-28', order: 25 },
+  'ST07': { name: 'Starter - Big Mom Pirates', date: '2023-07-28', order: 26 },
+  'ST08': { name: 'Starter - Monkey D. Luffy', date: '2023-07-28', order: 27 },
+  'ST09': { name: 'Starter - Yamato',          date: '2023-08-25', order: 28 },
+  'ST10': { name: 'Ultra Deck - Three Captains',date: '2023-11-10', order: 29 },
+  'ST11': { name: 'Starter - Uta',             date: '2023-11-10', order: 30 },
+  'ST12': { name: 'Starter - Zoro & Sanji',    date: '2024-02-09', order: 31 },
+  'ST13': { name: 'Ultra Deck - Three Brothers',date: '2024-02-09', order: 32 },
+  'ST14': { name: 'Starter - 3D2Y',            date: '2024-05-24', order: 33 },
+  'ST15': { name: 'Starter - Red Edward Newgate',date: '2024-08-30', order: 34 },
+  'ST16': { name: 'Starter - Green Uta',       date: '2024-11-08', order: 35 },
+  'ST17': { name: 'Starter - Blue Doflamingo', date: '2024-11-08', order: 36 },
+  'ST18': { name: 'Starter - Purple Luffy',    date: '2024-11-08', order: 37 },
+  'ST19': { name: 'Starter - Black Smoker',    date: '2025-03-07', order: 38 },
+  'ST20': { name: 'Starter - Yellow Katakuri', date: '2025-03-07', order: 39 },
+  'ST21': { name: 'Starter EX - Gear 5',       date: '2025-03-07', order: 40 },
+  'ST22': { name: 'Starter - Boa Hancock',     date: '2025-06-13', order: 41 },
+  'ST23': { name: 'Starter - Blackbeard',      date: '2025-06-13', order: 42 },
+  'EB01': { name: 'Extra - Memorial Collection',date: '2024-01-26', order: 50 },
+  'EB02': { name: 'Extra - Anime 25th Collection',date: '2025-01-24', order: 51 },
+  'PRB01':{ name: 'Premium - Card The Best',   date: '2024-09-27', order: 60 },
+}
+
+// Pack-id based bucketing for cards that don't fit the standard {SET}-{NUM}
+// scheme. Keyed by source_pack_id from vegapull. These cover:
+//   569901 - Promotion Card (event / judge / tournament promos, all `P-xxx` ids)
+//   569801 - Other Product Card (Premium Bandai gift sets, Best Collection, 1st
+//            Anniversary Set, Memorial Collection, etc.)
+// Cards from these packs are grouped under a shared setCode so they appear as
+// a single "Promo" or "Bandai Exclusives" section rather than fragmenting into
+// one section per individual product.
+const PACK_ID_GROUPS = {
+  '569901': { setCode: 'PROMO',      name: 'Promo Cards',            order: 98 },
+  '569801': { setCode: 'EXCLUSIVES', name: 'Premium Bandai Exclusives', order: 99 },
 }
 
 const RARITY_MAP = {
@@ -92,6 +110,27 @@ function setCodeFromId(id) {
   return id.split('-')[0]
 }
 
+// Resolve the display set for a card. Cards from the promo / "other product"
+// packs have ambiguous prefixes (e.g. `P-001`, `GIFT-001`, `BDC-001`), so we
+// route them through PACK_ID_GROUPS when vegapull tells us which pack they
+// came from. Everything else uses the standard setCode lookup.
+function resolveSet(card) {
+  const group = PACK_ID_GROUPS[card.source_pack_id]
+  if (group) {
+    return {
+      setCode: group.setCode,
+      name: group.name,
+      date: '',
+      order: group.order,
+    }
+  }
+  const code = setCodeFromId(card.id)
+  const meta = SET_META[code]
+  if (meta) return { setCode: code, ...meta }
+  // Unknown retail set code: use the code itself, pushed to the end.
+  return { setCode: code, name: code, date: '', order: 900 }
+}
+
 // Extract variant label: "OP01-006_p3" → "p3", "OP01-006" → null
 function variantLabel(id) {
   const m = id.match(/_([a-z]\d+)$/i)
@@ -111,8 +150,7 @@ const cards = []
 for (const [base, variants] of grouped) {
   // Find the canonical base card (no suffix), or fall back to first entry
   const canonical = variants.find(v => v.id === base) ?? variants[0]
-  const setCode = setCodeFromId(base)
-  const meta = SET_META[setCode] ?? { name: setCode, date: '', order: 999 }
+  const set = resolveSet(canonical)
 
   // All non-base variants (alternate arts)
   const altVariants = variants
@@ -127,58 +165,10 @@ for (const [base, variants] of grouped) {
     id: base,
     code: base,
     name: canonical.name,
-    setCode,
-    setName: meta.name,
-    releaseDate: meta.date,
-    releaseOrder: meta.order,
-    cardType: canonical.category,
-    rarity: RARITY_MAP[canonical.rarity] ?? canonical.rarity,
-    colors: canonical.colors ?? [],
-    cost: canonical.cost ?? null,
-    power: canonical.power ?? null,
-    counter: canonical.counter ?? null,
-    attributes: canonical.attributes ?? [],
-    types: canonical.types ?? [],
-    effect: canonical.effect ? canonical.effect.replace(/<br>/g, '\n') : null,
-    trigger: canonical.trigger ? canonical.trigger.replace(/<br>/g, '\n') : null,
-    imageSmall: `${IMAGE_BASE}/${base}.png`,
-    imageLarge: `${IMAGE_BASE}/${base}.png`,
-    variants: altVariants.length > 0 ? altVariants : undefined,
-  })
-}
-
-// Sort: by releaseOrder, then by card number within set
-cards.sort((a, b) => {
-  if (a.releaseOrder !== b.releaseOrder) return a.releaseOrder - b.releaseOrder
-  return a.id.localeCompare(b.id)
-})
-
-// Build unique sets
-const setMap = new Map()
-for (const c of cards) {
-  if (!setMap.has(c.setCode)) {
-    setMap.set(c.setCode, {
-      setCode: c.setCode,
-      setName: c.setName,
-      releaseDate: c.releaseDate,
-      releaseOrder: c.releaseOrder,
-      cardCount: 0,
-    })
-  }
-  setMap.get(c.setCode).cardCount++
-}
-const sets = [...setMap.values()].sort((a, b) => a.releaseOrder - b.releaseOrder)
-
-writeFileSync(OUT_CARDS, JSON.stringify(cards, null, 2))
-writeFileSync(OUT_SETS, JSON.stringify(sets, null, 2))
-
-const withVariants = cards.filter(c => c.variants?.length > 0)
-console.log(`Written ${cards.length} base cards (${withVariants.length} with alternate arts) to src/lib/cards-generated.json`)
-console.log(`Written ${sets.length} sets to src/lib/sets-generated.json`
-    setCode,
-    setName: meta.name,
-    releaseDate: meta.date,
-    releaseOrder: meta.order,
+    setCode: set.setCode,
+    setName: set.name,
+    releaseDate: set.date,
+    releaseOrder: set.order,
     cardType: canonical.category,
     rarity: RARITY_MAP[canonical.rarity] ?? canonical.rarity,
     colors: canonical.colors ?? [],

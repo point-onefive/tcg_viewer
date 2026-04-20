@@ -31,7 +31,7 @@ const ZIP_URL = 'https://github.com/coko7/vegapull-records/releases/download/202
 const ZIP_PATH = join(DATA_DIR, 'english-images.zip')
 
 // Throttle: requests per second when using --cdn mode
-const CDN_DELAY_MS = 500 // 2 req/s — well under any rate limit
+const CDN_DELAY_MS = 500 // 2 req/s - well under any rate limit
 
 async function downloadZip() {
   console.log('Downloading image zip (~761MB) from GitHub releases...')

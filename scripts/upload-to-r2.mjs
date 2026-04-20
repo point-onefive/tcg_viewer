@@ -105,7 +105,7 @@ async function runWithConcurrency(tasks, concurrency) {
 async function main() {
   const allFiles = readdirSync(IMAGES_DIR).filter(f => f.endsWith('.png'))
 
-  // Check which files already exist in R2 via HEAD — skip them to resume safely
+  // Check which files already exist in R2 via HEAD - skip them to resume safely
   // For speed: skip the HEAD check and use a local marker file instead
   const DONE_FILE = join(ROOT, 'data', 'uploaded.json')
   const done = new Set(existsSync(DONE_FILE) ? JSON.parse(readFileSync(DONE_FILE, 'utf8')) : [])

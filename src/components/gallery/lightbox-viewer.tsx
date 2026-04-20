@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { Card } from '@/lib/types'
@@ -31,6 +31,63 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // Reset focused variant when card changes
   useEffect(() => { setFocused(0) }, [lightboxCardId])
 
+  const stepVariant = useCallback((delta: number) => {
+    setFocused((f) => {
+      const next = f + delta
+      if (next < 0 || next > images.length - 1) return f
+      return next
+    })
+  }, [images.length])
+
+  // Wheel / trackpad navigation through variants.
+  // Accumulate delta with a cooldown so a single trackpad swipe = one step.
+  // Attached via native listener so we can call preventDefault (React wheel is passive).
+  const stageRef = useRef<HTMLDivElement>(null)
+  const wheelAccum = useRef(0)
+  const wheelCooldown = useRef(false)
+  useEffect(() => {
+    if (!lightboxCardId || !hasMultiple) return
+    const el = stageRef.current
+    if (!el) return
+    const handler = (e: WheelEvent) => {
+      e.preventDefault()
+      if (wheelCooldown.current) return
+      const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      wheelAccum.current += raw
+      const THRESHOLD = 40
+      if (Math.abs(wheelAccum.current) >= THRESHOLD) {
+        stepVariant(wheelAccum.current > 0 ? 1 : -1)
+        wheelAccum.current = 0
+        wheelCooldown.current = true
+        setTimeout(() => { wheelCooldown.current = false }, 220)
+      }
+    }
+    el.addEventListener('wheel', handler, { passive: false })
+    return () => el.removeEventListener('wheel', handler)
+  }, [lightboxCardId, hasMultiple, stepVariant])
+
+  // Touch swipe navigation (mobile).
+  const touchStartX = useRef<number | null>(null)
+  const touchStartY = useRef<number | null>(null)
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || touchStartY.current == null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = e.changedTouches[0].clientY - touchStartY.current
+    touchStartX.current = null
+    touchStartY.current = null
+    const THRESHOLD = 40
+    // Horizontal swipe wins over vertical
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > THRESHOLD) {
+      if (hasMultiple) stepVariant(dx < 0 ? 1 : -1)
+    } else if (Math.abs(dy) > THRESHOLD) {
+      if (hasMultiple) stepVariant(dy < 0 ? 1 : -1)
+    }
+  }
+
   const goNext = useCallback(() => {
     if (currentIndex < cards.length - 1) openLightbox(cards[currentIndex + 1].id)
   }, [currentIndex, cards, openLightbox])
@@ -45,10 +102,12 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
       if (e.key === 'Escape') closeLightbox()
       if (e.key === 'ArrowRight') goNext()
       if (e.key === 'ArrowLeft') goPrev()
+      if (e.key === 'ArrowDown') { e.preventDefault(); stepVariant(1) }
+      if (e.key === 'ArrowUp') { e.preventDefault(); stepVariant(-1) }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [lightboxCardId, closeLightbox, goNext, goPrev])
+  }, [lightboxCardId, closeLightbox, goNext, goPrev, stepVariant])
 
   useEffect(() => {
     document.body.style.overflow = lightboxCardId ? 'hidden' : ''
@@ -72,7 +131,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}
           />
 
-          {/* Stage — variants fan out horizontally */}
+          {/* Stage - variants fan out horizontally */}
           <div
             className="relative z-10 flex items-center justify-center w-full h-full px-8"
             onClick={(e) => e.stopPropagation()}
@@ -109,7 +168,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                       className="object-cover rounded-xl"
                       priority={isActive}
                     />
-                    {/* Variant label — subtle tag at bottom */}
+                    {/* Variant label - subtle tag at bottom */}
                     {hasMultiple && (
                       <div className="lb-card__label">
                         {img.label === 'base' ? 'Base' : img.label.toUpperCase()}
@@ -133,7 +192,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             </svg>
           </button>
 
-          {/* Variant dots — only if more than one */}
+          {/* Variant dots - only if more than one */}
           {hasMultiple && (
             <div className="lb-dots" onClick={(e) => e.stopPropagation()}>
               {images.map((img, i) => (
@@ -165,7 +224,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             ›
           </button>
 
-          {/* Counter — subtle */}
+          {/* Counter - subtle */}
           <div className="lb-counter" onClick={(e) => e.stopPropagation()}>
             {currentIndex + 1} / {cards.length}
           </div>

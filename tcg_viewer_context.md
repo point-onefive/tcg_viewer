@@ -1,4 +1,29 @@
-# One Piece TCG Gallery — Copilot Master Prompt
+# One Piece TCG Gallery - Copilot Master Prompt
+
+> **NOTE (April 20, 2026):** The MVP is built. See [PROJECT.md](./PROJECT.md) for the current implementation, file structure, data pipeline, and R2 configuration. This document is preserved as the original product brief and creative direction. Treat it as the design compass; treat PROJECT.md as the source of truth for what actually exists in the codebase.
+
+## Implementation Status (condensed)
+
+- Brand: **CARD WALL** (was HOARD). Unified two-panel lockup: pixel mascot in a bordered light chip + inverted black wordmark, single rounded mark.
+- Default theme: **light**. Seamless token-driven toggle (global transition on color-family properties).
+- Next.js 15.5 + App Router + TypeScript + Tailwind v4 + Lenis + TanStack Virtual + Motion + Zustand
+- **1,661** unique cards (from 2,628 raw), 518 with alternate-art variants; 35 canonical sets (including PROMO + EXCLUSIVES buckets)
+- 2,627 card images hosted on Cloudflare R2
+- Virtualized card wall with viewport-aware zoom (1 to 12)
+- Fan-out lightbox viewer for alternate arts; supports click, keyboard arrows (L/R paginate cards, U/D step variants), mouse wheel / trackpad, and touch swipe
+- 48px frosted-glass header with unified pill controls (collection filter, search, set filter, zoom, theme)
+- Collection section sits on a lifted `--bg-surface` band with hairline borders for depth against the page `--bg`
+- Variant cards use a stacked-deck visual metaphor (two peek sheets tinted in the card's dominant color, gentle sway animation, fans out on hover)
+- Collections: one-piece (available); pokemon, magic, yu-gi-oh shown as `(coming soon)`
+- Data source: `coko7/vegapull-records` (full pack coverage, no prefix allow-list)
+- Themed focus ring (`:focus-visible` uses `--text-primary`), no browser-default blue
+- Repo pushed to `point-onefive/tcg_viewer` (private)
+
+## Style rule
+
+**No em dashes (U+2014) anywhere.** Code, comments, JSX text, UI copy, docs, data, commit messages. Use hyphens, commas, parentheses, or separate sentences.
+
+---
 
 You are helping me build a premium, minimal, aesthetic-first web app for viewing the **One Piece Trading Card Game** card library from the earliest release through the current release.
 

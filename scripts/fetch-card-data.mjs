@@ -3,8 +3,8 @@
  * Source: https://github.com/coko7/vegapull-records
  * Data is scraped from the official Bandai site (en.onepiece-cardgame.com).
  *
- * Output: data/cards.json  — array of all cards, all packs merged
- *         data/packs.json  — pack metadata
+ * Output: data/cards.json  - array of all cards, all packs merged
+ *         data/packs.json  - pack metadata
  *
  * Usage: node scripts/fetch-card-data.mjs
  */
@@ -20,9 +20,13 @@ const DATA_DIR = join(ROOT, 'data')
 const BASE_URL = 'https://raw.githubusercontent.com/coko7/vegapull-records/main/data/english'
 const PACKS_URL = `${BASE_URL}/packs.json`
 
-// Packs to include — main boosters + starters + extras
-// Excludes promo (569901) and "Other Product Card" (569801) which are inconsistent
-const INCLUDE_PREFIXES = ['BOOSTER PACK', 'STARTER DECK', 'EXTRA BOOSTER', 'PREMIUM BOOSTER', 'ULTRA DECK', 'STARTER DECK EX']
+// Full coverage: pull every pack the dataset exposes. This includes retail
+// boosters, starters, extras, premium boosters, AND the promo / Premium Bandai
+// exclusive buckets (Promotion Card, Other Product Card, gift collections,
+// best collection, memorial collection, etc.).
+//
+// If a specific pack turns out to be empty or broken upstream, add its id here.
+const EXCLUDE_PACK_IDS = new Set([])
 
 async function fetchJSON(url) {
   const res = await fetch(url)
@@ -39,12 +43,9 @@ async function main() {
   console.log('Fetching pack list...')
   const allPacks = await fetchJSON(PACKS_URL)
 
-  const packs = allPacks.filter((p) => {
-    if (!p.title_parts.prefix) return false
-    return INCLUDE_PREFIXES.includes(p.title_parts.prefix)
-  })
+  const packs = allPacks.filter((p) => !EXCLUDE_PACK_IDS.has(p.id))
 
-  console.log(`Found ${packs.length} packs to fetch`)
+  console.log(`Found ${packs.length} packs to fetch (of ${allPacks.length} total)`)
   writeFileSync(join(DATA_DIR, 'packs.json'), JSON.stringify(packs, null, 2))
 
   const allCards = []
@@ -60,10 +61,15 @@ async function main() {
       // Normalise image URL: strip cache-busting query param, keep clean path
       const normalised = cards.map((c) => ({
         ...c,
-        // Clean image URL without the cache-buster — we'll host these on R2
+        // Clean image URL without the cache-buster - we'll host these on R2
         img_path: `cards/${c.id}.png`,
         // Keep full URL as fallback during development
         img_full_url: c.img_full_url,
+        // Source pack metadata so the generator can bucket promos / exclusives
+        // into meaningful set labels even when the card ID prefix is ambiguous.
+        source_pack_id: pack.id,
+        source_pack_prefix: pack.title_parts?.prefix ?? null,
+        source_pack_label: pack.title_parts?.label ?? null,
       }))
       allCards.push(...normalised)
       console.log(`${cards.length} cards`)
