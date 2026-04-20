@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
+import { Bookmark } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 
 interface LightboxViewerProps { cards: Card[] }
 
 export function LightboxViewer({ cards }: LightboxViewerProps) {
-  const { lightboxCardId, closeLightbox, openLightbox } = useStore()
+  const { lightboxCardId, closeLightbox, openLightbox, togglePin, isPinned } = useStore()
   const [focused, setFocused] = useState(0)
 
   const currentIndex = useMemo(
@@ -179,6 +180,25 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               })}
             </div>
           </div>
+
+          {/* Pin focused image (base or variant) */}
+          {card && (() => {
+            const img = images[focused]
+            const pinArg = focused === 0
+              ? { cardId: card.id }
+              : { cardId: card.id, variantId: img.id }
+            const pinned = isPinned(pinArg)
+            return (
+              <button
+                className={`lb-pin-btn${pinned ? ' lb-pin-btn--active' : ''}`}
+                onClick={(e) => { e.stopPropagation(); togglePin(pinArg) }}
+                aria-label={pinned ? 'Remove from board' : 'Pin to board'}
+                aria-pressed={pinned}
+              >
+                <Bookmark size={14} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
+              </button>
+            )
+          })()}
 
           {/* Close */}
           <button

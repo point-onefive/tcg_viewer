@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
+import { Bookmark } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 
@@ -21,6 +22,8 @@ interface CardTileProps {
 export function CardTile({ card }: CardTileProps) {
   const [loaded, setLoaded] = useState(false)
   const openLightbox = useStore((s) => s.openLightbox)
+  const togglePin = useStore((s) => s.togglePin)
+  const isPinned = useStore((s) => s.isPinned({ cardId: card.id }))
   const cardRef = useRef<HTMLDivElement>(null)
 
   const primaryColor = card.colors?.[0] ? (COLOR_MAP[card.colors[0]] ?? 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.15)'
@@ -82,6 +85,21 @@ export function CardTile({ card }: CardTileProps) {
 
         {/* Color accent bar - bottom edge on hover */}
         <div className="card-tile__colorbar" />
+
+        {/* Pin / bookmark toggle - top-right. Pins the base art.
+            Variants are pinned individually from the lightbox. */}
+        <button
+          type="button"
+          className={`card-tile__pin${isPinned ? ' card-tile__pin--active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            togglePin({ cardId: card.id })
+          }}
+          aria-label={isPinned ? 'Remove from board' : 'Pin to board'}
+          aria-pressed={isPinned}
+        >
+          <Bookmark size={14} strokeWidth={2} fill={isPinned ? 'currentColor' : 'none'} />
+        </button>
       </div>
     </div>
   )

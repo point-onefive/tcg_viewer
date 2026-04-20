@@ -1,6 +1,7 @@
 'use client'
 
 import { ThemeToggle } from './theme-toggle'
+import { Bookmark } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
@@ -15,6 +16,7 @@ export function Header({ sets }: HeaderProps) {
     activeSet, setActiveSet,
     activeCollection, setActiveCollection,
     zoom, setZoom,
+    pinned, setBoardOpen,
   } = useStore()
 
   return (
@@ -184,6 +186,36 @@ export function Header({ sets }: HeaderProps) {
           </div>
 
           <ThemeToggle />
+
+          {/* Board trigger - shows pin count badge when non-zero */}
+          <button
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium relative"
+            style={{
+              background: pinned.length > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
+              color: pinned.length > 0 ? 'var(--bg)' : 'var(--text-primary)',
+              border: '1px solid var(--border-subtle)',
+              transition: 'background 0.2s ease, color 0.2s ease',
+            }}
+            onClick={() => setBoardOpen(true)}
+            aria-label={`Open board (${pinned.length} pinned)`}
+          >
+            <Bookmark size={12} strokeWidth={2} fill={pinned.length > 0 ? 'currentColor' : 'none'} />
+            Board
+            {pinned.length > 0 && (
+              <span
+                className="inline-flex items-center justify-center rounded-full text-[10px] font-bold leading-none"
+                style={{
+                  minWidth: 16,
+                  height: 16,
+                  padding: '0 4px',
+                  background: 'var(--bg)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {pinned.length}
+              </span>
+            )}
+          </button>
         </div>
       </div>
     </header>

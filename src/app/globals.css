@@ -186,6 +186,50 @@ html.lenis, html.lenis body {
   opacity: 0.6;
 }
 
+/* Pin / bookmark toggle on each card tile.
+   Hidden by default, fades in on hover. Stays visible when active (pinned). */
+.card-tile__pin {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 180ms ease, transform 180ms ease, background 180ms ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.card-tile:hover .card-tile__pin,
+.card-tile:focus-within .card-tile__pin,
+.card-tile__pin--active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-tile__pin:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.card-tile__pin--active {
+  background: var(--text-primary);
+  color: var(--bg);
+}
+
+.card-tile__pin--active:hover {
+  background: var(--text-primary);
+}
+
 /* ─── Variant indicator: stacked-card effect ─────────────────── */
 /* Cards with alternates render with 2 "peek" sheets sitting behind
    them - like a small deck. Animated gentle sway + color glow on the
@@ -378,6 +422,43 @@ html.lenis, html.lenis body {
 }
 
 /* Close button - top-right of viewport */
+/* Pin button in lightbox - sits to the left of close */
+.lb-pin-btn {
+  position: absolute;
+  top: 24px;
+  right: 68px;
+  z-index: 20;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.lb-pin-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.lb-pin-btn--active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.lb-pin-btn--active:hover {
+  background: rgba(255,255,255,0.85);
+}
+
 .lb-close-btn {
   position: absolute;
   top: 24px;
@@ -402,6 +483,205 @@ html.lenis, html.lenis body {
   background: rgba(255,255,255,0.12);
   color: #fff;
   transform: scale(1.06);
+}
+
+/* ─── Board panel (slide-over) ───────────────────────────────── */
+
+.board-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.board-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  width: min(380px, 94vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-left: 1px solid var(--border-subtle);
+  outline: none;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+}
+
+.board-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.board-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.board-panel__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--text-primary);
+  color: var(--bg);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.board-panel__close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.board-panel__close:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.board-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.board-panel__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  min-height: 240px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.board-panel__empty-hint {
+  font-size: 11px;
+  max-width: 220px;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+.board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.board-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  touch-action: manipulation;
+}
+
+.board-item__drag {
+  color: var(--text-muted);
+  cursor: grab;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.board-item__drag:active {
+  cursor: grabbing;
+}
+
+.board-item__img {
+  position: relative;
+  width: 44px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--border-subtle);
+}
+
+.board-item__placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--border-subtle);
+}
+
+.board-item__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.board-item__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-item__variant {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.board-item__remove {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.board-item__remove:hover {
+  background: var(--bg);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
 }
 
 /* Variant dots - bottom center */
