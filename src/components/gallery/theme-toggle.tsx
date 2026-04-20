@@ -24,11 +24,14 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center justify-center w-8 h-8 rounded-full cursor-pointer"
+      className="flex items-center justify-center cursor-pointer"
       style={{
         background: 'var(--bg-surface)',
         color: 'var(--text-secondary)',
         border: '1px solid var(--border-subtle)',
+        borderRadius: 6,
+        width: 30,
+        height: 30,
       }}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
     >

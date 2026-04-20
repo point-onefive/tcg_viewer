@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Menu, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
@@ -18,6 +19,15 @@ export function Header({ sets }: HeaderProps) {
     zoom, setZoom,
     pinned, setBoardOpen,
   } = useStore()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Shared style token — matches logo's rounded-rect language
+  const ctrl: React.CSSProperties = {
+    background: 'var(--bg-surface)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 6,
+  }
 
   return (
     <header
@@ -91,23 +101,19 @@ export function Header({ sets }: HeaderProps) {
           </span>
         </a>
 
-        {/* Controls cluster - ordered broad -> narrow: collection, set, search */}
-        <div className="flex items-center gap-2">
+        {/* ── Desktop controls ── */}
+        <div className="hidden md:flex items-center gap-2">
           {/* Collection Filter */}
           <select
             value={activeCollection}
             onChange={(e) => setActiveCollection(e.target.value as typeof activeCollection)}
-            className="hidden md:block px-3 py-1.5 text-xs rounded-full outline-none cursor-pointer appearance-none font-medium"
-            style={{
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-            }}
+            className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none font-medium"
+            style={{ ...ctrl, height: 30 }}
             aria-label="Collection"
           >
             {COLLECTIONS.map((c) => (
               <option key={c.id} value={c.id} disabled={!c.available}>
-                {c.name}{!c.available ? ' (coming soon)' : ''}
+                {c.name}{!c.available ? ' (soon)' : ''}
               </option>
             ))}
           </select>
@@ -116,49 +122,34 @@ export function Header({ sets }: HeaderProps) {
           <select
             value={activeSet || ''}
             onChange={(e) => setActiveSet(e.target.value || null)}
-            className="hidden md:block px-3 py-1.5 text-xs rounded-full outline-none cursor-pointer appearance-none max-w-[160px]"
-            style={{
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-            }}
+            className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
+            style={{ ...ctrl, height: 30 }}
           >
             <option value="">All Sets</option>
             {sets.map((s) => (
               <option key={s.setCode} value={s.setCode}>
-                {s.setCode} - {s.setName}
+                {s.setCode} — {s.setName}
               </option>
             ))}
           </select>
 
-          {/* Search - finest filter, sits last in the filter group */}
+          {/* Search */}
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search..."
-            className="hidden md:block w-48 px-3 py-1.5 text-xs rounded-full outline-none transition-[width,border-color] duration-300 focus:w-64"
-            style={{
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-            }}
+            placeholder="Search cards…"
+            className="w-40 px-3 py-1.5 text-xs outline-none transition-[width] duration-300 focus:w-56"
+            style={{ ...ctrl, height: 30 }}
           />
 
           {/* Divider */}
-          <div
-            className="hidden md:block mx-1"
-            style={{ width: 1, height: 20, background: 'var(--border-subtle)' }}
-            aria-hidden
-          />
+          <div style={{ width: 1, height: 20, background: 'var(--border-subtle)', margin: '0 2px' }} aria-hidden />
 
           {/* Zoom slider */}
           <div
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full"
-            style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-            }}
+            className="flex items-center gap-2 px-3"
+            style={{ ...ctrl, height: 30 }}
           >
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
               <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
@@ -167,15 +158,9 @@ export function Header({ sets }: HeaderProps) {
               <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
             </svg>
             <input
-              type="range"
-              min={1}
-              max={12}
-              step={1}
-              value={zoom}
+              type="range" min={1} max={12} step={1} value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              className="zoom-slider"
-              aria-label="Zoom level"
-              style={{ width: 72 }}
+              className="zoom-slider" aria-label="Zoom level" style={{ width: 72 }}
             />
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
               <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
@@ -187,13 +172,14 @@ export function Header({ sets }: HeaderProps) {
 
           <ThemeToggle />
 
-          {/* Board trigger - shows pin count badge when non-zero */}
+          {/* Board trigger */}
           <button
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium relative"
+            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
             style={{
+              ...ctrl,
+              height: 30,
               background: pinned.length > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
               color: pinned.length > 0 ? 'var(--bg)' : 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
               transition: 'background 0.2s ease, color 0.2s ease',
             }}
             onClick={() => setBoardOpen(true)}
@@ -203,21 +189,104 @@ export function Header({ sets }: HeaderProps) {
             Board
             {pinned.length > 0 && (
               <span
-                className="inline-flex items-center justify-center rounded-full text-[10px] font-bold leading-none"
-                style={{
-                  minWidth: 16,
-                  height: 16,
-                  padding: '0 4px',
-                  background: 'var(--bg)',
-                  color: 'var(--text-primary)',
-                }}
+                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 4, background: 'var(--bg)', color: 'var(--text-primary)' }}
               >
                 {pinned.length}
               </span>
             )}
           </button>
         </div>
+
+        {/* ── Mobile right cluster ── */}
+        <div className="flex md:hidden items-center gap-2">
+          {/* Board icon - only if pins exist */}
+          {pinned.length > 0 && (
+            <button
+              className="relative inline-flex items-center justify-center"
+              style={{ ...ctrl, width: 32, height: 32 }}
+              onClick={() => setBoardOpen(true)}
+              aria-label={`Board (${pinned.length} pinned)`}
+            >
+              <Bookmark size={14} strokeWidth={2} fill="currentColor" />
+              <span
+                className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
+                style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
+              >
+                {pinned.length}
+              </span>
+            </button>
+          )}
+
+          <ThemeToggle />
+
+          {/* Hamburger */}
+          <button
+            className="inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 32, height: 32 }}
+            onClick={() => setMobileOpen((o) => !o)}
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={15} /> : <Menu size={15} />}
+          </button>
+        </div>
       </div>
+
+      {/* ── Mobile filter sheet ── */}
+      {mobileOpen && (
+        <div
+          className="md:hidden px-4 pb-4 pt-2 flex flex-col gap-3"
+          style={{ borderTop: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
+        >
+          <select
+            value={activeCollection}
+            onChange={(e) => { setActiveCollection(e.target.value as typeof activeCollection); setMobileOpen(false) }}
+            className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none font-medium"
+            style={{ ...ctrl }}
+            aria-label="Collection"
+          >
+            {COLLECTIONS.map((c) => (
+              <option key={c.id} value={c.id} disabled={!c.available}>
+                {c.name}{!c.available ? ' (soon)' : ''}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={activeSet || ''}
+            onChange={(e) => { setActiveSet(e.target.value || null); setMobileOpen(false) }}
+            className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
+            style={{ ...ctrl }}
+          >
+            <option value="">All Sets</option>
+            {sets.map((s) => (
+              <option key={s.setCode} value={s.setCode}>
+                {s.setCode} — {s.setName}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search cards…"
+            className="w-full px-3 py-2 text-sm outline-none"
+            style={{ ...ctrl }}
+          />
+
+          {/* Zoom row */}
+          <div className="flex items-center gap-3 px-3 py-2" style={{ ...ctrl }}>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Zoom</span>
+            <input
+              type="range" min={1} max={12} step={1} value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="zoom-slider flex-1" aria-label="Zoom level"
+            />
+          </div>
+        </div>
+      )}
     </header>
   )
 }

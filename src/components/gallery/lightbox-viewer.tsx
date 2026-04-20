@@ -119,24 +119,105 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     <AnimatePresence>
       {card && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
           onClick={closeLightbox}
+          ref={stageRef}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
-          {/* Backdrop */}
+          {/* Backdrop — deep gradient with subtle vignette */}
           <div
             className="absolute inset-0"
-            style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}
+            style={{
+              background: 'radial-gradient(ellipse at 50% 40%, rgba(18,18,28,0.97) 0%, rgba(0,0,0,1) 100%)',
+              backdropFilter: 'blur(32px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(120%)',
+            }}
+          />
+          {/* Subtle noise/grain overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.75\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.04\'/%3E%3C/svg%3E")',
+              opacity: 0.6,
+            }}
           />
 
-          {/* Stage - variants fan out horizontally */}
+          {/* Top HUD: counter left, pin+close right */}
           <div
-            className="relative z-10 flex items-center justify-center w-full h-full px-8"
+            className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 md:px-6"
+            style={{ height: 60, pointerEvents: 'none' }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Counter */}
+            <div
+              className="inline-flex items-center gap-1.5 px-3 text-xs font-medium tabular-nums"
+              style={{
+                pointerEvents: 'none',
+                color: 'rgba(255,255,255,0.45)',
+                letterSpacing: '0.08em',
+              }}
+            >
+              {currentIndex + 1} <span style={{ opacity: 0.4 }}>/</span> {cards.length}
+            </div>
+
+            {/* Pin + Close group — rounded-rect matching nav language */}
+            <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
+              {card && (() => {
+                const img = images[focused]
+                const pinArg = focused === 0
+                  ? { cardId: card.id }
+                  : { cardId: card.id, variantId: img.id }
+                const pinned = isPinned(pinArg)
+                return (
+                  <button
+                    className={`lb-hud-btn${pinned ? ' lb-hud-btn--active' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); togglePin(pinArg) }}
+                    aria-label={pinned ? 'Remove from board' : 'Pin to board'}
+                    aria-pressed={pinned}
+                  >
+                    <Bookmark size={13} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
+                    <span className="hidden sm:inline">{pinned ? 'Pinned' : 'Pin'}</span>
+                  </button>
+                )
+              })()}
+              <button
+                className="lb-hud-btn"
+                onClick={(e) => { e.stopPropagation(); closeLightbox() }}
+                aria-label="Close"
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <line x1="2" y1="2" x2="12" y2="12" />
+                  <line x1="12" y1="2" x2="2" y2="12" />
+                </svg>
+                <span className="hidden sm:inline">Close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card stage — fills middle, arrow buttons flanking */}
+          <div
+            className="relative z-10 flex items-center justify-center w-full"
+            style={{ flex: 1, minHeight: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Prev arrow — hugs the card */}
+            <button
+              className="lb-arrow lb-arrow--prev"
+              onClick={(e) => { e.stopPropagation(); goPrev() }}
+              disabled={currentIndex <= 0}
+              aria-label="Previous card"
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="13 4 7 10 13 16" />
+              </svg>
+            </button>
+
+            {/* Cards fan */}
             <div className="lb-stage">
               {images.map((img, i) => {
                 const offset = i - focused
@@ -165,11 +246,11 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                       src={img.src}
                       alt={img.label}
                       fill
-                      sizes="(max-width: 768px) 80vw, 460px"
+                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 55vw, 460px"
                       className="object-cover rounded-xl"
                       priority={isActive}
                     />
-                    {/* Variant label - subtle tag at bottom */}
+                    {/* Variant label */}
                     {hasMultiple && (
                       <div className="lb-card__label">
                         {img.label === 'base' ? 'Base' : img.label.toUpperCase()}
@@ -179,74 +260,54 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 )
               })}
             </div>
+
+            {/* Next arrow — hugs the card */}
+            <button
+              className="lb-arrow lb-arrow--next"
+              onClick={(e) => { e.stopPropagation(); goNext() }}
+              disabled={currentIndex >= cards.length - 1}
+              aria-label="Next card"
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="7 4 13 10 7 16" />
+              </svg>
+            </button>
           </div>
 
-          {/* Pin focused image (base or variant) */}
-          {card && (() => {
-            const img = images[focused]
-            const pinArg = focused === 0
-              ? { cardId: card.id }
-              : { cardId: card.id, variantId: img.id }
-            const pinned = isPinned(pinArg)
-            return (
-              <button
-                className={`lb-pin-btn${pinned ? ' lb-pin-btn--active' : ''}`}
-                onClick={(e) => { e.stopPropagation(); togglePin(pinArg) }}
-                aria-label={pinned ? 'Remove from board' : 'Pin to board'}
-                aria-pressed={pinned}
+          {/* Bottom info bar */}
+          <div
+            className="relative z-20 w-full flex flex-col items-center gap-2 pb-6 pt-3"
+            onClick={(e) => e.stopPropagation()}
+            style={{ flexShrink: 0 }}
+          >
+            {/* Card name + meta */}
+            <div className="flex flex-col items-center gap-1 text-center px-4">
+              <span
+                className="text-white font-bold tracking-tight leading-tight"
+                style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 3vw, 22px)' }}
               >
-                <Bookmark size={14} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
-              </button>
-            )
-          })()}
-
-          {/* Close */}
-          <button
-            className="lb-close-btn"
-            onClick={(e) => { e.stopPropagation(); closeLightbox() }}
-            aria-label="Close"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="2" y1="2" x2="12" y2="12" />
-              <line x1="12" y1="2" x2="2" y2="12" />
-            </svg>
-          </button>
-
-          {/* Variant dots - only if more than one */}
-          {hasMultiple && (
-            <div className="lb-dots" onClick={(e) => e.stopPropagation()}>
-              {images.map((img, i) => (
-                <button
-                  key={img.id}
-                  className={`lb-dot${i === focused ? ' lb-dot--active' : ''}`}
-                  onClick={() => setFocused(i)}
-                  aria-label={`View ${img.label}`}
-                />
-              ))}
+                {card.name}
+              </span>
+              <div className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                {card.setCode && <span>{card.setCode}</span>}
+                {card.rarity && <><span style={{ opacity: 0.3 }}>·</span><span>{card.rarity}</span></>}
+                {card.cardType && <><span style={{ opacity: 0.3 }}>·</span><span>{card.cardType}</span></>}
+              </div>
             </div>
-          )}
 
-          {/* Prev / Next cards */}
-          <button
-            className="lb-arrow lb-arrow--prev"
-            onClick={(e) => { e.stopPropagation(); goPrev() }}
-            disabled={currentIndex <= 0}
-            aria-label="Previous card"
-          >
-            ‹
-          </button>
-          <button
-            className="lb-arrow lb-arrow--next"
-            onClick={(e) => { e.stopPropagation(); goNext() }}
-            disabled={currentIndex >= cards.length - 1}
-            aria-label="Next card"
-          >
-            ›
-          </button>
-
-          {/* Counter - subtle */}
-          <div className="lb-counter" onClick={(e) => e.stopPropagation()}>
-            {currentIndex + 1} / {cards.length}
+            {/* Variant dots */}
+            {hasMultiple && (
+              <div className="lb-dots">
+                {images.map((img, i) => (
+                  <button
+                    key={img.id}
+                    className={`lb-dot${i === focused ? ' lb-dot--active' : ''}`}
+                    onClick={() => setFocused(i)}
+                    aria-label={`View ${img.label}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
       )}
