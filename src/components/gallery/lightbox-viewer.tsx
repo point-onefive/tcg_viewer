@@ -199,24 +199,12 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             </div>
           </div>
 
-          {/* Card stage — fills middle, arrow buttons flanking */}
+          {/* Card stage — centered, no side arrows so fan can never be obscured */}
           <div
             className="relative z-10 flex items-center justify-center w-full"
             style={{ flex: 1, minHeight: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Prev arrow — hugs the card */}
-            <button
-              className="lb-arrow lb-arrow--prev"
-              onClick={(e) => { e.stopPropagation(); goPrev() }}
-              disabled={currentIndex <= 0}
-              aria-label="Previous card"
-            >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="13 4 7 10 13 16" />
-              </svg>
-            </button>
-
             {/* Cards fan */}
             <div className="lb-stage">
               {images.map((img, i) => {
@@ -260,39 +248,51 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 )
               })}
             </div>
-
-            {/* Next arrow — hugs the card */}
-            <button
-              className="lb-arrow lb-arrow--next"
-              onClick={(e) => { e.stopPropagation(); goNext() }}
-              disabled={currentIndex >= cards.length - 1}
-              aria-label="Next card"
-            >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="7 4 13 10 7 16" />
-              </svg>
-            </button>
           </div>
 
           {/* Bottom info bar */}
           <div
-            className="relative z-20 w-full flex flex-col items-center gap-2 pb-6 pt-3"
+            className="relative z-20 w-full flex flex-col items-center gap-3 pb-6 pt-3"
             onClick={(e) => e.stopPropagation()}
             style={{ flexShrink: 0 }}
           >
-            {/* Card name + meta */}
-            <div className="flex flex-col items-center gap-1 text-center px-4">
-              <span
-                className="text-white font-bold tracking-tight leading-tight"
-                style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 3vw, 22px)' }}
+            {/* Card name row with prev/next arrows flanking — never overlaps the fan */}
+            <div className="flex items-center justify-center gap-3 md:gap-4 w-full px-4">
+              <button
+                className="lb-arrow"
+                onClick={(e) => { e.stopPropagation(); goPrev() }}
+                disabled={currentIndex <= 0}
+                aria-label="Previous card"
               >
-                {card.name}
-              </span>
-              <div className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                {card.setCode && <span>{card.setCode}</span>}
-                {card.rarity && <><span style={{ opacity: 0.3 }}>·</span><span>{card.rarity}</span></>}
-                {card.cardType && <><span style={{ opacity: 0.3 }}>·</span><span>{card.cardType}</span></>}
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="13 4 7 10 13 16" />
+                </svg>
+              </button>
+
+              <div className="flex flex-col items-center gap-1 text-center" style={{ minWidth: 0, flex: '0 1 auto' }}>
+                <span
+                  className="text-white font-bold tracking-tight leading-tight truncate"
+                  style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 3vw, 22px)', maxWidth: 'min(70vw, 520px)' }}
+                >
+                  {card.name}
+                </span>
+                <div className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  {card.setCode && <span>{card.setCode}</span>}
+                  {card.rarity && <><span style={{ opacity: 0.3 }}>·</span><span>{card.rarity}</span></>}
+                  {card.cardType && <><span style={{ opacity: 0.3 }}>·</span><span>{card.cardType}</span></>}
+                </div>
               </div>
+
+              <button
+                className="lb-arrow"
+                onClick={(e) => { e.stopPropagation(); goNext() }}
+                disabled={currentIndex >= cards.length - 1}
+                aria-label="Next card"
+              >
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="7 4 13 10 7 16" />
+                </svg>
+              </button>
             </div>
 
             {/* Variant dots */}
