@@ -1,0 +1,38 @@
+{
+  "name": "tcg-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "cards:fetch": "node scripts/fetch-card-data.mjs",
+    "cards:generate": "node scripts/generate-card-data.mjs",
+    "cards:images": "node scripts/download-images.mjs",
+    "cards:images:cdn": "node scripts/download-images.mjs --cdn",
+    "cards:all": "npm run cards:fetch && npm run cards:generate",
+    "r2:upload": "node scripts/upload-to-r2.mjs"
+  },
+  "dependencies": {
+    "@tanstack/react-virtual": "^3.13.6",
+    "gsap": "^3.15.0",
+    "lenis": "^1.2.3",
+    "motion": "^12.7.3",
+    "next": "^15.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.4",
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "eslint": "^9.25.0",
+    "eslint-config-next": "^15.3.1",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.84.0"
+  }
+}

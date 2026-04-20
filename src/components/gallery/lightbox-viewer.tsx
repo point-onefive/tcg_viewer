@@ -1,0 +1,176 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
+import { Card } from '@/lib/types'
+import { useStore } from '@/lib/store'
+
+interface LightboxViewerProps { cards: Card[] }
+
+export function LightboxViewer({ cards }: LightboxViewerProps) {
+  const { lightboxCardId, closeLightbox, openLightbox } = useStore()
+  const [focused, setFocused] = useState(0)
+
+  const currentIndex = useMemo(
+    () => cards.findIndex((c) => c.id === lightboxCardId),
+    [cards, lightboxCardId]
+  )
+  const card = currentIndex >= 0 ? cards[currentIndex] : null
+
+  // Full list of images: base first, then alternates
+  const images = useMemo(() => {
+    if (!card) return []
+    const base = { id: card.id, src: card.imageLarge || card.imageSmall, label: 'base' }
+    const variants = (card.variants ?? []).map(v => ({ id: v.id, src: v.imageUrl, label: v.label }))
+    return [base, ...variants]
+  }, [card])
+
+  const hasMultiple = images.length > 1
+
+  // Reset focused variant when card changes
+  useEffect(() => { setFocused(0) }, [lightboxCardId])
+
+  const goNext = useCallback(() => {
+    if (currentIndex < cards.length - 1) openLightbox(cards[currentIndex + 1].id)
+  }, [currentIndex, cards, openLightbox])
+
+  const goPrev = useCallback(() => {
+    if (currentIndex > 0) openLightbox(cards[currentIndex - 1].id)
+  }, [currentIndex, cards, openLightbox])
+
+  useEffect(() => {
+    if (!lightboxCardId) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'ArrowLeft') goPrev()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [lightboxCardId, closeLightbox, goNext, goPrev])
+
+  useEffect(() => {
+    document.body.style.overflow = lightboxCardId ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [lightboxCardId])
+
+  return (
+    <AnimatePresence>
+      {card && (
+        <motion.div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          onClick={closeLightbox}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}
+          />
+
+          {/* Stage — variants fan out horizontally */}
+          <div
+            className="relative z-10 flex items-center justify-center w-full h-full px-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="lb-stage">
+              {images.map((img, i) => {
+                const offset = i - focused
+                const isActive = i === focused
+                return (
+                  <motion.div
+                    key={img.id}
+                    className="lb-card"
+                    onClick={() => setFocused(i)}
+                    initial={{ opacity: 0, scale: 0.85, y: 30 }}
+                    animate={{
+                      opacity: Math.abs(offset) > 3 ? 0 : 1 - Math.abs(offset) * 0.12,
+                      scale: isActive ? 1 : 0.82 - Math.abs(offset) * 0.05,
+                      x: offset * 180,
+                      rotate: offset * 4,
+                      zIndex: 20 - Math.abs(offset),
+                    }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 26, mass: 0.8 }}
+                    style={{
+                      cursor: isActive ? 'default' : 'pointer',
+                      pointerEvents: Math.abs(offset) > 3 ? 'none' : 'auto',
+                    }}
+                  >
+                    <Image
+                      src={img.src}
+                      alt={img.label}
+                      fill
+                      sizes="(max-width: 768px) 80vw, 460px"
+                      className="object-cover rounded-xl"
+                      priority={isActive}
+                    />
+                    {/* Variant label — subtle tag at bottom */}
+                    {hasMultiple && (
+                      <div className="lb-card__label">
+                        {img.label === 'base' ? 'Base' : img.label.toUpperCase()}
+                      </div>
+                    )}
+                  </motion.div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Close */}
+          <button
+            className="lb-close-btn"
+            onClick={(e) => { e.stopPropagation(); closeLightbox() }}
+            aria-label="Close"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="2" y1="2" x2="12" y2="12" />
+              <line x1="12" y1="2" x2="2" y2="12" />
+            </svg>
+          </button>
+
+          {/* Variant dots — only if more than one */}
+          {hasMultiple && (
+            <div className="lb-dots" onClick={(e) => e.stopPropagation()}>
+              {images.map((img, i) => (
+                <button
+                  key={img.id}
+                  className={`lb-dot${i === focused ? ' lb-dot--active' : ''}`}
+                  onClick={() => setFocused(i)}
+                  aria-label={`View ${img.label}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Prev / Next cards */}
+          <button
+            className="lb-arrow lb-arrow--prev"
+            onClick={(e) => { e.stopPropagation(); goPrev() }}
+            disabled={currentIndex <= 0}
+            aria-label="Previous card"
+          >
+            ‹
+          </button>
+          <button
+            className="lb-arrow lb-arrow--next"
+            onClick={(e) => { e.stopPropagation(); goNext() }}
+            disabled={currentIndex >= cards.length - 1}
+            aria-label="Next card"
+          >
+            ›
+          </button>
+
+          {/* Counter — subtle */}
+          <div className="lb-counter" onClick={(e) => e.stopPropagation()}>
+            {currentIndex + 1} / {cards.length}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}

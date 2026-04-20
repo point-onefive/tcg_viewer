@@ -1,0 +1,471 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+:root {
+  --bg: #f5f3f0;
+  --bg-surface: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-muted: #a0a0a0;
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.3);
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --overlay: rgba(245, 243, 240, 0.92);
+}
+
+[data-theme="dark"] {
+  --bg: #0e0e0e;
+  --bg-surface: #1a1a1a;
+  --text-primary: #f0f0f0;
+  --text-secondary: #8a8a8a;
+  --text-muted: #555555;
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 2px rgba(255, 255, 255, 0.08);
+  --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.6);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --overlay: rgba(10, 10, 10, 0.94);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  transition: background-color 0.5s ease, color 0.4s ease;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(120, 120, 120, 0.25);
+}
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ─── Card tile ──────────────────────────────────────────────── */
+.card-tile {
+  --mx: 50%;
+  --my: 50%;
+  --card-color: rgba(255,255,255,0.15);
+  position: relative;
+  cursor: pointer;
+  aspect-ratio: 5 / 7;
+  border-radius: 8px;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.22s ease;
+}
+
+.card-tile:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 24px 48px -12px color-mix(in srgb, var(--card-color) 55%, transparent),
+    0 4px 16px -4px color-mix(in srgb, var(--card-color) 30%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--card-color) 50%, transparent);
+}
+
+.card-tile__img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-tile__skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.card-tile__image {
+  object-fit: cover;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.card-tile:hover .card-tile__image {
+  transform: scale(1.03);
+}
+
+/* Cursor-following shine on hover */
+.card-tile__shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  background: radial-gradient(
+    circle 80px at var(--mx) var(--my),
+    rgba(255,255,255,0.18) 0%,
+    rgba(255,255,255,0.06) 50%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.card-tile:hover .card-tile__shine {
+  opacity: 1;
+}
+
+/* Color accent bar — bottom edge, hidden until hover */
+.card-tile__colorbar {
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: var(--card-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 4;
+}
+
+.card-tile:hover .card-tile__colorbar {
+  opacity: 0.6;
+}
+
+/* ─── Variant indicator: stacked-card effect ─────────────────── */
+/* Cards with alternates render with 2 "peek" sheets sitting behind
+   them — like a small deck. Animated gentle sway + color glow on the
+   peek sheets draws the eye intuitively. Fans out further on hover. */
+
+.card-tile__stack {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card-color) 85%, #1a1a1a) 0%,
+    color-mix(in srgb, var(--card-color) 55%, #0a0a0a) 100%
+  );
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--card-color) 45%, transparent),
+    0 0 20px color-mix(in srgb, var(--card-color) 35%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--card-color) 70%, rgba(255,255,255,0.1));
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.28s ease,
+              box-shadow 0.28s ease;
+  z-index: -1;
+  transform-origin: center center;
+}
+
+/* Top sheet — small offset, sways gently */
+.card-tile__stack--1 {
+  opacity: 1;
+  animation: stack-sway-1 3.4s ease-in-out infinite;
+}
+
+/* Bottom sheet — further offset, more tilt */
+.card-tile__stack--2 {
+  opacity: 0.85;
+  animation: stack-sway-2 3.4s ease-in-out infinite;
+}
+
+@keyframes stack-sway-1 {
+  0%, 100% { transform: translate(3px, 3px) rotate(1.4deg); }
+  50%      { transform: translate(5px, 4px) rotate(2.6deg); }
+}
+
+@keyframes stack-sway-2 {
+  0%, 100% { transform: translate(6px, 6px) rotate(2.8deg); }
+  50%      { transform: translate(9px, 8px) rotate(4.8deg); }
+}
+
+/* On hover: animation stops, stack fans out dramatically */
+.card-tile--has-variants:hover .card-tile__stack--1 {
+  animation: none;
+  transform: translate(9px, 7px) rotate(4.5deg);
+  opacity: 1;
+  box-shadow:
+    0 8px 22px color-mix(in srgb, var(--card-color) 65%, transparent),
+    0 0 32px color-mix(in srgb, var(--card-color) 55%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--card-color) 90%, rgba(255,255,255,0.15));
+}
+
+.card-tile--has-variants:hover .card-tile__stack--2 {
+  animation: none;
+  transform: translate(18px, 14px) rotate(9deg);
+  opacity: 0.95;
+  box-shadow:
+    0 10px 28px color-mix(in srgb, var(--card-color) 55%, transparent),
+    0 0 32px color-mix(in srgb, var(--card-color) 45%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--card-color) 80%, rgba(255,255,255,0.12));
+}
+
+/* Pulsing dominant-color ambient glow on the main tile */
+.card-tile--has-variants {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-color) 35%, transparent));
+  animation: variant-pulse 3.4s ease-in-out infinite;
+  transition: filter 0.28s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes variant-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--card-color) 28%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px color-mix(in srgb, var(--card-color) 55%, transparent));
+  }
+}
+
+.card-tile--has-variants:hover {
+  animation: none;
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--card-color) 70%, transparent));
+  outline: none;
+  box-shadow: none;
+}
+
+/* ─── Zoom slider ──────────────────────────────────────────────── */
+/* Zoom slider */
+.zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.zoom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+.zoom-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* ─── Lightbox: pure visual variant fan-out ─────────────────── */
+.lb-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+.lb-card {
+  position: absolute;
+  width: min(440px, 70vw);
+  height: min(616px, 98vw);
+  max-height: 85vh;
+  aspect-ratio: 5 / 7;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px -20px rgba(0,0,0,0.8),
+    0 20px 40px -10px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.06);
+  transform-origin: center bottom;
+  will-change: transform, opacity;
+}
+
+.lb-card__label {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.1);
+  pointer-events: none;
+}
+
+/* Close button — top-right of viewport */
+.lb-close-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 20;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.lb-close-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+/* Variant dots — bottom center */
+.lb-dots {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.lb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  padding: 0;
+}
+
+.lb-dot:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+.lb-dot--active {
+  background: rgba(255,255,255,0.95);
+  transform: scale(1.3);
+}
+
+/* Prev / Next card arrows */
+.lb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.55);
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  padding: 0;
+  padding-bottom: 3px;
+}
+
+.lb-arrow:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.lb-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.lb-arrow--prev { left: 24px; }
+.lb-arrow--next { right: 24px; }
+
+/* Counter */
+.lb-counter {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+}
+
+

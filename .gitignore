@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Generated card data (run npm run cards:all to regenerate)
+data/
+src/lib/cards-generated.json
+src/lib/sets-generated.json
+
+# Downloaded images (upload to R2, don't commit 761MB)
+public/cards/
+
+# Secrets — NEVER commit these
+.env
+.env.local
+.env*.local
+wrangler.toml
+
+# Misc
+.DS_Store
+*.log
+
+# TS incremental build
+tsconfig.tsbuildinfo
