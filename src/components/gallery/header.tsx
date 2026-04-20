@@ -89,7 +89,7 @@ export function Header({ sets }: HeaderProps) {
           </span>
         </a>
 
-        {/* Controls cluster */}
+        {/* Controls cluster - ordered broad -> narrow: collection, set, search */}
         <div className="flex items-center gap-2">
           {/* Collection Filter */}
           <select
@@ -110,20 +110,6 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
 
-          {/* Search */}
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search..."
-            className="hidden md:block w-48 px-3 py-1.5 text-xs rounded-full outline-none transition-[width,border-color] duration-300 focus:w-64"
-            style={{
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          />
-
           {/* Set Filter */}
           <select
             value={activeSet || ''}
@@ -142,6 +128,20 @@ export function Header({ sets }: HeaderProps) {
               </option>
             ))}
           </select>
+
+          {/* Search - finest filter, sits last in the filter group */}
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="hidden md:block w-48 px-3 py-1.5 text-xs rounded-full outline-none transition-[width,border-color] duration-300 focus:w-64"
+            style={{
+              background: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          />
 
           {/* Divider */}
           <div
