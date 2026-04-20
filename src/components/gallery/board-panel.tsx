@@ -49,7 +49,7 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
         opacity: isDragging ? 0.4 : 1,
         zIndex: isDragging ? 10 : 1,
       }}
-      className="board-tile"
+      className={`board-tile${isDragging ? ' board-tile--dragging' : ''}`}
       {...attributes}
       {...listeners}
     >
@@ -72,7 +72,7 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
           <span className="board-tile__variant">{(label ?? pin.variantId).toUpperCase()}</span>
         )}
 
-        {/* Remove X - top-right overlay.
+        {/* Remove X - hover only (desktop), always-on for touch.
             onPointerDown stops dnd-kit from treating click as a drag start. */}
         <button
           className="board-tile__remove"
@@ -83,11 +83,6 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
           <X size={12} strokeWidth={2.5} />
         </button>
       </div>
-
-      {/* Compact caption */}
-      <span className="board-tile__name" title={card?.name ?? key}>
-        {card?.name ?? key}
-      </span>
     </motion.div>
   )
 }
