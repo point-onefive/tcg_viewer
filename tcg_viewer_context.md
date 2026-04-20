@@ -6,18 +6,14 @@
 
 - Brand: **CARD WALL** (was HOARD). Unified two-panel lockup: pixel mascot in a bordered light chip + inverted black wordmark, single rounded mark.
 - Default theme: **light**. Seamless token-driven toggle (global transition on color-family properties).
-- Next.js 15.5 + App Router + TypeScript + Tailwind v4 + Lenis + TanStack Virtual + Motion + Zustand
+- Next.js 15.5 + App Router + TypeScript + Tailwind v4 + Lenis + TanStack Virtual + Motion + Zustand + dnd-kit
 - **1,661** unique cards (from 2,628 raw), 518 with alternate-art variants; 35 canonical sets (including PROMO + EXCLUSIVES buckets)
 - 2,627 card images hosted on Cloudflare R2
 - Virtualized card wall with viewport-aware zoom (1 to 12)
-- Fan-out lightbox viewer for alternate arts; supports click, keyboard arrows (L/R paginate cards, U/D step variants), mouse wheel / trackpad, and touch swipe
-- 48px frosted-glass header with unified pill controls (collection filter, search, set filter, zoom, theme)
-- Collection section sits on a lifted `--bg-surface` band with hairline borders for depth against the page `--bg`
-- Variant cards use a stacked-deck visual metaphor (two peek sheets tinted in the card's dominant color, gentle sway animation, fans out on hover)
-- Collections: one-piece (available); pokemon, magic, yu-gi-oh shown as `(coming soon)`
-- Data source: `coko7/vegapull-records` (full pack coverage, no prefix allow-list)
-- Themed focus ring (`:focus-visible` uses `--text-primary`), no browser-default blue
-- Repo pushed to `point-onefive/tcg_viewer` (private)
+- Lightbox: radial-gradient + grain backdrop, top HUD (counter / pin / close), bottom info bar (name + meta + variant dots) flanked by prev/next arrows so they never collide with the fanned variants; full keyboard, wheel, and touch navigation
+- 48px frosted-glass header with unified 30px pill controls (collection filter, search, set filter, zoom, theme) + persistent **Board** pill showing pin count; mobile hamburger opens a bottom filter sheet
+- Pin / Board feature: users pin any card or specific variant from the tile or lightbox; right-side slide-over shows an art-first 2\u20133 col tile grid with full-tile drag-reorder (dnd-kit) and hover X to remove; anonymous `/api/track-pin` logs events
+- Collection section sits on a lifted `--bg-surface` band with hairline borders for depth against the page `--bg`\n- Variant cards use a stacked-deck visual metaphor (two peek sheets tinted in the card's dominant color, gentle sway animation, fans out on hover)\n- Collections: one-piece (available); pokemon, magic, yu-gi-oh shown as `(coming soon)`\n- Data source: `coko7/vegapull-records` (full pack coverage, no prefix allow-list)\n- Themed focus ring (`:focus-visible` uses `--text-primary`), no browser-default blue\n- Repo pushed to `point-onefive/tcg_viewer` (private)
 
 ## Style rule
 
