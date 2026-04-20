@@ -17,7 +17,7 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { X, Bookmark, GripVertical } from 'lucide-react'
+import { X, Bookmark } from 'lucide-react'
 import { useStore, pinKeyFor, type Pin } from '@/lib/store'
 import { type Card } from '@/lib/types'
 
@@ -46,51 +46,48 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 10 : 1,
       }}
-      className="board-item"
+      className="board-tile"
+      {...attributes}
+      {...listeners}
     >
-      {/* Drag handle */}
-      <span
-        className="board-item__drag"
-        {...attributes}
-        {...listeners}
-        aria-label="Drag to reorder"
-      >
-        <GripVertical size={12} />
-      </span>
-
-      {/* Card image */}
-      <div className="board-item__img">
+      {/* Card image fills the tile - focus is the art */}
+      <div className="board-tile__img">
         {imgSrc ? (
           <Image
             src={imgSrc}
             alt={label ?? card?.name ?? key}
             fill
-            sizes="100px"
-            style={{ objectFit: 'contain' }}
+            sizes="160px"
+            style={{ objectFit: 'cover' }}
           />
         ) : (
-          <div className="board-item__placeholder" />
+          <div className="board-tile__placeholder" />
         )}
-      </div>
 
-      {/* Meta */}
-      <div className="board-item__meta">
-        <span className="board-item__name">{card?.name ?? key}</span>
+        {/* Variant badge - subtle tag */}
         {pin.variantId && (
-          <span className="board-item__variant">{label ?? pin.variantId}</span>
+          <span className="board-tile__variant">{(label ?? pin.variantId).toUpperCase()}</span>
         )}
+
+        {/* Remove X - top-right overlay.
+            onPointerDown stops dnd-kit from treating click as a drag start. */}
+        <button
+          className="board-tile__remove"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onRemove() }}
+          aria-label="Remove from board"
+        >
+          <X size={12} strokeWidth={2.5} />
+        </button>
       </div>
 
-      {/* Remove */}
-      <button
-        className="board-item__remove"
-        onClick={onRemove}
-        aria-label="Remove from board"
-      >
-        <X size={11} />
-      </button>
+      {/* Compact caption */}
+      <span className="board-tile__name" title={card?.name ?? key}>
+        {card?.name ?? key}
+      </span>
     </motion.div>
   )
 }
@@ -203,7 +200,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext items={pinnedKeys} strategy={rectSortingStrategy}>
-                    <div className="board-list">
+                    <div className="board-grid">
                       {pinned.map((pin) => {
                         const key = pinKeyFor(pin)
                         const { card, imgSrc, label } = resolvePin(pin)
