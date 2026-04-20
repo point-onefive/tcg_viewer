@@ -51,8 +51,8 @@ export function Header({ sets }: HeaderProps) {
           style={{
             background: 'var(--text-primary)',
             color: 'var(--bg)',
-            borderRadius: 3,
-            height: 32,
+            borderRadius: 6,
+            height: 30,
             transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
@@ -61,21 +61,21 @@ export function Header({ sets }: HeaderProps) {
             className="inline-flex items-center justify-center"
             style={{
               background: 'var(--bg)',
-              padding: '0 6px',
+              padding: '0 5px',
               border: '1px solid var(--text-primary)',
               borderRight: 'none',
-              borderTopLeftRadius: 3,
-              borderBottomLeftRadius: 3,
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
             }}
           >
             <img
               src="/images/site-logo.png"
               alt=""
               aria-hidden
-              width={24}
-              height={24}
+              width={22}
+              height={22}
               style={{
-                height: 24,
+                height: 22,
                 width: 'auto',
                 imageRendering: 'pixelated',
                 display: 'block',
@@ -88,10 +88,10 @@ export function Header({ sets }: HeaderProps) {
           <span
             className="inline-flex items-center whitespace-nowrap"
             style={{
-              padding: '0 12px',
+              padding: '0 11px',
               fontFamily: 'var(--font-display)',
               fontWeight: 800,
-              fontSize: 14,
+              fontSize: 13,
               lineHeight: 1,
               letterSpacing: '-0.01em',
               textTransform: 'uppercase',
@@ -143,8 +143,17 @@ export function Header({ sets }: HeaderProps) {
             style={{ ...ctrl, height: 30 }}
           />
 
-          {/* Divider */}
-          <div style={{ width: 1, height: 20, background: 'var(--border-subtle)', margin: '0 2px' }} aria-hidden />
+          {/* Divider - prominent vertical rule separating filter group from zoom */}
+          <div
+            aria-hidden
+            style={{
+              width: 1,
+              height: 24,
+              background: 'var(--text-muted)',
+              opacity: 0.45,
+              margin: '0 6px',
+            }}
+          />
 
           {/* Zoom slider */}
           <div
