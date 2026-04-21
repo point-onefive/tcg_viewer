@@ -164,16 +164,12 @@ export function OnboardingTour() {
     left = Math.max(PAD, Math.min(left, vw - width - PAD))
     calloutStyle = { position: 'fixed', top, left, width, zIndex: 10001 }
   } else {
-    // Absolute centering. Using left/top + transform keeps the card centered
-    // even as width shrinks on small screens.
-    calloutStyle = {
-      position: 'fixed',
-      left: '50%',
-      top: '50%',
-      transform: 'translate(-50%, -50%)',
-      width,
-      zIndex: 10001,
-    }
+    // For targetless steps we center with explicit left/top math instead of
+    // translate(-50%, -50%), because Motion's `animate={{ y: 0 }}` overwrites
+    // `transform` and would drop the centering offset.
+    const left = Math.max(PAD, (vw - width) / 2)
+    const top = Math.max(PAD, vh / 2 - 90)
+    calloutStyle = { position: 'fixed', left, top, width, zIndex: 10001 }
   }
 
   return (
