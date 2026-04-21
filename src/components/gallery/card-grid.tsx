@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
 import { CardTile } from './card-tile'
@@ -36,11 +37,19 @@ function zoomToColumns(zoom: number, windowWidth: number, windowHeight: number) 
 }
 
 export function CardGrid({ cards, sets }: CardGridProps) {
-  const { searchQuery, activeSet, activeRarity, activeColor, activeCollection, zoom } = useStore()
+  const {
+    searchQuery, setSearchQuery,
+    activeSet, setActiveSet,
+    activeRarity, setActiveRarity,
+    activeColor, setActiveColor,
+    activeCollection,
+    zoom,
+  } = useStore()
   const collectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
   const [mounted, setMounted] = useState(false)
   const [windowWidth, setWindowWidth] = useState(1200)
   const [windowHeight, setWindowHeight] = useState(800)
+  const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -52,6 +61,49 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Pinch-to-zoom: two-finger gesture on the grid container maps to the
+  // same 1–12 zoom scale used by the slider.
+  useEffect(() => {
+    const el = gridRef.current
+    if (!el) return
+    let startDist = 0
+    let startZoom = 5
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX
+        const dy = e.touches[0].clientY - e.touches[1].clientY
+        startDist = Math.hypot(dx, dy)
+        startZoom = useStore.getState().zoom
+      }
+    }
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && startDist > 0) {
+        e.preventDefault()
+        const dx = e.touches[0].clientX - e.touches[1].clientX
+        const dy = e.touches[0].clientY - e.touches[1].clientY
+        const dist = Math.hypot(dx, dy)
+        const scale = dist / startDist
+        // Pinch out (scale > 1) grows cards, which means FEWER columns = lower zoom index.
+        const delta = -Math.round(Math.log2(scale) * 6)
+        const next = Math.max(1, Math.min(12, startZoom + delta))
+        if (next !== useStore.getState().zoom) {
+          useStore.getState().setZoom(next)
+        }
+      }
+    }
+    const onEnd = () => { startDist = 0 }
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    el.addEventListener('touchcancel', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+      el.removeEventListener('touchcancel', onEnd)
+    }
   }, [])
 
   const columns = zoomToColumns(zoom, windowWidth, windowHeight)
@@ -123,16 +175,34 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   if (filtered.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <p className="text-sm tracking-wide uppercase" style={{ color: 'var(--text-muted)' }}>
           No cards found
         </p>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveSet(null)
+            setActiveRarity(null)
+            setActiveColor(null)
+            setSearchQuery('')
+          }}
+          className="px-3 py-1.5 text-xs font-medium"
+          style={{
+            background: 'color-mix(in srgb, #E85D2A 14%, transparent)',
+            color: '#E85D2A',
+            border: '1px solid color-mix(in srgb, #E85D2A 45%, transparent)',
+            borderRadius: 6,
+          }}
+        >
+          Clear filters
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800 }}>
+    <div ref={gridRef} className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800, touchAction: 'pan-y' }}>
       {/* Fixed 48px header spacer */}
       <div style={{ height: 48 }} />
 
@@ -175,6 +245,45 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
           </span>
         </div>
+        {/* Active filter chips — visible only when at least one filter is on */}
+        {(activeSet || activeRarity || activeColor || searchQuery.trim()) && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+            <span
+              className="text-[10px] tracking-[0.18em] uppercase mr-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Filters
+            </span>
+            {activeSet && (
+              <FilterChip label={activeSet} onClear={() => setActiveSet(null)} />
+            )}
+            {activeRarity && (
+              <FilterChip label={activeRarity} onClear={() => setActiveRarity(null)} />
+            )}
+            {activeColor && (
+              <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />
+            )}
+            {searchQuery.trim() && (
+              <FilterChip
+                label={`"${searchQuery.trim()}"`}
+                onClear={() => setSearchQuery('')}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSet(null)
+                setActiveRarity(null)
+                setActiveColor(null)
+                setSearchQuery('')
+              }}
+              className="text-[10px] tracking-[0.14em] uppercase underline underline-offset-2 ml-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
@@ -249,5 +358,41 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
       <div className="h-20" />
     </div>
+  )
+}
+
+function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 text-[11px] font-medium"
+      style={{
+        background: 'color-mix(in srgb, #E85D2A 14%, transparent)',
+        color: '#E85D2A',
+        border: '1px solid color-mix(in srgb, #E85D2A 45%, transparent)',
+        borderRadius: 4,
+        lineHeight: 1.4,
+      }}
+    >
+      <span className="max-w-[180px] truncate">{label}</span>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={`Clear filter ${label}`}
+        className="inline-flex items-center justify-center rounded-sm transition-colors"
+        style={{
+          width: 14,
+          height: 14,
+          color: 'currentColor',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'color-mix(in srgb, #E85D2A 25%, transparent)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+        }}
+      >
+        <X size={10} strokeWidth={2.5} />
+      </button>
+    </span>
   )
 }

@@ -54,6 +54,13 @@ export function Header({ sets }: HeaderProps) {
     borderRadius: 6,
   }
 
+  // Accent for controls holding an active filter value.
+  const ctrlActive: React.CSSProperties = {
+    ...ctrl,
+    borderColor: 'color-mix(in srgb, #E85D2A 55%, transparent)',
+    boxShadow: '0 0 0 1px color-mix(in srgb, #E85D2A 22%, transparent) inset',
+  }
+
   return (
     <header
       className="fixed top-0 left-0 right-0 z-50"
@@ -250,7 +257,7 @@ export function Header({ sets }: HeaderProps) {
             value={activeSet || ''}
             onChange={(e) => setActiveSet(e.target.value || null)}
             className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
-            style={{ ...ctrl, height: 30 }}
+            style={{ ...(activeSet ? ctrlActive : ctrl), height: 30 }}
           >
             <option value="">All Sets</option>
             {sets.map((s) => (
@@ -267,7 +274,7 @@ export function Header({ sets }: HeaderProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search cards…"
             className="w-40 px-3 py-1.5 text-xs outline-none transition-[width] duration-300 focus:w-56"
-            style={{ ...ctrl, height: 30 }}
+            style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
           />
 
           {/* Divider - prominent vertical rule separating filter group from zoom */}
@@ -393,7 +400,7 @@ export function Header({ sets }: HeaderProps) {
             value={activeSet || ''}
             onChange={(e) => { setActiveSet(e.target.value || null); setMobileOpen(false) }}
             className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
-            style={{ ...ctrl }}
+            style={{ ...(activeSet ? ctrlActive : ctrl) }}
           >
             <option value="">All Sets</option>
             {sets.map((s) => (
@@ -409,7 +416,7 @@ export function Header({ sets }: HeaderProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search cards…"
             className="w-full px-3 py-2 text-sm outline-none"
-            style={{ ...ctrl }}
+            style={{ ...(searchQuery.trim() ? ctrlActive : ctrl) }}
           />
 
           {/* Zoom row · matches desktop icon language */}
