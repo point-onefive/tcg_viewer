@@ -12,7 +12,7 @@ import { X } from 'lucide-react'
  * the DOM for the current viewport, the step falls back to a centered card.
  */
 
-const STORAGE_KEY = 'tcg-viewer-tour-seen-v2'
+const STORAGE_KEY = 'tcg-viewer-tour-seen-v3'
 
 type Step = {
   id: string
@@ -34,7 +34,7 @@ const STEPS: Step[] = [
     id: 'collection',
     targets: ['[data-tour="collection"]', '[data-tour="menu"]'],
     title: 'Pick a collection',
-    body: 'Switch between One Piece, Gundam, Dragon Ball Super, and Digimon.',
+    body: 'Switch between One Piece, Pokémon, and more.',
   },
   {
     id: 'set',

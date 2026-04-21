@@ -1,331 +1,1206 @@
 [
   {
+    "setCode": "base1",
+    "setName": "Base",
+    "releaseDate": "1999-01-09",
+    "releaseOrder": 600,
+    "cardCount": 102
+  },
+  {
+    "setCode": "base2",
+    "setName": "Jungle",
+    "releaseDate": "1999-06-16",
+    "releaseOrder": 601,
+    "cardCount": 64
+  },
+  {
+    "setCode": "basep",
+    "setName": "Wizards Black Star Promos",
+    "releaseDate": "1999-07-01",
+    "releaseOrder": 602,
+    "cardCount": 53
+  },
+  {
+    "setCode": "base3",
+    "setName": "Fossil",
+    "releaseDate": "1999-10-10",
+    "releaseOrder": 603,
+    "cardCount": 62
+  },
+  {
+    "setCode": "base4",
+    "setName": "Base Set 2",
+    "releaseDate": "2000-02-24",
+    "releaseOrder": 604,
+    "cardCount": 130
+  },
+  {
+    "setCode": "base5",
+    "setName": "Team Rocket",
+    "releaseDate": "2000-04-24",
+    "releaseOrder": 605,
+    "cardCount": 83
+  },
+  {
+    "setCode": "gym1",
+    "setName": "Gym Heroes",
+    "releaseDate": "2000-08-14",
+    "releaseOrder": 606,
+    "cardCount": 132
+  },
+  {
+    "setCode": "gym2",
+    "setName": "Gym Challenge",
+    "releaseDate": "2000-10-16",
+    "releaseOrder": 607,
+    "cardCount": 132
+  },
+  {
+    "setCode": "neo1",
+    "setName": "Neo Genesis",
+    "releaseDate": "2000-12-16",
+    "releaseOrder": 608,
+    "cardCount": 111
+  },
+  {
+    "setCode": "neo2",
+    "setName": "Neo Discovery",
+    "releaseDate": "2001-06-01",
+    "releaseOrder": 609,
+    "cardCount": 75
+  },
+  {
+    "setCode": "si1",
+    "setName": "Southern Islands",
+    "releaseDate": "2001-07-31",
+    "releaseOrder": 610,
+    "cardCount": 18
+  },
+  {
+    "setCode": "neo3",
+    "setName": "Neo Revelation",
+    "releaseDate": "2001-09-21",
+    "releaseOrder": 611,
+    "cardCount": 66
+  },
+  {
+    "setCode": "neo4",
+    "setName": "Neo Destiny",
+    "releaseDate": "2002-02-28",
+    "releaseOrder": 612,
+    "cardCount": 113
+  },
+  {
+    "setCode": "base6",
+    "setName": "Legendary Collection",
+    "releaseDate": "2002-05-24",
+    "releaseOrder": 613,
+    "cardCount": 110
+  },
+  {
+    "setCode": "ecard1",
+    "setName": "Expedition Base Set",
+    "releaseDate": "2002-09-15",
+    "releaseOrder": 614,
+    "cardCount": 165
+  },
+  {
+    "setCode": "bp",
+    "setName": "Best of Game",
+    "releaseDate": "2002-12-01",
+    "releaseOrder": 615,
+    "cardCount": 9
+  },
+  {
+    "setCode": "ecard2",
+    "setName": "Aquapolis",
+    "releaseDate": "2003-01-15",
+    "releaseOrder": 616,
+    "cardCount": 182
+  },
+  {
+    "setCode": "ecard3",
+    "setName": "Skyridge",
+    "releaseDate": "2003-05-12",
+    "releaseOrder": 617,
+    "cardCount": 182
+  },
+  {
+    "setCode": "ex1",
+    "setName": "Ruby & Sapphire",
+    "releaseDate": "2003-07-01",
+    "releaseOrder": 618,
+    "cardCount": 109
+  },
+  {
+    "setCode": "ex2",
+    "setName": "Sandstorm",
+    "releaseDate": "2003-09-18",
+    "releaseOrder": 619,
+    "cardCount": 100
+  },
+  {
+    "setCode": "np",
+    "setName": "Nintendo Black Star Promos",
+    "releaseDate": "2003-10-01",
+    "releaseOrder": 620,
+    "cardCount": 40
+  },
+  {
+    "setCode": "ex3",
+    "setName": "Dragon",
+    "releaseDate": "2003-11-24",
+    "releaseOrder": 621,
+    "cardCount": 100
+  },
+  {
+    "setCode": "ex4",
+    "setName": "Team Magma vs Team Aqua",
+    "releaseDate": "2004-03-01",
+    "releaseOrder": 622,
+    "cardCount": 97
+  },
+  {
+    "setCode": "ex5",
+    "setName": "Hidden Legends",
+    "releaseDate": "2004-06-01",
+    "releaseOrder": 623,
+    "cardCount": 102
+  },
+  {
+    "setCode": "tk1a",
+    "setName": "EX Trainer Kit Latias",
+    "releaseDate": "2004-06-01",
+    "releaseOrder": 624,
+    "cardCount": 10
+  },
+  {
+    "setCode": "tk1b",
+    "setName": "EX Trainer Kit Latios",
+    "releaseDate": "2004-06-01",
+    "releaseOrder": 625,
+    "cardCount": 10
+  },
+  {
+    "setCode": "ex6",
+    "setName": "FireRed & LeafGreen",
+    "releaseDate": "2004-09-01",
+    "releaseOrder": 626,
+    "cardCount": 116
+  },
+  {
+    "setCode": "pop1",
+    "setName": "POP Series 1",
+    "releaseDate": "2004-09-01",
+    "releaseOrder": 627,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ex7",
+    "setName": "Team Rocket Returns",
+    "releaseDate": "2004-11-01",
+    "releaseOrder": 628,
+    "cardCount": 111
+  },
+  {
+    "setCode": "ex8",
+    "setName": "Deoxys",
+    "releaseDate": "2005-02-01",
+    "releaseOrder": 629,
+    "cardCount": 108
+  },
+  {
+    "setCode": "ex9",
+    "setName": "Emerald",
+    "releaseDate": "2005-05-01",
+    "releaseOrder": 630,
+    "cardCount": 107
+  },
+  {
+    "setCode": "ex10",
+    "setName": "Unseen Forces",
+    "releaseDate": "2005-08-01",
+    "releaseOrder": 631,
+    "cardCount": 145
+  },
+  {
+    "setCode": "pop2",
+    "setName": "POP Series 2",
+    "releaseDate": "2005-08-01",
+    "releaseOrder": 632,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ex11",
+    "setName": "Delta Species",
+    "releaseDate": "2005-10-31",
+    "releaseOrder": 633,
+    "cardCount": 114
+  },
+  {
+    "setCode": "ex12",
+    "setName": "Legend Maker",
+    "releaseDate": "2006-02-01",
+    "releaseOrder": 634,
+    "cardCount": 93
+  },
+  {
+    "setCode": "tk2a",
+    "setName": "EX Trainer Kit 2 Plusle",
+    "releaseDate": "2006-03-01",
+    "releaseOrder": 635,
+    "cardCount": 12
+  },
+  {
+    "setCode": "tk2b",
+    "setName": "EX Trainer Kit 2 Minun",
+    "releaseDate": "2006-03-01",
+    "releaseOrder": 636,
+    "cardCount": 12
+  },
+  {
+    "setCode": "pop3",
+    "setName": "POP Series 3",
+    "releaseDate": "2006-04-01",
+    "releaseOrder": 637,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ex13",
+    "setName": "Holon Phantoms",
+    "releaseDate": "2006-05-01",
+    "releaseOrder": 638,
+    "cardCount": 111
+  },
+  {
+    "setCode": "ex14",
+    "setName": "Crystal Guardians",
+    "releaseDate": "2006-08-01",
+    "releaseOrder": 639,
+    "cardCount": 100
+  },
+  {
+    "setCode": "pop4",
+    "setName": "POP Series 4",
+    "releaseDate": "2006-08-01",
+    "releaseOrder": 640,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ex15",
+    "setName": "Dragon Frontiers",
+    "releaseDate": "2006-11-01",
+    "releaseOrder": 641,
+    "cardCount": 101
+  },
+  {
+    "setCode": "ex16",
+    "setName": "Power Keepers",
+    "releaseDate": "2007-02-02",
+    "releaseOrder": 642,
+    "cardCount": 108
+  },
+  {
+    "setCode": "pop5",
+    "setName": "POP Series 5",
+    "releaseDate": "2007-03-01",
+    "releaseOrder": 643,
+    "cardCount": 17
+  },
+  {
+    "setCode": "dp1",
+    "setName": "Diamond & Pearl",
+    "releaseDate": "2007-05-01",
+    "releaseOrder": 644,
+    "cardCount": 130
+  },
+  {
+    "setCode": "dpp",
+    "setName": "DP Black Star Promos",
+    "releaseDate": "2007-05-01",
+    "releaseOrder": 645,
+    "cardCount": 56
+  },
+  {
+    "setCode": "dp2",
+    "setName": "Mysterious Treasures",
+    "releaseDate": "2007-08-01",
+    "releaseOrder": 646,
+    "cardCount": 124
+  },
+  {
+    "setCode": "pop6",
+    "setName": "POP Series 6",
+    "releaseDate": "2007-09-01",
+    "releaseOrder": 647,
+    "cardCount": 17
+  },
+  {
+    "setCode": "dp3",
+    "setName": "Secret Wonders",
+    "releaseDate": "2007-11-01",
+    "releaseOrder": 648,
+    "cardCount": 132
+  },
+  {
+    "setCode": "dp4",
+    "setName": "Great Encounters",
+    "releaseDate": "2008-02-01",
+    "releaseOrder": 649,
+    "cardCount": 106
+  },
+  {
+    "setCode": "pop7",
+    "setName": "POP Series 7",
+    "releaseDate": "2008-03-01",
+    "releaseOrder": 650,
+    "cardCount": 17
+  },
+  {
+    "setCode": "dp5",
+    "setName": "Majestic Dawn",
+    "releaseDate": "2008-05-01",
+    "releaseOrder": 651,
+    "cardCount": 100
+  },
+  {
+    "setCode": "dp6",
+    "setName": "Legends Awakened",
+    "releaseDate": "2008-08-01",
+    "releaseOrder": 652,
+    "cardCount": 146
+  },
+  {
+    "setCode": "pop8",
+    "setName": "POP Series 8",
+    "releaseDate": "2008-09-01",
+    "releaseOrder": 653,
+    "cardCount": 17
+  },
+  {
+    "setCode": "dp7",
+    "setName": "Stormfront",
+    "releaseDate": "2008-11-01",
+    "releaseOrder": 654,
+    "cardCount": 106
+  },
+  {
+    "setCode": "pl1",
+    "setName": "Platinum",
+    "releaseDate": "2009-02-11",
+    "releaseOrder": 655,
+    "cardCount": 133
+  },
+  {
+    "setCode": "pop9",
+    "setName": "POP Series 9",
+    "releaseDate": "2009-03-01",
+    "releaseOrder": 656,
+    "cardCount": 17
+  },
+  {
+    "setCode": "pl2",
+    "setName": "Rising Rivals",
+    "releaseDate": "2009-05-16",
+    "releaseOrder": 657,
+    "cardCount": 120
+  },
+  {
+    "setCode": "pl3",
+    "setName": "Supreme Victors",
+    "releaseDate": "2009-08-19",
+    "releaseOrder": 658,
+    "cardCount": 153
+  },
+  {
+    "setCode": "pl4",
+    "setName": "Arceus",
+    "releaseDate": "2009-11-04",
+    "releaseOrder": 659,
+    "cardCount": 111
+  },
+  {
+    "setCode": "ru1",
+    "setName": "Pokémon Rumble",
+    "releaseDate": "2009-12-02",
+    "releaseOrder": 660,
+    "cardCount": 16
+  },
+  {
+    "setCode": "hgss1",
+    "setName": "HeartGold & SoulSilver",
+    "releaseDate": "2010-02-10",
+    "releaseOrder": 661,
+    "cardCount": 124
+  },
+  {
+    "setCode": "hsp",
+    "setName": "HGSS Black Star Promos",
+    "releaseDate": "2010-02-10",
+    "releaseOrder": 662,
+    "cardCount": 25
+  },
+  {
+    "setCode": "hgss2",
+    "setName": "HS—Unleashed",
+    "releaseDate": "2010-05-12",
+    "releaseOrder": 663,
+    "cardCount": 96
+  },
+  {
+    "setCode": "hgss3",
+    "setName": "HS—Undaunted",
+    "releaseDate": "2010-08-18",
+    "releaseOrder": 664,
+    "cardCount": 91
+  },
+  {
+    "setCode": "hgss4",
+    "setName": "HS—Triumphant",
+    "releaseDate": "2010-11-03",
+    "releaseOrder": 665,
+    "cardCount": 103
+  },
+  {
+    "setCode": "col1",
+    "setName": "Call of Legends",
+    "releaseDate": "2011-02-09",
+    "releaseOrder": 666,
+    "cardCount": 106
+  },
+  {
+    "setCode": "bwp",
+    "setName": "BW Black Star Promos",
+    "releaseDate": "2011-03-01",
+    "releaseOrder": 667,
+    "cardCount": 101
+  },
+  {
+    "setCode": "bw1",
+    "setName": "Black & White",
+    "releaseDate": "2011-04-25",
+    "releaseOrder": 668,
+    "cardCount": 115
+  },
+  {
+    "setCode": "mcd11",
+    "setName": "McDonald's Collection 2011",
+    "releaseDate": "2011-06-17",
+    "releaseOrder": 669,
+    "cardCount": 12
+  },
+  {
+    "setCode": "bw2",
+    "setName": "Emerging Powers",
+    "releaseDate": "2011-08-31",
+    "releaseOrder": 670,
+    "cardCount": 98
+  },
+  {
+    "setCode": "bw3",
+    "setName": "Noble Victories",
+    "releaseDate": "2011-11-16",
+    "releaseOrder": 671,
+    "cardCount": 102
+  },
+  {
+    "setCode": "bw4",
+    "setName": "Next Destinies",
+    "releaseDate": "2012-02-08",
+    "releaseOrder": 672,
+    "cardCount": 103
+  },
+  {
+    "setCode": "bw5",
+    "setName": "Dark Explorers",
+    "releaseDate": "2012-05-09",
+    "releaseOrder": 673,
+    "cardCount": 111
+  },
+  {
+    "setCode": "mcd12",
+    "setName": "McDonald's Collection 2012",
+    "releaseDate": "2012-06-15",
+    "releaseOrder": 674,
+    "cardCount": 12
+  },
+  {
+    "setCode": "bw6",
+    "setName": "Dragons Exalted",
+    "releaseDate": "2012-08-15",
+    "releaseOrder": 675,
+    "cardCount": 128
+  },
+  {
+    "setCode": "dv1",
+    "setName": "Dragon Vault",
+    "releaseDate": "2012-10-05",
+    "releaseOrder": 676,
+    "cardCount": 21
+  },
+  {
+    "setCode": "bw7",
+    "setName": "Boundaries Crossed",
+    "releaseDate": "2012-11-07",
+    "releaseOrder": 677,
+    "cardCount": 153
+  },
+  {
+    "setCode": "bw8",
+    "setName": "Plasma Storm",
+    "releaseDate": "2013-02-06",
+    "releaseOrder": 678,
+    "cardCount": 138
+  },
+  {
+    "setCode": "bw9",
+    "setName": "Plasma Freeze",
+    "releaseDate": "2013-05-08",
+    "releaseOrder": 679,
+    "cardCount": 122
+  },
+  {
+    "setCode": "bw10",
+    "setName": "Plasma Blast",
+    "releaseDate": "2013-08-14",
+    "releaseOrder": 680,
+    "cardCount": 105
+  },
+  {
+    "setCode": "xyp",
+    "setName": "XY Black Star Promos",
+    "releaseDate": "2013-10-12",
+    "releaseOrder": 681,
+    "cardCount": 216
+  },
+  {
+    "setCode": "bw11",
+    "setName": "Legendary Treasures",
+    "releaseDate": "2013-11-06",
+    "releaseOrder": 682,
+    "cardCount": 140
+  },
+  {
+    "setCode": "xy0",
+    "setName": "Kalos Starter Set",
+    "releaseDate": "2013-11-08",
+    "releaseOrder": 683,
+    "cardCount": 39
+  },
+  {
+    "setCode": "xy1",
+    "setName": "XY",
+    "releaseDate": "2014-02-05",
+    "releaseOrder": 684,
+    "cardCount": 146
+  },
+  {
+    "setCode": "xy2",
+    "setName": "Flashfire",
+    "releaseDate": "2014-05-07",
+    "releaseOrder": 685,
+    "cardCount": 110
+  },
+  {
+    "setCode": "mcd14",
+    "setName": "McDonald's Collection 2014",
+    "releaseDate": "2014-05-23",
+    "releaseOrder": 686,
+    "cardCount": 12
+  },
+  {
+    "setCode": "xy3",
+    "setName": "Furious Fists",
+    "releaseDate": "2014-08-13",
+    "releaseOrder": 687,
+    "cardCount": 114
+  },
+  {
+    "setCode": "xy4",
+    "setName": "Phantom Forces",
+    "releaseDate": "2014-11-05",
+    "releaseOrder": 688,
+    "cardCount": 124
+  },
+  {
+    "setCode": "xy5",
+    "setName": "Primal Clash",
+    "releaseDate": "2015-02-04",
+    "releaseOrder": 689,
+    "cardCount": 164
+  },
+  {
+    "setCode": "dc1",
+    "setName": "Double Crisis",
+    "releaseDate": "2015-03-25",
+    "releaseOrder": 690,
+    "cardCount": 34
+  },
+  {
+    "setCode": "xy6",
+    "setName": "Roaring Skies",
+    "releaseDate": "2015-05-06",
+    "releaseOrder": 691,
+    "cardCount": 112
+  },
+  {
+    "setCode": "xy7",
+    "setName": "Ancient Origins",
+    "releaseDate": "2015-08-12",
+    "releaseOrder": 692,
+    "cardCount": 101
+  },
+  {
+    "setCode": "xy8",
+    "setName": "BREAKthrough",
+    "releaseDate": "2015-11-04",
+    "releaseOrder": 693,
+    "cardCount": 165
+  },
+  {
+    "setCode": "mcd15",
+    "setName": "McDonald's Collection 2015",
+    "releaseDate": "2015-11-27",
+    "releaseOrder": 694,
+    "cardCount": 12
+  },
+  {
+    "setCode": "xy9",
+    "setName": "BREAKpoint",
+    "releaseDate": "2016-02-03",
+    "releaseOrder": 695,
+    "cardCount": 126
+  },
+  {
+    "setCode": "g1",
+    "setName": "Generations",
+    "releaseDate": "2016-02-22",
+    "releaseOrder": 696,
+    "cardCount": 117
+  },
+  {
+    "setCode": "xy10",
+    "setName": "Fates Collide",
+    "releaseDate": "2016-05-02",
+    "releaseOrder": 697,
+    "cardCount": 129
+  },
+  {
+    "setCode": "xy11",
+    "setName": "Steam Siege",
+    "releaseDate": "2016-08-03",
+    "releaseOrder": 698,
+    "cardCount": 116
+  },
+  {
+    "setCode": "mcd16",
+    "setName": "McDonald's Collection 2016",
+    "releaseDate": "2016-08-19",
+    "releaseOrder": 699,
+    "cardCount": 12
+  },
+  {
+    "setCode": "xy12",
+    "setName": "Evolutions",
+    "releaseDate": "2016-11-02",
+    "releaseOrder": 700,
+    "cardCount": 113
+  },
+  {
+    "setCode": "sm1",
+    "setName": "Sun & Moon",
+    "releaseDate": "2017-02-03",
+    "releaseOrder": 701,
+    "cardCount": 173
+  },
+  {
+    "setCode": "smp",
+    "setName": "SM Black Star Promos",
+    "releaseDate": "2017-02-03",
+    "releaseOrder": 702,
+    "cardCount": 251
+  },
+  {
+    "setCode": "sm2",
+    "setName": "Guardians Rising",
+    "releaseDate": "2017-05-05",
+    "releaseOrder": 703,
+    "cardCount": 180
+  },
+  {
+    "setCode": "sm3",
+    "setName": "Burning Shadows",
+    "releaseDate": "2017-08-05",
+    "releaseOrder": 704,
+    "cardCount": 177
+  },
+  {
+    "setCode": "sm35",
+    "setName": "Shining Legends",
+    "releaseDate": "2017-10-06",
+    "releaseOrder": 705,
+    "cardCount": 81
+  },
+  {
+    "setCode": "sm4",
+    "setName": "Crimson Invasion",
+    "releaseDate": "2017-11-03",
+    "releaseOrder": 706,
+    "cardCount": 126
+  },
+  {
+    "setCode": "mcd17",
+    "setName": "McDonald's Collection 2017",
+    "releaseDate": "2017-11-07",
+    "releaseOrder": 707,
+    "cardCount": 12
+  },
+  {
+    "setCode": "sm5",
+    "setName": "Ultra Prism",
+    "releaseDate": "2018-02-02",
+    "releaseOrder": 708,
+    "cardCount": 178
+  },
+  {
+    "setCode": "sm6",
+    "setName": "Forbidden Light",
+    "releaseDate": "2018-05-04",
+    "releaseOrder": 709,
+    "cardCount": 150
+  },
+  {
+    "setCode": "sm7",
+    "setName": "Celestial Storm",
+    "releaseDate": "2018-08-03",
+    "releaseOrder": 710,
+    "cardCount": 187
+  },
+  {
+    "setCode": "sm75",
+    "setName": "Dragon Majesty",
+    "releaseDate": "2018-09-07",
+    "releaseOrder": 711,
+    "cardCount": 80
+  },
+  {
+    "setCode": "mcd18",
+    "setName": "McDonald's Collection 2018",
+    "releaseDate": "2018-10-16",
+    "releaseOrder": 712,
+    "cardCount": 12
+  },
+  {
+    "setCode": "sm8",
+    "setName": "Lost Thunder",
+    "releaseDate": "2018-11-02",
+    "releaseOrder": 713,
+    "cardCount": 240
+  },
+  {
+    "setCode": "sm9",
+    "setName": "Team Up",
+    "releaseDate": "2019-02-01",
+    "releaseOrder": 714,
+    "cardCount": 198
+  },
+  {
+    "setCode": "det1",
+    "setName": "Detective Pikachu",
+    "releaseDate": "2019-04-05",
+    "releaseOrder": 715,
+    "cardCount": 18
+  },
+  {
+    "setCode": "sm10",
+    "setName": "Unbroken Bonds",
+    "releaseDate": "2019-05-03",
+    "releaseOrder": 716,
+    "cardCount": 238
+  },
+  {
+    "setCode": "sm11",
+    "setName": "Unified Minds",
+    "releaseDate": "2019-08-02",
+    "releaseOrder": 717,
+    "cardCount": 261
+  },
+  {
+    "setCode": "sm115",
+    "setName": "Hidden Fates",
+    "releaseDate": "2019-08-23",
+    "releaseOrder": 718,
+    "cardCount": 69
+  },
+  {
+    "setCode": "sma",
+    "setName": "Hidden Fates Shiny Vault",
+    "releaseDate": "2019-08-23",
+    "releaseOrder": 719,
+    "cardCount": 94
+  },
+  {
+    "setCode": "mcd19",
+    "setName": "McDonald's Collection 2019",
+    "releaseDate": "2019-10-15",
+    "releaseOrder": 720,
+    "cardCount": 12
+  },
+  {
+    "setCode": "sm12",
+    "setName": "Cosmic Eclipse",
+    "releaseDate": "2019-11-01",
+    "releaseOrder": 721,
+    "cardCount": 272
+  },
+  {
     "setCode": "swshp",
     "setName": "SWSH Black Star Promos",
     "releaseDate": "2019-11-15",
-    "releaseOrder": 600,
+    "releaseOrder": 722,
     "cardCount": 304
   },
   {
     "setCode": "swsh1",
     "setName": "Sword & Shield",
     "releaseDate": "2020-02-07",
-    "releaseOrder": 601,
+    "releaseOrder": 723,
     "cardCount": 216
   },
   {
     "setCode": "swsh2",
     "setName": "Rebel Clash",
     "releaseDate": "2020-05-01",
-    "releaseOrder": 602,
+    "releaseOrder": 724,
     "cardCount": 209
   },
   {
     "setCode": "swsh3",
     "setName": "Darkness Ablaze",
     "releaseDate": "2020-08-14",
-    "releaseOrder": 603,
+    "releaseOrder": 725,
     "cardCount": 201
+  },
+  {
+    "setCode": "fut20",
+    "setName": "Pokémon Futsal Collection",
+    "releaseDate": "2020-09-11",
+    "releaseOrder": 726,
+    "cardCount": 5
   },
   {
     "setCode": "swsh35",
     "setName": "Champion's Path",
     "releaseDate": "2020-09-25",
-    "releaseOrder": 604,
+    "releaseOrder": 727,
     "cardCount": 80
   },
   {
     "setCode": "swsh4",
     "setName": "Vivid Voltage",
     "releaseDate": "2020-11-13",
-    "releaseOrder": 605,
+    "releaseOrder": 728,
     "cardCount": 203
+  },
+  {
+    "setCode": "mcd21",
+    "setName": "McDonald's Collection 2021",
+    "releaseDate": "2021-02-09",
+    "releaseOrder": 729,
+    "cardCount": 25
   },
   {
     "setCode": "swsh45",
     "setName": "Shining Fates",
     "releaseDate": "2021-02-19",
-    "releaseOrder": 606,
+    "releaseOrder": 730,
     "cardCount": 73
   },
   {
     "setCode": "swsh45sv",
     "setName": "Shining Fates Shiny Vault",
     "releaseDate": "2021-02-19",
-    "releaseOrder": 607,
+    "releaseOrder": 731,
     "cardCount": 122
   },
   {
     "setCode": "swsh5",
     "setName": "Battle Styles",
     "releaseDate": "2021-03-19",
-    "releaseOrder": 608,
+    "releaseOrder": 732,
     "cardCount": 183
   },
   {
     "setCode": "swsh6",
     "setName": "Chilling Reign",
     "releaseDate": "2021-06-18",
-    "releaseOrder": 609,
+    "releaseOrder": 733,
     "cardCount": 233
   },
   {
     "setCode": "swsh7",
     "setName": "Evolving Skies",
     "releaseDate": "2021-08-27",
-    "releaseOrder": 610,
+    "releaseOrder": 734,
     "cardCount": 237
   },
   {
     "setCode": "cel25",
     "setName": "Celebrations",
     "releaseDate": "2021-10-08",
-    "releaseOrder": 611,
+    "releaseOrder": 735,
     "cardCount": 25
   },
   {
     "setCode": "cel25c",
     "setName": "Celebrations: Classic Collection",
     "releaseDate": "2021-10-08",
-    "releaseOrder": 612,
+    "releaseOrder": 736,
     "cardCount": 25
   },
   {
     "setCode": "swsh8",
     "setName": "Fusion Strike",
     "releaseDate": "2021-11-12",
-    "releaseOrder": 613,
+    "releaseOrder": 737,
     "cardCount": 284
   },
   {
     "setCode": "swsh9",
     "setName": "Brilliant Stars",
     "releaseDate": "2022-02-25",
-    "releaseOrder": 614,
+    "releaseOrder": 738,
     "cardCount": 186
   },
   {
     "setCode": "swsh9tg",
     "setName": "Brilliant Stars Trainer Gallery",
     "releaseDate": "2022-02-25",
-    "releaseOrder": 615,
+    "releaseOrder": 739,
     "cardCount": 30
   },
   {
     "setCode": "swsh10",
     "setName": "Astral Radiance",
     "releaseDate": "2022-05-27",
-    "releaseOrder": 616,
+    "releaseOrder": 740,
     "cardCount": 216
   },
   {
     "setCode": "swsh10tg",
     "setName": "Astral Radiance Trainer Gallery",
     "releaseDate": "2022-05-27",
-    "releaseOrder": 617,
+    "releaseOrder": 741,
     "cardCount": 30
   },
   {
     "setCode": "pgo",
     "setName": "Pokémon GO",
     "releaseDate": "2022-07-01",
-    "releaseOrder": 618,
+    "releaseOrder": 742,
     "cardCount": 88
+  },
+  {
+    "setCode": "mcd22",
+    "setName": "McDonald's Collection 2022",
+    "releaseDate": "2022-08-03",
+    "releaseOrder": 743,
+    "cardCount": 15
   },
   {
     "setCode": "swsh11",
     "setName": "Lost Origin",
     "releaseDate": "2022-09-09",
-    "releaseOrder": 619,
+    "releaseOrder": 744,
     "cardCount": 217
   },
   {
     "setCode": "swsh11tg",
     "setName": "Lost Origin Trainer Gallery",
     "releaseDate": "2022-09-09",
-    "releaseOrder": 620,
+    "releaseOrder": 745,
     "cardCount": 30
   },
   {
     "setCode": "swsh12",
     "setName": "Silver Tempest",
     "releaseDate": "2022-11-11",
-    "releaseOrder": 621,
+    "releaseOrder": 746,
     "cardCount": 215
   },
   {
     "setCode": "swsh12tg",
     "setName": "Silver Tempest Trainer Gallery",
     "releaseDate": "2022-11-11",
-    "releaseOrder": 622,
+    "releaseOrder": 747,
     "cardCount": 30
   },
   {
     "setCode": "svp",
     "setName": "Scarlet & Violet Black Star Promos",
     "releaseDate": "2023-01-01",
-    "releaseOrder": 623,
+    "releaseOrder": 748,
     "cardCount": 200
   },
   {
     "setCode": "swsh12pt5",
     "setName": "Crown Zenith",
     "releaseDate": "2023-01-20",
-    "releaseOrder": 624,
+    "releaseOrder": 749,
     "cardCount": 160
   },
   {
     "setCode": "swsh12pt5gg",
     "setName": "Crown Zenith Galarian Gallery",
     "releaseDate": "2023-01-20",
-    "releaseOrder": 625,
+    "releaseOrder": 750,
     "cardCount": 70
   },
   {
     "setCode": "sv1",
     "setName": "Scarlet & Violet",
     "releaseDate": "2023-03-31",
-    "releaseOrder": 626,
+    "releaseOrder": 751,
     "cardCount": 258
   },
   {
     "setCode": "sve",
     "setName": "Scarlet & Violet Energies",
     "releaseDate": "2023-03-31",
-    "releaseOrder": 627,
+    "releaseOrder": 752,
     "cardCount": 16
   },
   {
     "setCode": "sv2",
     "setName": "Paldea Evolved",
     "releaseDate": "2023-06-09",
-    "releaseOrder": 628,
+    "releaseOrder": 753,
     "cardCount": 279
   },
   {
     "setCode": "sv3",
     "setName": "Obsidian Flames",
     "releaseDate": "2023-08-11",
-    "releaseOrder": 629,
+    "releaseOrder": 754,
     "cardCount": 230
   },
   {
     "setCode": "sv3pt5",
     "setName": "151",
     "releaseDate": "2023-09-22",
-    "releaseOrder": 630,
+    "releaseOrder": 755,
     "cardCount": 207
   },
   {
     "setCode": "sv4",
     "setName": "Paradox Rift",
     "releaseDate": "2023-11-03",
-    "releaseOrder": 631,
+    "releaseOrder": 756,
     "cardCount": 266
   },
   {
     "setCode": "sv4pt5",
     "setName": "Paldean Fates",
     "releaseDate": "2024-01-26",
-    "releaseOrder": 632,
+    "releaseOrder": 757,
     "cardCount": 245
   },
   {
     "setCode": "sv5",
     "setName": "Temporal Forces",
     "releaseDate": "2024-03-22",
-    "releaseOrder": 633,
+    "releaseOrder": 758,
     "cardCount": 218
   },
   {
     "setCode": "sv6",
     "setName": "Twilight Masquerade",
     "releaseDate": "2024-05-24",
-    "releaseOrder": 634,
+    "releaseOrder": 759,
     "cardCount": 226
   },
   {
     "setCode": "sv6pt5",
     "setName": "Shrouded Fable",
     "releaseDate": "2024-08-02",
-    "releaseOrder": 635,
+    "releaseOrder": 760,
     "cardCount": 99
   },
   {
     "setCode": "sv7",
     "setName": "Stellar Crown",
     "releaseDate": "2024-09-13",
-    "releaseOrder": 636,
+    "releaseOrder": 761,
     "cardCount": 175
   },
   {
     "setCode": "sv8",
     "setName": "Surging Sparks",
     "releaseDate": "2024-11-08",
-    "releaseOrder": 637,
+    "releaseOrder": 762,
     "cardCount": 252
   },
   {
     "setCode": "sv8pt5",
     "setName": "Prismatic Evolutions",
     "releaseDate": "2025-01-17",
-    "releaseOrder": 638,
+    "releaseOrder": 763,
     "cardCount": 180
   },
   {
     "setCode": "sv9",
     "setName": "Journey Together",
     "releaseDate": "2025-03-28",
-    "releaseOrder": 639,
+    "releaseOrder": 764,
     "cardCount": 190
   },
   {
     "setCode": "sv10",
     "setName": "Destined Rivals",
     "releaseDate": "2025-05-30",
-    "releaseOrder": 640,
+    "releaseOrder": 765,
     "cardCount": 244
   },
   {
     "setCode": "zsv10pt5",
     "setName": "Black Bolt",
     "releaseDate": "2025-07-18",
-    "releaseOrder": 641,
+    "releaseOrder": 766,
     "cardCount": 172
   },
   {
     "setCode": "rsv10pt5",
     "setName": "White Flare",
     "releaseDate": "2025-07-18",
-    "releaseOrder": 642,
+    "releaseOrder": 767,
     "cardCount": 173
   },
   {
     "setCode": "me1",
     "setName": "Mega Evolution",
     "releaseDate": "2025-09-26",
-    "releaseOrder": 643,
+    "releaseOrder": 768,
     "cardCount": 188
   },
   {
     "setCode": "me2",
     "setName": "Phantasmal Flames",
     "releaseDate": "2025-11-14",
-    "releaseOrder": 644,
+    "releaseOrder": 769,
     "cardCount": 130
   },
   {
     "setCode": "me2pt5",
     "setName": "Ascended Heroes",
     "releaseDate": "2026-01-30",
-    "releaseOrder": 645,
+    "releaseOrder": 770,
     "cardCount": 295
   },
   {
     "setCode": "me3",
     "setName": "Perfect Order",
     "releaseDate": "2026-03-27",
-    "releaseOrder": 646,
+    "releaseOrder": 771,
     "cardCount": 124
   }
 ]
