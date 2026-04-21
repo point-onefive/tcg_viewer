@@ -5,13 +5,14 @@ node_modules/
 .next/
 out/
 
-# Generated card data (run npm run cards:all to regenerate)
+# Generated card data (run npm run cards:all:<collection> to regenerate)
 data/
-src/lib/cards-generated.json
-src/lib/sets-generated.json
+src/lib/cards-*.json
+src/lib/sets-*.json
 
-# Downloaded images (upload to R2, don't commit 761MB)
+# Downloaded images (upload to R2, don't commit)
 public/cards/
+public/cards-*/
 
 # Secrets — NEVER commit these
 .env

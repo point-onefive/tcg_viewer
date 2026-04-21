@@ -3,15 +3,31 @@ import { persist } from 'zustand/middleware'
 
 type Theme = 'light' | 'dark'
 
-export type Collection = 'one-piece' | 'pokemon' | 'magic' | 'yugioh'
+/**
+ * Supported TCG collections. New games plug in here + get their own
+ * generated JSON files (src/lib/cards-{collection}.json) and R2 prefix.
+ */
+export type Collection = 'one-piece' | 'gundam' | 'dbs' | 'digimon'
 
-/** A single pinned art. `variantId` is undefined for the base card. */
+/**
+ * A single pinned art. `collection` is set automatically by the store
+ * from `activeCollection` when pinning, so call sites stay concise.
+ * The board panel filters pins by the active collection.
+ */
 export interface Pin {
+  collection: Collection
   cardId: string
   variantId?: string
 }
 
-const pinKey = (p: Pin) => p.variantId ?? p.cardId
+/** Caller-facing pin arg (no collection - store fills it in). */
+export interface PinInput {
+  cardId: string
+  variantId?: string
+}
+
+const pinKey = (p: Pin) =>
+  `${p.collection}::${p.variantId ?? p.cardId}`
 
 interface StoreState {
   theme: Theme
@@ -33,10 +49,10 @@ interface StoreState {
   openLightbox: (id: string) => void
   closeLightbox: () => void
   pinned: Pin[]
-  togglePin: (p: Pin) => void
+  togglePin: (p: PinInput) => void
   reorderPins: (fromKey: string, toKey: string) => void
   removePin: (key: string) => void
-  isPinned: (p: Pin) => boolean
+  isPinned: (p: PinInput) => boolean
   boardOpen: boolean
   setBoardOpen: (open: boolean) => void
 }
@@ -63,7 +79,15 @@ export const useStore = create<StoreState>()(
       toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),
       activeCollection: 'one-piece',
-      setActiveCollection: (activeCollection) => set({ activeCollection, activeSet: null }),
+      setActiveCollection: (activeCollection) =>
+        set({
+          activeCollection,
+          activeSet: null,
+          activeRarity: null,
+          activeColor: null,
+          searchQuery: '',
+          lightboxCardId: null,
+        }),
       searchQuery: '',
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       activeSet: null,
@@ -78,17 +102,23 @@ export const useStore = create<StoreState>()(
       openLightbox: (id) => set({ lightboxCardId: id }),
       closeLightbox: () => set({ lightboxCardId: null }),
       pinned: [],
-      isPinned: (p) => get().pinned.some((x) => pinKey(x) === pinKey(p)),
+      isPinned: (p) => {
+        const { pinned, activeCollection } = get()
+        const full: Pin = { ...p, collection: activeCollection }
+        const k = pinKey(full)
+        return pinned.some((x) => pinKey(x) === k)
+      },
       togglePin: (p) => {
-        const { pinned } = get()
-        const key = pinKey(p)
-        const exists = pinned.some((x) => pinKey(x) === key)
+        const { pinned, activeCollection } = get()
+        const full: Pin = { ...p, collection: activeCollection }
+        const k = pinKey(full)
+        const exists = pinned.some((x) => pinKey(x) === k)
         if (exists) {
-          set({ pinned: pinned.filter((x) => pinKey(x) !== key) })
-          void track('unpin', p)
+          set({ pinned: pinned.filter((x) => pinKey(x) !== k) })
+          void track('unpin', full)
         } else {
-          set({ pinned: [...pinned, p] })
-          void track('pin', p)
+          set({ pinned: [...pinned, full] })
+          void track('pin', full)
         }
       },
       removePin: (key) => {
@@ -118,7 +148,19 @@ export const useStore = create<StoreState>()(
         activeCollection: state.activeCollection,
         pinned: state.pinned,
       }),
-      version: 4,
+      version: 5,
+      migrate: (persisted: unknown, fromVersion): StoreState => {
+        const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
+        if (fromVersion < 5 && Array.isArray(s.pinned)) {
+          // Older pins had no collection field - backfill to one-piece.
+          s.pinned = s.pinned.map((p) => ({
+            collection: (p.collection as Collection) ?? 'one-piece',
+            cardId: p.cardId ?? '',
+            variantId: p.variantId,
+          }))
+        }
+        return s as StoreState
+      },
     }
   )
 )
@@ -126,8 +168,8 @@ export const useStore = create<StoreState>()(
 export const pinKeyFor = pinKey
 
 export const COLLECTIONS: { id: Collection; name: string; available: boolean }[] = [
-  { id: 'one-piece', name: 'One Piece TCG', available: true },
-  { id: 'pokemon',   name: 'Pokemon TCG',   available: false },
-  { id: 'magic',     name: 'Magic',         available: false },
-  { id: 'yugioh',    name: 'Yu-Gi-Oh!',     available: false },
+  { id: 'one-piece', name: 'One Piece',        available: true },
+  { id: 'gundam',    name: 'Gundam',           available: true },
+  { id: 'dbs',       name: 'Dragon Ball Super',available: false },
+  { id: 'digimon',   name: 'Digimon',          available: false },
 ]

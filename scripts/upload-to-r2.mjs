@@ -1,10 +1,18 @@
 /**
- * Uploads all card images from public/cards/ to Cloudflare R2.
+ * Uploads card images from a local directory to Cloudflare R2.
  * Uses the Cloudflare REST API with the API token from .env.local.
  *
- * Uploads with concurrency=20 for speed without hammering the API.
+ * Usage:
+ *   node scripts/upload-to-r2.mjs                         # defaults: public/cards/ -> cards/, image/png
+ *   node scripts/upload-to-r2.mjs --dir=public/cards-gundam --prefix=cards/gundam --ext=webp
  *
- * Usage: node scripts/upload-to-r2.mjs
+ * Flags:
+ *   --dir        local directory to upload (required for non-default)
+ *   --prefix     R2 key prefix (e.g. cards/gundam)
+ *   --ext        file extension to include (png, webp, jpg). Default: png
+ *   --marker     path to progress JSON (default: data/uploaded-{prefix-slug}.json)
+ *
+ * Uploads with concurrency=20 for speed without hammering the API.
  */
 
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'fs'
@@ -13,7 +21,28 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
-const IMAGES_DIR = join(ROOT, 'public', 'cards')
+
+function parseArgs() {
+  const args = Object.fromEntries(
+    process.argv.slice(2).map((a) => {
+      const [k, ...rest] = a.replace(/^--/, '').split('=')
+      return [k, rest.length ? rest.join('=') : true]
+    })
+  )
+  const dir = args.dir ? join(ROOT, args.dir) : join(ROOT, 'public', 'cards')
+  const prefix = (args.prefix || 'cards').replace(/^\/+|\/+$/g, '')
+  const ext = (args.ext || 'png').toLowerCase()
+  const contentType =
+    ext === 'webp' ? 'image/webp' :
+    ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+    'image/png'
+  const marker = args.marker
+    ? join(ROOT, args.marker)
+    : join(ROOT, 'data', `uploaded-${prefix.replace(/\//g, '-')}.json`)
+  return { dir, prefix, ext, contentType, marker }
+}
+
+const { dir: IMAGES_DIR, prefix: PREFIX, ext: EXT, contentType: CONTENT_TYPE, marker: DONE_FILE } = parseArgs()
 
 // Load .env.local
 function loadEnv() {
@@ -42,15 +71,19 @@ if (!ACCOUNT_ID || !TOKEN || !BUCKET) {
 
 if (!existsSync(IMAGES_DIR)) {
   console.error(`Images dir not found: ${IMAGES_DIR}`)
-  console.error('Run: node scripts/download-images.mjs first')
   process.exit(1)
 }
+
+console.log(`Uploading  ${IMAGES_DIR}/*.${EXT}`)
+console.log(`       -> r2://${BUCKET}/${PREFIX}/{file}`)
+console.log(`       content-type: ${CONTENT_TYPE}`)
+console.log()
 
 const BASE_URL = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/r2/buckets/${BUCKET}/objects`
 
 async function uploadFile(filename, retries = 4) {
   const filepath = join(IMAGES_DIR, filename)
-  const key = `cards/${filename}`
+  const key = `${PREFIX}/${filename}`
   const body = readFileSync(filepath)
 
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -63,7 +96,7 @@ async function uploadFile(filename, retries = 4) {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${TOKEN}`,
-        'Content-Type': 'image/png',
+        'Content-Type': CONTENT_TYPE,
       },
       body,
     })
@@ -103,11 +136,9 @@ async function runWithConcurrency(tasks, concurrency) {
 }
 
 async function main() {
-  const allFiles = readdirSync(IMAGES_DIR).filter(f => f.endsWith('.png'))
+  const allFiles = readdirSync(IMAGES_DIR).filter(f => f.toLowerCase().endsWith(`.${EXT}`))
 
-  // Check which files already exist in R2 via HEAD - skip them to resume safely
-  // For speed: skip the HEAD check and use a local marker file instead
-  const DONE_FILE = join(ROOT, 'data', 'uploaded.json')
+  // Resume via local marker file
   const done = new Set(existsSync(DONE_FILE) ? JSON.parse(readFileSync(DONE_FILE, 'utf8')) : [])
 
   const files = allFiles.filter(f => !done.has(f))
@@ -134,7 +165,7 @@ async function main() {
     if (failed.length > 10) console.warn(`  ...and ${failed.length - 10} more`)
     console.warn('\nRe-run this script to retry failures.')
   } else {
-    console.log(`\nAll images live at: ${env.R2_PUBLIC_URL}/cards/{CARD_ID}.png`)
+    console.log(`\nAll images live at: ${env.R2_PUBLIC_URL}/${PREFIX}/{FILE}`)
   }
 }
 

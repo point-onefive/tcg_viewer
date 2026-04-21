@@ -18,6 +18,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'en.onepiece-cardgame.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.gundam-gcg.com',
+      },
     ],
   },
 }

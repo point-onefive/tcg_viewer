@@ -88,8 +88,11 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
 }
 
 export function BoardPanel({ cards }: BoardPanelProps) {
-  const { boardOpen, setBoardOpen, pinned, removePin, reorderPins } = useStore()
+  const { boardOpen, setBoardOpen, pinned, removePin, reorderPins, activeCollection } = useStore()
   const panelRef = useRef<HTMLDivElement>(null)
+
+  // Only show pins from the active collection - the board is per-collection.
+  const visiblePins = pinned.filter((p) => p.collection === activeCollection)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -128,7 +131,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
     return { card, imgSrc: variant?.imageUrl, label: variant?.label }
   }
 
-  const pinnedKeys = pinned.map(pinKeyFor)
+  const pinnedKeys = visiblePins.map(pinKeyFor)
 
   return (
     <AnimatePresence>
@@ -165,8 +168,8 @@ export function BoardPanel({ cards }: BoardPanelProps) {
               <div className="board-panel__title">
                 <Bookmark size={14} strokeWidth={2} fill="currentColor" />
                 <span>Board</span>
-                {pinned.length > 0 && (
-                  <span className="board-panel__count">{pinned.length}</span>
+                {visiblePins.length > 0 && (
+                  <span className="board-panel__count">{visiblePins.length}</span>
                 )}
               </div>
               <button
@@ -180,7 +183,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
 
             {/* Body */}
             <div className="board-panel__body">
-              {pinned.length === 0 ? (
+              {visiblePins.length === 0 ? (
                 <div className="board-panel__empty">
                   <Bookmark size={28} strokeWidth={1.5} />
                   <p>Pin cards to build your board.</p>
@@ -196,7 +199,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
                 >
                   <SortableContext items={pinnedKeys} strategy={rectSortingStrategy}>
                     <div className="board-grid">
-                      {pinned.map((pin) => {
+                      {visiblePins.map((pin) => {
                         const key = pinKeyFor(pin)
                         const { card, imgSrc, label } = resolvePin(pin)
                         return (

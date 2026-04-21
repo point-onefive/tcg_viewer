@@ -21,6 +21,9 @@ export function Header({ sets }: HeaderProps) {
   } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // Pin count is per-collection (matches board panel behaviour).
+  const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
+
   // Shared style token — matches logo's rounded-rect language
   const ctrl: React.CSSProperties = {
     background: 'var(--bg-surface)',
@@ -187,21 +190,21 @@ export function Header({ sets }: HeaderProps) {
             style={{
               ...ctrl,
               height: 30,
-              background: pinned.length > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
-              color: pinned.length > 0 ? 'var(--bg)' : 'var(--text-primary)',
+              background: pinnedCount > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
+              color: pinnedCount > 0 ? 'var(--bg)' : 'var(--text-primary)',
               transition: 'background 0.2s ease, color 0.2s ease',
             }}
             onClick={() => setBoardOpen(true)}
-            aria-label={`Open board (${pinned.length} pinned)`}
+            aria-label={`Open board (${pinnedCount} pinned)`}
           >
-            <Bookmark size={12} strokeWidth={2} fill={pinned.length > 0 ? 'currentColor' : 'none'} />
+            <Bookmark size={12} strokeWidth={2} fill={pinnedCount > 0 ? 'currentColor' : 'none'} />
             Board
-            {pinned.length > 0 && (
+            {pinnedCount > 0 && (
               <span
                 className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
                 style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 4, background: 'var(--bg)', color: 'var(--text-primary)' }}
               >
-                {pinned.length}
+                {pinnedCount}
               </span>
             )}
           </button>
@@ -210,19 +213,19 @@ export function Header({ sets }: HeaderProps) {
         {/* ── Mobile right cluster ── */}
         <div className="flex md:hidden items-center gap-2">
           {/* Board icon - only if pins exist */}
-          {pinned.length > 0 && (
+          {pinnedCount > 0 && (
             <button
               className="relative inline-flex items-center justify-center"
               style={{ ...ctrl, width: 32, height: 32 }}
               onClick={() => setBoardOpen(true)}
-              aria-label={`Board (${pinned.length} pinned)`}
+              aria-label={`Board (${pinnedCount} pinned)`}
             >
               <Bookmark size={14} strokeWidth={2} fill="currentColor" />
               <span
                 className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
                 style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
               >
-                {pinned.length}
+                {pinnedCount}
               </span>
             </button>
           )}

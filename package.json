@@ -12,7 +12,12 @@
     "cards:images": "node scripts/download-images.mjs",
     "cards:images:cdn": "node scripts/download-images.mjs --cdn",
     "cards:all": "npm run cards:fetch && npm run cards:generate",
-    "r2:upload": "node scripts/upload-to-r2.mjs"
+    "r2:upload": "node scripts/upload-to-r2.mjs",
+    "gundam:fetch": "node scripts/fetch-gundam-data.mjs",
+    "gundam:generate": "node scripts/generate-gundam-data.mjs",
+    "gundam:images": "node scripts/download-gundam-images.mjs",
+    "gundam:all": "npm run gundam:fetch && npm run gundam:images && npm run gundam:generate",
+    "gundam:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-gundam --prefix=cards/gundam --ext=webp"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
