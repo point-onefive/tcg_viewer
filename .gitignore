@@ -24,3 +24,4 @@ wrangler.toml
 
 # TS incremental build
 tsconfig.tsbuildinfo
+.vercel

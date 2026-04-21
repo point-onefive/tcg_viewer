@@ -19,6 +19,21 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'The Card Wall',
   description: 'A premium gallery of trading card games.',
+  metadataBase: new URL('https://thecardwall.com'),
+  openGraph: {
+    title: 'The Card Wall',
+    description: 'A premium gallery of trading card games.',
+    url: 'https://thecardwall.com',
+    siteName: 'The Card Wall',
+    images: [{ url: '/images/og.png', width: 1200, height: 657, alt: 'The Card Wall' }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Card Wall',
+    description: 'A premium gallery of trading card games.',
+    images: ['/images/og.png'],
+  },
 }
 
 export default function RootLayout({
