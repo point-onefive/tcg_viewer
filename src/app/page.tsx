@@ -7,6 +7,7 @@ import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
+import { OnboardingTour } from '@/components/gallery/onboarding-tour'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
@@ -29,6 +30,7 @@ export default function Home() {
       )}
       <BoardPanel cards={cards} />
       <Footer />
+      {ready && <OnboardingTour />}
     </main>
   )
 }

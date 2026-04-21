@@ -151,7 +151,7 @@ export function Header({ sets }: HeaderProps) {
         {/* ── Desktop controls ── */}
         <div className="hidden md:flex items-center gap-2">
           {/* Collection Filter (custom popover so menu stays inside the site) */}
-          <div ref={collectionRef} className="relative">
+          <div ref={collectionRef} className="relative" data-tour="collection">
             <button
               type="button"
               onClick={() => setCollectionOpen((o) => !o)}
@@ -255,6 +255,7 @@ export function Header({ sets }: HeaderProps) {
             onChange={(e) => setActiveSet(e.target.value || null)}
             className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
             style={{ ...(activeSet ? ctrlActive : ctrl), height: 30 }}
+            data-tour="set"
           >
             <option value="">All Sets</option>
             {sets.map((s) => (
@@ -324,6 +325,7 @@ export function Header({ sets }: HeaderProps) {
             }}
             onClick={() => setBoardOpen(true)}
             aria-label={`Open board (${pinnedCount} pinned)`}
+            data-tour="board"
           >
             <Bookmark size={12} strokeWidth={2} fill={pinnedCount > 0 ? 'currentColor' : 'none'} />
             Board
@@ -367,6 +369,7 @@ export function Header({ sets }: HeaderProps) {
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
+            data-tour="menu"
           >
             {mobileOpen ? <X size={15} /> : <Menu size={15} />}
           </button>
