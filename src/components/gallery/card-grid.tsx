@@ -62,7 +62,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Pinch-to-zoom: two-finger gesture maps to the same 1–12 zoom scale used
+  // Pinch-to-zoom: two-finger gesture maps to the same 1-12 zoom scale used
   // by the slider. We listen on `document` (not the grid div) because iOS
   // routes multi-touch events to the element where the first finger landed,
   // which is usually a child tile. We also support iOS Safari's proprietary
@@ -281,7 +281,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
           </span>
         </div>
-        {/* Active filter chips — visible only when at least one filter is on */}
+        {/* Active filter chips - visible only when at least one filter is on */}
         {(activeSet || activeRarity || activeColor || searchQuery.trim()) && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <span

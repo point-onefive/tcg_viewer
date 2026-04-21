@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { X } from 'lucide-react'
 
 /**
- * First-visit guided tour. Per-device — writes a flag to localStorage when
+ * First-visit guided tour. Per-device - writes a flag to localStorage when
  * completed or skipped so it only ever shows once.
  *
  * Steps point at elements carrying `data-tour="<id>"`. If a target isn't in
@@ -16,7 +16,7 @@ const STORAGE_KEY = 'tcg-viewer-tour-seen-v2'
 
 type Step = {
   id: string
-  // Ordered list of selectors — first match wins. Useful so the same step
+  // Ordered list of selectors - first match wins. Useful so the same step
   // can target the desktop control OR the mobile hamburger icon.
   targets: string[]
   title: string
@@ -58,7 +58,7 @@ const STEPS: Step[] = [
     id: 'feedback',
     targets: ['[data-tour="feedback"]', '[data-tour="menu"]'],
     title: 'Say hi · send feedback',
-    body: 'Built by one person. DMs and feature ideas on X welcome — every follow helps keep this alive.',
+    body: 'Built by one person. DMs and feature ideas on X are welcome, and every follow helps keep this alive.',
   },
   {
     id: 'done',

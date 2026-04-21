@@ -313,7 +313,7 @@ export function Header({ sets }: HeaderProps) {
 
           <ThemeToggle />
 
-          {/* Feedback / X — compact icon-only so it sits comfortably in the nav */}
+          {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
           <a
             href="https://x.com/point_onefive"
             target="_blank"
@@ -456,7 +456,7 @@ export function Header({ sets }: HeaderProps) {
             </svg>
           </div>
 
-          {/* Feedback link — give the X handle a visible home in mobile nav */}
+          {/* Feedback link - give the X handle a visible home in mobile nav */}
           <a
             href="https://x.com/point_onefive"
             target="_blank"
