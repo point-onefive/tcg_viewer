@@ -137,7 +137,10 @@ export function Header({ sets }: HeaderProps) {
             >
               the
             </span>
-            <span>Card Wall</span>
+            <span>
+              <span style={{ color: '#E85D2A' }}>C</span>ard{' '}
+              <span style={{ color: '#E85D2A' }}>W</span>all
+            </span>
           </span>
         </a>
 
