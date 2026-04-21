@@ -290,14 +290,40 @@ export function Header({ sets }: HeaderProps) {
           </select>
 
           {/* Search */}
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search cards…"
-            className="w-40 px-3 py-1.5 text-xs outline-none transition-[width] duration-300 focus:w-56"
-            style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
-          />
+          <div
+            className="relative w-40 transition-[width] duration-300 focus-within:w-56"
+            style={{ height: 30 }}
+          >
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search cards…"
+              className="w-full h-full pl-3 pr-7 text-xs outline-none"
+              style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
+                style={{
+                  right: 6,
+                  width: 16,
+                  height: 16,
+                  borderRadius: 999,
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg)',
+                  cursor: 'pointer',
+                  border: 'none',
+                  padding: 0,
+                }}
+              >
+                <X size={10} strokeWidth={3} />
+              </button>
+            )}
+          </div>
 
           {/* Divider - prominent vertical rule separating filter group from zoom */}
           <div
@@ -450,14 +476,37 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
 
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search cards…"
-            className="w-full px-3 py-2 text-sm outline-none"
-            style={{ ...(searchQuery.trim() ? ctrlActive : ctrl) }}
-          />
+          <div className="relative w-full">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search cards…"
+              className="w-full pl-3 pr-9 py-2 text-sm outline-none"
+              style={{ ...(searchQuery.trim() ? ctrlActive : ctrl) }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
+                style={{
+                  right: 8,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 999,
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg)',
+                  cursor: 'pointer',
+                  border: 'none',
+                  padding: 0,
+                }}
+              >
+                <X size={12} strokeWidth={3} />
+              </button>
+            )}
+          </div>
 
           {/* Zoom row · matches desktop icon language */}
           <div className="flex items-center gap-2 px-3 py-2" style={{ ...ctrl }}>
