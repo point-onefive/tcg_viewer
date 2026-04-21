@@ -148,8 +148,32 @@ export function Header({ sets }: HeaderProps) {
           </span>
         </a>
 
+        {/* Tagline · shows only on wider viewports to avoid crowding controls */}
+        <div
+          aria-hidden
+          className="hidden xl:flex flex-1 items-center justify-center pointer-events-none select-none"
+          style={{ minWidth: 0 }}
+        >
+          <span
+            className="whitespace-nowrap"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontWeight: 700,
+              fontSize: 14,
+              letterSpacing: '-0.01em',
+              color: 'var(--text-muted)',
+              opacity: 0.9,
+            }}
+          >
+            <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 2 }}>“</span>
+            Find something you didn’t know existed
+            <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 2 }}>”</span>
+          </span>
+        </div>
+
         {/* ── Desktop controls ── */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           {/* Collection Filter (custom popover so menu stays inside the site) */}
           <div ref={collectionRef} className="relative" data-tour="collection">
             <button
@@ -357,7 +381,7 @@ export function Header({ sets }: HeaderProps) {
         </div>
 
         {/* ── Mobile right cluster ── */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           {/* Board icon - only if pins exist */}
           {pinnedCount > 0 && (
             <button
@@ -395,7 +419,7 @@ export function Header({ sets }: HeaderProps) {
       {/* ── Mobile filter sheet ── */}
       {mobileOpen && (
         <div
-          className="md:hidden px-4 pb-4 pt-2 flex flex-col gap-3"
+          className="lg:hidden px-4 pb-4 pt-2 flex flex-col gap-3"
           style={{ borderTop: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
         >
           <select

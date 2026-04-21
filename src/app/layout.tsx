@@ -19,11 +19,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'The Card Wall',
-  description: 'A premium gallery of trading card games.',
+  description: "Find something you didn't know existed.",
   metadataBase: new URL('https://thecardwall.com'),
   openGraph: {
     title: 'The Card Wall',
-    description: 'A premium gallery of trading card games.',
+    description: "Find something you didn't know existed.",
     url: 'https://thecardwall.com',
     siteName: 'The Card Wall',
     images: [{ url: '/images/og.png', width: 1200, height: 657, alt: 'The Card Wall' }],
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'The Card Wall',
-    description: 'A premium gallery of trading card games.',
+    description: "Find something you didn't know existed.",
     images: ['/images/og.png'],
   },
 }

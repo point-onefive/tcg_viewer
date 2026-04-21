@@ -67,18 +67,36 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // routes multi-touch events to the element where the first finger landed,
   // which is usually a child tile. We also support iOS Safari's proprietary
   // `gesturestart/gesturechange` events so native page zoom doesn't win.
+  //
+  // Guards against false triggers during normal scroll:
+  //  - Require actual 2 touches throughout touchmove (Android).
+  //  - Ignore near-1.0 scale (deadzone) so momentum/palm noise is rejected.
+  //  - Only arm after user crosses a clear distance threshold.
   useEffect(() => {
     let startDist = 0
     let startZoom = 5
     let active = false
+    let armed = false // flips true once scale has moved past the deadzone
+
+    const DEADZONE_LOG2 = 0.12 // ~8.6% scale change required before we act
 
     const applyScale = (scale: number) => {
+      if (!Number.isFinite(scale) || scale <= 0) return
+      const log = Math.log2(scale)
+      if (!armed && Math.abs(log) < DEADZONE_LOG2) return
+      armed = true
       // Pinch out (scale > 1) grows cards → fewer columns → lower zoom index.
-      const delta = -Math.round(Math.log2(scale) * 6)
+      const delta = -Math.round(log * 6)
       const next = Math.max(1, Math.min(12, startZoom + delta))
       if (next !== useStore.getState().zoom) {
         useStore.getState().setZoom(next)
       }
+    }
+
+    const reset = () => {
+      active = false
+      armed = false
+      startDist = 0
     }
 
     // ── Touch events (Android / modern iOS) ──
@@ -89,39 +107,46 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         startDist = Math.hypot(dx, dy)
         startZoom = useStore.getState().zoom
         active = true
+        armed = false
+      } else {
+        // Any touch count other than 2 tears the gesture down so a stray
+        // second touch during a scroll can't zoom.
+        reset()
       }
     }
     const onTouchMove = (e: TouchEvent) => {
-      if (active && e.touches.length === 2 && startDist > 0) {
-        e.preventDefault()
-        const dx = e.touches[0].clientX - e.touches[1].clientX
-        const dy = e.touches[0].clientY - e.touches[1].clientY
-        const dist = Math.hypot(dx, dy)
-        applyScale(dist / startDist)
+      if (!active) return
+      if (e.touches.length !== 2 || startDist <= 0) {
+        reset()
+        return
       }
+      e.preventDefault()
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      const dist = Math.hypot(dx, dy)
+      applyScale(dist / startDist)
     }
-    const onTouchEnd = () => {
-      if (active) {
-        active = false
-        startDist = 0
-      }
-    }
+    const onTouchEnd = () => reset()
 
     // ── iOS Safari gesture events (non-standard, but required to suppress
-    //    the native page pinch-zoom even with user-scalable=no in some cases) ──
+    //    the native page pinch-zoom even with user-scalable=no in some cases).
+    //    Only arm on explicit multi-touch start so single-finger scroll
+    //    momentum can't flip us on. ──
     type GestureEvt = Event & { scale: number }
     const onGestureStart = (e: Event) => {
       e.preventDefault()
       startZoom = useStore.getState().zoom
       active = true
+      armed = false
     }
     const onGestureChange = (e: Event) => {
       e.preventDefault()
-      if (active) applyScale((e as GestureEvt).scale)
+      if (!active) return
+      applyScale((e as GestureEvt).scale)
     }
     const onGestureEnd = (e: Event) => {
       e.preventDefault()
-      active = false
+      reset()
     }
 
     document.addEventListener('touchstart', onTouchStart, { passive: true })
