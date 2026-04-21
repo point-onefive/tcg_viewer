@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import { X } from 'lucide-react'
+import { ChevronRight, X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
 import { CardTile } from './card-tile'
@@ -49,6 +49,20 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const [mounted, setMounted] = useState(false)
   const [windowWidth, setWindowWidth] = useState(1200)
   const [windowHeight, setWindowHeight] = useState(800)
+  // Collapsed set codes — lets users hide sections to skip long scrolls.
+  // Reset when collection changes so stale codes don't linger.
+  const [collapsedSets, setCollapsedSets] = useState<Set<string>>(() => new Set())
+  useEffect(() => {
+    setCollapsedSets(new Set())
+  }, [activeCollection])
+  const toggleSet = useCallback((setCode: string) => {
+    setCollapsedSets((prev) => {
+      const next = new Set(prev)
+      if (next.has(setCode)) next.delete(setCode)
+      else next.add(setCode)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -186,20 +200,34 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     return result
   }, [cards, activeSet, activeRarity, activeColor, searchQuery])
 
+  // Card counts per set (from filtered results) — shown in collapsed headers.
+  const setCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const c of filtered) counts.set(c.setCode, (counts.get(c.setCode) ?? 0) + 1)
+    return counts
+  }, [filtered])
+
+  const visibleSetCodes = useMemo(() => Array.from(setCounts.keys()), [setCounts])
+  const allCollapsed =
+    visibleSetCodes.length > 0 && visibleSetCodes.every((s) => collapsedSets.has(s))
+
   const { rows, rowMeta } = useMemo(() => {
     const rows: (Card[] | CardSet)[] = []
     const rowMeta: ('cards' | 'header')[] = []
     let currentSet = ''
+    let currentCollapsed = false
 
     for (const card of filtered) {
       if (card.setCode !== currentSet) {
         currentSet = card.setCode
+        currentCollapsed = collapsedSets.has(currentSet)
         const set = sets.find((s) => s.setCode === currentSet)
         if (set) {
           rows.push(set)
           rowMeta.push('header')
         }
       }
+      if (currentCollapsed) continue
       const lastRow = rows[rows.length - 1]
       if (rowMeta[rowMeta.length - 1] === 'cards' && Array.isArray(lastRow) && lastRow.length < columns) {
         lastRow.push(card)
@@ -210,7 +238,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     }
 
     return { rows, rowMeta }
-  }, [filtered, columns, sets])
+  }, [filtered, columns, sets, collapsedSets])
 
   const estimateSize = useCallback(
     (index: number) => {
@@ -305,6 +333,25 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             {filtered.length.toLocaleString()} cards
             {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
           </span>
+          {visibleSetCodes.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                setCollapsedSets(allCollapsed ? new Set() : new Set(visibleSetCodes))
+              }}
+              className="text-[10px] tracking-[0.16em] uppercase ml-auto inline-flex items-center gap-1 px-2 py-1"
+              style={{
+                color: 'var(--text-primary)',
+                background: 'var(--bg)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 6,
+                lineHeight: 1,
+              }}
+              aria-label={allCollapsed ? 'Expand all sets' : 'Collapse all sets'}
+            >
+              {allCollapsed ? 'Expand all' : 'Collapse all'}
+            </button>
+          )}
         </div>
         {/* Active filter chips - visible only when at least one filter is on */}
         {(activeSet || activeRarity || activeColor || searchQuery.trim()) && (
@@ -355,6 +402,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
           if (type === 'header') {
             const set = row as CardSet
+            const isCollapsed = collapsedSets.has(set.setCode)
+            const count = setCounts.get(set.setCode) ?? 0
             return (
               <div
                 key={"header-" + set.setCode}
@@ -365,34 +414,49 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                   className="w-full mb-2"
                   style={{ height: 1, background: 'var(--border-subtle)' }}
                 />
-                <div className="flex items-baseline gap-2.5">
-                  <span
-                    className="text-xs font-bold tracking-[0.12em] uppercase"
-                    style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
-                  >
-                    {set.setCode}
-                  </span>
-                  <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-secondary)' }}>·</span>
-                  <span className="text-[10px] tracking-wider uppercase" style={{ color: 'var(--text-secondary)' }}>
-                    {set.setName}
-                  </span>
-                  {set.releaseDate && (
-                    <>
-                      <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
-                      <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                        {set.releaseDate}
-                      </span>
-                    </>
-                  )}
-                  {set.cardCount != null && (
-                    <>
-                      <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
-                      <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                        {set.cardCount} cards
-                      </span>
-                    </>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleSet(set.setCode)}
+                  className="flex items-center gap-2 text-left w-full -ml-1 pl-1 py-1 rounded"
+                  aria-expanded={!isCollapsed}
+                  aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${set.setName}`}
+                  style={{ cursor: 'pointer', background: 'transparent' }}
+                >
+                  <ChevronRight
+                    size={12}
+                    strokeWidth={2.5}
+                    style={{
+                      color: 'var(--text-secondary)',
+                      transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
+                      transition: 'transform 0.15s ease',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div className="flex items-baseline gap-2.5 flex-wrap">
+                    <span
+                      className="text-xs font-bold tracking-[0.12em] uppercase"
+                      style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+                    >
+                      {set.setCode}
+                    </span>
+                    <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-secondary)' }}>·</span>
+                    <span className="text-[10px] tracking-wider uppercase" style={{ color: 'var(--text-secondary)' }}>
+                      {set.setName}
+                    </span>
+                    {set.releaseDate && (
+                      <>
+                        <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
+                        <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                          {set.releaseDate}
+                        </span>
+                      </>
+                    )}
+                    <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
+                    <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                      {count} cards
+                    </span>
+                  </div>
+                </button>
               </div>
             )
           }
