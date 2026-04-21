@@ -62,7 +62,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Pinch-to-zoom: two-finger gesture maps to the same 1-12 zoom scale used
+  // Pinch-to-zoom: two-finger gesture maps to the same 1–12 zoom scale used
   // by the slider. We listen on `document` (not the grid div) because iOS
   // routes multi-touch events to the element where the first finger landed,
   // which is usually a child tile. We also support iOS Safari's proprietary

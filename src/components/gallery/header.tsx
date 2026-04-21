@@ -470,7 +470,7 @@ export function Header({ sets }: HeaderProps) {
             <svg width="12" height="12" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
               <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
             </svg>
-            <span>Feedback · @point_onefive</span>
+            <span>Feedback (@point_onefive)</span>
           </a>
         </div>
       )}

@@ -57,7 +57,7 @@ const STEPS: Step[] = [
   {
     id: 'feedback',
     targets: ['[data-tour="feedback"]', '[data-tour="menu"]'],
-    title: 'Say hi · send feedback',
+    title: 'Say hi, send feedback',
     body: 'Built by one person. DMs and feature ideas on X are welcome, and every follow helps keep this alive.',
   },
   {
