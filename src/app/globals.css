@@ -422,15 +422,24 @@ html.lenis, html.lenis body {
 
 .lb-card {
   position: absolute;
-  width: min(440px, 70vw);
-  height: min(616px, 98vw);
-  max-height: 85vh;
+  /* Width is the primary constraint, height derives from 5:7 aspect.
+     But on short viewports we cap by height instead so the name bar
+     below never gets crushed. 60px top HUD + ~110px bottom bar = 170px
+     reserved; use 72vh as an extra safety ceiling. */
+  width: min(440px, 70vw, calc((100vh - 180px) * 5 / 7));
   aspect-ratio: 5 / 7;
+  max-height: 72vh;
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--lb-card-shadow);
   transform-origin: center bottom;
   will-change: transform, opacity;
+}
+
+@media (max-width: 640px) {
+  .lb-card {
+    width: min(76vw, calc((100vh - 170px) * 5 / 7));
+  }
 }
 
 .lb-card__label {

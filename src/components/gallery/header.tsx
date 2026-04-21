@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
-import { Bookmark, Menu, X } from 'lucide-react'
+import { Bookmark, Menu, X, Check, ChevronDown } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
@@ -20,6 +21,27 @@ export function Header({ sets }: HeaderProps) {
     pinned, setBoardOpen,
   } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [collectionOpen, setCollectionOpen] = useState(false)
+  const collectionRef = useRef<HTMLDivElement>(null)
+
+  // Close collection dropdown on outside click / Escape
+  useEffect(() => {
+    if (!collectionOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (collectionRef.current && !collectionRef.current.contains(e.target as Node)) {
+        setCollectionOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCollectionOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [collectionOpen])
+
+  const activeCollectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
 
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
@@ -106,20 +128,104 @@ export function Header({ sets }: HeaderProps) {
 
         {/* ── Desktop controls ── */}
         <div className="hidden md:flex items-center gap-2">
-          {/* Collection Filter */}
-          <select
-            value={activeCollection}
-            onChange={(e) => setActiveCollection(e.target.value as typeof activeCollection)}
-            className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none font-medium"
-            style={{ ...ctrl, height: 30 }}
-            aria-label="Collection"
-          >
-            {COLLECTIONS.map((c) => (
-              <option key={c.id} value={c.id} disabled={!c.available}>
-                {c.name}{!c.available ? ' (soon)' : ''}
-              </option>
-            ))}
-          </select>
+          {/* Collection Filter (custom popover so menu stays inside the site) */}
+          <div ref={collectionRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setCollectionOpen((o) => !o)}
+              className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+              style={{ ...ctrl, height: 30 }}
+              aria-haspopup="listbox"
+              aria-expanded={collectionOpen}
+              aria-label="Collection"
+            >
+              <span>{activeCollectionName}</span>
+              <ChevronDown
+                size={12}
+                strokeWidth={2.25}
+                style={{
+                  transition: 'transform 180ms ease',
+                  transform: collectionOpen ? 'rotate(180deg)' : 'rotate(0)',
+                  color: 'var(--text-muted)',
+                }}
+              />
+            </button>
+
+            <AnimatePresence>
+              {collectionOpen && (
+                <motion.div
+                  role="listbox"
+                  aria-label="Collection"
+                  initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute left-0 top-full mt-1.5 min-w-[180px] overflow-hidden"
+                  style={{
+                    transformOrigin: 'top left',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 8,
+                    boxShadow: 'var(--shadow-card)',
+                    zIndex: 60,
+                    padding: 4,
+                  }}
+                >
+                  {COLLECTIONS.map((c) => {
+                    const selected = c.id === activeCollection
+                    const disabled = !c.available
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        disabled={disabled}
+                        onClick={() => {
+                          if (disabled) return
+                          setActiveCollection(c.id)
+                          setCollectionOpen(false)
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors"
+                        style={{
+                          height: 30,
+                          borderRadius: 5,
+                          background: selected ? 'var(--text-primary)' : 'transparent',
+                          color: selected
+                            ? 'var(--bg)'
+                            : disabled
+                            ? 'var(--text-muted)'
+                            : 'var(--text-primary)',
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                          opacity: disabled ? 0.55 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!selected && !disabled) {
+                            e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!selected) e.currentTarget.style.background = 'transparent'
+                        }}
+                      >
+                        <Check
+                          size={12}
+                          strokeWidth={2.5}
+                          style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
+                        />
+                        <span className="flex-1">{c.name}</span>
+                        {disabled && (
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                            soon
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Set Filter */}
           <select
