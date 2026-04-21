@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
@@ -49,7 +49,6 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const [mounted, setMounted] = useState(false)
   const [windowWidth, setWindowWidth] = useState(1200)
   const [windowHeight, setWindowHeight] = useState(800)
-  const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -63,46 +62,83 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Pinch-to-zoom: two-finger gesture on the grid container maps to the
-  // same 1–12 zoom scale used by the slider.
+  // Pinch-to-zoom: two-finger gesture maps to the same 1–12 zoom scale used
+  // by the slider. We listen on `document` (not the grid div) because iOS
+  // routes multi-touch events to the element where the first finger landed,
+  // which is usually a child tile. We also support iOS Safari's proprietary
+  // `gesturestart/gesturechange` events so native page zoom doesn't win.
   useEffect(() => {
-    const el = gridRef.current
-    if (!el) return
     let startDist = 0
     let startZoom = 5
-    const onStart = (e: TouchEvent) => {
+    let active = false
+
+    const applyScale = (scale: number) => {
+      // Pinch out (scale > 1) grows cards → fewer columns → lower zoom index.
+      const delta = -Math.round(Math.log2(scale) * 6)
+      const next = Math.max(1, Math.min(12, startZoom + delta))
+      if (next !== useStore.getState().zoom) {
+        useStore.getState().setZoom(next)
+      }
+    }
+
+    // ── Touch events (Android / modern iOS) ──
+    const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         const dx = e.touches[0].clientX - e.touches[1].clientX
         const dy = e.touches[0].clientY - e.touches[1].clientY
         startDist = Math.hypot(dx, dy)
         startZoom = useStore.getState().zoom
+        active = true
       }
     }
-    const onMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && startDist > 0) {
+    const onTouchMove = (e: TouchEvent) => {
+      if (active && e.touches.length === 2 && startDist > 0) {
         e.preventDefault()
         const dx = e.touches[0].clientX - e.touches[1].clientX
         const dy = e.touches[0].clientY - e.touches[1].clientY
         const dist = Math.hypot(dx, dy)
-        const scale = dist / startDist
-        // Pinch out (scale > 1) grows cards, which means FEWER columns = lower zoom index.
-        const delta = -Math.round(Math.log2(scale) * 6)
-        const next = Math.max(1, Math.min(12, startZoom + delta))
-        if (next !== useStore.getState().zoom) {
-          useStore.getState().setZoom(next)
-        }
+        applyScale(dist / startDist)
       }
     }
-    const onEnd = () => { startDist = 0 }
-    el.addEventListener('touchstart', onStart, { passive: true })
-    el.addEventListener('touchmove', onMove, { passive: false })
-    el.addEventListener('touchend', onEnd, { passive: true })
-    el.addEventListener('touchcancel', onEnd, { passive: true })
+    const onTouchEnd = () => {
+      if (active) {
+        active = false
+        startDist = 0
+      }
+    }
+
+    // ── iOS Safari gesture events (non-standard, but required to suppress
+    //    the native page pinch-zoom even with user-scalable=no in some cases) ──
+    type GestureEvt = Event & { scale: number }
+    const onGestureStart = (e: Event) => {
+      e.preventDefault()
+      startZoom = useStore.getState().zoom
+      active = true
+    }
+    const onGestureChange = (e: Event) => {
+      e.preventDefault()
+      if (active) applyScale((e as GestureEvt).scale)
+    }
+    const onGestureEnd = (e: Event) => {
+      e.preventDefault()
+      active = false
+    }
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true })
+    document.addEventListener('touchmove', onTouchMove, { passive: false })
+    document.addEventListener('touchend', onTouchEnd, { passive: true })
+    document.addEventListener('touchcancel', onTouchEnd, { passive: true })
+    document.addEventListener('gesturestart', onGestureStart as EventListener)
+    document.addEventListener('gesturechange', onGestureChange as EventListener)
+    document.addEventListener('gestureend', onGestureEnd as EventListener)
     return () => {
-      el.removeEventListener('touchstart', onStart)
-      el.removeEventListener('touchmove', onMove)
-      el.removeEventListener('touchend', onEnd)
-      el.removeEventListener('touchcancel', onEnd)
+      document.removeEventListener('touchstart', onTouchStart)
+      document.removeEventListener('touchmove', onTouchMove)
+      document.removeEventListener('touchend', onTouchEnd)
+      document.removeEventListener('touchcancel', onTouchEnd)
+      document.removeEventListener('gesturestart', onGestureStart as EventListener)
+      document.removeEventListener('gesturechange', onGestureChange as EventListener)
+      document.removeEventListener('gestureend', onGestureEnd as EventListener)
     }
   }, [])
 
@@ -202,7 +238,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   }
 
   return (
-    <div ref={gridRef} className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800, touchAction: 'pan-y' }}>
+    <div className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800 }}>
       {/* Fixed 48px header spacer */}
       <div style={{ height: 48 }} />
 
