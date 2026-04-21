@@ -313,6 +313,22 @@ export function Header({ sets }: HeaderProps) {
 
           <ThemeToggle />
 
+          {/* Feedback / X — compact icon-only so it sits comfortably in the nav */}
+          <a
+            href="https://x.com/point_onefive"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="Feedback on X (@point_onefive)"
+            title="Feedback & suggestions"
+            data-tour="feedback"
+          >
+            <svg width="11" height="11" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
+              <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
+            </svg>
+          </a>
+
           {/* Board trigger */}
           <button
             className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
@@ -439,6 +455,23 @@ export function Header({ sets }: HeaderProps) {
               <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
             </svg>
           </div>
+
+          {/* Feedback link — give the X handle a visible home in mobile nav */}
+          <a
+            href="https://x.com/point_onefive"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setMobileOpen(false)}
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            style={{ ...ctrl }}
+            data-tour="feedback-mobile"
+            aria-label="Feedback on X (@point_onefive)"
+          >
+            <svg width="12" height="12" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
+              <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
+            </svg>
+            <span>Feedback · @point_onefive</span>
+          </a>
         </div>
       )}
     </header>

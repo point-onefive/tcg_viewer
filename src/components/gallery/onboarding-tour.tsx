@@ -12,7 +12,7 @@ import { X } from 'lucide-react'
  * the DOM for the current viewport, the step falls back to a centered card.
  */
 
-const STORAGE_KEY = 'tcg-viewer-tour-seen-v1'
+const STORAGE_KEY = 'tcg-viewer-tour-seen-v2'
 
 type Step = {
   id: string
@@ -53,6 +53,12 @@ const STEPS: Step[] = [
     targets: ['[data-tour="board"]'],
     title: 'Pin favorites to your Board',
     body: 'Hit the bookmark on any card to pin it. Open the Board to arrange and review your picks.',
+  },
+  {
+    id: 'feedback',
+    targets: ['[data-tour="feedback"]', '[data-tour="menu"]'],
+    title: 'Say hi · send feedback',
+    body: 'Built by one person. DMs and feature ideas on X welcome — every follow helps keep this alive.',
   },
   {
     id: 'done',
