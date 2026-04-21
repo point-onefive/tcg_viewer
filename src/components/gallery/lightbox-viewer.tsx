@@ -129,11 +129,11 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          {/* Backdrop — deep gradient with subtle vignette */}
+          {/* Backdrop · theme-aware gradient with subtle vignette */}
           <div
             className="absolute inset-0"
             style={{
-              background: 'radial-gradient(ellipse at 50% 40%, rgba(18,18,28,0.97) 0%, rgba(0,0,0,1) 100%)',
+              background: 'radial-gradient(ellipse at 50% 40%, var(--lb-backdrop-1) 0%, var(--lb-backdrop-2) 100%)',
               backdropFilter: 'blur(32px) saturate(120%)',
               WebkitBackdropFilter: 'blur(32px) saturate(120%)',
             }}
@@ -158,14 +158,14 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               className="inline-flex items-center gap-1.5 px-3 text-xs font-medium tabular-nums"
               style={{
                 pointerEvents: 'none',
-                color: 'rgba(255,255,255,0.45)',
+                color: 'var(--lb-fg-muted)',
                 letterSpacing: '0.08em',
               }}
             >
               {currentIndex + 1} <span style={{ opacity: 0.4 }}>/</span> {cards.length}
             </div>
 
-            {/* Pin + Close group — rounded-rect matching nav language */}
+            {/* Pin + Close group · rounded-rect matching nav language */}
             <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
               {card && (() => {
                 const img = images[focused]
@@ -199,7 +199,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             </div>
           </div>
 
-          {/* Card stage — centered, no side arrows so fan can never be obscured */}
+          {/* Card stage · centered, no side arrows so fan can never be obscured */}
           <div
             className="relative z-10 flex items-center justify-center w-full"
             style={{ flex: 1, minHeight: 0 }}
@@ -256,7 +256,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             onClick={(e) => e.stopPropagation()}
             style={{ flexShrink: 0 }}
           >
-            {/* Card name row with prev/next arrows flanking — never overlaps the fan */}
+            {/* Card name row with prev/next arrows flanking · never overlaps the fan */}
             <div className="flex items-center justify-center gap-3 md:gap-4 w-full px-4">
               <button
                 className="lb-arrow"
@@ -271,12 +271,12 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
 
               <div className="flex flex-col items-center gap-1 text-center" style={{ minWidth: 0, flex: '0 1 auto' }}>
                 <span
-                  className="text-white font-bold tracking-tight leading-tight truncate"
-                  style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 3vw, 22px)', maxWidth: 'min(70vw, 520px)' }}
+                  className="font-bold tracking-tight leading-tight truncate"
+                  style={{ color: 'var(--lb-fg)', fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 3vw, 22px)', maxWidth: 'min(70vw, 520px)' }}
                 >
                   {card.name}
                 </span>
-                <div className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--lb-fg-muted)' }}>
                   {card.setCode && <span>{card.setCode}</span>}
                   {card.rarity && <><span style={{ opacity: 0.3 }}>·</span><span>{card.rarity}</span></>}
                   {card.cardType && <><span style={{ opacity: 0.3 }}>·</span><span>{card.cardType}</span></>}

@@ -16,6 +16,21 @@
   --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.3);
   --border-subtle: rgba(0, 0, 0, 0.06);
   --overlay: rgba(245, 243, 240, 0.92);
+  /* Lightbox tokens (theme-aware) */
+  --lb-backdrop-1: rgba(245, 243, 240, 0.97);
+  --lb-backdrop-2: rgba(220, 215, 206, 1);
+  --lb-fg: #1a1a1a;
+  --lb-fg-muted: rgba(26, 26, 26, 0.55);
+  --lb-fg-faint: rgba(26, 26, 26, 0.38);
+  --lb-surface: rgba(0, 0, 0, 0.04);
+  --lb-surface-hover: rgba(0, 0, 0, 0.09);
+  --lb-border: rgba(0, 0, 0, 0.10);
+  --lb-border-hover: rgba(0, 0, 0, 0.18);
+  --lb-active-bg: #1a1a1a;
+  --lb-active-fg: #f5f3f0;
+  --lb-card-shadow: 0 40px 80px -20px rgba(0,0,0,0.28), 0 20px 40px -10px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+  --lb-label-bg: rgba(255,255,255,0.78);
+  --lb-label-fg: #1a1a1a;
 }
 
 [data-theme="dark"] {
@@ -28,6 +43,21 @@
   --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 2px rgba(255, 255, 255, 0.08);
   --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.6);
   --border-subtle: rgba(255, 255, 255, 0.06);
+  /* Lightbox tokens (dark) */
+  --lb-backdrop-1: rgba(18, 18, 28, 0.97);
+  --lb-backdrop-2: rgba(0, 0, 0, 1);
+  --lb-fg: #ffffff;
+  --lb-fg-muted: rgba(255, 255, 255, 0.55);
+  --lb-fg-faint: rgba(255, 255, 255, 0.38);
+  --lb-surface: rgba(255, 255, 255, 0.06);
+  --lb-surface-hover: rgba(255, 255, 255, 0.14);
+  --lb-border: rgba(255, 255, 255, 0.12);
+  --lb-border-hover: rgba(255, 255, 255, 0.22);
+  --lb-active-bg: rgba(255, 255, 255, 0.95);
+  --lb-active-fg: #000;
+  --lb-card-shadow: 0 40px 80px -20px rgba(0,0,0,0.8), 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  --lb-label-bg: rgba(0,0,0,0.55);
+  --lb-label-fg: rgba(255,255,255,0.9);
   --overlay: rgba(10, 10, 10, 0.94);
 }
 
@@ -398,10 +428,7 @@ html.lenis, html.lenis body {
   aspect-ratio: 5 / 7;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow:
-    0 40px 80px -20px rgba(0,0,0,0.8),
-    0 20px 40px -10px rgba(0,0,0,0.5),
-    0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: var(--lb-card-shadow);
   transform-origin: center bottom;
   will-change: transform, opacity;
 }
@@ -414,8 +441,8 @@ html.lenis, html.lenis body {
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.14em;
-  color: rgba(255,255,255,0.8);
-  background: rgba(0,0,0,0.55);
+  color: var(--lb-label-fg);
+  background: var(--lb-label-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   padding: 4px 10px;
@@ -436,9 +463,9 @@ html.lenis, html.lenis body {
   padding: 0 12px;
   height: 32px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--lb-border);
+  background: var(--lb-surface);
+  color: var(--lb-fg-muted);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -450,19 +477,20 @@ html.lenis, html.lenis body {
 }
 
 .lb-hud-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.22);
+  background: var(--lb-surface-hover);
+  color: var(--lb-fg);
+  border-color: var(--lb-border-hover);
 }
 
 .lb-hud-btn--active {
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
+  background: var(--lb-active-bg);
+  color: var(--lb-active-fg);
   border-color: transparent;
 }
 
 .lb-hud-btn--active:hover {
-  background: #fff;
+  background: var(--lb-active-bg);
+  opacity: 0.92;
 }
 
 .lb-close-btn {
@@ -727,8 +755,8 @@ html.lenis, html.lenis body {
   gap: 8px;
   padding: 7px 12px;
   border-radius: 6px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--lb-surface);
+  border: 1px solid var(--lb-border);
 }
 
 .lb-dot {
@@ -736,18 +764,18 @@ html.lenis, html.lenis body {
   height: 6px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.25);
+  background: var(--lb-fg-faint);
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
   padding: 0;
 }
 
 .lb-dot:hover {
-  background: rgba(255,255,255,0.5);
+  background: var(--lb-fg-muted);
 }
 
 .lb-dot--active {
-  background: rgba(255,255,255,0.95);
+  background: var(--lb-fg);
   transform: scale(1.3);
 }
 
@@ -760,9 +788,9 @@ html.lenis, html.lenis body {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.7);
+  border: 1px solid var(--lb-border);
+  background: var(--lb-surface);
+  color: var(--lb-fg-muted);
   cursor: pointer;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -771,9 +799,9 @@ html.lenis, html.lenis body {
 }
 
 .lb-arrow:hover:not(:disabled) {
-  background: rgba(255,255,255,0.14);
-  color: #fff;
-  border-color: rgba(255,255,255,0.22);
+  background: var(--lb-surface-hover);
+  color: var(--lb-fg);
+  border-color: var(--lb-border-hover);
   transform: scale(1.04);
 }
 

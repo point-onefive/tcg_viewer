@@ -24,7 +24,7 @@ export function Header({ sets }: HeaderProps) {
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
 
-  // Shared style token — matches logo's rounded-rect language
+  // Shared style token · matches logo's rounded-rect language
   const ctrl: React.CSSProperties = {
     background: 'var(--bg-surface)',
     color: 'var(--text-primary)',
@@ -131,7 +131,7 @@ export function Header({ sets }: HeaderProps) {
             <option value="">All Sets</option>
             {sets.map((s) => (
               <option key={s.setCode} value={s.setCode}>
-                {s.setCode} — {s.setName}
+                {s.setCode} · {s.setName}
               </option>
             ))}
           </select>
@@ -274,7 +274,7 @@ export function Header({ sets }: HeaderProps) {
             <option value="">All Sets</option>
             {sets.map((s) => (
               <option key={s.setCode} value={s.setCode}>
-                {s.setCode} — {s.setName}
+                {s.setCode} · {s.setName}
               </option>
             ))}
           </select>
@@ -288,14 +288,25 @@ export function Header({ sets }: HeaderProps) {
             style={{ ...ctrl }}
           />
 
-          {/* Zoom row */}
-          <div className="flex items-center gap-3 px-3 py-2" style={{ ...ctrl }}>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Zoom</span>
+          {/* Zoom row · matches desktop icon language */}
+          <div className="flex items-center gap-2 px-3 py-2" style={{ ...ctrl }}>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+              <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+            </svg>
             <input
               type="range" min={1} max={12} step={1} value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
               className="zoom-slider flex-1" aria-label="Zoom level"
             />
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+              <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+            </svg>
           </div>
         </div>
       )}

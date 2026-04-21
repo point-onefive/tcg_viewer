@@ -6,6 +6,7 @@ import { Header } from '@/components/gallery/header'
 import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
+import { Footer } from '@/components/gallery/footer'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
@@ -27,6 +28,7 @@ export default function Home() {
         </div>
       )}
       <BoardPanel cards={cards} />
+      <Footer />
     </main>
   )
 }
