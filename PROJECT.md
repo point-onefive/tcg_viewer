@@ -1,6 +1,6 @@
 # CARD WALL - Project Documentation
 
-> Last updated: April 20, 2026 (pin/board feature + nav/lightbox polish + art-first board tiles)
+> Last updated: April 21, 2026 (4 collections live + deployed to thecardwall.com)
 
 ---
 
@@ -16,9 +16,13 @@ A premium card gallery web app for One Piece TCG (and future TCG collections). B
 
 ## Current State
 
-- **1,661 unique base cards** (collapsed from 2,628 raw printings), **518 with alternate-art variants**
-- **35 sets** covering OP-01 through OP-10, ST-01 through ST-21, EB-01/02, PRB-01, plus PROMO and EXCLUSIVES buckets
-- **2,627 images live on Cloudflare R2** (`https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/`)
+- **Deployed:** https://thecardwall.com (Vercel, domain registered through Vercel, auto-DNS)
+- **4 live collections:** One Piece, Gundam, Dragon Ball Super, Digimon
+  - One Piece: 1,661 cards / 35 sets / 2,627 images
+  - Gundam: 656 cards / 13 sets / ~800 images
+  - Dragon Ball Super: 1,693 cards / 28 sets / 3,391 images
+  - Digimon: 4,071 cards / 61 sets / 7,132 images
+- **~14k images live on Cloudflare R2** (`https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/{collection}/`)
 - **Default theme: light.** Themed focus ring (no browser-default blue).
 - **Collection header** sits on a lifted `--bg-surface` band (hairline borders + 1px drop) for depth against the page `--bg`.
 - **Variant-card discovery:** cards with alternates render with a 2-sheet stacked-deck visual + animated sway + dominant-color glow. Fans out on hover.
@@ -26,7 +30,7 @@ A premium card gallery web app for One Piece TCG (and future TCG collections). B
 - **Pin / Board:** users pin any card (or specific variant). Navbar shows a "Board" pill with count; clicking opens a right-side slide-over. Board is an art-first tile grid (2-col, 3-col on wider panels, 5:7 aspect) with full-tile drag-reorder via dnd-kit and hover X to remove. Anonymous pin events POST to `/api/track-pin` for telemetry.
 - **Header:** 48px frosted backdrop-blur bar, unified pill controls (collection, search, set filter, zoom slider, theme toggle, Board pill). All controls share the 30px height + 6px corner-radius language of the logo mark. Strong vertical separator between logo and controls.
 - **Mobile:** hamburger reveals a bottom filter sheet (search, set, zoom, theme). Logo + Board pill stay visible in the top bar.
-- **Collections:** one-piece (active); pokemon, magic, yu-gi-oh as `(coming soon)`.
+- **Collections:** one-piece, gundam, dbs, digimon (all active).
 
 ---
 
@@ -44,7 +48,7 @@ A premium card gallery web app for One Piece TCG (and future TCG collections). B
 | State | Zustand + persist | zoom, theme, filters, lightbox, pins |
 | Fonts | Space Grotesk (`--font-display`), Inter (`--font-body`) | |
 | Images | Cloudflare R2 | Self-hosted, egress-free CDN |
-| Deployment | Vercel (not yet deployed) | |
+| Deployment | Vercel (thecardwall.com) | auto-deploy on push to `main` via GitHub integration |
 
 ---
 
@@ -286,9 +290,11 @@ npx tsc --noEmit     # Type check
 
 ## What's Left / Future Work
 
-- [ ] Deploy to Vercel (connect GitHub repo, add env vars)
-- [ ] Custom domain for R2 bucket (replace `pub-xxx.r2.dev` URL)
+- [x] Deploy to Vercel (live at https://thecardwall.com)
+- [x] Add Gundam collection
+- [x] Add Dragon Ball Super collection
+- [x] Add Digimon collection
+- [ ] Custom domain for R2 bucket (replace `pub-xxx.r2.dev` URL with e.g. `cdn.thecardwall.com`)
 - [ ] Persist `track-pin` telemetry to a real store (currently logs only)
 - [ ] Share / export board (image, link)
-- [ ] Additional TCG collections (see above)
-- [ ] OP-11+ re-ingest when new sets release (`npm run cards:all` + `npm run r2:upload`)
+- [ ] Re-ingest when new sets release (per-collection `npm run {coll}:all` + `npm run {coll}:r2`)
