@@ -7,12 +7,24 @@ import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 
 const COLOR_MAP: Record<string, string> = {
-  Red:    '#ef4444',
-  Blue:   '#3b82f6',
-  Green:  '#22c55e',
-  Purple: '#a855f7',
-  Black:  '#9ca3af',
-  Yellow: '#eab308',
+  Red:       '#ef4444',
+  Blue:      '#3b82f6',
+  Green:     '#22c55e',
+  Purple:    '#a855f7',
+  Black:     '#9ca3af',
+  Yellow:    '#eab308',
+  // Pokémon energy types
+  Grass:     '#78c850',
+  Fire:      '#f97316',
+  Water:     '#38bdf8',
+  Lightning: '#facc15',
+  Psychic:   '#c084fc',
+  Fighting:  '#b45309',
+  Darkness:  '#1f2937',
+  Metal:     '#94a3b8',
+  Fairy:     '#f472b6',
+  Dragon:    '#7c3aed',
+  Colorless: '#e5e7eb',
 }
 
 interface CardTileProps {

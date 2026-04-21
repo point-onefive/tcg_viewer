@@ -1,0 +1,331 @@
+[
+  {
+    "setCode": "swshp",
+    "setName": "SWSH Black Star Promos",
+    "releaseDate": "2019-11-15",
+    "releaseOrder": 600,
+    "cardCount": 304
+  },
+  {
+    "setCode": "swsh1",
+    "setName": "Sword & Shield",
+    "releaseDate": "2020-02-07",
+    "releaseOrder": 601,
+    "cardCount": 216
+  },
+  {
+    "setCode": "swsh2",
+    "setName": "Rebel Clash",
+    "releaseDate": "2020-05-01",
+    "releaseOrder": 602,
+    "cardCount": 209
+  },
+  {
+    "setCode": "swsh3",
+    "setName": "Darkness Ablaze",
+    "releaseDate": "2020-08-14",
+    "releaseOrder": 603,
+    "cardCount": 201
+  },
+  {
+    "setCode": "swsh35",
+    "setName": "Champion's Path",
+    "releaseDate": "2020-09-25",
+    "releaseOrder": 604,
+    "cardCount": 80
+  },
+  {
+    "setCode": "swsh4",
+    "setName": "Vivid Voltage",
+    "releaseDate": "2020-11-13",
+    "releaseOrder": 605,
+    "cardCount": 203
+  },
+  {
+    "setCode": "swsh45",
+    "setName": "Shining Fates",
+    "releaseDate": "2021-02-19",
+    "releaseOrder": 606,
+    "cardCount": 73
+  },
+  {
+    "setCode": "swsh45sv",
+    "setName": "Shining Fates Shiny Vault",
+    "releaseDate": "2021-02-19",
+    "releaseOrder": 607,
+    "cardCount": 122
+  },
+  {
+    "setCode": "swsh5",
+    "setName": "Battle Styles",
+    "releaseDate": "2021-03-19",
+    "releaseOrder": 608,
+    "cardCount": 183
+  },
+  {
+    "setCode": "swsh6",
+    "setName": "Chilling Reign",
+    "releaseDate": "2021-06-18",
+    "releaseOrder": 609,
+    "cardCount": 233
+  },
+  {
+    "setCode": "swsh7",
+    "setName": "Evolving Skies",
+    "releaseDate": "2021-08-27",
+    "releaseOrder": 610,
+    "cardCount": 237
+  },
+  {
+    "setCode": "cel25",
+    "setName": "Celebrations",
+    "releaseDate": "2021-10-08",
+    "releaseOrder": 611,
+    "cardCount": 25
+  },
+  {
+    "setCode": "cel25c",
+    "setName": "Celebrations: Classic Collection",
+    "releaseDate": "2021-10-08",
+    "releaseOrder": 612,
+    "cardCount": 25
+  },
+  {
+    "setCode": "swsh8",
+    "setName": "Fusion Strike",
+    "releaseDate": "2021-11-12",
+    "releaseOrder": 613,
+    "cardCount": 284
+  },
+  {
+    "setCode": "swsh9",
+    "setName": "Brilliant Stars",
+    "releaseDate": "2022-02-25",
+    "releaseOrder": 614,
+    "cardCount": 186
+  },
+  {
+    "setCode": "swsh9tg",
+    "setName": "Brilliant Stars Trainer Gallery",
+    "releaseDate": "2022-02-25",
+    "releaseOrder": 615,
+    "cardCount": 30
+  },
+  {
+    "setCode": "swsh10",
+    "setName": "Astral Radiance",
+    "releaseDate": "2022-05-27",
+    "releaseOrder": 616,
+    "cardCount": 216
+  },
+  {
+    "setCode": "swsh10tg",
+    "setName": "Astral Radiance Trainer Gallery",
+    "releaseDate": "2022-05-27",
+    "releaseOrder": 617,
+    "cardCount": 30
+  },
+  {
+    "setCode": "pgo",
+    "setName": "Pokémon GO",
+    "releaseDate": "2022-07-01",
+    "releaseOrder": 618,
+    "cardCount": 88
+  },
+  {
+    "setCode": "swsh11",
+    "setName": "Lost Origin",
+    "releaseDate": "2022-09-09",
+    "releaseOrder": 619,
+    "cardCount": 217
+  },
+  {
+    "setCode": "swsh11tg",
+    "setName": "Lost Origin Trainer Gallery",
+    "releaseDate": "2022-09-09",
+    "releaseOrder": 620,
+    "cardCount": 30
+  },
+  {
+    "setCode": "swsh12",
+    "setName": "Silver Tempest",
+    "releaseDate": "2022-11-11",
+    "releaseOrder": 621,
+    "cardCount": 215
+  },
+  {
+    "setCode": "swsh12tg",
+    "setName": "Silver Tempest Trainer Gallery",
+    "releaseDate": "2022-11-11",
+    "releaseOrder": 622,
+    "cardCount": 30
+  },
+  {
+    "setCode": "svp",
+    "setName": "Scarlet & Violet Black Star Promos",
+    "releaseDate": "2023-01-01",
+    "releaseOrder": 623,
+    "cardCount": 200
+  },
+  {
+    "setCode": "swsh12pt5",
+    "setName": "Crown Zenith",
+    "releaseDate": "2023-01-20",
+    "releaseOrder": 624,
+    "cardCount": 160
+  },
+  {
+    "setCode": "swsh12pt5gg",
+    "setName": "Crown Zenith Galarian Gallery",
+    "releaseDate": "2023-01-20",
+    "releaseOrder": 625,
+    "cardCount": 70
+  },
+  {
+    "setCode": "sv1",
+    "setName": "Scarlet & Violet",
+    "releaseDate": "2023-03-31",
+    "releaseOrder": 626,
+    "cardCount": 258
+  },
+  {
+    "setCode": "sve",
+    "setName": "Scarlet & Violet Energies",
+    "releaseDate": "2023-03-31",
+    "releaseOrder": 627,
+    "cardCount": 16
+  },
+  {
+    "setCode": "sv2",
+    "setName": "Paldea Evolved",
+    "releaseDate": "2023-06-09",
+    "releaseOrder": 628,
+    "cardCount": 279
+  },
+  {
+    "setCode": "sv3",
+    "setName": "Obsidian Flames",
+    "releaseDate": "2023-08-11",
+    "releaseOrder": 629,
+    "cardCount": 230
+  },
+  {
+    "setCode": "sv3pt5",
+    "setName": "151",
+    "releaseDate": "2023-09-22",
+    "releaseOrder": 630,
+    "cardCount": 207
+  },
+  {
+    "setCode": "sv4",
+    "setName": "Paradox Rift",
+    "releaseDate": "2023-11-03",
+    "releaseOrder": 631,
+    "cardCount": 266
+  },
+  {
+    "setCode": "sv4pt5",
+    "setName": "Paldean Fates",
+    "releaseDate": "2024-01-26",
+    "releaseOrder": 632,
+    "cardCount": 245
+  },
+  {
+    "setCode": "sv5",
+    "setName": "Temporal Forces",
+    "releaseDate": "2024-03-22",
+    "releaseOrder": 633,
+    "cardCount": 218
+  },
+  {
+    "setCode": "sv6",
+    "setName": "Twilight Masquerade",
+    "releaseDate": "2024-05-24",
+    "releaseOrder": 634,
+    "cardCount": 226
+  },
+  {
+    "setCode": "sv6pt5",
+    "setName": "Shrouded Fable",
+    "releaseDate": "2024-08-02",
+    "releaseOrder": 635,
+    "cardCount": 99
+  },
+  {
+    "setCode": "sv7",
+    "setName": "Stellar Crown",
+    "releaseDate": "2024-09-13",
+    "releaseOrder": 636,
+    "cardCount": 175
+  },
+  {
+    "setCode": "sv8",
+    "setName": "Surging Sparks",
+    "releaseDate": "2024-11-08",
+    "releaseOrder": 637,
+    "cardCount": 252
+  },
+  {
+    "setCode": "sv8pt5",
+    "setName": "Prismatic Evolutions",
+    "releaseDate": "2025-01-17",
+    "releaseOrder": 638,
+    "cardCount": 180
+  },
+  {
+    "setCode": "sv9",
+    "setName": "Journey Together",
+    "releaseDate": "2025-03-28",
+    "releaseOrder": 639,
+    "cardCount": 190
+  },
+  {
+    "setCode": "sv10",
+    "setName": "Destined Rivals",
+    "releaseDate": "2025-05-30",
+    "releaseOrder": 640,
+    "cardCount": 244
+  },
+  {
+    "setCode": "zsv10pt5",
+    "setName": "Black Bolt",
+    "releaseDate": "2025-07-18",
+    "releaseOrder": 641,
+    "cardCount": 172
+  },
+  {
+    "setCode": "rsv10pt5",
+    "setName": "White Flare",
+    "releaseDate": "2025-07-18",
+    "releaseOrder": 642,
+    "cardCount": 173
+  },
+  {
+    "setCode": "me1",
+    "setName": "Mega Evolution",
+    "releaseDate": "2025-09-26",
+    "releaseOrder": 643,
+    "cardCount": 188
+  },
+  {
+    "setCode": "me2",
+    "setName": "Phantasmal Flames",
+    "releaseDate": "2025-11-14",
+    "releaseOrder": 644,
+    "cardCount": 130
+  },
+  {
+    "setCode": "me2pt5",
+    "setName": "Ascended Heroes",
+    "releaseDate": "2026-01-30",
+    "releaseOrder": 645,
+    "cardCount": 295
+  },
+  {
+    "setCode": "me3",
+    "setName": "Perfect Order",
+    "releaseDate": "2026-03-27",
+    "releaseOrder": 646,
+    "cardCount": 124
+  }
+]

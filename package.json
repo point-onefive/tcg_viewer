@@ -27,7 +27,12 @@
     "digimon:generate": "node scripts/generate-digimon-data.mjs",
     "digimon:images": "node scripts/download-digimon-images.mjs",
     "digimon:all": "npm run digimon:fetch && npm run digimon:images && npm run digimon:generate",
-    "digimon:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-digimon --prefix=cards/digimon --ext=png"
+    "digimon:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-digimon --prefix=cards/digimon --ext=png",
+    "pokemon:fetch": "node scripts/fetch-pokemon-data.mjs",
+    "pokemon:generate": "node scripts/generate-pokemon-bundle.mjs",
+    "pokemon:images": "node scripts/download-pokemon-images.mjs",
+    "pokemon:all": "npm run pokemon:fetch && npm run pokemon:images && npm run pokemon:generate",
+    "pokemon:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-pokemon --prefix=cards/pokemon --ext=webp"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
