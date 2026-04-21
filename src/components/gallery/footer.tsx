@@ -28,6 +28,7 @@ export function Footer() {
           style={{ color: 'var(--text-secondary)', letterSpacing: '0.02em' }}
         >
           <span
+            className="inline-flex items-center"
             style={{
               fontFamily: 'var(--font-display)',
               fontWeight: 700,
@@ -35,9 +36,25 @@ export function Footer() {
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               color: 'var(--text-primary)',
+              lineHeight: 1,
             }}
           >
-            CARD WALL
+            <span
+              aria-hidden
+              style={{
+                fontSize: 8,
+                fontWeight: 500,
+                fontStyle: 'italic',
+                letterSpacing: '0.02em',
+                textTransform: 'lowercase',
+                opacity: 0.65,
+                marginRight: 4,
+                lineHeight: 1,
+              }}
+            >
+              the
+            </span>
+            Card Wall
           </span>
           <span style={{ opacity: 0.5 }}>·</span>
           <span>© {year}</span>

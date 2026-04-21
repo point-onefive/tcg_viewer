@@ -72,7 +72,7 @@ export function Header({ sets }: HeaderProps) {
         <a
           href="/"
           className="group inline-flex items-stretch overflow-hidden"
-          aria-label="CARD WALL - home"
+          aria-label="The Card Wall - home"
           style={{
             background: 'var(--text-primary)',
             color: 'var(--bg)',
@@ -122,7 +122,22 @@ export function Header({ sets }: HeaderProps) {
               textTransform: 'uppercase',
             }}
           >
-            Card Wall
+            <span
+              aria-hidden
+              style={{
+                fontSize: 9,
+                fontWeight: 500,
+                fontStyle: 'italic',
+                letterSpacing: '0.02em',
+                textTransform: 'lowercase',
+                opacity: 0.65,
+                marginRight: 5,
+                lineHeight: 1,
+              }}
+            >
+              the
+            </span>
+            <span>Card Wall</span>
           </span>
         </a>
 

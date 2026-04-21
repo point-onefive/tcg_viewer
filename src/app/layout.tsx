@@ -17,8 +17,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'CARD WALL',
-  description: 'A premium gallery of the One Piece Trading Card Game.',
+  title: 'The Card Wall',
+  description: 'A premium gallery of trading card games.',
 }
 
 export default function RootLayout({
