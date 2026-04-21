@@ -826,4 +826,22 @@ html.lenis, html.lenis body {
   }
 }
 
+/* ─── Footer button hover glow ──────────────────────────────── */
+.footer-btn {
+  position: relative;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 260ms ease, transform 180ms ease;
+}
+.footer-btn:hover {
+  border-color: color-mix(in srgb, var(--text-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 4%, var(--bg-surface));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--text-primary) 12%, transparent),
+    0 0 24px -4px color-mix(in srgb, var(--text-primary) 28%, transparent),
+    0 8px 20px -6px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+.footer-btn:active {
+  transform: translateY(0);
+}
+
 

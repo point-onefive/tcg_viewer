@@ -22,6 +22,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.gundam-gcg.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.dbs-cardgame.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'world.digimoncard.com',
+      },
     ],
   },
 }

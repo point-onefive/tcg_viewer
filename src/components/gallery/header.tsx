@@ -116,16 +116,16 @@ export function Header({ sets }: HeaderProps) {
               padding: '0 11px',
               fontFamily: 'var(--font-display)',
               fontWeight: 800,
-              fontSize: 13,
+              fontSize: 16,
               lineHeight: 1,
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.015em',
               textTransform: 'uppercase',
             }}
           >
             <span
               aria-hidden
               style={{
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: 500,
                 fontStyle: 'italic',
                 letterSpacing: '0.02em',
@@ -175,7 +175,7 @@ export function Header({ sets }: HeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.98 }}
                   transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute left-0 top-full mt-1.5 min-w-[180px] overflow-hidden"
+                  className="absolute left-0 top-full mt-1.5 min-w-[200px] overflow-hidden"
                   style={{
                     transformOrigin: 'top left',
                     background: 'var(--bg-surface)',
@@ -201,7 +201,7 @@ export function Header({ sets }: HeaderProps) {
                           setActiveCollection(c.id)
                           setCollectionOpen(false)
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors"
+                        className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
                         style={{
                           height: 30,
                           borderRadius: 5,

@@ -74,7 +74,7 @@ export function Footer() {
           href="https://x.com/point_onefive"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-3 text-[11px] font-medium transition-[background,color] duration-150"
+          className="footer-btn inline-flex items-center gap-2 px-3 text-[11px] font-medium"
           style={{
             background: 'var(--bg-surface)',
             color: 'var(--text-primary)',
