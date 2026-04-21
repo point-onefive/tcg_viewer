@@ -145,21 +145,33 @@ export function OnboardingTour() {
   const next = () => (isLast ? finish() : setStepIdx((i) => i + 1))
   const prev = () => setStepIdx((i) => Math.max(0, i - 1))
 
-  // Callout position: below the highlighted rect if there's room, otherwise
-  // above. Centered if there's no target.
+  // Callout position:
+  //  - Targetless steps (welcome / done): perfectly centered on every device.
+  //  - Targeted steps: below the highlighted rect if there is room, otherwise
+  //    above. Horizontally clamped into the viewport, with width shrinking on
+  //    narrow phones so it never bleeds off the edge.
   const PAD = 12
-  const CARD_W = 320
+  const MAX_W = 320
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 0
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 0
+  const width = Math.min(MAX_W, vw - 2 * PAD)
   let calloutStyle: React.CSSProperties
   if (rect) {
-    const below = rect.bottom + PAD + 180 < window.innerHeight
+    const below = rect.bottom + PAD + 180 < vh
     const top = below ? rect.bottom + PAD : Math.max(PAD, rect.top - PAD - 180)
-    let left = rect.left + rect.width / 2 - CARD_W / 2
-    left = Math.max(PAD, Math.min(left, window.innerWidth - CARD_W - PAD))
-    calloutStyle = { position: 'fixed', top, left, width: CARD_W, zIndex: 10001 }
+    // Center the callout horizontally on the target, then clamp to viewport.
+    let left = rect.left + rect.width / 2 - width / 2
+    left = Math.max(PAD, Math.min(left, vw - width - PAD))
+    calloutStyle = { position: 'fixed', top, left, width, zIndex: 10001 }
   } else {
+    // Absolute centering. Using left/top + transform keeps the card centered
+    // even as width shrinks on small screens.
     calloutStyle = {
-      position: 'fixed', left: '50%', top: '50%',
-      transform: 'translate(-50%, -50%)', width: Math.min(CARD_W, window.innerWidth - 2 * PAD),
+      position: 'fixed',
+      left: '50%',
+      top: '50%',
+      transform: 'translate(-50%, -50%)',
+      width,
       zIndex: 10001,
     }
   }
