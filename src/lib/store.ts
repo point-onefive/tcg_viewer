@@ -170,6 +170,6 @@ export const pinKeyFor = pinKey
 export const COLLECTIONS: { id: Collection; name: string; available: boolean }[] = [
   { id: 'one-piece', name: 'One Piece',        available: true },
   { id: 'gundam',    name: 'Gundam',           available: true },
-  { id: 'dbs',       name: 'Dragon Ball',      available: true },
+  { id: 'dbs',       name: 'Dragon Ball Super', available: true },
   { id: 'digimon',   name: 'Digimon',          available: true },
 ]
