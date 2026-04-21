@@ -1,0 +1,93 @@
+[
+  {
+    "setCode": "ST01",
+    "setName": "Heroic Beginnings",
+    "releaseDate": "2025-01-24",
+    "releaseOrder": 101,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST02",
+    "setName": "Wings of Advance",
+    "releaseDate": "2025-01-24",
+    "releaseOrder": 102,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST03",
+    "setName": "Zeon's Rush",
+    "releaseDate": "2025-04-25",
+    "releaseOrder": 103,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST04",
+    "setName": "SEED Strike",
+    "releaseDate": "2025-04-25",
+    "releaseOrder": 104,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST05",
+    "setName": "Iron Bloom",
+    "releaseDate": "2025-07-25",
+    "releaseOrder": 105,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST06",
+    "setName": "Clan Unity",
+    "releaseDate": "2025-07-25",
+    "releaseOrder": 106,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST07",
+    "setName": "Celestial Drive",
+    "releaseDate": "2025-10-24",
+    "releaseOrder": 107,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST08",
+    "setName": "Flash of Radiance",
+    "releaseDate": "2025-10-24",
+    "releaseOrder": 108,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST09",
+    "setName": "Destiny Ignition",
+    "releaseDate": "2026-01-30",
+    "releaseOrder": 109,
+    "cardCount": 10
+  },
+  {
+    "setCode": "GD01",
+    "setName": "Newtype Rising",
+    "releaseDate": "2025-01-24",
+    "releaseOrder": 201,
+    "cardCount": 130
+  },
+  {
+    "setCode": "GD02",
+    "setName": "Dual Impact",
+    "releaseDate": "2025-04-25",
+    "releaseOrder": 202,
+    "cardCount": 130
+  },
+  {
+    "setCode": "GD03",
+    "setName": "Steel Requiem",
+    "releaseDate": "2025-07-25",
+    "releaseOrder": 203,
+    "cardCount": 132
+  },
+  {
+    "setCode": "GD04",
+    "setName": "Phantom Aria",
+    "releaseDate": "2025-10-24",
+    "releaseOrder": 204,
+    "cardCount": 130
+  }
+]

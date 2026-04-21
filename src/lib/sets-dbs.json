@@ -1,0 +1,193 @@
+[
+  {
+    "setCode": "FB01",
+    "setName": "Awakened Pulse",
+    "releaseDate": "2023-12-15",
+    "releaseOrder": 301,
+    "cardCount": 140
+  },
+  {
+    "setCode": "FB02",
+    "setName": "Blazing Aura",
+    "releaseDate": "2024-03-15",
+    "releaseOrder": 302,
+    "cardCount": 140
+  },
+  {
+    "setCode": "FB03",
+    "setName": "Raging Roar",
+    "releaseDate": "2024-06-21",
+    "releaseOrder": 303,
+    "cardCount": 140
+  },
+  {
+    "setCode": "FB04",
+    "setName": "Ultra Limit",
+    "releaseDate": "2024-09-27",
+    "releaseOrder": 304,
+    "cardCount": 130
+  },
+  {
+    "setCode": "FB05",
+    "setName": "New Adventure",
+    "releaseDate": "2024-12-13",
+    "releaseOrder": 305,
+    "cardCount": 120
+  },
+  {
+    "setCode": "FB06",
+    "setName": "Rivals Clash",
+    "releaseDate": "2025-03-14",
+    "releaseOrder": 306,
+    "cardCount": 120
+  },
+  {
+    "setCode": "FB07",
+    "setName": "Wish for Shenron",
+    "releaseDate": "2025-06-20",
+    "releaseOrder": 307,
+    "cardCount": 122
+  },
+  {
+    "setCode": "FB08",
+    "setName": "Saiyan's Pride",
+    "releaseDate": "2025-09-26",
+    "releaseOrder": 308,
+    "cardCount": 122
+  },
+  {
+    "setCode": "FB09",
+    "setName": "Dual Evolution",
+    "releaseDate": "2025-12-19",
+    "releaseOrder": 309,
+    "cardCount": 123
+  },
+  {
+    "setCode": "FS01",
+    "setName": "Starter Deck Son Goku",
+    "releaseDate": "2024-03-15",
+    "releaseOrder": 331,
+    "cardCount": 16
+  },
+  {
+    "setCode": "FS02",
+    "setName": "Starter Deck Vegeta",
+    "releaseDate": "2024-03-15",
+    "releaseOrder": 332,
+    "cardCount": 16
+  },
+  {
+    "setCode": "FS03",
+    "setName": "Starter Deck Broly",
+    "releaseDate": "2024-06-21",
+    "releaseOrder": 333,
+    "cardCount": 16
+  },
+  {
+    "setCode": "FS04",
+    "setName": "Starter Deck Frieza",
+    "releaseDate": "2024-09-27",
+    "releaseOrder": 334,
+    "cardCount": 16
+  },
+  {
+    "setCode": "FS05",
+    "setName": "Starter Deck Bardock",
+    "releaseDate": "2024-12-13",
+    "releaseOrder": 335,
+    "cardCount": 16
+  },
+  {
+    "setCode": "FS06",
+    "setName": "Starter Deck Goku (Mini)",
+    "releaseDate": "2025-03-14",
+    "releaseOrder": 336,
+    "cardCount": 12
+  },
+  {
+    "setCode": "FS07",
+    "setName": "Starter Deck Vegeta (Mini)",
+    "releaseDate": "2025-03-14",
+    "releaseOrder": 337,
+    "cardCount": 12
+  },
+  {
+    "setCode": "FS08",
+    "setName": "Starter Deck Vegeta (Mini) SSJ3",
+    "releaseDate": "2025-06-20",
+    "releaseOrder": 338,
+    "cardCount": 16
+  },
+  {
+    "setCode": "FS09",
+    "setName": "Starter Deck EX Shallot",
+    "releaseDate": "2025-09-26",
+    "releaseOrder": 339,
+    "cardCount": 18
+  },
+  {
+    "setCode": "FS10",
+    "setName": "Starter Deck EX Giblet",
+    "releaseDate": "2025-09-26",
+    "releaseOrder": 340,
+    "cardCount": 18
+  },
+  {
+    "setCode": "FS11",
+    "setName": "Starter Deck EX The Phase of Evolution",
+    "releaseDate": "2025-12-19",
+    "releaseOrder": 341,
+    "cardCount": 23
+  },
+  {
+    "setCode": "FS12",
+    "setName": "Starter Deck EX The Beat of Ki",
+    "releaseDate": "2025-12-19",
+    "releaseOrder": 342,
+    "cardCount": 23
+  },
+  {
+    "setCode": "SB01",
+    "setName": "Manga Booster 01",
+    "releaseDate": "2024-10-25",
+    "releaseOrder": 361,
+    "cardCount": 81
+  },
+  {
+    "setCode": "SB02",
+    "setName": "Manga Booster 02",
+    "releaseDate": "2025-10-24",
+    "releaseOrder": 362,
+    "cardCount": 81
+  },
+  {
+    "setCode": "E",
+    "setName": "Promotion Card",
+    "releaseOrder": 999,
+    "cardCount": 70
+  },
+  {
+    "setCode": "E01",
+    "setName": "Promotion Card",
+    "releaseOrder": 999,
+    "cardCount": 12
+  },
+  {
+    "setCode": "E02",
+    "setName": "Promotion Card",
+    "releaseOrder": 999,
+    "cardCount": 4
+  },
+  {
+    "setCode": "E03",
+    "setName": "Promotion Card",
+    "releaseOrder": 999,
+    "cardCount": 5
+  },
+  {
+    "setCode": "FP",
+    "setName": "Promotion Card",
+    "releaseOrder": 999,
+    "cardCount": 81
+  }
+]

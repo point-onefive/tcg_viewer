@@ -5,10 +5,8 @@ node_modules/
 .next/
 out/
 
-# Generated card data (run npm run cards:all:<collection> to regenerate)
+# Raw scraped data (not needed for build; regenerable)
 data/
-src/lib/cards-*.json
-src/lib/sets-*.json
 
 # Downloaded images (upload to R2, don't commit)
 public/cards/

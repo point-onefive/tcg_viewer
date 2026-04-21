@@ -1,0 +1,247 @@
+[
+  {
+    "setCode": "OP01",
+    "setName": "Romance Dawn",
+    "releaseDate": "2022-07-22",
+    "releaseOrder": 1,
+    "cardCount": 121
+  },
+  {
+    "setCode": "OP02",
+    "setName": "Paramount War",
+    "releaseDate": "2022-12-02",
+    "releaseOrder": 2,
+    "cardCount": 121
+  },
+  {
+    "setCode": "OP03",
+    "setName": "Pillars of Strength",
+    "releaseDate": "2023-03-10",
+    "releaseOrder": 3,
+    "cardCount": 123
+  },
+  {
+    "setCode": "OP04",
+    "setName": "Kingdoms of Intrigue",
+    "releaseDate": "2023-07-28",
+    "releaseOrder": 4,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP05",
+    "setName": "Awakening of the New Era",
+    "releaseDate": "2023-08-25",
+    "releaseOrder": 5,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP06",
+    "setName": "Wings of the Captain",
+    "releaseDate": "2023-11-10",
+    "releaseOrder": 6,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP07",
+    "setName": "500 Years in the Future",
+    "releaseDate": "2024-02-09",
+    "releaseOrder": 7,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP08",
+    "setName": "Two Legends",
+    "releaseDate": "2024-05-24",
+    "releaseOrder": 8,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP09",
+    "setName": "Emperors in the New World",
+    "releaseDate": "2024-08-30",
+    "releaseOrder": 9,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP10",
+    "setName": "Royal Blood",
+    "releaseDate": "2024-11-08",
+    "releaseOrder": 10,
+    "cardCount": 119
+  },
+  {
+    "setCode": "ST01",
+    "setName": "Starter - Straw Hat Crew",
+    "releaseDate": "2022-07-08",
+    "releaseOrder": 20,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST02",
+    "setName": "Starter - Worst Generation",
+    "releaseDate": "2022-07-08",
+    "releaseOrder": 21,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST03",
+    "setName": "Starter - Seven Warlords",
+    "releaseDate": "2022-07-08",
+    "releaseOrder": 22,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST04",
+    "setName": "Starter - Animal Kingdom",
+    "releaseDate": "2022-12-02",
+    "releaseOrder": 23,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST05",
+    "setName": "Starter - Film Edition",
+    "releaseDate": "2023-03-10",
+    "releaseOrder": 24,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST06",
+    "setName": "Starter - Absolute Justice",
+    "releaseDate": "2023-07-28",
+    "releaseOrder": 25,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST07",
+    "setName": "Starter - Big Mom Pirates",
+    "releaseDate": "2023-07-28",
+    "releaseOrder": 26,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST08",
+    "setName": "Starter - Monkey D. Luffy",
+    "releaseDate": "2023-07-28",
+    "releaseOrder": 27,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST09",
+    "setName": "Starter - Yamato",
+    "releaseDate": "2023-08-25",
+    "releaseOrder": 28,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST10",
+    "setName": "Ultra Deck - Three Captains",
+    "releaseDate": "2023-11-10",
+    "releaseOrder": 29,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST11",
+    "setName": "Starter - Uta",
+    "releaseDate": "2023-11-10",
+    "releaseOrder": 30,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST12",
+    "setName": "Starter - Zoro & Sanji",
+    "releaseDate": "2024-02-09",
+    "releaseOrder": 31,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST13",
+    "setName": "Ultra Deck - Three Brothers",
+    "releaseDate": "2024-02-09",
+    "releaseOrder": 32,
+    "cardCount": 19
+  },
+  {
+    "setCode": "ST14",
+    "setName": "Starter - 3D2Y",
+    "releaseDate": "2024-05-24",
+    "releaseOrder": 33,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST15",
+    "setName": "Starter - Red Edward Newgate",
+    "releaseDate": "2024-08-30",
+    "releaseOrder": 34,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST16",
+    "setName": "Starter - Green Uta",
+    "releaseDate": "2024-11-08",
+    "releaseOrder": 35,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST17",
+    "setName": "Starter - Blue Doflamingo",
+    "releaseDate": "2024-11-08",
+    "releaseOrder": 36,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST18",
+    "setName": "Starter - Purple Luffy",
+    "releaseDate": "2024-11-08",
+    "releaseOrder": 37,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST19",
+    "setName": "Starter - Black Smoker",
+    "releaseDate": "2025-03-07",
+    "releaseOrder": 38,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST20",
+    "setName": "Starter - Yellow Katakuri",
+    "releaseDate": "2025-03-07",
+    "releaseOrder": 39,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST21",
+    "setName": "Starter EX - Gear 5",
+    "releaseDate": "2025-03-07",
+    "releaseOrder": 40,
+    "cardCount": 17
+  },
+  {
+    "setCode": "EB01",
+    "setName": "Extra - Memorial Collection",
+    "releaseDate": "2024-01-26",
+    "releaseOrder": 50,
+    "cardCount": 61
+  },
+  {
+    "setCode": "EB02",
+    "setName": "Extra - Anime 25th Collection",
+    "releaseDate": "2025-01-24",
+    "releaseOrder": 51,
+    "cardCount": 61
+  },
+  {
+    "setCode": "PRB01",
+    "setName": "Premium - Card The Best",
+    "releaseDate": "2024-09-27",
+    "releaseOrder": 60,
+    "cardCount": 1
+  },
+  {
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardCount": 69
+  }
+]

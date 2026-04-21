@@ -1,0 +1,399 @@
+[
+  {
+    "setCode": "BT1",
+    "setName": "New Evolution",
+    "releaseDate": "2021-02-12",
+    "releaseOrder": 401,
+    "cardCount": 115
+  },
+  {
+    "setCode": "BT2",
+    "setName": "Ultimate Power",
+    "releaseDate": "2021-02-12",
+    "releaseOrder": 402,
+    "cardCount": 112
+  },
+  {
+    "setCode": "BT3",
+    "setName": "Union Impact",
+    "releaseDate": "2021-02-12",
+    "releaseOrder": 403,
+    "cardCount": 112
+  },
+  {
+    "setCode": "BT4",
+    "setName": "Great Legend",
+    "releaseDate": "2021-06-11",
+    "releaseOrder": 405,
+    "cardCount": 115
+  },
+  {
+    "setCode": "BT5",
+    "setName": "Battle of Omni",
+    "releaseDate": "2021-08-06",
+    "releaseOrder": 406,
+    "cardCount": 112
+  },
+  {
+    "setCode": "BT6",
+    "setName": "Double Diamond",
+    "releaseOrder": 407,
+    "cardCount": 112
+  },
+  {
+    "setCode": "EX1",
+    "setName": "Classic Collection",
+    "releaseOrder": 408,
+    "cardCount": 73
+  },
+  {
+    "setCode": "BT7",
+    "setName": "Next Adventure",
+    "releaseDate": "2022-03-04",
+    "releaseOrder": 409,
+    "cardCount": 112
+  },
+  {
+    "setCode": "BT8",
+    "setName": "New Awakening",
+    "releaseOrder": 410,
+    "cardCount": 112
+  },
+  {
+    "setCode": "EX2",
+    "setName": "Digital Hazard",
+    "releaseOrder": 411,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT9",
+    "setName": "X Record",
+    "releaseOrder": 412,
+    "cardCount": 112
+  },
+  {
+    "setCode": "BT10",
+    "setName": "Xros Encounter",
+    "releaseOrder": 413,
+    "cardCount": 112
+  },
+  {
+    "setCode": "EX3",
+    "setName": "Draconic Roar",
+    "releaseOrder": 414,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT11",
+    "setName": "Dimensional Phase",
+    "releaseDate": "2023-02-17",
+    "releaseOrder": 415,
+    "cardCount": 112
+  },
+  {
+    "setCode": "BT12",
+    "setName": "Across Time",
+    "releaseDate": "2023-04-28",
+    "releaseOrder": 416,
+    "cardCount": 112
+  },
+  {
+    "setCode": "EX4",
+    "setName": "Alternative Being",
+    "releaseDate": "2023-06-23",
+    "releaseOrder": 417,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT13",
+    "setName": "Versus Royal Knights",
+    "releaseDate": "2023-07-21",
+    "releaseOrder": 418,
+    "cardCount": 112
+  },
+  {
+    "setCode": "RB1",
+    "setName": "Resurgence Booster",
+    "releaseDate": "2023-09-29",
+    "releaseOrder": 419,
+    "cardCount": 36
+  },
+  {
+    "setCode": "BT14",
+    "setName": "Blast Ace",
+    "releaseDate": "2023-11-17",
+    "releaseOrder": 420,
+    "cardCount": 102
+  },
+  {
+    "setCode": "EX5",
+    "setName": "Animal Colosseum",
+    "releaseDate": "2024-01-19",
+    "releaseOrder": 421,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT15",
+    "setName": "Exceed Apocalypse",
+    "releaseDate": "2024-02-16",
+    "releaseOrder": 422,
+    "cardCount": 102
+  },
+  {
+    "setCode": "BT16",
+    "setName": "Beginning Observer",
+    "releaseDate": "2024-05-24",
+    "releaseOrder": 423,
+    "cardCount": 102
+  },
+  {
+    "setCode": "EX6",
+    "setName": "Infernal Ascension",
+    "releaseDate": "2024-06-28",
+    "releaseOrder": 424,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT17",
+    "setName": "Secret Crisis",
+    "releaseDate": "2024-08-09",
+    "releaseOrder": 425,
+    "cardCount": 102
+  },
+  {
+    "setCode": "EX7",
+    "setName": "Digimon Liberator",
+    "releaseDate": "2024-09-13",
+    "releaseOrder": 426,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT18",
+    "setName": "Special Booster Ver.2.0",
+    "releaseDate": "2024-11-01",
+    "releaseOrder": 427,
+    "cardCount": 102
+  },
+  {
+    "setCode": "EX8",
+    "setName": "Chain of Liberation",
+    "releaseDate": "2025-01-10",
+    "releaseOrder": 428,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT19",
+    "setName": "Special Booster Ver.2.5",
+    "releaseDate": "2024-11-01",
+    "releaseOrder": 429,
+    "cardCount": 102
+  },
+  {
+    "setCode": "BT20",
+    "setName": "Special Booster Ver.2.5",
+    "releaseDate": "2025-02-28",
+    "releaseOrder": 429,
+    "cardCount": 102
+  },
+  {
+    "setCode": "EX9",
+    "setName": "Versus Monsters",
+    "releaseDate": "2025-06-26",
+    "releaseOrder": 430,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT21",
+    "setName": "World Convergence",
+    "releaseDate": "2025-04-25",
+    "releaseOrder": 431,
+    "cardCount": 102
+  },
+  {
+    "setCode": "EX10",
+    "setName": "Sinister Order",
+    "releaseDate": "2025-09-19",
+    "releaseOrder": 432,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT22",
+    "setName": "Cyber Eden",
+    "releaseDate": "2025-07-25",
+    "releaseOrder": 433,
+    "cardCount": 103
+  },
+  {
+    "setCode": "BT23",
+    "setName": "Hackers' Slumber",
+    "releaseDate": "2025-10-24",
+    "releaseOrder": 434,
+    "cardCount": 103
+  },
+  {
+    "setCode": "EX11",
+    "setName": "Dawn of Liberator",
+    "releaseDate": "2026-02-13",
+    "releaseOrder": 435,
+    "cardCount": 74
+  },
+  {
+    "setCode": "BT24",
+    "setName": "Time Stranger",
+    "releaseDate": "2026-01-23",
+    "releaseOrder": 436,
+    "cardCount": 103
+  },
+  {
+    "setCode": "AD1",
+    "setName": "Digimon Generation",
+    "releaseDate": "2026-03-27",
+    "releaseOrder": 437,
+    "cardCount": 25
+  },
+  {
+    "setCode": "ST1",
+    "setName": "Gaia Red",
+    "releaseOrder": 451,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST2",
+    "setName": "Cocytus Blue",
+    "releaseOrder": 452,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST3",
+    "setName": "Heaven's Yellow",
+    "releaseOrder": 453,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST4",
+    "setName": "Giga Green",
+    "releaseOrder": 454,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST5",
+    "setName": "Machine Black",
+    "releaseOrder": 455,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST6",
+    "setName": "Venomous Violet",
+    "releaseOrder": 456,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST7",
+    "setName": "Gallantmon",
+    "releaseOrder": 457,
+    "cardCount": 12
+  },
+  {
+    "setCode": "ST8",
+    "setName": "UlforceVeedramon",
+    "releaseOrder": 458,
+    "cardCount": 12
+  },
+  {
+    "setCode": "ST9",
+    "setName": "Ultimate Ancient Dragon",
+    "releaseOrder": 459,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST10",
+    "setName": "Parallel World Tactician",
+    "releaseOrder": 460,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST12",
+    "setName": "Jesmon",
+    "releaseOrder": 461,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST13",
+    "setName": "RagnaLoardmon",
+    "releaseOrder": 462,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST14",
+    "setName": "Beelzemon",
+    "releaseOrder": 463,
+    "cardCount": 12
+  },
+  {
+    "setCode": "ST15",
+    "setName": "Dragon of Courage",
+    "releaseOrder": 464,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST16",
+    "setName": "Wolf of Friendship",
+    "releaseOrder": 465,
+    "cardCount": 16
+  },
+  {
+    "setCode": "ST17",
+    "setName": "Double Typhoon",
+    "releaseOrder": 466,
+    "cardCount": 13
+  },
+  {
+    "setCode": "ST18",
+    "setName": "Guardian Vortex",
+    "releaseOrder": 467,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST19",
+    "setName": "Fable Waltz",
+    "releaseOrder": 468,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST20",
+    "setName": "Protector of Light",
+    "releaseOrder": 469,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST21",
+    "setName": "Hero of Hope",
+    "releaseOrder": 470,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST22",
+    "setName": "Amethyst Mandala",
+    "releaseOrder": 471,
+    "cardCount": 16
+  },
+  {
+    "setCode": "LM",
+    "setName": "Limited Card Pack",
+    "releaseDate": "2024-02-16",
+    "releaseOrder": 480,
+    "cardCount": 56
+  },
+  {
+    "setCode": "P",
+    "setName": "Promo Cards",
+    "releaseOrder": 491,
+    "cardCount": 237
+  },
+  {
+    "setCode": "TOKEN",
+    "setName": "Tokens",
+    "releaseOrder": 495,
+    "cardCount": 2
+  }
+]
