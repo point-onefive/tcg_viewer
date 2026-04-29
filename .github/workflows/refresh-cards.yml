@@ -185,8 +185,9 @@ jobs:
         run: |
           git config user.name "tcg-bot"
           git config user.email "bot@thecardwall.com"
-          # Only the JSON bundles need to be committed — images live on R2.
-          git add src/lib/cards-*.json src/lib/sets-*.json || true
+          # Bundles drive the UI; upload markers tell next-run what's
+          # already on R2 so cold-cache CI doesn't re-upload 20K images.
+          git add src/lib/cards-*.json src/lib/sets-*.json data/uploaded-*.json || true
           if git diff --cached --quiet; then
             echo "No bundle changes — nothing new today."
             exit 0

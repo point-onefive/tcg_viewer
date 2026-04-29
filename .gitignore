@@ -7,6 +7,10 @@ out/
 
 # Raw scraped data (not needed for build; regenerable)
 data/
+# But DO track upload markers — they tell CI what's already on R2
+# so cold-cache runs don't re-upload 20K images (which exceeds the
+# 90-min Action timeout).
+!data/uploaded-*.json
 
 # Downloaded images (upload to R2, don't commit)
 public/cards/
