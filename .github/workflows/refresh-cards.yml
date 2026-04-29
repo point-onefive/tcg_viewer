@@ -3,7 +3,7 @@ name: Refresh card collections
 # Auto-pulls new cards/sets from upstream sources, downloads any new images,
 # uploads them to R2, and commits the updated bundle JSON. Vercel auto-deploys.
 #
-# Schedule: every Monday 09:00 UTC. Also runs on manual dispatch.
+# Schedule: every day at 09:00 UTC. Also runs on manual dispatch.
 #
 # Required repository secrets:
 #   POKEMONTCG_API_KEY       — pokemontcg.io v2 API key
@@ -20,7 +20,7 @@ name: Refresh card collections
 
 on:
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: '0 9 * * *'
   workflow_dispatch:
     inputs:
       collections:
@@ -109,8 +109,11 @@ jobs:
           # Only the JSON bundles need to be committed — images live on R2.
           git add src/lib/cards-*.json src/lib/sets-*.json || true
           if git diff --cached --quiet; then
-            echo "No bundle changes — skipping commit."
+            echo "No bundle changes — nothing new today."
             exit 0
           fi
-          git commit -m "chore(data): weekly card refresh [skip ci]"
+          # Surface what changed in the commit message so the git log doubles
+          # as a release feed for new sets/cards.
+          SUMMARY=$(git diff --cached --stat src/lib/cards-*.json src/lib/sets-*.json | tail -n 1)
+          git commit -m "chore(data): daily card refresh [skip ci]" -m "$SUMMARY"
           git push
