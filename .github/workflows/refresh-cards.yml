@@ -3,7 +3,7 @@ name: Refresh card collections
 # Auto-pulls new cards/sets from upstream sources, downloads any new images,
 # uploads them to R2, and commits the updated bundle JSON. Vercel auto-deploys.
 #
-# Schedule: every day at 09:00 UTC. Also runs on manual dispatch.
+# Schedule: every 5 days at 09:00 UTC. Also runs on manual dispatch.
 #
 # Required repository secrets:
 #   POKEMONTCG_API_KEY       — pokemontcg.io v2 API key
@@ -20,7 +20,9 @@ name: Refresh card collections
 
 on:
   schedule:
-    - cron: '0 9 * * *'
+    # Day-of-month list approximates "every 5 days" — GitHub cron has no
+    # native step-based interval that survives month boundaries cleanly.
+    - cron: '0 9 1,6,11,16,21,26 * *'
   workflow_dispatch:
     inputs:
       collections:
