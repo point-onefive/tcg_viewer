@@ -36,6 +36,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   refresh:
@@ -74,6 +75,63 @@ jobs:
           node scripts/download-pokemon-images.mjs --concurrency=6 --delay=120
           node scripts/generate-pokemon-bundle.mjs
           npm run pokemon:r2
+
+      - name: Audit Pokémon alt-art coverage
+        if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'pokemon') }}
+        id: pokemon_audit
+        continue-on-error: true
+        run: node scripts/audit-pokemon-gaps.mjs --days=180
+
+      - name: Open / update gap-tracking issue
+        if: ${{ steps.pokemon_audit.outcome == 'failure' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const body = fs.readFileSync('data/pokemon-gap-issue-body.md', 'utf8')
+            const title = 'Pokémon: alt-art coverage gaps detected'
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'auto-gap-report',
+            })
+            const existing = issues.find(i => i.title === title)
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number, body,
+              })
+              core.info(`Updated issue #${existing.number}`)
+            } else {
+              const { data: created } = await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['auto-gap-report'],
+              })
+              core.info(`Opened issue #${created.number}`)
+            }
+
+      - name: Close gap-tracking issue when clean
+        if: ${{ steps.pokemon_audit.outcome == 'success' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Pokémon: alt-art coverage gaps detected'
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'auto-gap-report',
+            })
+            const existing = issues.find(i => i.title === title)
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number,
+                body: '✓ All gaps closed in this refresh run. Closing automatically.',
+              })
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number, state: 'closed',
+              })
+              core.info(`Closed issue #${existing.number}`)
+            }
 
       - name: Refresh One Piece
         if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'one-piece') }}
