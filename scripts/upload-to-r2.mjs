@@ -44,17 +44,19 @@ function parseArgs() {
 
 const { dir: IMAGES_DIR, prefix: PREFIX, ext: EXT, contentType: CONTENT_TYPE, marker: DONE_FILE } = parseArgs()
 
-// Load .env.local
+// Load .env.local (falls back to process.env for CI environments)
 function loadEnv() {
   const envPath = join(ROOT, '.env.local')
-  if (!existsSync(envPath)) {
-    console.error('.env.local not found')
-    process.exit(1)
-  }
   const env = {}
-  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
-    const [k, ...v] = line.split('=')
-    if (k && v.length) env[k.trim()] = v.join('=').trim()
+  if (existsSync(envPath)) {
+    for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+      const [k, ...v] = line.split('=')
+      if (k && v.length) env[k.trim()] = v.join('=').trim()
+    }
+  }
+  // process.env wins so CI secrets override any committed local file
+  for (const k of ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'R2_BUCKET', 'R2_PUBLIC_URL']) {
+    if (process.env[k]) env[k] = process.env[k]
   }
   return env
 }

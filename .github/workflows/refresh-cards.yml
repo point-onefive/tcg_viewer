@@ -1,0 +1,116 @@
+name: Refresh card collections
+
+# Auto-pulls new cards/sets from upstream sources, downloads any new images,
+# uploads them to R2, and commits the updated bundle JSON. Vercel auto-deploys.
+#
+# Schedule: every Monday 09:00 UTC. Also runs on manual dispatch.
+#
+# Required repository secrets:
+#   POKEMONTCG_API_KEY       — pokemontcg.io v2 API key
+#   CLOUDFLARE_ACCOUNT_ID    — Cloudflare account holding the R2 bucket
+#   CLOUDFLARE_API_TOKEN     — token with R2 Object Read & Write scope
+#   R2_BUCKET                — bucket name (e.g. "tcg-cards")
+#   R2_PUBLIC_URL            — public CDN base (e.g. "https://cdn.thecardwall.com")
+#
+# Notes:
+# - Image downloads skip files that already exist locally (incremental).
+# - DBS / Gundam / Digimon scrape official sites; HTML changes can break them.
+#   Each collection runs with continue-on-error so one breakage doesn't block
+#   the others.
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      collections:
+        description: 'Comma-separated subset (pokemon,one-piece,gundam,dbs,digimon). Empty = all.'
+        required: false
+        default: ''
+
+concurrency:
+  group: refresh-cards
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      POKEMONTCG_API_KEY: ${{ secrets.POKEMONTCG_API_KEY }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+      SELECTED: ${{ github.event.inputs.collections }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install webp tools (cwebp for Pokémon image conversion)
+        run: sudo apt-get update && sudo apt-get install -y webp
+
+      - run: npm ci
+
+      - name: Refresh Pokémon
+        if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'pokemon') }}
+        continue-on-error: true
+        run: |
+          node scripts/fetch-pokemon-data.mjs --all
+          node scripts/download-pokemon-images.mjs --concurrency=6 --delay=120
+          node scripts/generate-pokemon-bundle.mjs
+          npm run pokemon:r2
+
+      - name: Refresh One Piece
+        if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'one-piece') }}
+        continue-on-error: true
+        run: |
+          npm run cards:fetch
+          npm run cards:images
+          npm run cards:generate
+          npm run r2:upload -- --dir=public/cards --prefix=cards --ext=webp
+
+      - name: Refresh Gundam
+        if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'gundam') }}
+        continue-on-error: true
+        run: |
+          npm run gundam:all
+          npm run gundam:r2
+
+      - name: Refresh DBS
+        if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'dbs') }}
+        continue-on-error: true
+        run: |
+          npm run dbs:all
+          npm run dbs:r2
+
+      - name: Refresh Digimon
+        if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'digimon') }}
+        continue-on-error: true
+        run: |
+          npm run digimon:all
+          npm run digimon:r2
+
+      - name: Commit refreshed bundles
+        run: |
+          git config user.name "tcg-bot"
+          git config user.email "bot@thecardwall.com"
+          # Only the JSON bundles need to be committed — images live on R2.
+          git add src/lib/cards-*.json src/lib/sets-*.json || true
+          if git diff --cached --quiet; then
+            echo "No bundle changes — skipping commit."
+            exit 0
+          fi
+          git commit -m "chore(data): weekly card refresh [skip ci]"
+          git push

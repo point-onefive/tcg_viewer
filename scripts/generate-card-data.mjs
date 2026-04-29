@@ -19,8 +19,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const CARDS_JSON = join(ROOT, 'data', 'cards.json')
 const PACKS_JSON = join(ROOT, 'data', 'packs.json')
-const OUT_CARDS = join(ROOT, 'src', 'lib', 'cards-generated.json')
-const OUT_SETS = join(ROOT, 'src', 'lib', 'sets-generated.json')
+const OUT_CARDS = join(ROOT, 'src', 'lib', 'cards-one-piece.json')
+const OUT_SETS = join(ROOT, 'src', 'lib', 'sets-one-piece.json')
 
 if (!existsSync(CARDS_JSON)) {
   console.error('data/cards.json not found. Run: node scripts/fetch-card-data.mjs first')
@@ -211,5 +211,5 @@ writeFileSync(OUT_CARDS, JSON.stringify(cards, null, 2))
 writeFileSync(OUT_SETS, JSON.stringify(sets, null, 2))
 
 const withVariants = cards.filter(c => c.variants?.length > 0)
-console.log(`Written ${cards.length} base cards (${withVariants.length} with alternate arts) to src/lib/cards-generated.json`)
-console.log(`Written ${sets.length} sets to src/lib/sets-generated.json`)
+console.log(`Written ${cards.length} base cards (${withVariants.length} with alternate arts) to src/lib/cards-one-piece.json`)
+console.log(`Written ${sets.length} sets to src/lib/sets-one-piece.json`)
