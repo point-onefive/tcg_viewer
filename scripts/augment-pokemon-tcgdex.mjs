@@ -80,6 +80,13 @@ for (const s of ourSets) {
 console.log(`Mapped ${setMap.size}/${ourSets.length} sets to TCGdex.`)
 
 // Filter sets we'll actually pull from TCGdex.
+const GAPS_FILE = join(ROOT, 'data', 'pokemon-gaps.json')
+const knownGaps = existsSync(GAPS_FILE)
+  ? new Set(JSON.parse(readFileSync(GAPS_FILE, 'utf8')).map((g) => g.setId))
+  : null
+if (knownGaps) {
+  console.log(`Gap report exists; only checking ${knownGaps.size} sets with known deficits.`)
+}
 const targets = ourSets.filter((s) => {
   if (!setMap.has(s.id)) return false
   if (SET_FILTER && !SET_FILTER.has(s.id)) return false
@@ -87,6 +94,9 @@ const targets = ourSets.filter((s) => {
     const rd = s.releaseDate ? s.releaseDate.replace(/\//g, '-') : ''
     if (rd < SINCE) return false
   }
+  // If a gap report exists from the upstream fetcher, only hit TCGdex for
+  // sets known to be incomplete. Without it (first run), check everything.
+  if (knownGaps && !knownGaps.has(s.id)) return false
   return true
 })
 console.log(`Will check ${targets.length} sets for missing alt arts.\n`)

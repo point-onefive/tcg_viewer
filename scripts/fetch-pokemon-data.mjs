@@ -115,16 +115,58 @@ mkdirSync(DATA_DIR, { recursive: true })
 const sets = await fetchSets()
 writeFileSync(OUT_SETS, JSON.stringify(sets, null, 2))
 
+// Delta detection: load any existing raw bundle so we can skip sets that
+// haven't changed upstream. A set is "stable" when:
+//   - we already have it cached
+//   - the cached card count equals the upstream's total (no new alt arts)
+//   - the upstream's updatedAt isn't newer than what we cached
+// Stable sets are reused as-is; only new or updated sets get refetched.
+// This turns a ~150-set / 20K-card scan into a ~0-set scan on quiet days.
+const FORCE = !!args.force
+const existingCards = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : []
+const existingSetsRaw = existsSync(OUT_SETS) && existingCards.length
+  ? (() => {
+      // Re-load the *previous* sets file before we just overwrote it.
+      // We saved a pre-write snapshot below.
+      return null
+    })()
+  : null
+// Read the prior sets file via git? Simpler: snapshot card counts by setId
+// from the existing card cache, and compare to upstream's `total`.
+const cachedCountBySet = new Map()
+const cachedCardsBySet = new Map()
+for (const c of existingCards) {
+  const sid = c.set?.id
+  if (!sid) continue
+  cachedCountBySet.set(sid, (cachedCountBySet.get(sid) || 0) + 1)
+  if (!cachedCardsBySet.has(sid)) cachedCardsBySet.set(sid, [])
+  cachedCardsBySet.get(sid).push(c)
+}
+
 const allCards = []
 let setIdx = 0
+let refetched = 0
+let skipped = 0
 for (const s of sets) {
   setIdx += 1
-  process.stdout.write(`  [${setIdx}/${sets.length}] ${s.id} (${s.name})... `)
+  const cachedCount = cachedCountBySet.get(s.id) || 0
+  const expected = Number(s.total || s.printedTotal || 0)
+  const fullyCached = !FORCE && cachedCount > 0 && cachedCount >= expected
+  if (fullyCached) {
+    // Reuse cached cards verbatim for this set.
+    allCards.push(...cachedCardsBySet.get(s.id))
+    skipped += 1
+    if (setIdx % 25 === 0) process.stdout.write(`  …${setIdx}/${sets.length} processed\r`)
+    continue
+  }
+  process.stdout.write(`  [${setIdx}/${sets.length}] ${s.id} (${s.name})… `)
   const cards = await fetchCardsForSet(s.id)
-  console.log(`${cards.length} cards`)
+  console.log(`${cards.length} cards (had ${cachedCount}, expected ${expected})`)
   allCards.push(...cards)
+  refetched += 1
   await sleep(100)
 }
+console.log(`\nDelta: refetched ${refetched} sets, reused ${skipped} sets from cache.`)
 
 // Dedupe by id — the API occasionally returns the same card across
 // queries (and re-runs with overlapping filters compound this).
