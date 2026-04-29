@@ -49,7 +49,20 @@ function normalizeDate(d) {
   return d ? d.replace(/\//g, '-') : undefined
 }
 
-const cards = rawCards.map((c) => {
+// Dedupe by card id — fetch may have been re-run with overlapping filters
+// (e.g. series-filtered Phase 1 + later --all backfill), and the upstream
+// API can also re-list the same card across queries. Last write wins so
+// the most recent fetch's data is preserved.
+const dedupedRaw = (() => {
+  const byId = new Map()
+  for (const c of rawCards) byId.set(c.id, c)
+  return [...byId.values()]
+})()
+if (dedupedRaw.length !== rawCards.length) {
+  console.log(`Deduped ${rawCards.length - dedupedRaw.length} duplicate raw cards`)
+}
+
+const cards = dedupedRaw.map((c) => {
   const setId = c.set?.id || c.id.split('-')[0]
   const setName = c.set?.name || setId
   const releaseDate = normalizeDate(c.set?.releaseDate)

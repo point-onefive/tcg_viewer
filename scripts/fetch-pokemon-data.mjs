@@ -126,7 +126,15 @@ for (const s of sets) {
   await sleep(100)
 }
 
-writeFileSync(OUT, JSON.stringify(allCards, null, 2))
-console.log(`\nWrote ${allCards.length} cards across ${sets.length} sets`)
-console.log(`  ${OUT}`)
+// Dedupe by id — the API occasionally returns the same card across
+// queries (and re-runs with overlapping filters compound this).
+const byId = new Map()
+for (const c of allCards) byId.set(c.id, c)
+const unique = [...byId.values()]
+if (unique.length !== allCards.length) {
+  console.log(`Deduped ${allCards.length - unique.length} duplicate cards`)
+}
+
+writeFileSync(OUT, JSON.stringify(unique, null, 2))
+console.log(`\nWrote ${unique.length} cards across ${sets.length} sets`)console.log(`  ${OUT}`)
 console.log(`  ${OUT_SETS}`)
