@@ -41,7 +41,10 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # 240 min absorbs the very first cold-cache run that has to fetch
+    # ~20K Pokémon cards from scratch. Subsequent runs hit the actions/
+    # cache for both images AND raw fetch JSONs and complete in minutes.
+    timeout-minutes: 240
     env:
       POKEMONTCG_API_KEY: ${{ secrets.POKEMONTCG_API_KEY }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -83,6 +86,26 @@ jobs:
           key: card-images-v1-${{ hashFiles('src/lib/cards-*.json') }}
           restore-keys: |
             card-images-v1-
+
+      # Persist the raw scraped JSONs across runs. The fetch scripts use
+      # these as a delta cache: if a set's cached card count >= upstream
+      # `total`, the set is reused verbatim instead of re-paginating
+      # ~20K cards over the API. Without this, cold-cache CI re-fetches
+      # everything every time and easily blows past the 90-min job cap.
+      - name: Cache raw fetch data
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/pokemon-cards-raw.json
+            data/pokemon-sets-raw.json
+            data/dbs-cards-raw.json
+            data/digimon-cards-raw.json
+            data/gundam-cards-raw.json
+            data/cards.json
+            data/packs.json
+          key: raw-data-v1-${{ hashFiles('src/lib/cards-*.json') }}
+          restore-keys: |
+            raw-data-v1-
 
       - name: Refresh Pokémon
         if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'pokemon') }}
