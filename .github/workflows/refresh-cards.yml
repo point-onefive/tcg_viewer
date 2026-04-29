@@ -66,6 +66,24 @@ jobs:
 
       - run: npm ci
 
+      # Persist image directories across runs. Without this, every run
+      # re-downloads ~14K images from vendor sites (~30+ min for DBS +
+      # Digimon alone). With the cache, only newly-released cards are
+      # fetched. Cache key uses the bundle JSON hashes so a new release
+      # naturally invalidates and forces fresh downloads for the delta.
+      - name: Cache card images
+        uses: actions/cache@v4
+        with:
+          path: |
+            public/cards
+            public/cards-pokemon
+            public/cards-gundam
+            public/cards-dbs
+            public/cards-digimon
+          key: card-images-v1-${{ hashFiles('src/lib/cards-*.json') }}
+          restore-keys: |
+            card-images-v1-
+
       - name: Refresh Pokémon
         if: ${{ env.SELECTED == '' || contains(env.SELECTED, 'pokemon') }}
         continue-on-error: true
