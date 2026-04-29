@@ -136,5 +136,48 @@ if (unique.length !== allCards.length) {
 }
 
 writeFileSync(OUT, JSON.stringify(unique, null, 2))
-console.log(`\nWrote ${unique.length} cards across ${sets.length} sets`)console.log(`  ${OUT}`)
+console.log(`\nWrote ${unique.length} cards across ${sets.length} sets`)
+console.log(`  ${OUT}`)
 console.log(`  ${OUT_SETS}`)
+
+// Gap detection: every set object has `total` (true count incl. alt arts /
+// SIRs) and `printedTotal` (the "X/Y" number on the card). When the API
+// ships fewer cards than `total`, we're missing alt arts upstream — the
+// gap is *always* in the >printedTotal range. We surface this so the
+// follow-up TCGdex augmenter knows what to chase, and so CI can alert
+// when newly-released sets remain incomplete.
+const OUT_GAPS = join(DATA_DIR, 'pokemon-gaps.json')
+const countsBySet = new Map()
+for (const c of unique) {
+  const id = c.set?.id
+  if (!id) continue
+  countsBySet.set(id, (countsBySet.get(id) || 0) + 1)
+}
+const gaps = []
+for (const s of sets) {
+  const expected = Number(s.total || s.printedTotal || 0)
+  const received = countsBySet.get(s.id) || 0
+  if (expected > received) {
+    gaps.push({
+      setId: s.id,
+      name: s.name,
+      releaseDate: s.releaseDate,
+      printedTotal: s.printedTotal,
+      expected,
+      received,
+      missing: expected - received,
+    })
+  }
+}
+gaps.sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || ''))
+writeFileSync(OUT_GAPS, JSON.stringify(gaps, null, 2))
+if (gaps.length) {
+  console.log(`\n⚠ ${gaps.length} sets have alt-art gaps (likely SIRs / alt arts upstream):`)
+  for (const g of gaps.slice(0, 10)) {
+    console.log(`  ${g.setId.padEnd(10)} ${g.name.padEnd(35)} ${g.received}/${g.expected}  (missing ${g.missing})`)
+  }
+  if (gaps.length > 10) console.log(`  …and ${gaps.length - 10} more (see ${OUT_GAPS})`)
+  console.log(`\nNext step: node scripts/augment-pokemon-tcgdex.mjs   # fills gaps from TCGdex`)
+} else {
+  console.log('\n✓ No alt-art gaps detected.')
+}

@@ -70,6 +70,7 @@ jobs:
         continue-on-error: true
         run: |
           node scripts/fetch-pokemon-data.mjs --all
+          node scripts/augment-pokemon-tcgdex.mjs
           node scripts/download-pokemon-images.mjs --concurrency=6 --delay=120
           node scripts/generate-pokemon-bundle.mjs
           npm run pokemon:r2

@@ -914,7 +914,7 @@
     "setName": "Shining Fates",
     "releaseDate": "2021-02-19",
     "releaseOrder": 730,
-    "cardCount": 73
+    "cardCount": 195
   },
   {
     "setCode": "swsh45sv",
@@ -970,7 +970,7 @@
     "setName": "Brilliant Stars",
     "releaseDate": "2022-02-25",
     "releaseOrder": 738,
-    "cardCount": 186
+    "cardCount": 216
   },
   {
     "setCode": "swsh9tg",
@@ -984,7 +984,7 @@
     "setName": "Astral Radiance",
     "releaseDate": "2022-05-27",
     "releaseOrder": 740,
-    "cardCount": 216
+    "cardCount": 246
   },
   {
     "setCode": "swsh10tg",
@@ -1012,7 +1012,7 @@
     "setName": "Lost Origin",
     "releaseDate": "2022-09-09",
     "releaseOrder": 744,
-    "cardCount": 217
+    "cardCount": 247
   },
   {
     "setCode": "swsh11tg",
@@ -1026,7 +1026,7 @@
     "setName": "Silver Tempest",
     "releaseDate": "2022-11-11",
     "releaseOrder": 746,
-    "cardCount": 215
+    "cardCount": 245
   },
   {
     "setCode": "swsh12tg",
@@ -1047,7 +1047,7 @@
     "setName": "Crown Zenith",
     "releaseDate": "2023-01-20",
     "releaseOrder": 749,
-    "cardCount": 160
+    "cardCount": 230
   },
   {
     "setCode": "swsh12pt5gg",
@@ -1194,7 +1194,7 @@
     "setName": "Ascended Heroes",
     "releaseDate": "2026-01-30",
     "releaseOrder": 770,
-    "cardCount": 250
+    "cardCount": 295
   },
   {
     "setCode": "me3",
