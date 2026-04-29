@@ -47,6 +47,16 @@ if (!existsSync(RAW)) {
 mkdirSync(OUT, { recursive: true })
 mkdirSync(TMP, { recursive: true })
 
+// Skip cards already uploaded to R2: the upload marker is git-tracked and
+// authoritative for "this image lives on the CDN". On a cold-cache CI run
+// this avoids re-downloading 20K PNGs from pokemontcg.io just to re-upload
+// the same webps to R2. Only genuinely new cards (alt arts, new sets) hit
+// the network.
+const UPLOAD_MARKER = join(ROOT, 'data', 'uploaded-cards-pokemon.json')
+const alreadyOnR2 = existsSync(UPLOAD_MARKER)
+  ? new Set(JSON.parse(readFileSync(UPLOAD_MARKER, 'utf8')).map((f) => f.replace(/\.webp$/, '')))
+  : new Set()
+
 const raw = JSON.parse(readFileSync(RAW, 'utf8'))
 const jobs = raw
   .map((c) => ({
@@ -54,8 +64,9 @@ const jobs = raw
     url: USE_SMALL ? c.images?.small : (c.images?.large || c.images?.small),
   }))
   .filter((j) => j.id && j.url)
+  .filter((j) => !alreadyOnR2.has(j.id)) // <- delta: only what's not on R2 yet
 
-console.log(`Need to download ${jobs.length} images (quality=${QUALITY}, concurrency=${CONCURRENCY})`)
+console.log(`Already on R2: ${alreadyOnR2.size}. Need to download ${jobs.length} new images (quality=${QUALITY}, concurrency=${CONCURRENCY})`)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
