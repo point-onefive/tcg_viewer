@@ -45,6 +45,9 @@ const SET_META = {
   'OP10': { name: 'Royal Blood',               date: '2024-11-08', order: 10 },
   'OP11': { name: 'A Fist of Divine Speed',    date: '2025-03-07', order: 11 },
   'OP12': { name: 'Legacy of the Master',      date: '2025-06-13', order: 12 },
+  'OP13': { name: 'Carrying On His Will',      date: '2025-09-12', order: 13 },
+  'OP14': { name: "The Azure Sea's Seven",     date: '2025-12-05', order: 14 },
+  'OP15': { name: "Adventure on Kami's Island",date: '2026-03-06', order: 15 },
   'ST01': { name: 'Starter - Straw Hat Crew',  date: '2022-07-08', order: 20 },
   'ST02': { name: 'Starter - Worst Generation',date: '2022-07-08', order: 21 },
   'ST03': { name: 'Starter - Seven Warlords',  date: '2022-07-08', order: 22 },
@@ -68,9 +71,18 @@ const SET_META = {
   'ST21': { name: 'Starter EX - Gear 5',       date: '2025-03-07', order: 40 },
   'ST22': { name: 'Starter - Boa Hancock',     date: '2025-06-13', order: 41 },
   'ST23': { name: 'Starter - Blackbeard',      date: '2025-06-13', order: 42 },
+  'ST24': { name: 'Starter - Green Jewelry Bonney', date: '2025-09-12', order: 43 },
+  'ST25': { name: 'Starter - Blue Buggy',      date: '2025-09-12', order: 44 },
+  'ST26': { name: 'Starter - Purple/Black Luffy', date: '2025-12-05', order: 45 },
+  'ST27': { name: 'Starter - Black Marshall.D.Teach', date: '2025-12-05', order: 46 },
+  'ST28': { name: 'Starter - Green/Yellow Yamato', date: '2026-03-06', order: 47 },
+  'ST29': { name: 'Starter - Egghead',         date: '2026-03-06', order: 48 },
   'EB01': { name: 'Extra - Memorial Collection',date: '2024-01-26', order: 50 },
   'EB02': { name: 'Extra - Anime 25th Collection',date: '2025-01-24', order: 51 },
+  'EB03': { name: 'Extra - One Piece Heroines',date: '2025-09-12', order: 52 },
+  'EB04': { name: 'Extra Booster (OP14/OP15)', date: '2025-12-05', order: 53 },
   'PRB01':{ name: 'Premium - Card The Best',   date: '2024-09-27', order: 60 },
+  'PRB02':{ name: 'Premium - Card The Best vol.2', date: '2025-12-05', order: 61 },
 }
 
 // Pack-id based bucketing for cards that don't fit the standard {SET}-{NUM}

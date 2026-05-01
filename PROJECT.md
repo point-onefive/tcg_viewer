@@ -1,6 +1,6 @@
 # CARD WALL - Project Documentation
 
-> Last updated: April 21, 2026 (4 collections live + deployed to thecardwall.com)
+> Last updated: May 1, 2026 (One Piece refreshed to OP15 / EB04 / ST29 / PRB02; Bandai-direct source)
 
 ---
 
@@ -18,11 +18,11 @@ A premium card gallery web app for One Piece TCG (and future TCG collections). B
 
 - **Deployed:** https://thecardwall.com (Vercel, domain registered through Vercel, auto-DNS)
 - **4 live collections:** One Piece, Gundam, Dragon Ball Super, Digimon
-  - One Piece: 1,661 cards / 35 sets / 2,627 images
+  - One Piece: 2,497 cards / 53 sets / 4,371 images (refreshed May 2026, Bandai-direct)
   - Gundam: 656 cards / 13 sets / ~800 images
   - Dragon Ball Super: 1,693 cards / 28 sets / 3,391 images
   - Digimon: 4,071 cards / 61 sets / 7,132 images
-- **~14k images live on Cloudflare R2** (`https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/{collection}/`)
+- **~16k images live on Cloudflare R2** (`https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/{collection}/`)
 - **Default theme: light.** Themed focus ring (no browser-default blue).
 - **Collection header** sits on a lifted `--bg-surface` band (hairline borders + 1px drop) for depth against the page `--bg`.
 - **Variant-card discovery:** cards with alternates render with a 2-sheet stacked-deck visual + animated sway + dominant-color glow. Fans out on hover.
@@ -81,7 +81,8 @@ tcg_viewer/
 │       ├── cards-generated.json  # GENERATED + GITIGNORED - 1,661 unique base cards
 │       └── sets-generated.json   # GENERATED + GITIGNORED - 35 sets
 ├── scripts/
-│   ├── fetch-card-data.mjs       # Pulls card JSONs from vegapull-records
+│   ├── fetch-card-data.mjs       # Scrapes Bandai EN site (en.onepiece-cardgame.com/cardlist) directly
+│   ├── fetch-card-data.vegapull.mjs.bak # Old vegapull-records fetcher (kept for reference)
 │   ├── generate-card-data.mjs    # Raw -> Card type, canonical set names, collapses variants
 │   ├── download-images.mjs       # Downloads card images (zip or CDN)
 │   └── upload-to-r2.mjs          # Uploads public/cards/ to R2 (concurrency=5, retry, resume)
@@ -120,14 +121,25 @@ tcg_viewer/
 
 ### Source
 
-[`vegapull-records`](https://github.com/coko7/vegapull-records), community dataset scraped from `en.onepiece-cardgame.com`. English dataset updated April 27, 2025.
+**Bandai EN cardlist** (`https://en.onepiece-cardgame.com/cardlist/`) scraped directly. POST `series=<seriesId>` returns full HTML containing `<dl class="modalCol" id="OP##-###">` blocks per card (front/back, attribute, color, type, effect, set label).
+
+Series-ID conventions used by `fetch-card-data.mjs`:
+- `5691NN` = OP-NN main boosters (e.g. `569111` = OP-11). OP14/OP15 buckets also include EB04 cards.
+- `5692NN` = EB-NN extra boosters.
+- `5693NN` = PRB-NN premium sets.
+- `5690NN` = ST-NN starter decks.
+- `569901` = Promotion cards. `569801` = Other Product cards.
+
+Deduplication is done across series buckets via a `Set<id>` since EB04 cards appear in both OP14 and OP15 listings, etc.
+
+**Why we migrated (May 2026):** the previous source, [`vegapull-records`](https://github.com/coko7/vegapull-records), had not updated past OP-10 / EB-02 / ST-21. Friend reported missing Vinsmoke Reiju prints and audit confirmed OP-11 through OP-15, EB-03/EB-04, PRB-02, and ST-22 through ST-29 were all absent. Scraping Bandai's site directly removes the mirror-staleness dependency.
 
 ### Normalization
 
 The pipeline collapses alternate-art printings into a single canonical card:
 
-- Raw dataset: **2,628 card entries** (includes `_p1`, `_p2`, `_r1` variant IDs)
-- After canonicalization: **1,661 unique base cards**, **518 of which have `variants[]`**
+- Raw dataset: **4,371 card entries** (includes `_p1`, `_p2`, `_r1`, etc. variant IDs)
+- After canonicalization: **2,497 unique base cards**, **956 of which have `variants[]`**
 - Each variant stores its own `id`, `imageUrl`, `rarity`, and a human label (`Parallel`, `Alt Art`, `Manga`, etc.)
 - Set names are hand-mapped to canonical titles (e.g. `Starter - Straw Hat Crew` instead of raw pack names)
 
@@ -181,6 +193,53 @@ npm run r2:upload        # 3. Upload to R2 (resumable)
 npm run cards:generate   # 4. Regenerate with R2 URLs baked in
 ```
 
+### Refreshing for new sets (One Piece)
+
+The Bandai site updates the moment a new set is officially listed. To pull a new release:
+
+1. **Backup current data** (cheap insurance):
+   ```bash
+   cp data/cards.json data/cards.json.bak && cp data/packs.json data/packs.json.bak
+   ```
+2. **Re-fetch** all series from Bandai (idempotent; re-fetches everything, dedupes):
+   ```bash
+   npm run cards:fetch
+   ```
+   If a brand new series ID appears (e.g. `OP-16` -> `569116`), it's auto-discovered from the `<select id="series">` dropdown on the cardlist page. No code change needed unless Bandai introduces a new prefix scheme.
+3. **Add canonical set metadata** for any new set in `scripts/generate-card-data.mjs` `SET_META` (display name + release date + order). Without this, the set still renders but with the raw Bandai label.
+4. **Regenerate** lib JSONs:
+   ```bash
+   npm run cards:generate
+   ```
+5. **Download missing images.** The default downloader is 2 req/s; for large catch-ups use the parallel pattern:
+   ```js
+   // public/cards/ already has previously-downloaded PNGs.
+   // Walk data/cards.json, fetch any id not on disk from img_full_url with concurrency 12.
+   ```
+   At ~12 concurrent fetches against `en.onepiece-cardgame.com/images/cardlist/card/{ID}.png`, ~1,700 images take ~3 minutes with zero failures observed in practice.
+6. **Upload to R2** (resumable; safe to re-run):
+   ```bash
+   npm run r2:upload
+   ```
+   Transient `fetch failed` errors are normal at scale; just re-run until 0 failed. Each run reads `data/uploaded.json` and skips already-uploaded files.
+7. **Spot-check** the R2 CDN for a few new IDs:
+   ```bash
+   curl -sI -o /dev/null -w "%{http_code}\n" \
+     https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/<NEW-ID>.png
+   ```
+
+### Avoiding stale data
+
+- **Don't trust community mirrors past one set cycle.** vegapull-records went stale silently; nothing in our pipeline alerted us. The Bandai-direct fetcher fails loudly if the HTML structure changes.
+- **Cron / quarterly review:** Bandai releases roughly one main booster per quarter plus interleaved EB / ST / PRB sets. Re-running `npm run cards:fetch` and diffing the new card count against the previous run is enough to catch new releases:
+  ```bash
+  jq length data/cards.json     # before
+  npm run cards:fetch
+  jq length data/cards.json     # after
+  ```
+- **Coverage smoke test:** `node -e 'const c=require("./data/cards.json");const s=new Set();c.forEach(x=>s.add(x.id.split("-")[0]));console.log([...s].sort())'` lists every set prefix present. Compare against the official set list page.
+- **Selector drift:** `parseCardBlock()` keys off `<dl class="modalCol" id="...">` and labelled `<h3>` headers (Cost / Life / Power / Counter / Color / Type / Effect / Card Set(s)). If Bandai changes class names, update the selectors there.
+
 ---
 
 ## Cloudflare R2 Bucket
@@ -192,7 +251,7 @@ npm run cards:generate   # 4. Regenerate with R2 URLs baked in
 | S3 API endpoint | `https://ea61e9c39953b4007182b6e35fdab347.r2.cloudflarestorage.com/tcg-viewer` |
 | Public dev URL | `https://pub-6d5072ccd26a467db70791436c203abb.r2.dev` |
 | Image path | `https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/{CARD_ID}.png` |
-| Status | Live, 2,627 images uploaded |
+| Status | Live, ~16k images uploaded across 4 collections |
 
 Secrets live in `.env.local` (never committed):
 

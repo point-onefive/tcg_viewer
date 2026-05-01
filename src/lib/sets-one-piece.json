@@ -70,6 +70,41 @@
     "cardCount": 119
   },
   {
+    "setCode": "OP11",
+    "setName": "A Fist of Divine Speed",
+    "releaseDate": "2025-03-07",
+    "releaseOrder": 11,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP12",
+    "setName": "Legacy of the Master",
+    "releaseDate": "2025-06-13",
+    "releaseOrder": 12,
+    "cardCount": 119
+  },
+  {
+    "setCode": "OP13",
+    "setName": "Carrying On His Will",
+    "releaseDate": "2025-09-12",
+    "releaseOrder": 13,
+    "cardCount": 120
+  },
+  {
+    "setCode": "OP14",
+    "setName": "The Azure Sea's Seven",
+    "releaseDate": "2025-12-05",
+    "releaseOrder": 14,
+    "cardCount": 120
+  },
+  {
+    "setCode": "OP15",
+    "setName": "Adventure on Kami's Island",
+    "releaseDate": "2026-03-06",
+    "releaseOrder": 15,
+    "cardCount": 119
+  },
+  {
     "setCode": "ST01",
     "setName": "Starter - Straw Hat Crew",
     "releaseDate": "2022-07-08",
@@ -217,6 +252,62 @@
     "cardCount": 17
   },
   {
+    "setCode": "ST22",
+    "setName": "Starter - Boa Hancock",
+    "releaseDate": "2025-06-13",
+    "releaseOrder": 41,
+    "cardCount": 17
+  },
+  {
+    "setCode": "ST23",
+    "setName": "Starter - Blackbeard",
+    "releaseDate": "2025-06-13",
+    "releaseOrder": 42,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST24",
+    "setName": "Starter - Green Jewelry Bonney",
+    "releaseDate": "2025-09-12",
+    "releaseOrder": 43,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST25",
+    "setName": "Starter - Blue Buggy",
+    "releaseDate": "2025-09-12",
+    "releaseOrder": 44,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST26",
+    "setName": "Starter - Purple/Black Luffy",
+    "releaseDate": "2025-12-05",
+    "releaseOrder": 45,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST27",
+    "setName": "Starter - Black Marshall.D.Teach",
+    "releaseDate": "2025-12-05",
+    "releaseOrder": 46,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST28",
+    "setName": "Starter - Green/Yellow Yamato",
+    "releaseDate": "2026-03-06",
+    "releaseOrder": 47,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST29",
+    "setName": "Starter - Egghead",
+    "releaseDate": "2026-03-06",
+    "releaseOrder": 48,
+    "cardCount": 17
+  },
+  {
     "setCode": "EB01",
     "setName": "Extra - Memorial Collection",
     "releaseDate": "2024-01-26",
@@ -231,6 +322,20 @@
     "cardCount": 61
   },
   {
+    "setCode": "EB03",
+    "setName": "Extra - One Piece Heroines",
+    "releaseDate": "2025-09-12",
+    "releaseOrder": 52,
+    "cardCount": 62
+  },
+  {
+    "setCode": "EB04",
+    "setName": "Extra Booster (OP14/OP15)",
+    "releaseDate": "2025-12-05",
+    "releaseOrder": 53,
+    "cardCount": 61
+  },
+  {
     "setCode": "PRB01",
     "setName": "Premium - Card The Best",
     "releaseDate": "2024-09-27",
@@ -238,10 +343,31 @@
     "cardCount": 1
   },
   {
+    "setCode": "PRB02",
+    "setName": "Premium - Card The Best vol.2",
+    "releaseDate": "2025-12-05",
+    "releaseOrder": 61,
+    "cardCount": 18
+  },
+  {
     "setCode": "PROMO",
     "setName": "Promo Cards",
     "releaseDate": "",
     "releaseOrder": 98,
-    "cardCount": 69
+    "cardCount": 95
+  },
+  {
+    "setCode": "EXCLUSIVES",
+    "setName": "Premium Bandai Exclusives",
+    "releaseDate": "",
+    "releaseOrder": 99,
+    "cardCount": 2
+  },
+  {
+    "setCode": "P",
+    "setName": "P",
+    "releaseDate": "",
+    "releaseOrder": 900,
+    "cardCount": 6
   }
 ]
