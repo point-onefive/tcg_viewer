@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "Find something you didn't know existed.",
     url: 'https://thecardwall.com',
     siteName: 'The Card Wall',
-    images: [{ url: '/images/og.png', width: 1200, height: 657, alt: 'The Card Wall' }],
+    images: [{ url: '/images/og.png', width: 1200, height: 630, alt: 'The Card Wall' }],
     type: 'website',
   },
   twitter: {
