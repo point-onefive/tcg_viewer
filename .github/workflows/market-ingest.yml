@@ -1,0 +1,107 @@
+name: Market intel · daily ingest + digest
+
+# Daily cron pipeline:
+#   1. Scrape PriceCharting set-level pop pages (PSA + CGC combined) and
+#      write per-watchlist snapshots to psa_pop_snapshots.
+#   2. Scrape eBay active listings via Browse API and write per-watchlist
+#      snapshots to ebay_market_snapshots + ebay_listings.
+#   3. Send the daily digest to the owner's Telegram chat with sleepers,
+#      mispricing flags, top markets, and ops health.
+#
+# Schedule: 12:00 UTC daily (= 08:00 ET / 05:00 PT). Manual dispatch supported.
+#
+# Each step uses `continue-on-error: true` so a single source failing does
+# not skip the digest — the digest's "Ops" section will surface the failure
+# and the workflow itself is marked failed at the end if any required step
+# did not complete.
+#
+# Required repository secrets:
+#   SUPABASE_DB_URL              — Session Pooler URI with password
+#   SUPABASE_SECRET_KEY          — sb_secret_*  (service role, bypasses RLS)
+#   NEXT_PUBLIC_SUPABASE_URL     — https://<ref>.supabase.co
+#   EBAY_APP_ID                  — eBay app id (client id)
+#   EBAY_CERT_ID                 — eBay cert id (client secret)
+#   TELEGRAM_BOT_TOKEN           — BotFather token
+#   TELEGRAM_OWNER_CHAT_ID       — Telegram chat id to send digest into
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      skip_pricecharting:
+        description: 'Skip PriceCharting scrape (pop)'
+        required: false
+        default: 'false'
+      skip_ebay:
+        description: 'Skip eBay scrape (listings)'
+        required: false
+        default: 'false'
+      skip_digest:
+        description: 'Skip Telegram digest'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL:             ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_SECRET_KEY:         ${{ secrets.SUPABASE_SECRET_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL:    ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      EBAY_APP_ID:                 ${{ secrets.EBAY_APP_ID }}
+      EBAY_CERT_ID:                ${{ secrets.EBAY_CERT_ID }}
+      EBAY_MARKETPLACE:            EBAY_US
+      TELEGRAM_BOT_TOKEN:          ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_OWNER_CHAT_ID:      ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Verify schema is current
+        run: node scripts/verify-schema.mjs
+
+      - name: PriceCharting ingest (pop data)
+        if: ${{ inputs.skip_pricecharting != 'true' }}
+        id: pc
+        continue-on-error: true
+        run: node scripts/market/ingest-pricecharting.mjs
+
+      - name: eBay ingest (active listings)
+        if: ${{ inputs.skip_ebay != 'true' }}
+        id: ebay
+        continue-on-error: true
+        run: node scripts/market/ingest-ebay.mjs
+
+      - name: Send Telegram digest
+        if: ${{ inputs.skip_digest != 'true' }}
+        id: digest
+        continue-on-error: true
+        run: node scripts/market/send-telegram-digest.mjs
+
+      - name: Fail if any ingest step errored
+        if: ${{ steps.pc.outcome == 'failure' || steps.ebay.outcome == 'failure' || steps.digest.outcome == 'failure' }}
+        run: |
+          echo "One or more steps failed:"
+          echo "  pricecharting: ${{ steps.pc.outcome }}"
+          echo "  ebay:          ${{ steps.ebay.outcome }}"
+          echo "  digest:        ${{ steps.digest.outcome }}"
+          exit 1

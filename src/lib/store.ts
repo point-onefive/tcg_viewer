@@ -148,7 +148,7 @@ export const useStore = create<StoreState>()(
         activeCollection: state.activeCollection,
         pinned: state.pinned,
       }),
-      version: 5,
+      version: 6,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {

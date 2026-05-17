@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
-import { Bookmark, Menu, X, Check, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { Bookmark, Menu, X, Check, ChevronDown, Activity } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
@@ -362,6 +363,23 @@ export function Header({ sets }: HeaderProps) {
           </div>
 
           <ThemeToggle />
+
+          {/* Pulse - dedicated /pulse route (market scanner). Separate from
+              the gallery so the gallery stays pure. Only shown for collections
+              we have scanner data wired for. */}
+          {activeCollection === 'one-piece' && (
+            <Link
+              href="/pulse"
+              className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+              style={{ ...ctrl, height: 30 }}
+              aria-label="Open Pulse scanner"
+              title="Pulse - market scanner"
+              data-tour="pulse"
+            >
+              <Activity size={12} strokeWidth={2.25} />
+              Pulse
+            </Link>
+          )}
 
           {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
           <a
