@@ -29,6 +29,18 @@ export interface PinInput {
 const pinKey = (p: Pin) =>
   `${p.collection}::${p.variantId ?? p.cardId}`
 
+/**
+ * A single image queued for the tier list maker. `id` is the stable
+ * cardId or variantId from a Card on the gallery (so we can dedupe and
+ * keep button state in sync); `src` is the large image URL we want to
+ * rank with; `label` is optional metadata for accessibility / future UI.
+ */
+export interface TierPoolItem {
+  id: string
+  src: string
+  label?: string
+}
+
 interface StoreState {
   theme: Theme
   toggleTheme: () => void
@@ -55,6 +67,12 @@ interface StoreState {
   isPinned: (p: PinInput) => boolean
   boardOpen: boolean
   setBoardOpen: (open: boolean) => void
+  tierPool: TierPoolItem[]
+  addToTierPool: (item: TierPoolItem) => void
+  removeFromTierPool: (id: string) => void
+  toggleTierPool: (item: TierPoolItem) => void
+  isInTierPool: (id: string) => boolean
+  clearTierPool: () => void
 }
 
 /** Fire-and-forget telemetry. Anonymous, no user id, no cookies. */
@@ -139,6 +157,27 @@ export const useStore = create<StoreState>()(
       },
       boardOpen: false,
       setBoardOpen: (boardOpen) => set({ boardOpen }),
+
+      tierPool: [],
+      isInTierPool: (id) => get().tierPool.some((x) => x.id === id),
+      addToTierPool: (item) => {
+        const { tierPool } = get()
+        if (tierPool.some((x) => x.id === item.id)) return
+        set({ tierPool: [...tierPool, item] })
+      },
+      removeFromTierPool: (id) => {
+        set({ tierPool: get().tierPool.filter((x) => x.id !== id) })
+      },
+      toggleTierPool: (item) => {
+        const { tierPool } = get()
+        const exists = tierPool.some((x) => x.id === item.id)
+        if (exists) {
+          set({ tierPool: tierPool.filter((x) => x.id !== item.id) })
+        } else {
+          set({ tierPool: [...tierPool, item] })
+        }
+      },
+      clearTierPool: () => set({ tierPool: [] }),
     }),
     {
       name: 'tcg-viewer-prefs',
@@ -147,8 +186,9 @@ export const useStore = create<StoreState>()(
         zoom: state.zoom,
         activeCollection: state.activeCollection,
         pinned: state.pinned,
+        tierPool: state.tierPool,
       }),
-      version: 5,
+      version: 6,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -158,6 +198,12 @@ export const useStore = create<StoreState>()(
             cardId: p.cardId ?? '',
             variantId: p.variantId,
           }))
+        }
+        if (fromVersion < 6) {
+          // tierPool was introduced in v6.
+          s.tierPool = Array.isArray((s as { tierPool?: unknown }).tierPool)
+            ? ((s as { tierPool?: TierPoolItem[] }).tierPool ?? [])
+            : []
         }
         return s as StoreState
       },

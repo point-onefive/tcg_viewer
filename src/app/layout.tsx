@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { Space_Grotesk, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
-import { SmoothScroll } from '@/components/smooth-scroll'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
@@ -55,7 +54,6 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <SmoothScroll />
           {children}
         </ThemeProvider>
         <Analytics />

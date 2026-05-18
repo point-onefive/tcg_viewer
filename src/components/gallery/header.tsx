@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
-import { Bookmark, Menu, X, Check, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { Bookmark, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
@@ -19,6 +20,7 @@ export function Header({ sets }: HeaderProps) {
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
+    tierPool,
   } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collectionOpen, setCollectionOpen] = useState(false)
@@ -45,6 +47,8 @@ export function Header({ sets }: HeaderProps) {
 
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
+  // Tier-list queue count is global (the tier list maker is collection-agnostic).
+  const tierPoolCount = tierPool.length
 
   // Shared style token · matches logo's rounded-rect language
   const ctrl: React.CSSProperties = {
@@ -65,9 +69,12 @@ export function Header({ sets }: HeaderProps) {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
-        backdropFilter: 'blur(18px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+        // Heavier background-color so we can lean less on backdrop-filter,
+        // which is a major Safari scroll-jank source when it's blurring a
+        // large painted region beneath a fixed bar.
+        background: 'color-mix(in srgb, var(--bg) 92%, transparent)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
@@ -363,6 +370,31 @@ export function Header({ sets }: HeaderProps) {
 
           <ThemeToggle />
 
+          <Link
+            href="/tier-list"
+            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium max-sm:hidden"
+            style={{
+              ...ctrl,
+              height: 30,
+              background: tierPoolCount > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
+              color: tierPoolCount > 0 ? 'var(--bg)' : 'var(--text-primary)',
+              transition: 'background 0.2s ease, color 0.2s ease',
+            }}
+            aria-label={tierPoolCount > 0 ? `Open tier list maker (${tierPoolCount} queued)` : 'Open tier list maker'}
+            title="Tier list maker"
+          >
+            <Layers size={12} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
+            Tiers
+            {tierPoolCount > 0 && (
+              <span
+                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 4, background: 'var(--bg)', color: 'var(--text-primary)' }}
+              >
+                {tierPoolCount}
+              </span>
+            )}
+          </Link>
+
           {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
           <a
             href="https://x.com/point_onefive"
@@ -427,6 +459,24 @@ export function Header({ sets }: HeaderProps) {
           )}
 
           <ThemeToggle />
+
+          <Link
+            href="/tier-list"
+            className="relative inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 32, height: 32 }}
+            aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
+            title="Tier list maker"
+          >
+            <Layers size={14} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
+            {tierPoolCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
+                style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
+              >
+                {tierPoolCount}
+              </span>
+            )}
+          </Link>
 
           {/* Hamburger */}
           <button
@@ -528,6 +578,25 @@ export function Header({ sets }: HeaderProps) {
               <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
             </svg>
           </div>
+
+          <Link
+            href="/tier-list"
+            onClick={() => setMobileOpen(false)}
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            style={{ ...ctrl }}
+            aria-label={tierPoolCount > 0 ? `Open tier list maker (${tierPoolCount} queued)` : 'Open tier list maker'}
+          >
+            <Layers size={16} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
+            <span>Tier list maker</span>
+            {tierPoolCount > 0 && (
+              <span
+                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
+              >
+                {tierPoolCount}
+              </span>
+            )}
+          </Link>
 
           {/* Feedback link - give the X handle a visible home in mobile nav */}
           <a

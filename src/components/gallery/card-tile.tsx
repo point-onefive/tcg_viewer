@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Layers } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 
@@ -29,27 +29,48 @@ const COLOR_MAP: Record<string, string> = {
 
 interface CardTileProps {
   card: Card
+  /**
+   * Mark the topmost row of the first visible set as priority so Next's
+   * image optimizer eager-loads and the LCP element isn't deferred.
+   */
+  priority?: boolean
 }
 
-export function CardTile({ card }: CardTileProps) {
+export function CardTile({ card, priority = false }: CardTileProps) {
   const [loaded, setLoaded] = useState(false)
   const openLightbox = useStore((s) => s.openLightbox)
   const togglePin = useStore((s) => s.togglePin)
   const isPinned = useStore((s) => s.isPinned({ cardId: card.id }))
+  const toggleTierPool = useStore((s) => s.toggleTierPool)
+  const inTierPool = useStore((s) => s.isInTierPool(card.id))
   const cardRef = useRef<HTMLDivElement>(null)
 
   const primaryColor = card.colors?.[0] ? (COLOR_MAP[card.colors[0]] ?? 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.15)'
   const variantCount = card.variants?.length ?? 0
   const hasVariants = variantCount > 0
 
+  // Cursor-tracking shine. We throttle to one update per animation frame
+  // because mousemove fires at 60–120Hz and each callback both touches the
+  // DOM (getBoundingClientRect forces style recalc) AND writes CSS custom
+  // properties that trigger a paint on the .card-tile__shine gradient.
+  // Coalescing to rAF caps the work at one paint per frame.
+  const rafPending = useRef(false)
+  const lastEvent = useRef<{ clientX: number; clientY: number } | null>(null)
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const el = cardRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    el.style.setProperty('--mx', `${x}%`)
-    el.style.setProperty('--my', `${y}%`)
+    lastEvent.current = { clientX: e.clientX, clientY: e.clientY }
+    if (rafPending.current) return
+    rafPending.current = true
+    requestAnimationFrame(() => {
+      rafPending.current = false
+      const el = cardRef.current
+      const ev = lastEvent.current
+      if (!el || !ev) return
+      const rect = el.getBoundingClientRect()
+      const x = ((ev.clientX - rect.left) / rect.width) * 100
+      const y = ((ev.clientY - rect.top) / rect.height) * 100
+      el.style.setProperty('--mx', `${x}%`)
+      el.style.setProperty('--my', `${y}%`)
+    })
   }, [])
 
   const tierClass = hasVariants ? ' card-tile--has-variants' : ''
@@ -91,6 +112,8 @@ export function CardTile({ card }: CardTileProps) {
           className="card-tile__image"
           style={{ opacity: loaded ? 1 : 0 }}
           onLoad={() => setLoaded(true)}
+          priority={priority}
+          fetchPriority={priority ? 'high' : 'auto'}
         />
 
         {/* Cursor-following shine */}
@@ -112,6 +135,26 @@ export function CardTile({ card }: CardTileProps) {
           aria-pressed={isPinned}
         >
           <Bookmark size={14} strokeWidth={2} fill={isPinned ? 'currentColor' : 'none'} />
+        </button>
+
+        {/* Add base art to tier-list pool - sits below the pin.
+            Variants are added individually from the lightbox. */}
+        <button
+          type="button"
+          className={`card-tile__tier-btn${inTierPool ? ' card-tile__tier-btn--active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleTierPool({
+              id: card.id,
+              src: card.imageLarge || card.imageSmall,
+              label: `${card.name}${card.code ? ` (${card.code})` : ''}`,
+            })
+          }}
+          aria-label={inTierPool ? 'Remove from tier list pool' : 'Add to tier list pool'}
+          aria-pressed={inTierPool}
+          title={inTierPool ? 'Queued for tier list · click to remove' : 'Add to tier list pool'}
+        >
+          <Layers size={14} strokeWidth={2} fill={inTierPool ? 'currentColor' : 'none'} />
         </button>
       </div>
     </div>

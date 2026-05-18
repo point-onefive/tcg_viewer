@@ -3,14 +3,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Layers } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 
 interface LightboxViewerProps { cards: Card[] }
 
 export function LightboxViewer({ cards }: LightboxViewerProps) {
-  const { lightboxCardId, closeLightbox, openLightbox, togglePin, isPinned } = useStore()
+  const {
+    lightboxCardId,
+    closeLightbox,
+    openLightbox,
+    togglePin,
+    isPinned,
+    toggleTierPool,
+    isInTierPool,
+  } = useStore()
   const [focused, setFocused] = useState(0)
 
   const currentIndex = useMemo(
@@ -165,7 +173,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               {currentIndex + 1} <span style={{ opacity: 0.4 }}>/</span> {cards.length}
             </div>
 
-            {/* Pin + Close group · rounded-rect matching nav language */}
+            {/* Pin + Tier + Close group · rounded-rect matching nav language */}
             <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
               {card && (() => {
                 const img = images[focused]
@@ -173,16 +181,35 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                   ? { cardId: card.id }
                   : { cardId: card.id, variantId: img.id }
                 const pinned = isPinned(pinArg)
+                // Tier-pool entry: keyed by the focused image id (base or variant).
+                const poolItem = {
+                  id: img.id,
+                  src: img.src,
+                  label: `${card.name}${img.label && img.label !== 'base' ? ` · ${img.label}` : ''}`,
+                }
+                const inPool = isInTierPool(img.id)
                 return (
-                  <button
-                    className={`lb-hud-btn${pinned ? ' lb-hud-btn--active' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); togglePin(pinArg) }}
-                    aria-label={pinned ? 'Remove from board' : 'Pin to board'}
-                    aria-pressed={pinned}
-                  >
-                    <Bookmark size={13} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
-                    <span className="hidden sm:inline">{pinned ? 'Pinned' : 'Pin'}</span>
-                  </button>
+                  <>
+                    <button
+                      className={`lb-hud-btn${pinned ? ' lb-hud-btn--active' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); togglePin(pinArg) }}
+                      aria-label={pinned ? 'Remove from board' : 'Pin to board'}
+                      aria-pressed={pinned}
+                    >
+                      <Bookmark size={13} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
+                      <span className="hidden sm:inline">{pinned ? 'Pinned' : 'Pin'}</span>
+                    </button>
+                    <button
+                      className={`lb-hud-btn${inPool ? ' lb-hud-btn--active' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); toggleTierPool(poolItem) }}
+                      aria-label={inPool ? 'Remove from tier list pool' : 'Add to tier list pool'}
+                      aria-pressed={inPool}
+                      title={inPool ? 'Queued for tier list · click to remove' : 'Add to tier list pool'}
+                    >
+                      <Layers size={13} strokeWidth={2} fill={inPool ? 'currentColor' : 'none'} />
+                      <span className="hidden sm:inline">{inPool ? 'In tier list' : 'Tier list'}</span>
+                    </button>
+                  </>
                 )
               })()}
               <button
