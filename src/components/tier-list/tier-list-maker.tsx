@@ -15,14 +15,13 @@ import {
 } from '@dnd-kit/core'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { toBlob, toJpeg } from 'html-to-image'
+import { toBlob } from 'html-to-image'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
 import {
   ArrowDown,
   ArrowUp,
   Clipboard,
-  Download,
   Layers,
   Loader2,
   Plus,
@@ -435,7 +434,7 @@ export function TierListMaker() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [editorOpen, setEditorOpen] = useState(true)
   const [pasteHint, setPasteHint] = useState('Paste images anywhere on this page')
-  const [exporting, setExporting] = useState<'copy' | 'jpeg' | null>(null)
+  const [exporting, setExporting] = useState<'copy' | null>(null)
   const [exportHint, setExportHint] = useState<string | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
@@ -608,28 +607,6 @@ export function TierListMaker() {
     }
   }, [])
 
-  const exportJpeg = useCallback(async () => {
-    if (!boardRef.current) return
-    try {
-      setExporting('jpeg')
-      const dataUrl = await toJpeg(boardRef.current, {
-        quality: 0.95,
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg') || '#111',
-      })
-      const a = document.createElement('a')
-      a.href = dataUrl
-      a.download = 'cardwall-tier-list.jpg'
-      a.click()
-      setExportHint('JPEG downloaded')
-    } catch {
-      setExportHint('JPEG export failed; try again')
-    } finally {
-      setExporting(null)
-    }
-  }, [])
-
   const uploadChip: React.CSSProperties = {
     ...ctrlBase,
     borderColor: 'color-mix(in srgb, #E85D2A 40%, var(--border-subtle))',
@@ -756,16 +733,6 @@ export function TierListMaker() {
             >
               {exporting === 'copy' ? <Loader2 size={14} className="animate-spin" /> : <Clipboard size={14} />}
               Copy chart
-            </button>
-            <button
-              type="button"
-              onClick={exportJpeg}
-              className="inline-flex items-center gap-1 px-3 text-xs font-medium"
-              style={{ ...ctrlBase, height: 30 }}
-              disabled={exporting !== null}
-            >
-              {exporting === 'jpeg' ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              Save JPEG
             </button>
           </div>
         </div>
