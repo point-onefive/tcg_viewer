@@ -404,13 +404,24 @@ async function copyNodeAsImage(node: HTMLElement): Promise<'copied' | 'downloade
   })
   if (!blob) throw new Error('Could not render image')
 
-  if (
+  // Try the Async Clipboard image path first. It rejects in plenty of
+  // real-world contexts (no user gesture, Safari/Firefox image-write
+  // gating, OS permission prompts, non-secure origin, etc.) — when it
+  // does, we still want the user to get their snapshot, so fall through
+  // to a PNG download instead of surfacing "Export failed".
+  const canTryClipboardImage =
+    typeof navigator !== 'undefined' &&
     navigator.clipboard &&
     typeof navigator.clipboard.write === 'function' &&
     typeof ClipboardItem !== 'undefined'
-  ) {
-    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
-    return 'copied'
+
+  if (canTryClipboardImage) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
+      return 'copied'
+    } catch (err) {
+      console.warn('Clipboard image write rejected, falling back to download', err)
+    }
   }
 
   const url = URL.createObjectURL(blob)
@@ -600,7 +611,8 @@ export function TierListMaker() {
       setExporting('copy')
       const result = await copyNodeAsImage(boardRef.current)
       setExportHint(result === 'copied' ? 'Copied to clipboard' : 'Clipboard unavailable: downloaded PNG')
-    } catch {
+    } catch (err) {
+      console.error('Tier list export failed', err)
       setExportHint('Export failed; try again')
     } finally {
       setExporting(null)
@@ -724,16 +736,6 @@ export function TierListMaker() {
                 }}
               />
             </label>
-            <button
-              type="button"
-              onClick={exportCopy}
-              className="inline-flex items-center gap-1 px-3 text-xs font-medium"
-              style={{ ...ctrlBase, height: 30 }}
-              disabled={exporting !== null}
-            >
-              {exporting === 'copy' ? <Loader2 size={14} className="animate-spin" /> : <Clipboard size={14} />}
-              Copy chart
-            </button>
           </div>
         </div>
       </header>
@@ -835,12 +837,6 @@ export function TierListMaker() {
           </section>
         )}
 
-        {exportHint && (
-          <p className="mb-4 text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {exportHint}
-          </p>
-        )}
-
         <DndContext
           sensors={sensors}
           collisionDetection={collisionDetection}
@@ -909,6 +905,39 @@ export function TierListMaker() {
               )}
             </DropZone>
           </section>
+
+          {/* Chart toolbar lives outside the boardRef snapshot target on
+              purpose: it docks the export action right next to the chart
+              it operates on (clearer UX than burying it in the nav), but
+              must not appear in the rendered image written to the
+              clipboard. */}
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+              Chart
+            </h2>
+            <div className="flex items-center gap-3">
+              {exportHint && (
+                <span
+                  role="status"
+                  aria-live="polite"
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {exportHint}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={exportCopy}
+                className="inline-flex items-center gap-1 px-3 text-xs font-medium"
+                style={{ ...ctrlBase, height: 30 }}
+                disabled={exporting !== null}
+              >
+                {exporting === 'copy' ? <Loader2 size={14} className="animate-spin" /> : <Clipboard size={14} />}
+                Copy chart
+              </button>
+            </div>
+          </div>
 
           <div
             ref={boardRef}
