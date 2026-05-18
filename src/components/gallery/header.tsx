@@ -82,7 +82,11 @@ export function Header({ sets }: HeaderProps) {
         className="mx-auto flex items-center justify-between gap-6 px-4 md:px-4"
         style={{ maxWidth: 1800, height: 48 }}
       >
-        {/* Brand - unified lockup: mascot chip + wordmark inside one block */}
+        {/* Brand cluster - lockup + small beta tag sit together on the left.
+           The beta tag mirrors the italic lowercase "the" prefix inside the
+           lockup, so it reads as a stylistic sibling rather than a separate
+           UI chip. Kept tiny, no background, accent orange at low opacity. */}
+        <div className="flex items-center gap-2">
         <a
           href="/"
           className="group inline-flex items-stretch overflow-hidden"
@@ -154,6 +158,28 @@ export function Header({ sets }: HeaderProps) {
             <span>Card Wall</span>
           </span>
         </a>
+          <span
+            aria-label="Beta release"
+            title="Beta release"
+            className="inline-flex select-none"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 10,
+              fontStyle: 'italic',
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'lowercase',
+              color: '#E85D2A',
+              opacity: 0.78,
+              lineHeight: 1,
+              // Tiny optical lift so the italic descender sits on the
+              // same baseline as the wordmark inside the lockup.
+              transform: 'translateY(1px)',
+            }}
+          >
+            beta
+          </span>
+        </div>
 
         {/* Tagline · shows only on wider viewports to avoid crowding controls */}
         <div

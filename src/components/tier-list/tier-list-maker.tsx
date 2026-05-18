@@ -37,10 +37,41 @@ export type TierDef = {
   color: string
 }
 
+/**
+ * Where a tier card image came from. Drives the rendered aspect ratio:
+ *
+ * - `gallery` — added via the "Add to tier list pool" button on a card
+ *   in the main wall. Rendered portrait at the natural TCG card aspect
+ *   (5:7) with `object-contain` so the full card art + frame is always
+ *   visible (no cropping of the card title, cost, etc.).
+ *
+ * - `upload` — uploaded from disk or pasted from the clipboard. We have
+ *   no idea what shape these are (screenshots, memes, square portraits)
+ *   so we render them square with `object-cover` for a clean grid.
+ */
+export type TierCardKind = 'gallery' | 'upload'
+
 export type TierCard = {
   id: string
   src: string
   tierId: string | null
+  kind: TierCardKind
+}
+
+/**
+ * Thumb width is shared between square (upload) and portrait (gallery)
+ * thumbs so they flow consistently in tier rows. Portrait height is
+ * derived from the standard TCG card ratio (5:7) — a ~78×109 box that
+ * matches whole cards from the gallery without cropping.
+ */
+const THUMB_W = 78
+const THUMB_H_SQUARE = 78
+const THUMB_H_PORTRAIT = Math.round(THUMB_W * (7 / 5)) // 109
+
+function thumbDimensions(kind: TierCardKind) {
+  return kind === 'gallery'
+    ? { width: THUMB_W, height: THUMB_H_PORTRAIT, fit: 'contain' as const }
+    : { width: THUMB_W, height: THUMB_H_SQUARE, fit: 'cover' as const }
 }
 
 const DEFAULT_TIERS: TierDef[] = [
@@ -191,7 +222,15 @@ function BoardWatermark() {
   )
 }
 
-function DraggableImage({ id, src }: { id: string; src: string }) {
+function DraggableImage({
+  id,
+  src,
+  kind,
+}: {
+  id: string
+  src: string
+  kind: TierCardKind
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     data: { kind: 'card', id },
@@ -213,19 +252,36 @@ function DraggableImage({ id, src }: { id: string; src: string }) {
     ? { transform: CSS.Translate.toString(transform), zIndex: isDragging ? 50 : undefined }
     : undefined
 
+  const { width, height, fit } = thumbDimensions(kind)
+
   return (
     <button
       type="button"
       ref={setRefs}
+      // draggable={false} + onDragStart preventDefault eliminate the
+      // browser's native HTML5 drag preview (a translucent screenshot
+      // that some macOS browsers attach to focused buttons containing
+      // images, on top of @dnd-kit's DragOverlay — produces a visible
+      // "ghost" layered above our drag preview).
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
       style={{
         ...style,
         touchAction: 'none',
-        opacity: isDragging ? 0.42 : 1,
+        // Source thumb is hidden during drag — the DragOverlay below
+        // is the only thing the user should see following the cursor.
+        // visibility (not opacity) avoids any partial paint of the
+        // source while the overlay is in flight.
+        visibility: isDragging ? 'hidden' : undefined,
         padding: 0,
         cursor: 'grab',
         flexShrink: 0,
+        width,
+        height,
         outline: isOver ? accentRing : undefined,
         outlineOffset: isOver ? 2 : undefined,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
       }}
       className="tier-list-thumb"
       {...listeners}
@@ -233,7 +289,26 @@ function DraggableImage({ id, src }: { id: string; src: string }) {
       aria-label="Drag to rank image"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" draggable={false} className="block h-[78px] w-[78px] object-cover select-none" />
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        // pointer-events:none forwards every press / drag motion
+        // straight to the parent <button>, so the browser never has a
+        // chance to initiate native image-drag against the <img>.
+        // -webkit-user-drag:none is the Safari/Chrome belt to the
+        // draggable:false suspenders.
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: fit,
+          display: 'block',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitUserDrag: 'none',
+        } as React.CSSProperties}
+      />
     </button>
   )
 }
@@ -398,6 +473,7 @@ export function TierListMaker() {
         id: crypto.randomUUID(),
         src: URL.createObjectURL(file),
         tierId: null,
+        kind: 'upload',
       })
     }
     if (!next.length) return
@@ -461,7 +537,9 @@ export function TierListMaker() {
       const additions: TierCard[] = []
       for (const item of tierPool) {
         if (!have.has(item.id)) {
-          additions.push({ id: item.id, src: item.src, tierId: null })
+          // Every tierPool item comes from the main gallery, so render
+          // them in the natural TCG card aspect (portrait, full-card).
+          additions.push({ id: item.id, src: item.src, tierId: null, kind: 'gallery' })
         }
       }
       if (additions.length === 0) return current
@@ -586,18 +664,57 @@ export function TierListMaker() {
       >
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/"
-              className="group inline-flex"
-              aria-label="The Card Wall - home"
-              style={{
-                transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-              }}
-            >
-              <span className="group-hover:scale-[1.02] transition-transform">
-                <BrandLockup />
+            {/* Brand cluster: logo + beta tag stay tightly paired (gap-2)
+                so they read as one identity unit, distinct from the page
+                title that follows past the divider. */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="group inline-flex"
+                aria-label="The Card Wall - home"
+                style={{
+                  transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+              >
+                <span className="group-hover:scale-[1.02] transition-transform">
+                  <BrandLockup />
+                </span>
+              </Link>
+              {/* Beta tag, mirrors the main nav for cross-page consistency. */}
+              <span
+                aria-label="Beta release"
+                title="Beta release"
+                className="inline-flex select-none"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 10,
+                  fontStyle: 'italic',
+                  fontWeight: 700,
+                  letterSpacing: '0.18em',
+                  textTransform: 'lowercase',
+                  color: '#E85D2A',
+                  opacity: 0.78,
+                  lineHeight: 1,
+                  transform: 'translateY(1px)',
+                }}
+              >
+                beta
               </span>
-            </Link>
+            </div>
+            {/* Vertical rule separates site identity (brand + beta) from
+                page identity (Tier list maker). Same divider language the
+                main nav uses between filter and zoom controls. */}
+            <div
+              aria-hidden
+              className="hidden sm:block"
+              style={{
+                width: 1,
+                height: 22,
+                background: 'var(--text-muted)',
+                opacity: 0.4,
+                margin: '0 4px',
+              }}
+            />
             <div className="flex items-center gap-2">
               <Layers size={18} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
               <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">
@@ -802,7 +919,7 @@ export function TierListMaker() {
                   .filter((c) => c.tierId === null)
                   .map((c) => (
                     <div key={c.id} className="group relative">
-                      <DraggableImage id={c.id} src={c.src} />
+                      <DraggableImage id={c.id} src={c.src} kind={c.kind} />
                       <button
                         type="button"
                         onClick={() => removeCard(c.id)}
@@ -874,7 +991,7 @@ export function TierListMaker() {
                       .filter((c) => c.tierId === tier.id)
                       .map((c) => (
                         <div key={c.id} className="group relative">
-                          <DraggableImage id={c.id} src={c.src} />
+                          <DraggableImage id={c.id} src={c.src} kind={c.kind} />
                           <button
                             type="button"
                             onClick={() => removeCard(c.id)}
@@ -902,28 +1019,37 @@ export function TierListMaker() {
           </div>
 
           <DragOverlay adjustScale={false} dropAnimation={null}>
-            {activeCard ? (
-              <div
-                className="pointer-events-none overflow-hidden opacity-[0.98]"
-                style={{
-                  width: 78,
-                  height: 78,
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface)',
-                  boxShadow: 'var(--shadow-lightbox)',
-                  transformOrigin: 'top left',
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={activeCard.src}
-                  alt=""
-                  draggable={false}
-                  className="block h-full w-full select-none object-cover"
-                />
-              </div>
-            ) : null}
+            {activeCard ? (() => {
+              const { width, height, fit } = thumbDimensions(activeCard.kind)
+              return (
+                <div
+                  className="pointer-events-none overflow-hidden opacity-[0.98]"
+                  style={{
+                    width,
+                    height,
+                    borderRadius: 8,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-surface)',
+                    boxShadow: 'var(--shadow-lightbox)',
+                    transformOrigin: 'top left',
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={activeCard.src}
+                    alt=""
+                    draggable={false}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: fit,
+                      display: 'block',
+                      userSelect: 'none',
+                    }}
+                  />
+                </div>
+              )
+            })() : null}
           </DragOverlay>
         </DndContext>
 

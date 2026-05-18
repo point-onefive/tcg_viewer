@@ -225,10 +225,23 @@ html.lenis, html.lenis body {
   box-shadow: var(--shadow-card);
   background: var(--bg-surface);
   overflow: hidden;
+  /* Block every form of native drag preview / ghost the browser might
+     attach to a thumb during a pointer drag. -webkit-user-drag:none
+     covers Safari/Chrome; user-select stops accidental text/image
+     selection from animating a translucent fly-out. */
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.22s ease,
     opacity 0.15s ease;
+}
+
+.tier-list-thumb img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tier-list-thumb:hover:not(:disabled) {
