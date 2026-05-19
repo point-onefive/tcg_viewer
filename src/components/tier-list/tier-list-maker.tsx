@@ -265,8 +265,21 @@ function SortableCard({
       ref={setNodeRef}
       className="group relative tier-list-thumb"
       style={{
-        transform: CSS.Translate.toString(transform),
-        transition,
+        // While this tile is the one being dragged we deliberately
+        // skip the transform + transition that useSortable hands us.
+        // For the active item, `transform` is the *cursor-delta*
+        // (how far the user has dragged); applying that to a
+        // visibility:hidden element is invisible during the drag but
+        // produces a visible "shake" on release — visibility flips
+        // back, the still-applied cursor transform transitions back
+        // toward 0, and the post-drop FLIP transform fights it.
+        //
+        // With both suppressed during isDragging, the source sits
+        // hidden at its DOM slot, and on release the only thing
+        // useSortable applies is the clean FLIP delta (old slot →
+        // new slot), which animates as a single smooth bump.
+        transform: isDragging ? undefined : CSS.Translate.toString(transform),
+        transition: isDragging ? undefined : transition,
         visibility: isDragging ? 'hidden' : undefined,
         width,
         height,
