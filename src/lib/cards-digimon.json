@@ -4826,6 +4826,11 @@
         "id": "BT2-047_P1",
         "label": "Parallel P1",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT2-047_P1.png"
+      },
+      {
+        "id": "BT2-047_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT2-047_P2.png"
       }
     ]
   },
@@ -9948,6 +9953,11 @@
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT3-103.png",
     "variants": [
       {
+        "id": "BT3-103_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT3-103_P2.png"
+      },
+      {
         "id": "BT3-103_P3",
         "label": "Parallel P3",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT3-103_P3.png"
@@ -13194,6 +13204,11 @@
         "id": "BT4-104_P2",
         "label": "Parallel P2",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT4-104_P2.png"
+      },
+      {
+        "id": "BT4-104_P3",
+        "label": "Parallel P3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT4-104_P3.png"
       }
     ]
   },
@@ -22057,7 +22072,14 @@
     "types": [],
     "effect": "[Main] All of your opponent's Digimon gain \"[When Attacking] Lose 2 memory\" until the end of their next turn.\n\n[Security]\n[Security] Gain 2 memory.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/EX1-068.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/EX1-068.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/EX1-068.png",
+    "variants": [
+      {
+        "id": "EX1-068_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/EX1-068_P1.png"
+      }
+    ]
   },
   {
     "id": "EX1-069",
@@ -25430,7 +25452,14 @@
     "types": [],
     "effect": "[Main] Delete 1 of your Digimon. Then, return up to 2 purple Digimon cards from your trash to your hand.\n\n[Security]\n[Security] Add this card to its owner's hand.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT7-107.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT7-107.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT7-107.png",
+    "variants": [
+      {
+        "id": "BT7-107_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT7-107_P1.png"
+      }
+    ]
   },
   {
     "id": "BT7-108",
@@ -41335,7 +41364,14 @@
     ],
     "effect": "[Your Turn] When this Digimon would digivolve into a card with [Greymon] in its name, reduce the cost by 1 for each of that card's colors.\n\n[Inherited]\n[All Turns] When this Digimon with [Greymon] or [Omnimon] in its name would be deleted or returned to your hand or deck by an effect, by placing 1 [X Antibody] from this Digimon's digivolution cards at the bottom of its owner's deck, prevent this Digimon from leaving play.\n\n[Special Digivolution]\n[Digivolve] 0 from [Greymon]",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT11-064.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT11-064.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT11-064.png",
+    "variants": [
+      {
+        "id": "BT11-064_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT11-064_P1.png"
+      }
+    ]
   },
   {
     "id": "BT11-065",
@@ -114605,7 +114641,19 @@
     "types": [],
     "effect": "Black also meets this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 red or black Digimon card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・Gain 2 memory.\n\n[Security]\n[Security] Place this card in the battle area.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-033.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-033.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-033.png",
+    "variants": [
+      {
+        "id": "LM-033_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-033_P1.png"
+      },
+      {
+        "id": "LM-033_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-033_P2.png"
+      }
+    ]
   },
   {
     "id": "LM-034",
@@ -114626,7 +114674,19 @@
     "types": [],
     "effect": "Red also meets this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 blue or red Digimon card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・Gain 2 memory.\n\n[Security]\n[Security] Place this card in the battle area.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-034.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-034.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-034.png",
+    "variants": [
+      {
+        "id": "LM-034_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-034_P1.png"
+      },
+      {
+        "id": "LM-034_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-034_P2.png"
+      }
+    ]
   },
   {
     "id": "LM-035",
@@ -114647,7 +114707,19 @@
     "types": [],
     "effect": "Purple also meets this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 yellow or purple Digimon card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・Gain 2 memory.\n\n[Security]\n[Security] Place this card in the battle area.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-035.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-035.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-035.png",
+    "variants": [
+      {
+        "id": "LM-035_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-035_P1.png"
+      },
+      {
+        "id": "LM-035_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-035_P2.png"
+      }
+    ]
   },
   {
     "id": "LM-036",
@@ -114668,7 +114740,19 @@
     "types": [],
     "effect": "Blue also meets this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 green or blue Digimon card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・Gain 2 memory.\n\n[Security]\n[Security] Place this card in the battle area.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-036.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-036.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-036.png",
+    "variants": [
+      {
+        "id": "LM-036_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-036_P1.png"
+      },
+      {
+        "id": "LM-036_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-036_P2.png"
+      }
+    ]
   },
   {
     "id": "LM-037",
@@ -114689,7 +114773,19 @@
     "types": [],
     "effect": "Yellow also meets this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 black or yellow Digimon card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・Gain 2 memory.\n\n[Security]\n[Security] Place this card in the battle area.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-037.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-037.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-037.png",
+    "variants": [
+      {
+        "id": "LM-037_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-037_P1.png"
+      },
+      {
+        "id": "LM-037_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-037_P2.png"
+      }
+    ]
   },
   {
     "id": "LM-038",
@@ -114710,7 +114806,19 @@
     "types": [],
     "effect": "Green also meets this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 purple or green Digimon card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・Gain 2 memory.\n\n[Security]\n[Security] Place this card in the battle area.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-038.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-038.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-038.png",
+    "variants": [
+      {
+        "id": "LM-038_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-038_P1.png"
+      },
+      {
+        "id": "LM-038_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/LM-038_P2.png"
+      }
+    ]
   },
   {
     "id": "LM-039",
@@ -122749,5 +122857,4061 @@
     "effect": "This card can be used as a Diaboromon token.\nTokens can't be included in decks.\nTokens can't digivolve or be used as digivolution cards.\nTokens are removed from the game when they leave play.",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/TOKEN01.png",
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/TOKEN01.png"
+  },
+  {
+    "id": "BT25-001",
+    "code": "BT25-001",
+    "name": "Tokomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Red"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Inherited]\n[When Attacking] [Once Per Turn] If this Digimon has the [TS] trait, ＜Draw 1＞.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-001.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-001.png"
+  },
+  {
+    "id": "BT25-002",
+    "code": "BT25-002",
+    "name": "Wanyamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Blue"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "DATA SQUAD"
+    ],
+    "effect": "[Inherited]\n[Your Turn] [Once Per Turn] When any of your [DATA SQUAD] trait Tamers are played, both players ＜Draw 1＞.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-002.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-002.png"
+  },
+  {
+    "id": "BT25-003",
+    "code": "BT25-003",
+    "name": "Frimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Inherited]\n[When Attacking] [Once Per Turn] By trashing your top security card, this Digimon may digivolve into a [Glowing Dawn] trait card in the hand with the cost reduced by 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-003.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-003.png"
+  },
+  {
+    "id": "BT25-004",
+    "code": "BT25-004",
+    "name": "Tapmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Green"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Tool"
+    ],
+    "types": [
+      "Tap"
+    ],
+    "effect": "[Inherited]\n[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-004.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-004.png"
+  },
+  {
+    "id": "BT25-005",
+    "code": "BT25-005",
+    "name": "Pagumon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Inherited]\n[Your Turn] [Once Per Turn] When [Three Musketeers] trait cards are placed in this Digimon's digivolution cards, it may digivolve into a Digimon card with [Three Musketeers] in its text or the [TS] trait in the hand with the cost reduced by 2.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-005.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-005.png"
+  },
+  {
+    "id": "BT25-006",
+    "code": "BT25-006",
+    "name": "Dorimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "X Antibody",
+      "Titan",
+      "TS"
+    ],
+    "effect": "[Inherited]\n[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, by trashing 1 card in your hand, 1 of your [Titan] trait Digimon unsuspends.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-006.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-006.png"
+  },
+  {
+    "id": "BT25-007",
+    "code": "BT25-007",
+    "name": "Gatchmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Red"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Social"
+    ],
+    "types": [
+      "Search"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Appmon] trait card and 1 [Social], [Tool], [Reboot] or [Creation] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Appmon] trait: Cost 0\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 1 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+2000\n\n[Link Effect]\n[When Linking] Delete 1 of your opponent's Digimon with 3000 DP or less.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-007.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-007.png"
+  },
+  {
+    "id": "BT25-008",
+    "code": "BT25-008",
+    "name": "Coronamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Red"
+    ],
+    "cost": 3,
+    "power": 1000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[When Moving] [On Play] By trashing up to 2 [Iliad] or [TS] trait cards from your hand, ＜Draw 1＞ for each card trashed.\n\n[Inherited]\n[Your Turn] This Digimon gets +2000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-008.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-008.png"
+  },
+  {
+    "id": "BT25-009",
+    "code": "BT25-009",
+    "name": "Bearmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Red"
+    ],
+    "cost": 3,
+    "power": 1000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a Digimon card with [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits or the [TS] trait in the hand without paying the cost.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-009.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-009.png",
+    "variants": [
+      {
+        "id": "BT25-009_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-009_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-010",
+    "code": "BT25-010",
+    "name": "Hawkmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Free"
+    ],
+    "types": [
+      "Avian",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Your Turn] When this Digimon would digivolve into a Digimon card with [Avian], [Bird], [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits, reduce the cost by 1.\n\n[Inherited]\n[Your Turn] This Digimon gets +2000 DP.\n\n[Special Digivolution]\n[Digivolve] [Poromon]/Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-010.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-010.png"
+  },
+  {
+    "id": "BT25-011",
+    "code": "BT25-011",
+    "name": "Aquilamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Free"
+    ],
+    "types": [
+      "Giant Bird",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Raid＞\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Silphymon] in the hand.\n\n[Inherited]\n[Your Turn] This Digimon gets +2000 DP.\n\n[Special Digivolution]\n[Digivolve] [Hawkmon]/Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-011.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-011.png"
+  },
+  {
+    "id": "BT25-012",
+    "code": "BT25-012",
+    "name": "Grizzlymon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] 1 of your Digimon with [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits or the [Shaman] or [TS] trait gains ＜Raid＞ and +3000 DP for the turn.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-012.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-012.png"
+  },
+  {
+    "id": "BT25-013",
+    "code": "BT25-013",
+    "name": "Firamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Red"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] By trashing 1 card in your hand, you may return 1 red or blue [Iliad] trait Digimon card from your trash to the hand.\n[Your Turn] When your Digimon are played or digivolve, if any of them are blue, this Digimon may digivolve into [Flaremon] in the hand with the cost reduced by 1.\n\n[Inherited]\n[Your Turn] This Digimon gets +2000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-013.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-013.png"
+  },
+  {
+    "id": "BT25-014",
+    "code": "BT25-014",
+    "name": "Meramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Red"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Flame",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Main] [Once Per Turn] By trashing 1 [Flame] or [TS] trait card from your hand, delete 1 of your opponent's Digimon with 4000 DP or less. If this effect didn't delete, ＜Draw 2＞.\n\n[Inherited]\n[When Attacking] Delete 1 of your opponent's Digimon with 4000 DP or less.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Flame]/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-014.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-014.png"
+  },
+  {
+    "id": "BT25-015",
+    "code": "BT25-015",
+    "name": "Garudamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Birdkin",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Raid＞ ＜Fortitude＞\n[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 6000 DP or less.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[Giant Bird]/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-015.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-015.png"
+  },
+  {
+    "id": "BT25-016",
+    "code": "BT25-016",
+    "name": "GrapLeomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beastkin",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP for the turn. Then, 1 of your Digimon may attack.\n[All Turns] When a Digimon with 13000 DP or more attacks, this Digimon may digivolve into [Marsmon] or [Callismon] in the hand without paying the cost.\n\n[Inherited]\n＜Security A. +1＞ (This Digimon checks 1 additional security card.)\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-016.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-016.png"
+  },
+  {
+    "id": "BT25-017",
+    "code": "BT25-017",
+    "name": "Flaremon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Red"
+    ],
+    "cost": 6,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beastkin",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] This Digimon may attack. Then, by trashing 1 card in your hand, delete 1 of your opponent's Digimon with 7000 DP or less.\n[Your Turn] When your Digimon are played or digivolve, if any of them are blue, this Digimon may digivolve into [Apollomon] in the hand with the cost reduced by 2.\n\n[Inherited]\n＜Security A. +1＞ (This Digimon checks 1 additional security card.)\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-017.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-017.png"
+  },
+  {
+    "id": "BT25-018",
+    "code": "BT25-018",
+    "name": "Apollomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Red",
+      "Yellow"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if your opponent has a Digimon with 12000 DP or more, reduce the cost by 5.\n[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon. Then, delete 1 of their Digimon with as much DP as this Digimon or less.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand. Then, 1 of your Digimon may attack.\n\n[Inherited]\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with as much DP as this Digimon or less.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-018.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-018.png",
+    "variants": [
+      {
+        "id": "BT25-018_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-018_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-019",
+    "code": "BT25-019",
+    "name": "UltimateBrachiomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Red",
+      "Black"
+    ],
+    "cost": 13,
+    "power": 13000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Cyborg",
+      "X Antibody",
+      "Titan",
+      "TS"
+    ],
+    "effect": "＜Reboot＞ ＜Blocker＞\n[On Play] [When Digivolving] Delete 1 of your opponent's highest DP Digimon.\n[End of Your Turn] [Once Per Turn] If your opponent has 5 or more memory, their Digimon effects don't affect this Digimon until their turn ends. Then, if they have 5 or less, their Option effects don't affect this Digimon until their turn ends.\n(Rule) Trait: Has [Dinosaur] Type.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Dinosaur]/[TS] trait: Cost 4",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-019.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-019.png"
+  },
+  {
+    "id": "BT25-020",
+    "code": "BT25-020",
+    "name": "Marsmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if there is a Digimon with 13000 DP or more, reduce the cost by 5.\n[On Play] [When Digivolving] [When Attacking] 1 of your Digimon gets +3000 DP for the turn. Then, 1 of your Digimon may battle 1 of your opponent's Digimon.\n[All Turns] [Once Per Turn] When any of your [TS] trait Digimon win a battle, trash your opponent's top security card.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-020.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-020.png",
+    "variants": [
+      {
+        "id": "BT25-020_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-020_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-021",
+    "code": "BT25-021",
+    "name": "Gaomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Thomas H. Norstein] or card with the [DATA SQUAD] trait and 1 card with [Gaogamon] in its name among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n[When Attacking] [Once Per Turn] Both players ＜Draw 1＞.\n\n[Special Digivolution]\n[Digivolve] [Wanyamon]/Lv.2 w/[DATA SQUAD] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-021.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-021.png"
+  },
+  {
+    "id": "BT25-022",
+    "code": "BT25-022",
+    "name": "Lunamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Mammal",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Iliad] trait card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-022.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-022.png"
+  },
+  {
+    "id": "BT25-023",
+    "code": "BT25-023",
+    "name": "Gaogamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Thomas H. Norstein] from your hand without paying the cost.\n\n[Inherited]\n[When Attacking] [Once Per Turn] Both players ＜Draw 1＞.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-023.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-023.png"
+  },
+  {
+    "id": "BT25-024",
+    "code": "BT25-024",
+    "name": "Lekismon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beastkin",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] ＜Draw 1＞\n[Your Turn] When your Digimon are played or digivolve, if any of them are red, this Digimon may digivolve into [Crescemon] in the trash with the cost reduced by 1.\n\n[Inherited]\n＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-024.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-024.png"
+  },
+  {
+    "id": "BT25-025",
+    "code": "BT25-025",
+    "name": "Aegiochusmon: Blue",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Blue",
+      "Black"
+    ],
+    "cost": 8,
+    "power": 8000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Shaman",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Blocker＞ ＜Decode ([Aegiomon])＞\n[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of your Digimon unsuspends.\n(Rule) Trait: Has [Cyborg] Type.\n\n[Inherited]\n[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your [Shaman] trait Digimon may unsuspend.\n\n[Special Digivolution]\n[Digivolve] [Aegiomon]: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-025.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-025.png"
+  },
+  {
+    "id": "BT25-026",
+    "code": "BT25-026",
+    "name": "Crescemon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 6,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Wizard",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] Trash the bottom 3 digivolution cards of 1 of your opponent's Digimon. Then, 1 of their Digimon with no digivolution cards can't suspend until their turn ends.\n[Your Turn] When your Digimon are played or digivolve, if any of them are red, this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2.\n\n[Inherited]\n[Your Turn] This Digimon's attack target can't change.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-026.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-026.png"
+  },
+  {
+    "id": "BT25-027",
+    "code": "BT25-027",
+    "name": "MachGaogamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Blue",
+      "Black"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Cyborg",
+      "DATA SQUAD"
+    ],
+    "effect": "[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 4 or lower Digimon to the hand. Then, by trashing the bottom face-down card from under any of your Tamers, this Digimon unsuspends.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon with [Gaogamon] in its name or the [DATA SQUAD] trait would leave the battle area, by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-027.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-027.png"
+  },
+  {
+    "id": "BT25-028",
+    "code": "BT25-028",
+    "name": "Dianamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Blue",
+      "Purple"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if your opponent has a level 6 or higher Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] None of your opponent's Digimon with 1 or fewer digivolution cards can suspend until their turn ends. Then, delete 1 of your opponent's unsuspended Digimon.\n[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may trash any 4 digivolution cards from your opponent's Digimon. Then, 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand.\n\n[Inherited]\n[When Attacking] [Once Per Turn] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-028.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-028.png",
+    "variants": [
+      {
+        "id": "BT25-028_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-028_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-029",
+    "code": "BT25-029",
+    "name": "MirageGaogamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Blue",
+      "Black"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast Knight",
+      "DATA SQUAD"
+    ],
+    "effect": "＜Reboot＞ ＜Blocker＞ ＜Evade＞\n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand. Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.\n[All Turns] [Once Per Turn] When effects add cards to your opponent's hand or trash cards from under your Tamers, this Digimon may unsuspend.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Gaogamon] in name or w/[DATA SQUAD] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-029.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-029.png",
+    "variants": [
+      {
+        "id": "BT25-029_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-029_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-030",
+    "code": "BT25-030",
+    "name": "Elecmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Mammal",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Start of Your Main Phase] By adding your top security card to the hand, gain 1 memory.\n\n[Inherited]\n[When Attacking] [Once Per Turn] You may add your top security card to the hand. Then, if you have 0 security cards, ＜Recovery +1＞.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-030.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-030.png"
+  },
+  {
+    "id": "BT25-031",
+    "code": "BT25-031",
+    "name": "Patamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Mammal",
+      "Iliad",
+      "ADAMAS",
+      "TS"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Angel], [Archangel], [Three Great Angels] or [Four Great Dragons] trait card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-031.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-031.png",
+    "variants": [
+      {
+        "id": "BT25-031_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-031_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-032",
+    "code": "BT25-032",
+    "name": "Liollmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Holy Beast",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Glowing Dawn] trait card and 1 yellow [BEATBREAK] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-032.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-032.png"
+  },
+  {
+    "id": "BT25-033",
+    "code": "BT25-033",
+    "name": "Aegiomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 5,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Shaman",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Barrier＞\n[On Play] [When Digivolving] By adding your top security card to the hand, 1 of your opponent's Digimon gets -5000 DP for the turn.\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-033.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-033.png"
+  },
+  {
+    "id": "BT25-034",
+    "code": "BT25-034",
+    "name": "Angemon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 5,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Angel",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When effects trash this card from the security stack, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost.\n＜Ascension＞ (When this Digimon is deleted, you may place this card as the top security card.)\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-034.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-034.png"
+  },
+  {
+    "id": "BT25-035",
+    "code": "BT25-035",
+    "name": "Cougarmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Mammal",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn. Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [Glowing Dawn] trait Digimon card in the hand without paying the cost.\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-035.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-035.png",
+    "variants": [
+      {
+        "id": "BT25-035_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-035_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-036",
+    "code": "BT25-036",
+    "name": "Craftmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 5,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Tool"
+    ],
+    "types": [
+      "Design"
+    ],
+    "effect": "[Security] At the end of the battle, play this card without paying the cost.\n[On Play] [When Digivolving] Add your top security card to the hand. Then, ＜Recovery +1＞.\n\n[Special Digivolution]\n[App Fusion] [Kabemon] & [Gomimon] & [Ecomon] & [Puzzlemon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+3000\n\n[Link Effect]\n[When Linking] By trashing 1 [Appmon] trait card from your hand, ＜Draw 2＞.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-036.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-036.png"
+  },
+  {
+    "id": "BT25-037",
+    "code": "BT25-037",
+    "name": "Pegasusmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow",
+      "Blue"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Free"
+    ],
+    "types": [
+      "Holy Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Armor Purge＞\n[On Play] [When Digivolving] Add your top security card to the hand. Then, you may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card or 1 [TS] trait Tamer card from your hand as the top or bottom security card.\n\n[Special Digivolution]\n[Digivolve] [Patamon]/Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-037.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-037.png"
+  },
+  {
+    "id": "BT25-038",
+    "code": "BT25-038",
+    "name": "Shakkoumon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Yellow",
+      "Black"
+    ],
+    "cost": 8,
+    "power": 8000,
+    "counter": null,
+    "attributes": [
+      "Free"
+    ],
+    "types": [
+      "Mutant",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] You may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card from your hand or your Digimon's digivolution cards as the top or bottom security card. Then, if DNA digivolving, trash both players' top security cards.\n[All Turns] [Once Per Turn] When your security stack is added to, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.\n(Rule) Trait: Has [Angel] Type.\n\n[Inherited]\n[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your opponent's Digimon gets -4000 DP for the turn.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3\n[DNA Digivolve] Yellow Lv.4 + blue/black Lv.4: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-038.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-038.png"
+  },
+  {
+    "id": "BT25-039",
+    "code": "BT25-039",
+    "name": "Sirenmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Yellow",
+      "Green"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Shaman",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "{Security} [End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7. If this effect played, you may place this card as the played Digimon's bottom digivolution card.\n[All Turns] When any of your other [Shaman] or [Iliad] trait Digimon or Tamers would leave the battle area other than by your effects, by deleting this Digimon, they don't leave.\n[On Deletion] You may place this card face up as the bottom security card.\n\n[Inherited]\n[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to 1 of your suspended Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-039.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-039.png"
+  },
+  {
+    "id": "BT25-040",
+    "code": "BT25-040",
+    "name": "MagnaAngemon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Archangel",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When effects trash this card from the security stack, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost.\n＜Ascension＞ (When this Digimon is deleted, you may place this card as the top security card.)\n[On Play] [When Digivolving] By trashing your top or bottom security card, 1 of your opponent's Digimon gets -8000 DP until their turn ends.\n\n[Inherited]\n[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your opponent's Digimon gets -4000 DP for the turn.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-040.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-040.png"
+  },
+  {
+    "id": "BT25-041",
+    "code": "BT25-041",
+    "name": "Murasamemon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Beastkin",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "＜Alliance＞\n[When Digivolving] [When Attacking] [Once Per Turn] If it's your turn, by adding your top security card to the hand or trashing the bottom face-down card under any of your Tamers, you may play or use 1 card with the [Glowing Dawn] trait from your hand with the cost reduced by 3.\n\n[Inherited]\n[End of Attack] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, this Digimon with the [Glowing Dawn] trait unsuspends.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-041.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-041.png"
+  },
+  {
+    "id": "BT25-042",
+    "code": "BT25-042",
+    "name": "ClavisAngemon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Yellow",
+      "Black"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Virtue",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing your top or bottom security card, your opponent's Digimon effects don't affect this Digimon until their turn ends.\n[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost. Then, 2 of your Digimon gain ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.\n(Rule) Trait: Has [Angel] Type.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Angel]/[Archangel]/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-042.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-042.png"
+  },
+  {
+    "id": "BT25-043",
+    "code": "BT25-043",
+    "name": "Habakirimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon/Option",
+    "rarity": "UR",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 0,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Shaman",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[When Digivolving] [When Attacking] [Once Per Turn] ＜Recovery +1＞. Then, by trashing the top security card of 1 player with the most security cards, this Digimon unsuspends.\n[All Turns] [Once Per Turn] When any of your [Glowing Dawn] trait Digimon would leave the battle area, by trashing your top security card, they don't leave.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-043.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-043.png",
+    "variants": [
+      {
+        "id": "BT25-043_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-043_P1.png"
+      },
+      {
+        "id": "BT25-043_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-043_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-044",
+    "code": "BT25-044",
+    "name": "Junomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Yellow",
+      "Purple"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the cost by 5.\n[On Play] [When Digivolving] By placing 1 other Digimon as the top security card, trash both players' top security cards.\n[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 play cost 8 or lower [Angel], [Archangel] or [Iliad] trait card from your hand or trash without paying the cost.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Angel]/[Archangel]/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-044.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-044.png",
+    "variants": [
+      {
+        "id": "BT25-044_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-044_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-045",
+    "code": "BT25-045",
+    "name": "Onmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Game"
+    ],
+    "types": [
+      "Online"
+    ],
+    "effect": "[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Appmon] trait: Cost 0\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 1 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+2000\n\n[Link Effect]\n[When Linking] Suspend 1 of your opponent's Digimon.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-045.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-045.png",
+    "variants": [
+      {
+        "id": "BT25-045_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-045_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-046",
+    "code": "BT25-046",
+    "name": "Gekkomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Reptile",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Glowing Dawn] trait card and 1 green [BEATBREAK] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Piercing＞ (When this Digimon deletes your opponent's Digimon in battle while attacking, it checks security before the attack ends.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-046.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-046.png",
+    "variants": [
+      {
+        "id": "BT25-046_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-046_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-047",
+    "code": "BT25-047",
+    "name": "Floramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Green"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Vegetation",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Vegetation] or [Shaman] trait card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n[Your Turn] All of your Digimon get +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-047.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-047.png"
+  },
+  {
+    "id": "BT25-048",
+    "code": "BT25-048",
+    "name": "Bearmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Your Turn] When this Digimon would digivolve into a green [TS] trait Digimon card, reduce the cost by 1.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon wins a battle, ＜Draw 1＞.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-048.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-048.png"
+  },
+  {
+    "id": "BT25-049",
+    "code": "BT25-049",
+    "name": "Armalizamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Reptile",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon.\n[Your Turn] [Once Per Turn] When you would use an Option card with the [Glowing Dawn] trait, by trashing the bottom face-down card under any of your Tamers, reduce the cost by 3.\n\n[Inherited]\n＜Piercing＞ (When this Digimon deletes your opponent's Digimon in battle while attacking, it checks security before the attack ends.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-049.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-049.png"
+  },
+  {
+    "id": "BT25-050",
+    "code": "BT25-050",
+    "name": "Kiwimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Green"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Ancient Bird",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your opponent's Digimon can't unsuspend until their turn ends.\n(Rule) Trait: Has [Vegetation] Type.\n\n[Inherited]\n[Your Turn] All of your Digimon get +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-050.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-050.png"
+  },
+  {
+    "id": "BT25-051",
+    "code": "BT25-051",
+    "name": "Grizzlymon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Green",
+      "Black"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beast",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Blocker＞\n[On Play] [When Digivolving] 1 of your Digimon with [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits or the [Shaman] or [TS] trait gets +3000 DP until your opponent's turn ends.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon wins a battle, ＜Draw 1＞.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-051.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-051.png"
+  },
+  {
+    "id": "BT25-052",
+    "code": "BT25-052",
+    "name": "Logimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green",
+      "Red"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Social"
+    ],
+    "types": [
+      "Login"
+    ],
+    "effect": "[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Kazuki & Itsuki] from your hand without paying the cost.\n\n[Special Digivolution]\n[App Fusion] [Onmon] & [Gatchmon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+3000\n\n[Link Effect]\n[When Linking] Suspend 1 of your opponent's Digimon or Tamers.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-052.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-052.png"
+  },
+  {
+    "id": "BT25-053",
+    "code": "BT25-053",
+    "name": "Aegiochusmon: Green",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Green",
+      "Red"
+    ],
+    "cost": 8,
+    "power": 8000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Shaman",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Vortex＞ ＜Decode ([Aegiomon])＞\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends. Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.\n\n[Inherited]\n[All Turns] [Once Per Turn] When your security stack is removed from, you may suspend 1 of your opponent's Digimon or Tamers.\n\n[Special Digivolution]\n[Digivolve] [Aegiomon]: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-053.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-053.png"
+  },
+  {
+    "id": "BT25-054",
+    "code": "BT25-054",
+    "name": "GreatGrizzlymon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Green",
+      "Black"
+    ],
+    "cost": 8,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Beastkin",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Blocker＞\n[On Play] [When Digivolving] Give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.\n[All Turns] When this Digimon wins a battle, it may digivolve into [Callismon] or [Marsmon] in the hand without paying the cost.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-054.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-054.png"
+  },
+  {
+    "id": "BT25-055",
+    "code": "BT25-055",
+    "name": "Deramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Green"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Avian",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon suspends, you may play 1 4000 DP or lower Digimon card with [Vegetation], [Plant], [Avian] or [Bird] in any of its traits or the [TS] trait from your hand without paying the cost.\n(Rule) Trait: Has [Vegetation] Type.\n\n[Inherited]\n[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to 1 of your suspended Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-055.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-055.png"
+  },
+  {
+    "id": "BT25-056",
+    "code": "BT25-056",
+    "name": "Bootmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Green",
+      "Yellow"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Tool"
+    ],
+    "types": [
+      "Super Boot"
+    ],
+    "effect": "＜Barrier＞\n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] When this Digimon gets linked, suspend 1 of your opponent's Digimon or Tamers.\n\n[Special Digivolution]\n[App Fusion] [Logimon] & [Craftmon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 3 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+4000\n\n[Link Effect]\n[When Linking] Return 1 of your opponent's suspended Digimon to the bottom of the deck.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-056.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-056.png"
+  },
+  {
+    "id": "BT25-057",
+    "code": "BT25-057",
+    "name": "Monarchlizamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon/Option",
+    "rarity": "UR",
+    "colors": [
+      "Green",
+      "Black"
+    ],
+    "cost": 0,
+    "power": 8000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Cyborg",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.\n[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-057.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-057.png",
+    "variants": [
+      {
+        "id": "BT25-057_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-057_P1.png"
+      },
+      {
+        "id": "BT25-057_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-057_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-058",
+    "code": "BT25-058",
+    "name": "Callismon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Green",
+      "Black"
+    ],
+    "cost": 13,
+    "power": 13000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Dark Animal",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Reboot＞ ＜Blocker＞ ＜Fortitude＞\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.\n[All Turns] [Once Per Turn] When effects play or digivolve any Digimon, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, this Digimon may battle 1 of your opponent's Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[TS] trait: Cost 4",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-058.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-058.png"
+  },
+  {
+    "id": "BT25-059",
+    "code": "BT25-059",
+    "name": "Ceresmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Green",
+      "Yellow"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if there are 2 or more suspended Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] You may suspend up to 2 Digimon. Then, none of your suspended [Vegetation] or [TS] trait Digimon are affected by your opponent's Digimon effects until their turn ends.\n[All Turns] [Once Per Turn] When any Digimon suspend, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each suspended Digimon.\n(Rule) Trait: Has [Vegetation] Type.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Vegetation]/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-059.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-059.png",
+    "variants": [
+      {
+        "id": "BT25-059_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-059_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-060",
+    "code": "BT25-060",
+    "name": "Rebootmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Green",
+      "White"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "God"
+    ],
+    "types": [
+      "Reboot"
+    ],
+    "effect": "＜Security A. +1＞ ＜Reboot＞ ＜Link +1＞\n[When Digivolving] [When Attacking] [Once Per Turn] By linking 1 [Appmon] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon gets linked or unsuspends, until your turn ends, this Digimon gains ＜Piercing＞ and ＜Blocker＞, and your opponent's Digimon effects don't affect it.\n\n[Special Digivolution]\n[App Fusion] [Bootmon] & [Shutmon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-060.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-060.png",
+    "variants": [
+      {
+        "id": "BT25-060_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-060_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-061",
+    "code": "BT25-061",
+    "name": "Offmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Game"
+    ],
+    "types": [
+      "Offline"
+    ],
+    "effect": "[Start of Your Main Phase] By trashing 1 card with the [Appmon] trait from your hand, ＜Draw 1＞ and gain 1 memory.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Appmon] trait: Cost 0\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 1 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+2000\n\n[Link Effect]\n[When Linking] 1 of your opponent's Digimon can't unsuspend until their turn ends.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-061.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-061.png",
+    "variants": [
+      {
+        "id": "BT25-061_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-061_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-062",
+    "code": "BT25-062",
+    "name": "Kokuwamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": 1000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Machine",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a [Machine], [Cyborg] or [TS] trait Digimon card in the hand without paying the cost.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-062.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-062.png"
+  },
+  {
+    "id": "BT25-063",
+    "code": "BT25-063",
+    "name": "Commandramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Cyborg",
+      "D-Brigade",
+      "ACCEL"
+    ],
+    "effect": "[When Moving] [On Play] Reveal the top 3 cards of your deck. Add 1 card with [Chaosmon] in its name or the [D-Brigade] or [ACCEL] trait among them to the hand. Return the rest to the top or bottom of the deck.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] [Missimon]/Lv.2 w/[ACCEL] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-063.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-063.png"
+  },
+  {
+    "id": "BT25-064",
+    "code": "BT25-064",
+    "name": "ToyAgumon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Puppet",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] Reveal the top 3 cards of your deck. Add 1 Option card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Reboot＞ (This Digimon also unsuspends in your opponent's unsuspend phase.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-064.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-064.png"
+  },
+  {
+    "id": "BT25-065",
+    "code": "BT25-065",
+    "name": "Monodramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Mini Dragon",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[All Turns] When this Digimon suspends, ＜Draw 1＞.\n[Your Turn] When this Digimon attacks a player, lose 2 memory.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-065.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-065.png"
+  },
+  {
+    "id": "BT25-066",
+    "code": "BT25-066",
+    "name": "Guardromon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 5,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Machine",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Blocker＞\n[All Turns] When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-066.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-066.png"
+  },
+  {
+    "id": "BT25-067",
+    "code": "BT25-067",
+    "name": "Sealsdramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Cyborg",
+      "D-Brigade",
+      "ACCEL"
+    ],
+    "effect": "[Your Turn] When any of your [D-Brigade] or [ACCEL] trait Digimon are played, this Digimon may digivolve into a [D-Brigade] or [ACCEL] trait Digimon card in the hand with the cost reduced by 2.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[D-Brigade]/[ACCEL] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-067.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-067.png"
+  },
+  {
+    "id": "BT25-068",
+    "code": "BT25-068",
+    "name": "Deltamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Black"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Composite",
+      "Titan",
+      "TS"
+    ],
+    "effect": "＜Collision＞\n[All Turns] [Once Per Turn] When this Digimon suspends, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-068.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-068.png"
+  },
+  {
+    "id": "BT25-069",
+    "code": "BT25-069",
+    "name": "Raremon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Undead",
+      "Titan",
+      "TS"
+    ],
+    "effect": "＜Jamming＞\n[On Play] [When Digivolving] You may link 1 [TS] trait card from your trash to 1 of your Digimon without paying the cost.\n(Rule) Trait: Has [Cyborg] Type.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-069.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-069.png"
+  },
+  {
+    "id": "BT25-070",
+    "code": "BT25-070",
+    "name": "Logamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Social"
+    ],
+    "types": [
+      "Logoff"
+    ],
+    "effect": "[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, delete 1 of your opponent's Digimon with a play cost of 4 or less.\n\n[Special Digivolution]\n[App Fusion] [Offmon] & [Hackmon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+3000\n\n[Link Effect]\n[When Linking] 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-070.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-070.png"
+  },
+  {
+    "id": "BT25-071",
+    "code": "BT25-071",
+    "name": "Orochimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Black"
+    ],
+    "cost": 7,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Dark Dragon",
+      "Titan",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] 1 of your opponent's Digimon or Tamers can't attack until their turn ends.\n[All Turns] [Once Per Turn] When this Digimon suspends, reveal the top 3 cards of your deck. You may play 1 play cost 4 or lower [TS] trait Digimon card among them without paying the cost. Return the rest to the bottom of the deck.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon suspends, reveal the top 3 cards of your deck. You may play 1 play cost 4 or lower [TS] trait Digimon card among them without paying the cost. Return the rest to the bottom of the deck.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-071.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-071.png"
+  },
+  {
+    "id": "BT25-072",
+    "code": "BT25-072",
+    "name": "Shutmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Tool"
+    ],
+    "types": [
+      "Forced Termination"
+    ],
+    "effect": "＜Jamming＞\n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] [Once Per Turn] When this Digimon gets linked, 1 of your opponent's Digimon or Tamers can't digivolve until their turn ends.\n\n[Special Digivolution]\n[App Fusion] [Logamon] & [Timemon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Link Condition]\n＜Link＞ [Appmon] trait: Cost 3 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+4000\n\n[Link Effect]\n[When Linking] 2 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-072.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-072.png"
+  },
+  {
+    "id": "BT25-073",
+    "code": "BT25-073",
+    "name": "Dragomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Black"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Aquabeast",
+      "Titan",
+      "TS"
+    ],
+    "effect": "＜Jamming＞\n[On Play] [When Digivolving] By trashing 1 of your Digimon's link cards, you may play or use 1 [TS] trait card with a play or use cost of 5 or less from your hand without paying the cost.\n\n[Inherited]\n[All Turns] When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-073.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-073.png"
+  },
+  {
+    "id": "BT25-074",
+    "code": "BT25-074",
+    "name": "Tankdramon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Machine",
+      "D-Brigade",
+      "ACCEL"
+    ],
+    "effect": "[When Digivolving] [When Attacking] [Once Per Turn] Reveal the top 3 cards of your deck. You may play 1 play cost 12 or lower [D-Brigade] or [ACCEL] trait Digimon card among them with the cost reduced by 5. Trash the rest.\n[All Turns] [Once Per Turn] When any of your [D-Brigade] or [ACCEL] trait Digimon are played, 1 of your opponent's Digimon can't digivolve until their turn ends.\n\n[Inherited]\n[Opponent's Turn] This Digimon with [Chaosmon] in its name or the [D-Brigade] or [ACCEL] trait gains ＜Reboot＞ and ＜Blocker＞.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[D-Brigade]/[ACCEL] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-074.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-074.png"
+  },
+  {
+    "id": "BT25-075",
+    "code": "BT25-075",
+    "name": "Vulcanusmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Black",
+      "Red"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if you have fewer Digimon than your opponent, reduce the cost by 5.\n[On Play] [When Digivolving] You may link up to 2 cards from your hand or trash to any of your Digimon without paying the cost. Then, for each of your link cards, ＜De-Digivolve 1＞ all of your opponent's Digimon.\n[All Turns] All of your [TS] trait Digimon gain ＜Rush＞ and ＜Link +1＞.\n[Your Turn] When your Digimon get linked, one of them may attack.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-075.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-075.png",
+    "variants": [
+      {
+        "id": "BT25-075_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-075_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-076",
+    "code": "BT25-076",
+    "name": "Ghoulmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Black"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Demon Lord"
+    ],
+    "effect": "When this card would be played, by deleting 1 of your play cost 11 or lower Digimon with [Negamon] in its digivolution cards and [Negamon] in its text, reduce the cost by the deleted Digimon's play cost.\n＜Rush＞ ＜Reboot＞ ＜Blocker＞\n[On Play] [When Attacking] [On Deletion] Delete 1 of your opponent's Digimon with the lowest play cost. If this effect didn't delete, trash your opponent's top security card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-076.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-076.png"
+  },
+  {
+    "id": "BT25-077",
+    "code": "BT25-077",
+    "name": "Bacchusmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Black",
+      "Green"
+    ],
+    "cost": 12,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Shaman",
+      "Olympos XII",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "When this card would be played, if there are 12 or more levels' total worth of Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] You may play 1 [TS] trait Digimon card with 6000 DP or less from your hand without paying the cost.\n[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may suspend 1 Digimon. Then, if played or digivolved by an effect, delete 1 of your opponent's lowest DP Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-077.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-077.png",
+    "variants": [
+      {
+        "id": "BT25-077_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-077_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-078",
+    "code": "BT25-078",
+    "name": "Gazimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 3,
+    "power": 1000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Mammal",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[When Moving] [On Play] Reveal the top 3 cards of your deck. Among them, add 1 card with [Three Musketeers] in its text to the hand, or you may place 1 [Three Musketeers] trait card as this Digimon's bottom digivolution card. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Retaliation＞ (When only this Digimon is deleted in battle, delete the Digimon it battled.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Three Musketeers] in text or w/[TS] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-078.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-078.png"
+  },
+  {
+    "id": "BT25-079",
+    "code": "BT25-079",
+    "name": "Hyemon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast",
+      "BEATBREAK"
+    ],
+    "effect": "[All Turns] Players can't gain memory other than by Tamer effects.\n\n[Inherited]\n＜Retaliation＞ (When only this Digimon is deleted in battle, delete the Digimon it battled.)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-079.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-079.png"
+  },
+  {
+    "id": "BT25-080",
+    "code": "BT25-080",
+    "name": "Witchmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Wizard",
+      "Titan",
+      "TS"
+    ],
+    "effect": "[On Play] [When Attacking] [Once Per Turn] By trashing 1 card in your hand, you may return 1 [Titan] trait card from your trash to the hand. After, if played by an effect, delete 1 of your opponent's level 5 or lower Digimon.\n\n[Inherited]\n[All Turns] [Once Per Turn] When your hand is trashed from, if this Digimon has the [Titan] trait, delete 1 of your opponent's level 4 or lower Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-080.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-080.png"
+  },
+  {
+    "id": "BT25-081",
+    "code": "BT25-081",
+    "name": "Fangmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 5,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Dark Animal",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] [When Digivolving] Suspend 1 non-purple Tamer.\n[All Turns] [Once Per Turn] When any of your opponent's Tamers suspend, gain 1 memory.\n\n[Inherited]\n＜Retaliation＞ (When only this Digimon is deleted in battle, delete the Digimon it battled.)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-081.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-081.png"
+  },
+  {
+    "id": "BT25-082",
+    "code": "BT25-082",
+    "name": "BlackGatomon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Purple",
+      "Black"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Dark Animal",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 Tamer card with [Three Musketeers] in its text from your hand without paying the cost.\n[All Turns] While you have a Tamer with [Three Musketeers] in its text, this Digimon may digivolve into a [Three Musketeers] trait Digimon card for a digivolution cost of 4, ignoring digivolution requirements.\n\n[Inherited]\n[When Attacking] [Once Per Turn] By placing 1 [Three Musketeers] trait card from your hand or trash as this Digimon's bottom digivolution card, ＜Draw 1＞.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Three Musketeers] in text or w/[TS] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-082.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-082.png"
+  },
+  {
+    "id": "BT25-083",
+    "code": "BT25-083",
+    "name": "LadyDevimon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Fallen Angel",
+      "Titan",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] By placing 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution cards, ＜Draw 1＞.\n[When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 Option card from any of your Digimon's digivolution cards, you may use 1 [Three Musketeers] trait Option card from your trash with the cost reduced by 3.\n\n[Inherited]\n[On Deletion] You may play 1 level 4 or lower Digimon card with [Three Musketeers] in its text from your trash without paying the cost.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[Three Musketeers] in text or w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-083.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-083.png"
+  },
+  {
+    "id": "BT25-084",
+    "code": "BT25-084",
+    "name": "Titamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Purple",
+      "Red",
+      "Green"
+    ],
+    "cost": 13,
+    "power": 13000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Shaman",
+      "Titan",
+      "TS"
+    ],
+    "effect": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 card in your hand, delete all of your opponent's highest DP Digimon. After, if played or digivolved by an effect, trash their top security card.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by trashing 2 cards in your hand, it doesn't leave.\n[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.\n\n[Special Digivolution]\n[Digivolve] [Titamon] w/o 3 colors: Cost 2\n[Digivolve] Lv.5 w/[TS] trait: Cost 4",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-084.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-084.png",
+    "variants": [
+      {
+        "id": "BT25-084_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-084_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-085",
+    "code": "BT25-085",
+    "name": "BeelStarmon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon/Option",
+    "rarity": "UR",
+    "colors": [
+      "Purple",
+      "Black"
+    ],
+    "cost": 0,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Wizard",
+      "Three Musketeers",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Blocker＞\n[When Digivolving] [When Attacking] [Once Per Turn] You may use 1  [Three Musketeers] or [TS] trait Option card from your hand or this Digimon's digivolution cards without paying the cost.\n[When Digivolving] [When Attacking] [Counter] [Once Per Turn] By trashing 1 Option card from any of your Digimon's digivolution cards or link cards, this Digimon unsuspends.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Three Musketeers] in text or w/[TS] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-085.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-085.png",
+    "variants": [
+      {
+        "id": "BT25-085_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-085_P1.png"
+      },
+      {
+        "id": "BT25-085_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-085_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-086",
+    "code": "BT25-086",
+    "name": "Dan Yuki",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Red"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "ADAMAS",
+      "TS"
+    ],
+    "effect": "[Start of Your Main Phase] If you have 4 or less memory, gain 1 memory.\n[End of Your Turn] By suspending this Tamer, 1 of your [TS] trait Digimon gets +1000 DP for the turn for each memory your opponent has. After, that Digimon may attack.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-086.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-086.png",
+    "variants": [
+      {
+        "id": "BT25-086_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-086_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-087",
+    "code": "BT25-087",
+    "name": "Thomas H. Norstein",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "DATA SQUAD"
+    ],
+    "effect": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When effects add cards to your opponent's hand, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer.\n[Your Turn] [Once Per Turn] When any of your Digimon would digivolve into a [DATA SQUAD] trait Digimon card, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-087.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-087.png"
+  },
+  {
+    "id": "BT25-088",
+    "code": "BT25-088",
+    "name": "Kyo Sawashiro",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When your security stack is removed from, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer.\n[Your Turn] [Once Per Turn] When any of your [Glowing Dawn] trait cards would be played, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-088.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-088.png",
+    "variants": [
+      {
+        "id": "BT25-088_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-088_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-089",
+    "code": "BT25-089",
+    "name": "Kazuki & Itsuki",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Green"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "App Driver",
+      "Appmon"
+    ],
+    "effect": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Main] By suspending this Tamer, you may link 1 [Appmon] trait Digimon card from your hand or your Digimon's digivolution cards to 1 of your Digimon with the cost reduced by 2.\n[End of Your Turn] [Once Per Turn] 1 of your Digimon may app fuse into a Digimon card in the hand.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-089.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-089.png"
+  },
+  {
+    "id": "BT25-090",
+    "code": "BT25-090",
+    "name": "Tomoro Tenma",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Green"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When any Digimon suspend, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer.\n[Your Turn] [Once Per Turn] When you would use [Glowing Dawn] trait Option cards, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-090.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-090.png",
+    "variants": [
+      {
+        "id": "BT25-090_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-090_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-091",
+    "code": "BT25-091",
+    "name": "Monica Simmons",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "SR",
+    "colors": [
+      "Black"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "TS"
+    ],
+    "effect": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[On Play] You may return 1 [TS] trait Option card from your trash to the hand. If this effect didn't return, ＜Draw 1＞.\n[Your Turn] When you use [TS] trait Option cards, by suspending this Tamer, 1 of your opponent's Digimon can't attack until their turn ends.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-091.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-091.png",
+    "variants": [
+      {
+        "id": "BT25-091_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-091_P1.png"
+      },
+      {
+        "id": "BT25-091_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-091_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-092",
+    "code": "BT25-092",
+    "name": "Asuna Shiroki",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "SR",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "TS"
+    ],
+    "effect": "[Start of Your Main Phase] By trashing 1 card with [Three Musketeers] in its text or the [TS] trait from your hand, ＜Draw 1＞ and gain 1 memory.\n[Main] By suspending this Tamer and trashing 1 Option card from your hand or your Digimon's digivolution cards, 1 of your Digimon may digivolve into a Digimon card with [Three Musketeers] in its text or the [TS] trait in the hand or trash with the cost reduced by 1.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-092.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-092.png",
+    "variants": [
+      {
+        "id": "BT25-092_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-092_P1.png"
+      },
+      {
+        "id": "BT25-092_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-092_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-093",
+    "code": "BT25-093",
+    "name": "Ignition Flare",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "U",
+    "colors": [
+      "Red"
+    ],
+    "cost": 5,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "TS"
+    ],
+    "effect": "＜Use Req. ([TS] Trait)＞ (Specified cards let you ignore color requirements.)\n[Security] Activate this card's [Main] effects.\n[Main] Delete all of your opponent's Digimon with the lowest DP. If this effect didn't delete, trash 1 of your opponent's Option cards in the battle area. Then, you may link this card to 1 of your Digimon on the field without paying the cost.\n\n[Link Condition]\n＜Link＞ [TS] trait: Cost 3 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+2000\n\n[Link Effect]\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with as much DP as this Digimon or less.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-093.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-093.png"
+  },
+  {
+    "id": "BT25-094",
+    "code": "BT25-094",
+    "name": "Cosmic Area",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "U",
+    "colors": [
+      "Red",
+      "Blue"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Iliad",
+      "TS"
+    ],
+    "effect": "While you have no face-up security cards, you can ignore this card's color requirements.\n{Security} [Your Turn] All of your red or blue [TS] trait Digimon gain ＜Alliance＞. While you have [Apollomon] or [Dianamon], they also gain ＜Rush＞.\n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 red or blue [TS] trait Digimon card from your hand with the cost reduced by 3.\n\n[Security]\n[Security] You may play 1 level 4 or lower red or blue [TS] trait Digimon card from your hand or trash without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-094.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-094.png"
+  },
+  {
+    "id": "BT25-095",
+    "code": "BT25-095",
+    "name": "Paradise Colosseum",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "U",
+    "colors": [
+      "Red",
+      "Green"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Iliad",
+      "TS"
+    ],
+    "effect": "While you have no face-up security cards, you can ignore this card's color requirements.\n{Security} [All Turns] All of your red or green [TS] trait Digimon get +2000 DP. While you have [Marsmon] or [Callismon], they also gain ＜Rush＞.\n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 red or green [TS] trait Digimon card from your hand with the cost reduced by 3.\n\n[Security]\n[Security] You may play 1 level 4 or lower red or green [TS] trait Digimon card from your hand or trash without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-095.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-095.png"
+  },
+  {
+    "id": "BT25-096",
+    "code": "BT25-096",
+    "name": "Mirage Beast Knight",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "C",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 5,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "DATA SQUAD"
+    ],
+    "effect": "When this card would be used, by trashing the bottom face-down card from under any of your Tamers, reduce the use cost by 2.\n[Main] By placing 1 [Gaogamon] and 1 [MachGaogamon] from your trash as 1 of your [Gaomon]'s bottom digivolution cards, that Digimon may digivolve into [MirageGaogamon] in the hand, ignoring digivolution requirements and without paying the cost.\n\n[Security]\n[Security] You may play 1 [Gaomon] or [Thomas H. Norstein] from your hand or trash without paying the cost. Then, add this card to the hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-096.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-096.png"
+  },
+  {
+    "id": "BT25-097",
+    "code": "BT25-097",
+    "name": "Guardian Palace",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "U",
+    "colors": [
+      "Yellow",
+      "Purple"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Iliad",
+      "TS"
+    ],
+    "effect": "While you have no face-up security cards, you can ignore this card's color requirements.\n{Security} [All Turns] All of your yellow or purple [TS] trait Digimon gain ＜Alliance＞. While you have a Digimon with [Junomon] in its name, they also gain ＜Scapegoat＞.\n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 yellow or purple [TS] trait Digimon card from your hand with the cost reduced by 3.\n\n[Security]\n[Security] You may play 1 level 4 or lower yellow or purple [TS] trait Digimon card from your hand or trash without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-097.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-097.png"
+  },
+  {
+    "id": "BT25-098",
+    "code": "BT25-098",
+    "name": "Cyber Engage",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Appmon"
+    ],
+    "effect": "＜Use Req. ([Appmon] trait)＞ (Specified cards let you ignore color requirements.)\n[Main] Reveal the top 3 cards of your deck. Add 1 [Appmon] trait card among them to the hand. Trash the rest. Then, place this card in the battle area.\n[Main] ＜Delay＞\n・You may play 1 [Appmon] trait card from your hand with the cost reduced by 3.\n\n[Security]\n[Security] Place this card in the battle area.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-098.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-098.png"
+  },
+  {
+    "id": "BT25-099",
+    "code": "BT25-099",
+    "name": "Gear Forest Village",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "U",
+    "colors": [
+      "Green",
+      "Black"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Iliad",
+      "TS"
+    ],
+    "effect": "While you have no face-up security cards, you can ignore this card's color requirements.\n{Security} [Your Turn] All of your green or black [TS] trait Digimon gain ＜Alliance＞. While you have [Bacchusmon] or [Ceresmon], they also gain ＜Piercing＞.\n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 green or black [TS] trait Digimon card from your hand with the cost reduced by 3.\n\n[Security]\n[Security] You may play 1 level 4 or lower green or black [TS] trait Digimon card from your hand or trash without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-099.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-099.png"
+  },
+  {
+    "id": "BT25-100",
+    "code": "BT25-100",
+    "name": "Iron Slash",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "TS"
+    ],
+    "effect": "＜Use Req. ([TS] trait)＞ (Specified cards let you ignore color requirements.)\n[Security] Activate this card's [Main] effects.\n[Main] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, you may link this card to 1 of your Digimon on the field without paying the cost.\n\n[Link Condition]\n＜Link＞ [TS] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+2000\n\n[Link Effect]\n＜Collision＞ ＜Piercing＞",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-100.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-100.png"
+  },
+  {
+    "id": "BT25-101",
+    "code": "BT25-101",
+    "name": "Divine Arms Version Ω",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "TS"
+    ],
+    "effect": "＜Use Req. ([TS] trait)＞ (Specified cards let you ignore color requirements.)\n[Security] Activate this card's [Main] effects.\n[Main] By trashing 1 [TS] trait card from your hand, ＜Draw 2＞. After, you may link this card or 1 [TS] trait card from your trash to 1 of your Digimon on the field without paying the cost.\n\n[Link Condition]\n＜Link＞ [Vulcanusmon]: Cost 3 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)\n\n[Link DP] DP+4000\n\n[Link Effect]\n＜Security A. +1＞ ＜Reboot＞\n[All Turns] When this [Vulcanusmon] would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-101.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-101.png"
+  },
+  {
+    "id": "BT25-102",
+    "code": "BT25-102",
+    "name": "Factorial Area",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "U",
+    "colors": [
+      "Black",
+      "Red"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Iliad",
+      "TS"
+    ],
+    "effect": "While you have no face-up security cards, you can ignore this card's color requirements.\n{Security} [All Turns] All of your black or red [TS] trait Digimon gain ＜Blocker＞. While you have [Vulcanusmon], they also gain ＜Link +1＞.\n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 black or red [TS] trait Digimon card from your hand with the cost reduced by 3.\n\n[Security]\n[Security] You may play 1 level 4 or lower black or red [TS] trait Digimon card from your hand or trash without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-102.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-102.png"
+  },
+  {
+    "id": "BT25-103",
+    "code": "BT25-103",
+    "name": "GraceNovamon",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SEC",
+    "colors": [
+      "Red",
+      "Blue"
+    ],
+    "cost": 15,
+    "power": 15000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Galaxy",
+      "Iliad",
+      "TS"
+    ],
+    "effect": "＜Security A. +1＞ ＜Iceclad＞ ＜Partition ([Apollomon] & [Dianamon])＞\n[When Digivolving] [When Attacking] Return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon. Then, you may end this attack.\n(Rule) Trait: Has [Olympos XII].\n\n[Special Digivolution]\n[Digivolve] Lv.6 w/[TS] trait: Cost 5\n[DNA Digivolve] Red Lv.6 + Blue Lv.6: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-103.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-103.png",
+    "variants": [
+      {
+        "id": "BT25-103_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-103_P1.png"
+      },
+      {
+        "id": "BT25-103_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-103_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "BT25-104",
+    "code": "BT25-104",
+    "name": "ShineGreymon: Burst Mode",
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardType": "Digimon/Option",
+    "rarity": "SEC",
+    "colors": [
+      "Red",
+      "Yellow"
+    ],
+    "cost": 0,
+    "power": 15000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Light Dragon",
+      "DATA SQUAD"
+    ],
+    "effect": "＜Raid＞ ＜Piercing＞ ＜Security A. +1＞ ＜Blocker＞ ＜Barrier＞\n[When Digivolving] [When Attacking] [Once Per Turn] Activate 1 [Main] effect on this card's Option side.\n[Your Turn] All of your [Marcus Damon]s are also treated as 12000 DP Digimon and gain ＜Rush＞.\n\n[Special Digivolution]\n[Digivolve] Lv.6 w/[DATA SQUAD] trait: Cost 5\n[Burst Digivolve] [ShineGreymon]: Cost 0 by returning 1 [Marcus Damon] to the hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-104.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-104.png",
+    "variants": [
+      {
+        "id": "BT25-104_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-104_P1.png"
+      },
+      {
+        "id": "BT25-104_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/BT25-104_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-01",
+    "code": "ST23-01",
+    "name": "Kekkomon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Green"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Inherited]\n[When Attacking] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, this Digimon may digivolve into a [Glowing Dawn] trait Digimon card in the hand with the cost reduced by 2.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-01.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-01.png",
+    "variants": [
+      {
+        "id": "ST23-01_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-01_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-02",
+    "code": "ST23-02",
+    "name": "Liollmon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Holy Beast",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Your Turn] When this Digimon would digivolve into a Digimon card with the [Glowing Dawn] trait, reduce the cost by 1.\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-02.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-02.png",
+    "variants": [
+      {
+        "id": "ST23-02_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-02_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-03",
+    "code": "ST23-03",
+    "name": "Cougarmon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Mammal",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] [When Digivolving] Add your top security card to the hand. Then, ＜Recovery +1＞. (Place the top card of your deck as your top security card.)\n[Your Turn] When this Digimon would digivolve into a [Glowing Dawn] trait Digimon card, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 2.\n\n[Inherited]\n＜Barrier＞ (When this Digimon would be deleted in battle, by trashing your top security card, it isn't deleted.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-03.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-03.png",
+    "variants": [
+      {
+        "id": "ST23-03_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-03_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-04",
+    "code": "ST23-04",
+    "name": "Murasamemon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Beastkin",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "＜Alliance＞ (When this Digimon attacks, by suspending 1 of your other Digimon, this Digimon gains ＜Security A. +1＞ and the suspended Digimon's DP for the attack.)\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, if it's your turn, by trashing the bottom face-down card from under any of your Tamers, you may play or use 1 [Glowing Dawn] trait card from your hand with the cost reduced by 3.\n\n[Inherited]\n[End of Attack] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, this [Glowing Dawn] trait Digimon unsuspends.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-04.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-04.png",
+    "variants": [
+      {
+        "id": "ST23-04_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-04_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-05",
+    "code": "ST23-05",
+    "name": "Habakirimon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": 11,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Shaman",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card. Then, by trashing the top security card of 1 player with the most security cards, ＜Recovery +1＞.\n[All Turns] [Once Per Turn] When any of your [Glowing Dawn] trait Digimon would leave the battle area, by trashing your top security card, they don't leave.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-05.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-05.png",
+    "variants": [
+      {
+        "id": "ST23-05_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-05_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-06",
+    "code": "ST23-06",
+    "name": "Gekkomon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Green"
+    ],
+    "cost": 3,
+    "power": 1000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Reptile",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[When Moving] [On Play] Reveal the top 3 cards of your deck. Among them, add 1 [Glowing Dawn] trait card to the hand and place 1 such card face down under any of your [Glowing Dawn] trait Tamers. Return the rest to the bottom of the deck.\n\n[Inherited]\n＜Piercing＞ (When this Digimon deletes your opponent's Digimon in battle while attacking, it checks security before the attack ends.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-06.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-06.png",
+    "variants": [
+      {
+        "id": "ST23-06_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-06_P1.png"
+      },
+      {
+        "id": "ST23-06_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-06_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-07",
+    "code": "ST23-07",
+    "name": "Armalizamon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Reptile",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 Tamer card with the [Glowing Dawn] trait from your hand without paying the cost.\n\n[Inherited]\n＜Piercing＞ (When this Digimon deletes your opponent's Digimon in battle while attacking, it checks security before the attack ends.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-07.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-07.png",
+    "variants": [
+      {
+        "id": "ST23-07_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-07_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-08",
+    "code": "ST23-08",
+    "name": "Monarchlizamon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Green"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Cyborg",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "＜Alliance＞ (When this Digimon attacks, by suspending 1 of your other Digimon, this Digimon gains ＜Security A. +1＞ and the suspended Digimon's DP for the attack.)\n[On Play] [When Digivolving] This Digimon gets +3000 DP until your opponent's turn ends. Then, if it's your turn, by trashing the bottom face-down card from under any of your Tamers, you may play or use 1 [Glowing Dawn] trait card from your hand with the cost reduced by 3.\n\n[Inherited]\n[End of Attack] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, this [Glowing Dawn] trait Digimon unsuspends.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-08.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-08.png",
+    "variants": [
+      {
+        "id": "ST23-08_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-08_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-09",
+    "code": "ST23-09",
+    "name": "Atratusmon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon/Option",
+    "rarity": "SR",
+    "colors": [
+      "Green",
+      "Black"
+    ],
+    "cost": 0,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Mutant",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "＜Security A. +1＞ ＜Reboot＞ ＜Blocker＞\n[When Digivolving] [When Attacking] [Once Per Turn] Your opponent's Digimon effects don't affect this Digimon until their turn ends. Then, delete 1 of your opponent's Digimon with the lowest DP.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[Glowing Dawn] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-09.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-09.png",
+    "variants": [
+      {
+        "id": "ST23-09_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-09_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-10",
+    "code": "ST23-10",
+    "name": "Pristimon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Black"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Puppet",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] By placing 1 card from your hand face down under any of your Tamers with the [Glowing Dawn] trait, ＜Draw 2＞. (Draw 2 cards from your deck.)\n\n[Inherited]\n＜Blocker＞ (This Digimon can block in the blocker timing.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-10.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-10.png",
+    "variants": [
+      {
+        "id": "ST23-10_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-10_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-11",
+    "code": "ST23-11",
+    "name": "Wolvermon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Black"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Cyborg",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "＜Blocker＞\n[Your Turn] When this Digimon would digivolve into a [Glowing Dawn] trait Digimon card, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 2.\n\n[Inherited]\n＜Blocker＞ (This Digimon can block in the blocker timing.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-11.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-11.png",
+    "variants": [
+      {
+        "id": "ST23-11_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-11_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-12",
+    "code": "ST23-12",
+    "name": "Chiropmon",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Mammal",
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[On Play] By trashing the bottom face-down card from under any of your Tamers, you may return 1 Digimon card with the [Glowing Dawn] trait from your trash to the hand.\n\n[Inherited]\n＜Retaliation＞ (When only this Digimon is deleted in battle, delete the Digimon it battled.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-12.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-12.png",
+    "variants": [
+      {
+        "id": "ST23-12_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-12_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST23-13",
+    "code": "ST23-13",
+    "name": "Tomoro Tenma & Kyo Sawashiro",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Green",
+      "Yellow"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Start of Your Main Phase] [On Play] You may place the top card of your deck face down under this Tamer. Then, if your opponent has a Digimon, gain 1 memory.\n[Your Turn] When effects trash cards from under this Tamer, by suspending this Tamer, 1 of your [Glowing Dawn] trait Digimon gets +3000 DP until your opponent's turn ends.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-13.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-13.png"
+  },
+  {
+    "id": "ST23-14",
+    "code": "ST23-14",
+    "name": "Reina Sakuya & Makoto Kuonji",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "U",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "[Start of Your Main Phase] [On Play] You may place the top card of your deck face down under this Tamer. Then, if your opponent has a Digimon, gain 1 memory.\n[Your Turn] When effects trash cards from under this Tamer, by suspending this Tamer, 1 of your [Glowing Dawn] trait Digimon gains ＜Jamming＞ for the turn.\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-14.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-14.png"
+  },
+  {
+    "id": "ST23-15",
+    "code": "ST23-15",
+    "name": "e-Pulse",
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "C",
+    "colors": [
+      "White"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Glowing Dawn",
+      "BEATBREAK"
+    ],
+    "effect": "＜Use Req. ([BEATBREAK] trait)＞ (Specified cards let you ignore color requirements.)\n[Main] You may play 1 [BEATBREAK] trait card with a play cost of 4 or less from your hand or trash without paying the cost. Then, place this card in the battle area.\n[Start of Your Main Phase] By placing this card from the battle area face down under any of your [BEATBREAK] trait Tamers, ＜Draw 1＞ and gain 1 memory.\n\n[Security]\n[Security] Activate this card's [Main] effects.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-15.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST23-15.png"
+  },
+  {
+    "id": "ST24-01",
+    "code": "ST24-01",
+    "name": "Koromon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digi-Egg",
+    "rarity": "C",
+    "colors": [
+      "Yellow"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lesser",
+      "DATA SQUAD"
+    ],
+    "effect": "[Inherited]\n[When Attacking] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand with the cost reduced by 2.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-01.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-01.png",
+    "variants": [
+      {
+        "id": "ST24-01_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-01_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-02",
+    "code": "ST24-02",
+    "name": "Gaomon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] By placing 1 card from your hand face down under any of your Tamers with the [DATA SQUAD] trait, ＜Draw 2＞. (Draw 2 cards from your deck.)\n\n[Inherited]\n[When Attacking] [Once Per Turn] If your hand has 7 or fewer cards, ＜Draw 1＞. (Draw 1 card from your deck.)\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[DATA SQUAD] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-02.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-02.png",
+    "variants": [
+      {
+        "id": "ST24-02_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-02_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-03",
+    "code": "ST24-03",
+    "name": "Gaogamon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Blue"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] [When Digivolving] You may return 1 of your opponent's level 3 Digimon to the hand. Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.\n\n[Inherited]\n[When Attacking] [Once Per Turn] If your hand has 7 or fewer cards, ＜Draw 1＞. (Draw 1 card from your deck.)\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-03.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-03.png",
+    "variants": [
+      {
+        "id": "ST24-03_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-03_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-04",
+    "code": "ST24-04",
+    "name": "Agumon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Yellow",
+      "Red"
+    ],
+    "cost": 3,
+    "power": 1000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Dinosaur",
+      "DATA SQUAD"
+    ],
+    "effect": "[When Moving] [On Play] Reveal the top 3 cards of your deck. Among them, add 1 [DATA SQUAD] trait card to the hand and place 1 such card face down under any of your [DATA SQUAD] trait Tamers. Return the rest to the bottom of the deck.\n\n[Inherited]\n[Your Turn] This Digimon gets +2000 DP.\n\n[Special Digivolution]\n[Digivolve] [Koromon]/Lv.2 w/[DATA SQUAD] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-04.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-04.png",
+    "variants": [
+      {
+        "id": "ST24-04_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-04_P1.png"
+      },
+      {
+        "id": "ST24-04_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-04_P2.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-05",
+    "code": "ST24-05",
+    "name": "GeoGreymon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Yellow",
+      "Red"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Dinosaur",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 Tamer card with the [DATA SQUAD] trait from your hand without paying the cost.\n\n[Inherited]\n[Your Turn] This Digimon gets +2000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[Agumon] in name and [Dinosaur] trait: Cost 2\n[Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-05.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-05.png",
+    "variants": [
+      {
+        "id": "ST24-05_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-05_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-06",
+    "code": "ST24-06",
+    "name": "RizeGreymon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "R",
+    "colors": [
+      "Yellow",
+      "Red"
+    ],
+    "cost": 7,
+    "power": 8000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Cyborg",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, by trashing 2 bottom face-down cards from under any of your Tamers, you may play or use 1 [DATA SQUAD] trait card with a play or use cost of 5 or less from your hand without paying the cost.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon with [ShineGreymon] in its name or the [DATA SQUAD] trait would leave the battle area, by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.\n\n[Special Digivolution]\n[Digivolve] [GeoGreymon]/Lv.4 w/[DATA SQUAD] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-06.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-06.png",
+    "variants": [
+      {
+        "id": "ST24-06_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-06_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-07",
+    "code": "ST24-07",
+    "name": "ShineGreymon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon/Option",
+    "rarity": "SR",
+    "colors": [
+      "Yellow",
+      "Red"
+    ],
+    "cost": 0,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Light Dragon",
+      "DATA SQUAD"
+    ],
+    "effect": "＜Raid＞ ＜Piercing＞ ＜Security A. +1＞\n[When Digivolving] [When Attacking] [Once Per Turn] You may play 1 Tamer card with a play cost of 5 or less from your hand or trash without paying the cost. Then, 1 of your opponent's Digimon gets -9000 DP for the turn.\n\n[Special Digivolution]\n[Digivolve] Lv.5 w/[RizeGreymon] in name or w/[DATA SQUAD] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-07.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-07.png",
+    "variants": [
+      {
+        "id": "ST24-07_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-07_P1.png"
+      },
+      {
+        "id": "ST24-07_P2",
+        "label": "Parallel P2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-07_P2.png"
+      },
+      {
+        "id": "ST24-07_P3",
+        "label": "Parallel P3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-07_P3.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-08",
+    "code": "ST24-08",
+    "name": "Lalamon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Green"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Vegetation",
+      "DATA SQUAD"
+    ],
+    "effect": "[Your Turn] When this Digimon would digivolve into a Digimon card with the [DATA SQUAD] trait, reduce the cost by 1.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[DATA SQUAD] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-08.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-08.png",
+    "variants": [
+      {
+        "id": "ST24-08_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-08_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-09",
+    "code": "ST24-09",
+    "name": "Sunflowmon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Vegetation",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or Tamers. Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.\n\n[Inherited]\n[All Turns] This Digimon gets +1000 DP.\n\n[Special Digivolution]\n[Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-09.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-09.png",
+    "variants": [
+      {
+        "id": "ST24-09_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-09_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-10",
+    "code": "ST24-10",
+    "name": "Lilamon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "U",
+    "colors": [
+      "Green"
+    ],
+    "cost": 7,
+    "power": 7000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Fairy",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends. Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand without paying the cost.\n\n[Inherited]\n[All Turns] [Once Per Turn] When this Digimon with [Rosemon] in its name or the [DATA SQUAD] trait would leave the battle area, by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.\n\n[Special Digivolution]\n[Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-10.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-10.png",
+    "variants": [
+      {
+        "id": "ST24-10_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-10_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-11",
+    "code": "ST24-11",
+    "name": "Rosemon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "SR",
+    "colors": [
+      "Green",
+      "Red"
+    ],
+    "cost": 11,
+    "power": 12000,
+    "counter": null,
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Fairy",
+      "DATA SQUAD"
+    ],
+    "effect": "[When Digivolving] [When Attacking] [Once Per Turn] You may suspend up to 2 of your opponent's Digimon or Tamers. Then, by trashing the bottom face-down card from under any of your Tamers, none of their Digimon can unsuspend until their turn ends.\n[All Turns] [Once Per Turn] When any of your opponent's Digimon or Tamers suspend, or effects trash cards from under your Tamers, trash your opponent's top security card.\n\n[Special Digivolution]\n[Digivolve] [Lilamon]/Lv.5 w/[DATA SQUAD] trait: Cost 3",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-11.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-11.png",
+    "variants": [
+      {
+        "id": "ST24-11_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-11_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-12",
+    "code": "ST24-12",
+    "name": "Falcomon",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Digimon",
+    "rarity": "C",
+    "colors": [
+      "Purple"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": null,
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Avian",
+      "DATA SQUAD"
+    ],
+    "effect": "[On Play] By trashing the bottom face-down card from under any of your Tamers, you may return 1 Digimon card with the [DATA SQUAD] trait from your trash to the hand.\n\n[Inherited]\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's level 3 Digimon.\n\n[Special Digivolution]\n[Digivolve] Lv.2 w/[DATA SQUAD] trait: Cost 0",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-12.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-12.png",
+    "variants": [
+      {
+        "id": "ST24-12_P1",
+        "label": "Parallel P1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-12_P1.png"
+      }
+    ]
+  },
+  {
+    "id": "ST24-13",
+    "code": "ST24-13",
+    "name": "Marcus Damon & Thomas H. Norstein",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "R",
+    "colors": [
+      "Yellow",
+      "Blue"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "DATA SQUAD"
+    ],
+    "effect": "[Start of Your Main Phase] [On Play] You may place the top card of your deck face down under this Tamer. Then, if your opponent has a Digimon, gain 1 memory.\n[Your Turn] When effects trash cards from under this Tamer, by suspending this Tamer, 1 of your [DATA SQUAD] trait Digimon gains ＜Jamming＞ for the turn.\n＜Rule＞ Name: Also treated as [Marcus Damon]/[Thomas H. Norstein].\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-13.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-13.png"
+  },
+  {
+    "id": "ST24-14",
+    "code": "ST24-14",
+    "name": "Yoshino Fujieda & Keenan Crier",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Tamer",
+    "rarity": "U",
+    "colors": [
+      "Green",
+      "Purple"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "DATA SQUAD"
+    ],
+    "effect": "[Start of Your Main Phase] [On Play] You may place the top card of your deck face down under this Tamer. Then, if your opponent has a Digimon, gain 1 memory.\n[All Turns] When effects trash cards from under this Tamer, by suspending this Tamer, suspend 1 of your opponent's Digimon.\n＜Rule＞ Name: Also treated as [Yoshino Fujieda]/[Keenan Crier].\n\n[Security]\n[Security] Play this card without paying the cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-14.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-14.png"
+  },
+  {
+    "id": "ST24-15",
+    "code": "ST24-15",
+    "name": "DNA Charge",
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardType": "Option",
+    "rarity": "C",
+    "colors": [
+      "White"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "DATA SQUAD"
+    ],
+    "effect": "＜Use Req. ([DATA SQUAD] trait)＞ (Specified cards let you ignore color requirements.)\n[Main] You may play 1 [DATA SQUAD] trait card with a play cost of 4 or less from your hand or trash without paying the cost. Then, place this card in the battle area.\n[Start of Your Main Phase] By placing this card from the battle area face down under any of your [DATA SQUAD] trait Tamers, ＜Draw 1＞ and gain 1 memory.\n\n[Security]\n[Security] Activate this card's [Main] effects.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-15.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/digimon/ST24-15.png"
   }
 ]

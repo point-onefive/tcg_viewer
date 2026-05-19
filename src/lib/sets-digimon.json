@@ -395,5 +395,24 @@
     "setName": "Tokens",
     "releaseOrder": 495,
     "cardCount": 2
+  },
+  {
+    "setCode": "BT25",
+    "setName": "DUAL REVOLUTION",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 999,
+    "cardCount": 104
+  },
+  {
+    "setCode": "ST23",
+    "setName": "DIGIMON BEATBREAK",
+    "releaseOrder": 999,
+    "cardCount": 15
+  },
+  {
+    "setCode": "ST24",
+    "setName": "DIGIMON DATA SQUAD",
+    "releaseOrder": 999,
+    "cardCount": 15
   }
 ]
