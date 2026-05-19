@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, Layers, Menu, Sparkles, X, Check, ChevronDown } from 'lucide-react'
+import { Bookmark, Layers, Menu, SlidersHorizontal, Sparkles, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
@@ -35,6 +35,103 @@ const ONE_PIECE_COLORS = [
   'Yellow',
 ] as const
 
+// Hex swatches for the colour pills inside the Filters popover. Picked
+// to read clearly against `var(--bg-surface)` in both themes — slightly
+// muted so a row of six dots doesn't feel like a clown wig.
+const ONE_PIECE_COLOR_HEX: Record<(typeof ONE_PIECE_COLORS)[number], string> = {
+  Red: '#dc2626',
+  Green: '#16a34a',
+  Blue: '#2563eb',
+  Purple: '#9333ea',
+  Black: '#1f2937',
+  Yellow: '#eab308',
+}
+
+/**
+ * Stacked label + pill row inside the Filters popover. Pulled out so
+ * the popover JSX reads top-to-bottom as a sequence of sections, not
+ * a wall of repeated wrappers.
+ */
+function FilterSection({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="mb-3 last:mb-0">
+      <div
+        className="text-[10px] tracking-[0.18em] uppercase mb-1.5"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        {label}
+      </div>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  )
+}
+
+/**
+ * Compact selectable chip used inside the Filters popover. Selected
+ * pills flip to the primary fill (matching the Collection popover's
+ * selected-row treatment) instead of the orange ring used on the
+ * header controls — inside a dedicated filter panel the ring would
+ * just compete with itself.
+ */
+function FilterPill({
+  selected,
+  onClick,
+  swatch,
+  children,
+}: {
+  selected: boolean
+  onClick: () => void
+  swatch?: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={selected}
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 px-2.5 text-[11px] font-medium whitespace-nowrap transition-colors"
+      style={{
+        height: 26,
+        borderRadius: 5,
+        background: selected ? 'var(--text-primary)' : 'var(--bg)',
+        color: selected ? 'var(--bg)' : 'var(--text-primary)',
+        border: '1px solid var(--border-subtle)',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={(e) => {
+        if (!selected) {
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) e.currentTarget.style.background = 'var(--bg)'
+      }}
+    >
+      {swatch && (
+        <span
+          aria-hidden
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: swatch,
+            boxShadow: 'inset 0 0 0 1px color-mix(in srgb, #000 25%, transparent)',
+            flexShrink: 0,
+          }}
+        />
+      )}
+      <span>{children}</span>
+    </button>
+  )
+}
+
 interface HeaderProps {
   sets: CardSet[]
 }
@@ -60,6 +157,11 @@ export function Header({ sets }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collectionOpen, setCollectionOpen] = useState(false)
   const collectionRef = useRef<HTMLDivElement>(null)
+  // Desktop "Filters" popover holds the One Piece facet controls
+  // (type / colour / alt-art). Mobile keeps them stacked inline in
+  // the sheet — popovers on tiny screens are awkward.
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const filtersRef = useRef<HTMLDivElement>(null)
 
   // Close collection dropdown on outside click / Escape
   useEffect(() => {
@@ -77,6 +179,37 @@ export function Header({ sets }: HeaderProps) {
       document.removeEventListener('keydown', onKey)
     }
   }, [collectionOpen])
+
+  // Same outside-click / Escape handling for the Filters popover.
+  // Kept separate from collection so closing one doesn't dismiss the
+  // other (e.g. user is mid-pick).
+  useEffect(() => {
+    if (!filtersOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) {
+        setFiltersOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFiltersOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [filtersOpen])
+
+  // How many One Piece facets are active right now. Drives the badge
+  // on the Filters button and the show/hide of the inline "Clear"
+  // affordance inside the popover.
+  const opFacetCount =
+    (activeCardType ? 1 : 0) + (activeColor ? 1 : 0) + (onlyAltArt ? 1 : 0)
+
+  const clearOnePieceFacets = () => {
+    setActiveCardType(null)
+    setActiveColor(null)
+    setOnlyAltArt(false)
+  }
 
   const activeCollectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
 
@@ -357,60 +490,168 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
 
-          {/* One Piece-only facet filters. Card type + colour are
-              <select> for visual consistency with the Set dropdown,
-              Alt-art is a small toggle pill (binary state). They sit
-              between Set and Search so the filter group reads
-              left-to-right as: scope (set) → facet narrowing (type,
-              colour, alt art) → free text (search). */}
+          {/* One Piece-only facet filters live in a single popover so
+              the header doesn't grow a new pill every time we add a
+              dimension. Button stays compact (icon + label + optional
+              count) so the nav scales as we curate facets for other
+              TCGs in the future. */}
           {showOnePieceFacets && (
-            <>
-              <select
-                value={activeCardType || ''}
-                onChange={(e) => setActiveCardType(e.target.value || null)}
-                className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none"
-                style={{ ...(activeCardType ? ctrlActive : ctrl), height: 30 }}
-                aria-label="Filter by card type"
-              >
-                <option value="">All types</option>
-                {ONE_PIECE_CARD_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={activeColor || ''}
-                onChange={(e) => setActiveColor(e.target.value || null)}
-                className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none"
-                style={{ ...(activeColor ? ctrlActive : ctrl), height: 30 }}
-                aria-label="Filter by color"
-              >
-                <option value="">All colors</option>
-                {ONE_PIECE_COLORS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+            <div ref={filtersRef} className="relative">
               <button
                 type="button"
-                onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="inline-flex items-center gap-1.5 px-2.5 text-xs font-medium"
-                style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
-                aria-pressed={onlyAltArt}
-                aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
-                title="Show only cards with alt art"
+                onClick={() => setFiltersOpen((o) => !o)}
+                className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                style={{ ...(opFacetCount > 0 ? ctrlActive : ctrl), height: 30 }}
+                aria-haspopup="dialog"
+                aria-expanded={filtersOpen}
+                aria-label={
+                  opFacetCount > 0
+                    ? `Filters (${opFacetCount} active)`
+                    : 'Filters'
+                }
               >
-                <Sparkles
+                <SlidersHorizontal
                   size={12}
                   strokeWidth={2.25}
                   aria-hidden
-                  style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
+                  style={{ color: opFacetCount > 0 ? '#E85D2A' : 'var(--text-muted)' }}
                 />
-                <span>Alt art</span>
+                <span>Filters</span>
+                {opFacetCount > 0 && (
+                  <span
+                    className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                    style={{
+                      minWidth: 16,
+                      height: 16,
+                      padding: '0 4px',
+                      borderRadius: 4,
+                      background: '#E85D2A',
+                      color: '#fff',
+                    }}
+                  >
+                    {opFacetCount}
+                  </span>
+                )}
+                <ChevronDown
+                  size={12}
+                  strokeWidth={2.25}
+                  style={{
+                    transition: 'transform 180ms ease',
+                    transform: filtersOpen ? 'rotate(180deg)' : 'rotate(0)',
+                    color: 'var(--text-muted)',
+                  }}
+                />
               </button>
-            </>
+
+              <AnimatePresence>
+                {filtersOpen && (
+                  <motion.div
+                    role="dialog"
+                    aria-label="One Piece filters"
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute right-0 top-full mt-1.5 overflow-hidden"
+                    style={{
+                      width: 300,
+                      transformOrigin: 'top right',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 8,
+                      boxShadow: 'var(--shadow-card)',
+                      zIndex: 60,
+                      padding: 12,
+                    }}
+                  >
+                    <FilterSection label="Card type">
+                      <FilterPill
+                        selected={!activeCardType}
+                        onClick={() => setActiveCardType(null)}
+                      >
+                        All
+                      </FilterPill>
+                      {ONE_PIECE_CARD_TYPES.map((t) => (
+                        <FilterPill
+                          key={t.value}
+                          selected={activeCardType === t.value}
+                          onClick={() => setActiveCardType(t.value)}
+                        >
+                          {t.label}
+                        </FilterPill>
+                      ))}
+                    </FilterSection>
+
+                    <FilterSection label="Color">
+                      <FilterPill
+                        selected={!activeColor}
+                        onClick={() => setActiveColor(null)}
+                      >
+                        All
+                      </FilterPill>
+                      {ONE_PIECE_COLORS.map((c) => (
+                        <FilterPill
+                          key={c}
+                          selected={activeColor === c}
+                          onClick={() => setActiveColor(c)}
+                          /* Tiny coloured swatch makes the colour pills
+                             readable at a glance without bloating the
+                             popover with full-bleed colour fills. */
+                          swatch={ONE_PIECE_COLOR_HEX[c]}
+                        >
+                          {c}
+                        </FilterPill>
+                      ))}
+                    </FilterSection>
+
+                    {/* Alt-art is a binary toggle, so it gets its own
+                        full-width row rather than living inside a pill
+                        group where "selected" reads as a choice. */}
+                    <button
+                      type="button"
+                      onClick={() => setOnlyAltArt(!onlyAltArt)}
+                      className="w-full inline-flex items-center gap-2 px-2.5 text-xs font-medium mt-3"
+                      style={{
+                        height: 30,
+                        borderRadius: 6,
+                        background: onlyAltArt
+                          ? 'color-mix(in srgb, #E85D2A 14%, transparent)'
+                          : 'transparent',
+                        color: onlyAltArt ? '#E85D2A' : 'var(--text-primary)',
+                        border: `1px solid ${
+                          onlyAltArt
+                            ? 'color-mix(in srgb, #E85D2A 45%, transparent)'
+                            : 'var(--border-subtle)'
+                        }`,
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+                      }}
+                      aria-pressed={onlyAltArt}
+                    >
+                      <Sparkles
+                        size={12}
+                        strokeWidth={2.25}
+                        aria-hidden
+                        style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
+                      />
+                      <span className="flex-1 text-left">Only cards with alt art</span>
+                      {onlyAltArt && <Check size={12} strokeWidth={2.75} aria-hidden />}
+                    </button>
+
+                    {opFacetCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearOnePieceFacets}
+                        className="mt-3 text-[10px] tracking-[0.14em] uppercase underline underline-offset-2"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
 
           {/* Search */}
