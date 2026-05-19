@@ -14,6 +14,7 @@ import {
   type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
+  type Modifier,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -447,6 +448,77 @@ function tierRemoveBtnStyle(disabled: boolean): React.CSSProperties {
 }
 
 /**
+ * Locks any drag transform to the vertical axis. Used by the tier-row
+ * DragOverlay so the lifted clone slides up/down only — horizontal
+ * cursor wobble can't drag a row out of its column, which makes the
+ * vertical list feel deliberate and rails-y instead of free-floating.
+ */
+const restrictToVerticalAxis: Modifier = ({ transform }) => ({
+  ...transform,
+  x: 0,
+})
+
+/**
+ * Read-only visual twin of `SortableTierRow`. Rendered inside the
+ * `DragOverlay` so the user sees a floating, fully-styled row track
+ * the cursor during a drag — same pattern the card sortables use.
+ * Width is forwarded from the source row (captured on drag start)
+ * so the floating clone matches the original row exactly instead of
+ * collapsing to its content's intrinsic width when portaled to body.
+ */
+function TierRowOverlay({ tier, width }: { tier: TierDef; width: number | null }) {
+  return (
+    <div
+      className="flex flex-wrap items-center gap-2 p-2"
+      style={{
+        width: width ?? undefined,
+        borderRadius: 6,
+        border: '1px solid var(--border-subtle)',
+        background: 'color-mix(in srgb, var(--bg-surface) 96%, var(--bg))',
+        boxShadow: 'var(--shadow-lightbox)',
+        cursor: 'grabbing',
+        pointerEvents: 'none',
+      }}
+    >
+      <span
+        className="inline-flex shrink-0 items-center justify-center"
+        style={{
+          ...ctrlBase,
+          width: 28,
+          height: 30,
+          padding: 0,
+          color: 'var(--text-muted)',
+        }}
+      >
+        <GripVertical size={16} aria-hidden />
+      </span>
+      <span
+        aria-hidden
+        className="rounded"
+        style={{
+          height: 36,
+          width: 48,
+          background: tier.color,
+          border: '1px solid var(--border-subtle)',
+        }}
+      />
+      <span
+        className="min-w-[6rem] flex-1 px-2 py-1.5 text-sm font-bold"
+        style={{ ...ctrlBase, borderRadius: 6 }}
+      >
+        {tier.label}
+      </span>
+      <span
+        className="inline-flex items-center justify-center"
+        style={tierRemoveBtnStyle(false)}
+      >
+        <Trash2 size={16} />
+      </span>
+    </div>
+  )
+}
+
+/**
  * One row in the tier editor. The whole `<li>` is the sortable node so
  * the FLIP transform shifts the entire row (handle + inputs + delete)
  * together when neighbours bump out of the way. Drag listeners live
@@ -455,11 +527,11 @@ function tierRemoveBtnStyle(disabled: boolean): React.CSSProperties {
  * on the delete button gets stopPropagation defensively in case dnd-kit
  * ever decides to listen at the wrapper level.
  *
- * Same `isDragging` transform/transition suppression as `SortableCard`:
- * during the drag, the source is dimmed in-place at its DOM slot and
- * receives no cursor-delta transform, so on release the only thing
- * useSortable applies is the FLIP delta (old slot → new slot), animated
- * smoothly with no drop-release shake.
+ * Physics parity with `SortableCard`: during the drag, the source is
+ * hidden in-place via `visibility: hidden` and receives no cursor-delta
+ * transform, while the `DragOverlay` clone (see `TierRowOverlay`) does
+ * all the visible cursor-tracking work. On release, useSortable applies
+ * a single FLIP delta (old slot → new slot) for a smooth bump.
  */
 function SortableTierRow({
   tier,
@@ -486,9 +558,15 @@ function SortableTierRow({
       ref={setNodeRef}
       className="flex flex-wrap items-center gap-2 p-2"
       style={{
+        // Mirror SortableCard's physics. While this row is the one being
+        // dragged we hide it in-place and skip the cursor-delta transform
+        // — the floating clone in the DragOverlay does the visible work,
+        // so the source's only job is to hold the DOM slot. On release,
+        // useSortable applies one clean FLIP delta (old slot → new) and
+        // animates the bump without fighting any lingering transforms.
         transform: isDragging ? undefined : CSS.Translate.toString(transform),
         transition: isDragging ? undefined : transition,
-        opacity: isDragging ? 0.4 : 1,
+        visibility: isDragging ? 'hidden' : undefined,
         zIndex: isDragging ? 5 : undefined,
         borderRadius: 6,
         border: '1px solid var(--border-subtle)',
@@ -554,6 +632,13 @@ export function TierListMaker() {
   const [tiers, setTiers] = useState<TierDef[]>(() => DEFAULT_TIERS.map((t) => ({ ...t })))
   const [cards, setCards] = useState<TierCard[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
+  // Tier-row drag state. Kept in its own pair (instead of widening
+  // `activeId`) because the two DndContexts are independent and we
+  // don't want a card drag to ever resolve against tierActiveId or
+  // vice-versa. `tierActiveWidth` is captured on drag start so the
+  // floating overlay matches the source row's width exactly.
+  const [tierActiveId, setTierActiveId] = useState<string | null>(null)
+  const [tierActiveWidth, setTierActiveWidth] = useState<number | null>(null)
   const [editorOpen, setEditorOpen] = useState(true)
   const [pasteHint, setPasteHint] = useState('Paste images anywhere on this page')
 
@@ -719,7 +804,22 @@ export function TierListMaker() {
   // Lives in its own DndContext below, completely independent of the
   // card-drag context — these two interactions never share a sortable
   // tree, so we don't need to dispatch on data.kind here.
+  //
+  // The trio of start/end/cancel mirrors the card-drag handlers below
+  // so the tier-row drag has full physics parity: source hides, clone
+  // tracks cursor in the DragOverlay, FLIP bumps neighbours on release.
+  const onTierDragStart = useCallback((e: DragStartEvent) => {
+    setTierActiveId(String(e.active.id))
+    // `initial` is the source rect captured at the moment the drag
+    // activated. Width is forwarded to the overlay clone so it
+    // doesn't collapse to its content's intrinsic width when the
+    // portal lifts it out of the list's flex container.
+    setTierActiveWidth(e.active.rect.current.initial?.width ?? null)
+  }, [])
+
   const onTierDragEnd = useCallback((e: DragEndEvent) => {
+    setTierActiveId(null)
+    setTierActiveWidth(null)
     const { active, over } = e
     if (!over || active.id === over.id) return
     setTiers((prev) => {
@@ -729,6 +829,16 @@ export function TierListMaker() {
       return arrayMove(prev, oldIndex, newIndex)
     })
   }, [])
+
+  const onTierDragCancel = useCallback(() => {
+    setTierActiveId(null)
+    setTierActiveWidth(null)
+  }, [])
+
+  const activeTier = useMemo(
+    () => (tierActiveId ? tiers.find((t) => t.id === tierActiveId) ?? null : null),
+    [tierActiveId, tiers],
+  )
 
   const uploadChip: React.CSSProperties = {
     ...ctrlBase,
@@ -879,11 +989,16 @@ export function TierListMaker() {
             {/* Tier-row reorder lives in its own DndContext, isolated
                 from the card-drag context below. closestCenter is the
                 right choice for a vertical list — the cursor's vertical
-                center picks the nearest neighbour row cleanly. */}
+                center picks the nearest neighbour row cleanly. The
+                restrictToVerticalAxis modifier keeps the floating
+                overlay locked to the column for a rails-y feel. */}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+              onDragStart={onTierDragStart}
               onDragEnd={onTierDragEnd}
+              onDragCancel={onTierDragCancel}
             >
               <SortableContext items={tiers.map((t) => t.id)} strategy={verticalListSortingStrategy}>
                 <ul className="flex flex-col gap-2">
@@ -904,6 +1019,11 @@ export function TierListMaker() {
                   ))}
                 </ul>
               </SortableContext>
+              <DragOverlay adjustScale={false} dropAnimation={null}>
+                {activeTier ? (
+                  <TierRowOverlay tier={activeTier} width={tierActiveWidth} />
+                ) : null}
+              </DragOverlay>
             </DndContext>
             <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               Drag the grip handle to reorder rows. Rename tiers (S+, S-, etc.) and drag images between rows.
