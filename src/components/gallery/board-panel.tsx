@@ -94,7 +94,7 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
 }
 
 export function BoardPanel({ cards }: BoardPanelProps) {
-  const { boardOpen, setBoardOpen, pinned, removePin, reorderPins, activeCollection } = useStore()
+  const { boardOpen, setBoardOpen, pinned, removePin, reorderPins, activeCollection, clearActivePins } = useStore()
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Only show pins from the active collection - the board is per-collection.
@@ -110,6 +110,12 @@ export function BoardPanel({ cards }: BoardPanelProps) {
   // (hover transform) on top of the sortable transform shifting it
   // sideways — visible double-motion / jitter.
   const [isDragging, setIsDragging] = useState(false)
+
+  // Two-click confirm for the "Clear all" header button. Clearing
+  // pins is destructive with no in-app undo, so we surface a
+  // tap-to-arm / tap-again-to-fire pattern instead of a modal: less
+  // intrusive than confirm(), but still hard to trigger by accident.
+  const [confirmingClear, setConfirmingClear] = useState(false)
 
   // Close on Escape
   useEffect(() => {
@@ -127,6 +133,31 @@ export function BoardPanel({ cards }: BoardPanelProps) {
       setTimeout(() => panelRef.current?.focus(), 50)
     }
   }, [boardOpen])
+
+  // Reset the armed Clear button when the panel closes — otherwise
+  // it'd still be primed the next time the user opens the board.
+  useEffect(() => {
+    if (!boardOpen) setConfirmingClear(false)
+  }, [boardOpen])
+
+  // Auto-disarm after 5s of inactivity so the user can't accidentally
+  // confirm minutes later by clicking the close button area. 5s gives
+  // a relaxed window to read the "Confirm?" label and decide, while
+  // still being short enough to feel like a deliberate two-step.
+  useEffect(() => {
+    if (!confirmingClear) return
+    const t = setTimeout(() => setConfirmingClear(false), 5000)
+    return () => clearTimeout(t)
+  }, [confirmingClear])
+
+  function handleClearClick() {
+    if (confirmingClear) {
+      clearActivePins()
+      setConfirmingClear(false)
+    } else {
+      setConfirmingClear(true)
+    }
+  }
 
   function handleDragEnd(event: DragEndEvent) {
     setIsDragging(false)
@@ -186,13 +217,28 @@ export function BoardPanel({ cards }: BoardPanelProps) {
                   <span className="board-panel__count">{visiblePins.length}</span>
                 )}
               </div>
-              <button
-                className="board-panel__close"
-                onClick={() => setBoardOpen(false)}
-                aria-label="Close board"
-              >
-                <X size={14} />
-              </button>
+              <div className="board-panel__actions">
+                {visiblePins.length > 0 && (
+                  <button
+                    className={`board-panel__clear${confirmingClear ? ' board-panel__clear--armed' : ''}`}
+                    onClick={handleClearClick}
+                    aria-label={
+                      confirmingClear
+                        ? 'Confirm clear all pinned cards'
+                        : 'Clear all pinned cards'
+                    }
+                  >
+                    {confirmingClear ? 'Confirm?' : 'Clear all'}
+                  </button>
+                )}
+                <button
+                  className="board-panel__close"
+                  onClick={() => setBoardOpen(false)}
+                  aria-label="Close board"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             </div>
 
             {/* Body */}

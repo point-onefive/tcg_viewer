@@ -704,6 +704,48 @@ html.lenis, html.lenis body {
   color: var(--text-primary);
 }
 
+/* Right-aligned action cluster: clear all + close. Gap keeps the
+   buttons distinct so the user doesn't fat-finger "Clear all" while
+   reaching for the close X. */
+.board-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.board-panel__clear {
+  height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.board-panel__clear:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* Armed state: first click flips the label to "Confirm?" and tints
+   the button so it reads as a primed destructive action. Color is
+   the same red used by the per-tile remove icon for visual rhyme. */
+.board-panel__clear--armed,
+.board-panel__clear--armed:hover {
+  background: color-mix(in srgb, #dc2626 12%, transparent);
+  border-color: color-mix(in srgb, #dc2626 55%, var(--border-subtle));
+  color: #dc2626;
+}
+
 .board-panel__body {
   flex: 1;
   overflow-y: auto;

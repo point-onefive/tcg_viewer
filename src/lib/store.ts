@@ -64,6 +64,7 @@ interface StoreState {
   togglePin: (p: PinInput) => void
   reorderPins: (fromKey: string, toKey: string) => void
   removePin: (key: string) => void
+  clearActivePins: () => void
   isPinned: (p: PinInput) => boolean
   boardOpen: boolean
   setBoardOpen: (open: boolean) => void
@@ -154,6 +155,18 @@ export const useStore = create<StoreState>()(
         const [item] = next.splice(from, 1)
         next.splice(to, 0, item)
         set({ pinned: next })
+      },
+      // Clear every pin for the currently-active collection only. We
+      // explicitly preserve pins on other collections so the user
+      // doesn't lose their other boards when they hit "Clear all" on,
+      // say, the Pokémon board. Telemetry fires one unpin event per
+      // removed pin to keep parity with the single-remove path.
+      clearActivePins: () => {
+        const { pinned, activeCollection } = get()
+        const removed = pinned.filter((x) => x.collection === activeCollection)
+        if (removed.length === 0) return
+        set({ pinned: pinned.filter((x) => x.collection !== activeCollection) })
+        for (const p of removed) void track('unpin', p)
       },
       boardOpen: false,
       setBoardOpen: (boardOpen) => set({ boardOpen }),
