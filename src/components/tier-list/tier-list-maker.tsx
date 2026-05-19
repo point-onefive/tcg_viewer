@@ -7,13 +7,18 @@ import {
   PointerSensor,
   pointerWithin,
   rectIntersection,
+  useDroppable,
   useSensor,
   useSensors,
   type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { useDraggable, useDroppable } from '@dnd-kit/core'
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
@@ -219,94 +224,125 @@ function BoardWatermark() {
   )
 }
 
-function DraggableImage({
+/**
+ * Sortable tile = the wrapper + image button + remove (×) button as
+ * a single unit. We register `setNodeRef` on the wrapper (not the
+ * inner button) for two reasons:
+ *
+ *   1. The × is absolutely positioned relative to the wrapper. If
+ *      the inner button got the sortable transform instead, the ×
+ *      would stay put while the image translated to its new slot
+ *      during neighbour bumps — visible desync.
+ *   2. We want `visibility: hidden` on the whole tile (image + ×)
+ *      while it's being actively dragged so only the DragOverlay
+ *      clone follows the cursor; applying it to the wrapper does
+ *      that in one step.
+ *
+ * Drag listeners stay on the inner image button so pressing the ×
+ * never starts a drag — its onPointerDown also stops propagation
+ * defensively in case any sibling listener gets added later.
+ */
+function SortableCard({
   id,
   src,
   kind,
+  onRemove,
 }: {
   id: string
   src: string
   kind: TierCardKind
+  onRemove: () => void
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     data: { kind: 'card', id },
   })
-  const { setNodeRef: setDropRef, isOver } = useDroppable({
-    id: `card-${id}`,
-    data: { kind: 'card-target', id },
-  })
-
-  const setRefs = useCallback(
-    (node: HTMLButtonElement | null) => {
-      setNodeRef(node)
-      setDropRef(node)
-    },
-    [setDropRef, setNodeRef],
-  )
-
-  const style = transform
-    ? { transform: CSS.Translate.toString(transform), zIndex: isDragging ? 50 : undefined }
-    : undefined
 
   const { width, height, fit } = thumbDimensions(kind)
 
   return (
-    <button
-      type="button"
-      ref={setRefs}
-      // draggable={false} + onDragStart preventDefault eliminate the
-      // browser's native HTML5 drag preview (a translucent screenshot
-      // that some macOS browsers attach to focused buttons containing
-      // images, on top of @dnd-kit's DragOverlay — produces a visible
-      // "ghost" layered above our drag preview).
-      draggable={false}
-      onDragStart={(e) => e.preventDefault()}
+    <div
+      ref={setNodeRef}
+      className="group relative tier-list-thumb"
       style={{
-        ...style,
-        touchAction: 'none',
-        // Source thumb is hidden during drag — the DragOverlay below
-        // is the only thing the user should see following the cursor.
-        // visibility (not opacity) avoids any partial paint of the
-        // source while the overlay is in flight.
+        transform: CSS.Translate.toString(transform),
+        transition,
         visibility: isDragging ? 'hidden' : undefined,
-        padding: 0,
-        cursor: 'grab',
-        flexShrink: 0,
         width,
         height,
-        outline: isOver ? accentRing : undefined,
-        outlineOffset: isOver ? 2 : undefined,
+        flexShrink: 0,
+        touchAction: 'none',
         userSelect: 'none',
         WebkitUserSelect: 'none',
+        zIndex: isDragging ? 50 : undefined,
       }}
-      className="tier-list-thumb"
-      {...listeners}
-      {...attributes}
-      aria-label="Drag to rank image"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
+      <button
+        type="button"
+        // draggable={false} + onDragStart preventDefault eliminate the
+        // browser's native HTML5 drag preview (a translucent screenshot
+        // that macOS browsers attach to image buttons, on top of
+        // @dnd-kit's DragOverlay — visible "ghost" above the overlay).
         draggable={false}
-        // pointer-events:none forwards every press / drag motion
-        // straight to the parent <button>, so the browser never has a
-        // chance to initiate native image-drag against the <img>.
-        // -webkit-user-drag:none is the Safari/Chrome belt to the
-        // draggable:false suspenders.
+        onDragStart={(e) => e.preventDefault()}
+        {...listeners}
+        {...attributes}
+        aria-label="Drag to rank image"
         style={{
+          display: 'block',
           width: '100%',
           height: '100%',
-          objectFit: fit,
-          display: 'block',
-          pointerEvents: 'none',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          WebkitUserDrag: 'none',
-        } as React.CSSProperties}
-      />
-    </button>
+          padding: 0,
+          margin: 0,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'grab',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          // pointer-events:none forwards every press / drag motion
+          // straight to the parent <button>, so the browser never has
+          // a chance to initiate native image-drag against the <img>.
+          // -webkit-user-drag:none is the Safari/Chrome belt to the
+          // draggable:false suspenders.
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: fit,
+            display: 'block',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitUserDrag: 'none',
+          } as React.CSSProperties}
+        />
+      </button>
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          onRemove()
+        }}
+        className="absolute -right-1 -top-1 flex items-center justify-center rounded-full opacity-0 shadow-md transition group-hover:opacity-100"
+        style={{
+          width: 22,
+          height: 22,
+          background: 'var(--text-primary)',
+          color: 'var(--bg)',
+          border: '1px solid var(--border-subtle)',
+          fontSize: 11,
+          fontWeight: 700,
+        }}
+        aria-label="Remove image"
+      >
+        ✕
+      </button>
+    </div>
   )
 }
 
@@ -347,10 +383,11 @@ function resolveDropZone(
   if (overId === 'bank') return { tierId: null }
   if (overId.startsWith('tier-')) return { tierId: overId.slice('tier-'.length) }
 
-  const cardId = overId.startsWith('card-') ? overId.slice('card-'.length) : overId
-  const hit = cards.find((c) => c.id === cardId)
+  // Otherwise overId is a sortable card id (useSortable registers
+  // each card as a droppable under its own id, no prefix).
+  const hit = cards.find((c) => c.id === overId)
   if (!hit) return null
-  return { tierId: hit.tierId, overCardId: cardId }
+  return { tierId: hit.tierId, overCardId: overId }
 }
 
 function moveCardToTarget(
@@ -828,36 +865,29 @@ export function TierListMaker() {
                 background: 'var(--bg-surface)',
               }}
             >
-              {cards.filter((c) => c.tierId === null).length === 0 ? (
-                <p className="w-full py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                  Upload or paste images, then drag them into a tier.
-                </p>
-              ) : (
-                cards
-                  .filter((c) => c.tierId === null)
-                  .map((c) => (
-                    <div key={c.id} className="group relative">
-                      <DraggableImage id={c.id} src={c.src} kind={c.kind} />
-                      <button
-                        type="button"
-                        onClick={() => removeCard(c.id)}
-                        className="absolute -right-1 -top-1 flex items-center justify-center rounded-full opacity-0 shadow-md transition group-hover:opacity-100"
-                        style={{
-                          width: 22,
-                          height: 22,
-                          background: 'var(--text-primary)',
-                          color: 'var(--bg)',
-                          border: '1px solid var(--border-subtle)',
-                          fontSize: 11,
-                          fontWeight: 700,
-                        }}
-                        aria-label="Remove image"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))
-              )}
+              {(() => {
+                const poolCards = cards.filter((c) => c.tierId === null)
+                if (poolCards.length === 0) {
+                  return (
+                    <p className="w-full py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                      Upload or paste images, then drag them into a tier.
+                    </p>
+                  )
+                }
+                return (
+                  <SortableContext items={poolCards.map((c) => c.id)} strategy={rectSortingStrategy}>
+                    {poolCards.map((c) => (
+                      <SortableCard
+                        key={c.id}
+                        id={c.id}
+                        src={c.src}
+                        kind={c.kind}
+                        onRemove={() => removeCard(c.id)}
+                      />
+                    ))}
+                  </SortableContext>
+                )
+              })()}
             </DropZone>
           </section>
 
@@ -927,30 +957,22 @@ export function TierListMaker() {
                     className="flex min-h-[112px] flex-1 flex-wrap content-center items-center gap-2 p-2"
                     style={{ background: 'var(--bg-surface)' }}
                   >
-                    {cards
-                      .filter((c) => c.tierId === tier.id)
-                      .map((c) => (
-                        <div key={c.id} className="group relative">
-                          <DraggableImage id={c.id} src={c.src} kind={c.kind} />
-                          <button
-                            type="button"
-                            onClick={() => removeCard(c.id)}
-                            className="absolute -right-1 -top-1 flex items-center justify-center rounded-full opacity-0 shadow-md transition group-hover:opacity-100"
-                            style={{
-                              width: 22,
-                              height: 22,
-                              background: 'var(--text-primary)',
-                              color: 'var(--bg)',
-                              border: '1px solid var(--border-subtle)',
-                              fontSize: 11,
-                              fontWeight: 700,
-                            }}
-                            aria-label="Remove image"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+                    {(() => {
+                      const rowCards = cards.filter((c) => c.tierId === tier.id)
+                      return (
+                        <SortableContext items={rowCards.map((c) => c.id)} strategy={rectSortingStrategy}>
+                          {rowCards.map((c) => (
+                            <SortableCard
+                              key={c.id}
+                              id={c.id}
+                              src={c.src}
+                              kind={c.kind}
+                              onRemove={() => removeCard(c.id)}
+                            />
+                          ))}
+                        </SortableContext>
+                      )
+                    })()}
                   </DropZone>
                 </div>
               ))}

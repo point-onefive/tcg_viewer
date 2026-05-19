@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -39,9 +39,15 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
     id: key,
   })
 
+  // Plain div, not motion.div. Previously this used `<motion.div layout>`,
+  // which made framer-motion run its FLIP layout animation *on top of*
+  // dnd-kit/sortable's transform+transition for the same node — two
+  // independent animation systems competing to move the same element
+  // every time a neighbour shifted, producing the visible jitter the
+  // user noticed during reorders. dnd-kit alone handles the bump
+  // animation cleanly; framer's outer panel slide-in still uses motion.
   return (
-    <motion.div
-      layout
+    <div
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(transform),
@@ -83,7 +89,7 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
           <X size={12} strokeWidth={2.5} />
         </button>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -97,6 +103,13 @@ export function BoardPanel({ cards }: BoardPanelProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   )
+
+  // While a drag is in flight we add `is-dragging` to the grid so CSS
+  // can suppress the per-tile hover translateY(-2px). Without this,
+  // every neighbour the cursor passes over while reordering bobs up
+  // (hover transform) on top of the sortable transform shifting it
+  // sideways — visible double-motion / jitter.
+  const [isDragging, setIsDragging] = useState(false)
 
   // Close on Escape
   useEffect(() => {
@@ -116,6 +129,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
   }, [boardOpen])
 
   function handleDragEnd(event: DragEndEvent) {
+    setIsDragging(false)
     const { active, over } = event
     if (over && active.id !== over.id) {
       reorderPins(String(active.id), String(over.id))
@@ -195,10 +209,12 @@ export function BoardPanel({ cards }: BoardPanelProps) {
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
+                  onDragStart={() => setIsDragging(true)}
                   onDragEnd={handleDragEnd}
+                  onDragCancel={() => setIsDragging(false)}
                 >
                   <SortableContext items={pinnedKeys} strategy={rectSortingStrategy}>
-                    <div className="board-grid">
+                    <div className={`board-grid${isDragging ? ' is-dragging' : ''}`}>
                       {visiblePins.map((pin) => {
                         const key = pinKeyFor(pin)
                         const { card, imgSrc, label } = resolvePin(pin)

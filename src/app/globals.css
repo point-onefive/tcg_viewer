@@ -779,6 +779,16 @@ html.lenis, html.lenis body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
 }
 
+/* While the user is dragging within the board, every neighbour the
+   cursor passes over would otherwise pick up the hover translateY
+   (-2px) on top of the sortable transform shifting it sideways —
+   visible double-motion. Suppress the hover lift for the duration
+   of the drag so the bump animation stays clean. */
+.board-grid.is-dragging .board-tile:hover .board-tile__img {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .board-tile__placeholder {
   width: 100%;
   height: 100%;
