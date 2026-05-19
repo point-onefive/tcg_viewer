@@ -484,12 +484,45 @@ export function Header({ sets }: HeaderProps) {
           </span>
         </div>
 
-        {/* ── Desktop row-1 utility cluster · theme, tiers, X, board ──
-            Filters live in row 2 below; the top row stays reserved for
-            site-level actions so the brand + tagline have breathing
-            room and the cluster only changes if we add another action,
-            not another facet. */}
+        {/* ── Desktop row-1 cluster · grouped by size + role ──
+            Layout (left → right): [Help] [X] [Theme] | [Tiers] [Board].
+            Three 30×30 icon-only utilities first (informational,
+            social, personal preference - the "meta" stuff that
+            doesn't change your data), then the two labeled action
+            buttons that operate on your collection. Grouping by size
+            keeps the cluster from looking interleaved, and the size
+            escalation left-to-right naturally pulls the eye toward
+            the primary actions on the right. Filters live in row 2
+            below; this row stays reserved for site-level actions
+            only. */}
         <div className="hidden lg:flex items-center gap-2">
+          {/* How-it-works · compact ? icon pointing to /help, which
+              replaced the deprecated first-visit guided tour. */}
+          <Link
+            href="/help"
+            className="inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="How it works"
+            title="How it works"
+          >
+            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
+
+          {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
+          <a
+            href="https://x.com/point_onefive"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="Feedback on X (@point_onefive)"
+            title="Feedback & suggestions"
+          >
+            <svg width="11" height="11" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
+              <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
+            </svg>
+          </a>
+
           <ThemeToggle />
 
           <Link
@@ -517,38 +550,9 @@ export function Header({ sets }: HeaderProps) {
             )}
           </Link>
 
-          {/* How-it-works · compact ? icon that points returning users
-              to /help (where the deprecated guided tour content now
-              lives in document form). Kept icon-only and slotted next
-              to Feedback so the two "meta" actions sit together,
-              separated from the action-bearing controls (Tiers,
-              Board) by their visual grouping. */}
-          <Link
-            href="/help"
-            className="inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="How it works"
-            title="How it works"
-          >
-            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
-          </Link>
-
-          {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
-          <a
-            href="https://x.com/point_onefive"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="Feedback on X (@point_onefive)"
-            title="Feedback & suggestions"
-          >
-            <svg width="11" height="11" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
-              <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
-            </svg>
-          </a>
-
-          {/* Board trigger */}
+          {/* Board trigger · last in the cluster so its variable-
+              width count badge grows away from siblings, never into
+              them. */}
           <button
             className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
             style={{
