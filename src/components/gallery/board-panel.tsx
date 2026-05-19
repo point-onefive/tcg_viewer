@@ -41,7 +41,7 @@ function SortablePinnedItem({ pin, card, imgSrc, label, onRemove }: PinnedItemPr
 
   // Plain div, not motion.div. Previously this used `<motion.div layout>`,
   // which made framer-motion run its FLIP layout animation *on top of*
-  // dnd-kit/sortable's transform+transition for the same node — two
+  // dnd-kit/sortable's transform+transition for the same node - two
   // independent animation systems competing to move the same element
   // every time a neighbour shifted, producing the visible jitter the
   // user noticed during reorders. dnd-kit alone handles the bump
@@ -108,7 +108,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
   // can suppress the per-tile hover translateY(-2px). Without this,
   // every neighbour the cursor passes over while reordering bobs up
   // (hover transform) on top of the sortable transform shifting it
-  // sideways — visible double-motion / jitter.
+  // sideways - visible double-motion / jitter.
   const [isDragging, setIsDragging] = useState(false)
 
   // Two-click confirm for the "Clear all" header button. Clearing
@@ -134,7 +134,7 @@ export function BoardPanel({ cards }: BoardPanelProps) {
     }
   }, [boardOpen])
 
-  // Reset the armed Clear button when the panel closes — otherwise
+  // Reset the armed Clear button when the panel closes - otherwise
   // it'd still be primed the next time the user opens the board.
   useEffect(() => {
     if (!boardOpen) setConfirmingClear(false)

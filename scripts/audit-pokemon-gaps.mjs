@@ -5,7 +5,7 @@
  * Run after augment-pokemon-tcgdex.mjs in CI. The workflow uses the exit
  * code to decide whether to open a GitHub issue summarizing the gaps.
  *
- * "Recent" defaults to sets released within the last 180 days — that's
+ * "Recent" defaults to sets released within the last 180 days - that's
  * the window where alt arts realistically still matter and might be
  * actively requested. Older gaps are usually upstream bugs we can't fix.
  *
@@ -33,7 +33,7 @@ const DAYS = Number(args.days ?? 180)
 const STRICT = !!args.strict
 
 if (!existsSync(RESIDUAL)) {
-  console.log('No residual gap file — pipeline likely did not run augmenter. Skipping audit.')
+  console.log('No residual gap file - pipeline likely did not run augmenter. Skipping audit.')
   process.exit(0)
 }
 
@@ -71,7 +71,7 @@ const body = [
   '| Set | Name | Coverage | Released | Notes |',
   '|---|---|---|---|---|',
   ...concerning.map((g) =>
-    `| \`${g.setId}\` | ${g.name || ''} | ${g.received}/${g.expected} | ${g.releaseDate || '?'} | ${g.tcgdexMapped ? '' : 'No TCGdex mapping — investigate'} |`
+    `| \`${g.setId}\` | ${g.name || ''} | ${g.received}/${g.expected} | ${g.releaseDate || '?'} | ${g.tcgdexMapped ? '' : 'No TCGdex mapping - investigate'} |`
   ),
   '',
   '_This issue was opened automatically by `scripts/audit-pokemon-gaps.mjs`. It will be updated on the next refresh run; if all gaps close, the issue will be closed automatically._',

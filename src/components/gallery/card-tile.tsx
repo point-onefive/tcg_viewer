@@ -85,7 +85,6 @@ export function CardTile({ card, priority = false }: CardTileProps) {
       role="button"
       tabIndex={0}
       aria-label={`${card.name} - ${card.code}`}
-      data-tour={hasVariants ? 'stack' : undefined}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()

@@ -61,7 +61,7 @@ interface StoreState {
   activeCardType: string | null
   setActiveCardType: (t: string | null) => void
   // When true, only show cards with at least one variant (alt art).
-  // Boolean rather than a count threshold — the user's mental model
+  // Boolean rather than a count threshold - the user's mental model
   // is "show me cards that have alt art", not "show me cards with N+".
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void

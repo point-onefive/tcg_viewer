@@ -7,7 +7,7 @@
  *   3. Flatten + write to data/pokemon-cards-raw.json.
  *
  * Env:
- *   POKEMONTCG_API_KEY — free key from https://dev.pokemontcg.io
+ *   POKEMONTCG_API_KEY - free key from https://dev.pokemontcg.io
  *                        lifts rate limit 1K/day -> 20K/day
  *
  * Usage: node scripts/fetch-pokemon-data.mjs
@@ -168,7 +168,7 @@ for (const s of sets) {
 }
 console.log(`\nDelta: refetched ${refetched} sets, reused ${skipped} sets from cache.`)
 
-// Dedupe by id — the API occasionally returns the same card across
+// Dedupe by id - the API occasionally returns the same card across
 // queries (and re-runs with overlapping filters compound this).
 const byId = new Map()
 for (const c of allCards) byId.set(c.id, c)
@@ -184,7 +184,7 @@ console.log(`  ${OUT_SETS}`)
 
 // Gap detection: every set object has `total` (true count incl. alt arts /
 // SIRs) and `printedTotal` (the "X/Y" number on the card). When the API
-// ships fewer cards than `total`, we're missing alt arts upstream — the
+// ships fewer cards than `total`, we're missing alt arts upstream - the
 // gap is *always* in the >printedTotal range. We surface this so the
 // follow-up TCGdex augmenter knows what to chase, and so CI can alert
 // when newly-released sets remain incomplete.

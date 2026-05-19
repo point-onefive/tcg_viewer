@@ -259,7 +259,7 @@ html.lenis, html.lenis body {
    IMPORTANT: backdrop-filter is intentionally NOT on the resting style.
    At rest the button is opacity:0 but a `backdrop-filter` still forces
    the browser to allocate a compositor layer and sample pixels beneath
-   it — multiplied by ~90 tiles in the virtual window that's a hidden
+   it - multiplied by ~90 tiles in the virtual window that's a hidden
    perf tax. We apply it only when the button is actually visible. */
 .card-tile__pin {
   position: absolute;
@@ -417,7 +417,7 @@ html.lenis, html.lenis body {
 }
 
 /* Static dominant-color ambient glow on the main tile.
-   Previously this had an infinite `box-shadow` keyframe animation — but
+   Previously this had an infinite `box-shadow` keyframe animation - but
    box-shadow is NOT a compositor-friendly property; it forces repaint on
    every keyframe step. With ~30 variant tiles in the virtual window the
    continuous repaint visibly tanks scroll smoothness. The static halo
@@ -480,6 +480,17 @@ html.lenis, html.lenis body {
   border-radius: 50%;
   background: var(--text-primary);
   cursor: pointer;
+}
+
+/* Editable tier-list chart title. Placeholder is a muted italic so an
+   untitled chart reads as "click to name me" instead of looking like
+   real content. ::placeholder can't be set inline from React, so it
+   lives here next to the other component-scoped utilities. */
+.tier-list-title::placeholder {
+  color: var(--text-muted);
+  opacity: 0.55;
+  font-style: italic;
+  font-weight: 600;
 }
 
 /* Custom scrollbar */
@@ -823,8 +834,7 @@ html.lenis, html.lenis body {
 
 /* While the user is dragging within the board, every neighbour the
    cursor passes over would otherwise pick up the hover translateY
-   (-2px) on top of the sortable transform shifting it sideways —
-   visible double-motion. Suppress the hover lift for the duration
+   (-2px) on top of the sortable transform shifting it sideways - visible double-motion. Suppress the hover lift for the duration
    of the drag so the bump animation stays clean. */
 .board-grid.is-dragging .board-tile:hover .board-tile__img {
   transform: none;

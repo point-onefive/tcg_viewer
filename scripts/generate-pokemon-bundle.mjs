@@ -49,7 +49,7 @@ function normalizeDate(d) {
   return d ? d.replace(/\//g, '-') : undefined
 }
 
-// Dedupe by card id — fetch may have been re-run with overlapping filters
+// Dedupe by card id - fetch may have been re-run with overlapping filters
 // (e.g. series-filtered Phase 1 + later --all backfill), and the upstream
 // API can also re-list the same card across queries. Last write wins so
 // the most recent fetch's data is preserved.
@@ -62,9 +62,15 @@ if (dedupedRaw.length !== rawCards.length) {
   console.log(`Deduped ${rawCards.length - dedupedRaw.length} duplicate raw cards`)
 }
 
+// Site-wide style rule: never render em dashes. Upstream Pokemon set
+// names sometimes include them (e.g. "HS - Unleashed"), so we collapse
+// any em dash plus surrounding whitespace down to a spaced hyphen at
+// ingest time so the bundled data is already clean.
+const stripEmDashes = (s) => (typeof s === 'string' ? s.replace(/\s*\u2014\s*/g, ' - ') : s)
+
 const cards = dedupedRaw.map((c) => {
   const setId = c.set?.id || c.id.split('-')[0]
-  const setName = c.set?.name || setId
+  const setName = stripEmDashes(c.set?.name || setId)
   const releaseDate = normalizeDate(c.set?.releaseDate)
   const releaseOrder = orderForSet.get(setId) ?? 999
 
@@ -79,7 +85,7 @@ const cards = dedupedRaw.map((c) => {
   if (Array.isArray(c.attacks)) {
     for (const a of c.attacks) {
       const cost = Array.isArray(a.cost) && a.cost.length ? ` (${a.cost.join(', ')})` : ''
-      const dmg = a.damage ? ` — ${a.damage}` : ''
+      const dmg = a.damage ? ` - ${a.damage}` : ''
       parts.push(`${a.name}${cost}${dmg}${a.text ? `\n${a.text}` : ''}`.trim())
     }
   }

@@ -7,7 +7,7 @@ name: Check set coverage
 # Schedule: Mondays 09:00 UTC. Manual dispatch supported.
 #
 # Required repository secrets:
-#   POKEMONTCG_API_KEY  — pokemontcg.io v2 API key (lifts daily rate limit)
+#   POKEMONTCG_API_KEY - pokemontcg.io v2 API key (lifts daily rate limit)
 
 on:
   schedule:

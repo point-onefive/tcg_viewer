@@ -7,7 +7,10 @@ import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
 import { CardTile } from './card-tile'
 
-const GAP = 14
+// Base gap (px) at normal zoom. We tighten this at high column
+// counts via gapForColumns() below so dense mosaics don't waste
+// horizontal space on whitespace.
+const GAP_DEFAULT = 14
 
 interface CardGridProps {
   cards: Card[]
@@ -22,13 +25,36 @@ const CARD_RATIO = 7 / 5 // height / width
 const HEADER_H_MOBILE = 48
 const HEADER_H_DESKTOP = 88
 const LG_BREAKPOINT = 1024
+// Hard ceiling on how tiny we let cards get. Picked empirically: at
+// 30 columns on a 1024px viewport with a 4px gap, each tile is
+// ~29px wide / 41px tall - small enough to skim a 5,000-card set at
+// a glance but still big enough that the image reads as a card.
+// Beyond ~32 the variant-stack offset and colour bar collapse into
+// noise and DOM weight per visible row grows roughly linearly with
+// no visual payoff.
+const MAX_COLUMNS = 30
+
 function headerHeightFor(windowWidth: number): number {
   return windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
 }
 
-// Minimum columns so that 1 full card fits within the viewport height
+// Gap shrinks as the grid densifies. Around the default ~6 columns
+// a generous 14px gap reads as "card collection". At the extreme
+// zoom-out we want a stamp-album feel, so the gap collapses to a
+// hairline so the freed pixels go to actual card art.
+function gapForColumns(cols: number): number {
+  if (cols >= 24) return 4
+  if (cols >= 18) return 6
+  if (cols >= 13) return 10
+  return GAP_DEFAULT
+}
+
+// Minimum columns so that 1 full card fits within the viewport
+// height. Uses the default gap as a conservative upper bound - the
+// real gap may be tighter at high column counts, but that only
+// gives us *more* headroom for fitting cards vertically.
 function minColumnsForViewport(windowWidth: number, windowHeight: number): number {
-  const usableHeight = windowHeight - headerHeightFor(windowWidth) - GAP
+  const usableHeight = windowHeight - headerHeightFor(windowWidth) - GAP_DEFAULT
   const containerWidth = Math.min(windowWidth, 1800) - 32
   // cardWidth = containerWidth / cols, cardHeight = cardWidth * CARD_RATIO
   // We need cardHeight <= usableHeight
@@ -37,10 +63,12 @@ function minColumnsForViewport(windowWidth: number, windowHeight: number): numbe
   return Math.max(minCols, 1)
 }
 
-// zoom 1 = fewest cols (biggest cards), zoom 12 = most cols (tiny cards)
+// zoom 1 = fewest cols (biggest cards). High zoom = up to
+// MAX_COLUMNS (smallest cards). Keep the simple "zoom + 1 → column
+// count" mapping so each slider tick still feels like one step.
 function zoomToColumns(zoom: number, windowWidth: number, windowHeight: number) {
-  const desired = zoom + 1 // zoom 1 → 2, zoom 12 → 13 (capped below)
-  const capped = Math.min(desired, 12)
+  const desired = zoom + 1
+  const capped = Math.min(desired, MAX_COLUMNS)
   const floor = minColumnsForViewport(windowWidth, windowHeight)
   return Math.max(capped, floor)
 }
@@ -60,14 +88,14 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const [mounted, setMounted] = useState(false)
   const [windowWidth, setWindowWidth] = useState(1200)
   const [windowHeight, setWindowHeight] = useState(800)
-  // Collapsed set codes — lets users hide sections to skip long scrolls.
+  // Collapsed set codes - lets users hide sections to skip long scrolls.
   // Reset when collection changes so stale codes don't linger.
   //
   // Default behaviour: open the FIRST set in the collection, collapse the
   // rest. Otherwise landing on One Piece would mount ~2,500 rows worth of
   // virtual estimates and immediately request ~90 card images. This way
   // the user sees one fully-rendered set on arrival and progressively
-  // expands more as they explore — cuts initial layout & network burst.
+  // expands more as they explore - cuts initial layout & network burst.
   const [collapsedSets, setCollapsedSets] = useState<Set<string>>(() => new Set())
   // Sets the user has explicitly toggled (open OR closed) at least once.
   // Auto-expand-on-scroll respects this so we never undo an intentional
@@ -169,7 +197,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     //
     // We MUST be careful about how `touchmove` is attached. A non-passive
     // `touchmove` listener on `document` forces the browser to wait for
-    // our JS handler before scrolling can begin — even for single-finger
+    // our JS handler before scrolling can begin - even for single-finger
     // pans we never want to intercept. That's a major mobile scroll-jank
     // source. So the strategy is:
     //   1. Always listen for `touchstart` passively (cheap).
@@ -249,7 +277,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   }, [])
 
   const columns = zoomToColumns(zoom, windowWidth, windowHeight)
-  // Pre-compute the active header height once per render — used for
+  // Pre-compute the active header height once per render - used for
   // the layout spacer below the fixed header, the virtualizer's
   // scrollMargin, and the column-fitting math (`minColumnsForViewport`
   // also recomputes it, but cheaply).
@@ -274,7 +302,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     return result
   }, [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery])
 
-  // Card counts per set (from filtered results) — shown in collapsed headers.
+  // Card counts per set (from filtered results) - shown in collapsed headers.
   const setCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const c of filtered) counts.set(c.setCode, (counts.get(c.setCode) ?? 0) + 1)
@@ -320,9 +348,10 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     (index: number) => {
       if (rowMeta[index] === 'header') return 44
       const padding = 32
+      const gap = gapForColumns(columns)
       const containerWidth = Math.min(window.innerWidth, 1800) - padding
-      const cardWidth = (containerWidth - GAP * (columns - 1)) / columns
-      return Math.round(cardWidth * (7 / 5)) + GAP
+      const cardWidth = (containerWidth - gap * (columns - 1)) / columns
+      return Math.round(cardWidth * (7 / 5)) + gap
     },
     [columns, rowMeta]
   )
@@ -330,7 +359,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const virtualizer = useWindowVirtualizer({
     count: mounted ? rows.length : 0,
     estimateSize,
-    // Was 12 — that mounted ~72 extra CardTile components on each side of
+    // Was 12 - that mounted ~72 extra CardTile components on each side of
     // the viewport. Each tile costs subscriptions, animations, and an
     // image request, so 4 is plenty (≈2 rows of preload).
     overscan: 4,
@@ -525,7 +554,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             >
               <div
                 className="grid"
-                style={{ gridTemplateColumns: "repeat(" + columns + ", 1fr)", gap: GAP }}
+                style={{ gridTemplateColumns: "repeat(" + columns + ", 1fr)", gap: gapForColumns(columns) }}
               >
                 {cardRow.map((card) => (
                   <CardTile key={card.id} card={card} priority={isFirstCardRow} />

@@ -28,10 +28,13 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
 import {
   GripVertical,
+  ImagePlus,
+  Inbox,
   Layers,
   Plus,
   RotateCcw,
   Trash2,
+  Trophy,
   Upload,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
@@ -45,12 +48,12 @@ export type TierDef = {
 /**
  * Where a tier card image came from. Drives the rendered aspect ratio:
  *
- * - `gallery` — added via the "Add to tier list pool" button on a card
+ * - `gallery` - added via the "Add to tier list pool" button on a card
  *   in the main wall. Rendered portrait at the natural TCG card aspect
  *   (5:7) with `object-contain` so the full card art + frame is always
  *   visible (no cropping of the card title, cost, etc.).
  *
- * - `upload` — uploaded from disk or pasted from the clipboard. We have
+ * - `upload` - uploaded from disk or pasted from the clipboard. We have
  *   no idea what shape these are (screenshots, memes, square portraits)
  *   so we render them square with `object-cover` for a clean grid.
  */
@@ -66,7 +69,7 @@ export type TierCard = {
 /**
  * Thumb width is shared between square (upload) and portrait (gallery)
  * thumbs so they flow consistently in tier rows. Portrait height is
- * derived from the standard TCG card ratio (5:7) — a ~78×109 box that
+ * derived from the standard TCG card ratio (5:7) - a ~78×109 box that
  * matches whole cards from the gallery without cropping.
  */
 const THUMB_W = 78
@@ -94,6 +97,66 @@ const ctrlBase: React.CSSProperties = {
 }
 
 const accentRing = '2px solid color-mix(in srgb, #E85D2A 50%, transparent)'
+
+/**
+ * Section label used for the Pool / Chart / Editor headers below
+ * the page lede. Mirrors the visual language of the /help page's
+ * <Section> component: a small brand-orange icon, a tracked-out
+ * uppercase wordmark, and a tapering orange gradient rule that
+ * carries the eye into whatever action sits on the right (Clear
+ * pool, Clear chart, etc.).
+ *
+ * The rule is what makes this helper worth extracting - without
+ * it the labels read as plain UI text. With it the page reads as
+ * a *document* with named regions, which nudges the tier-list
+ * page closer in feel to the chrome-heavy main gallery rather
+ * than feeling like a stripped-down secondary tool.
+ */
+function SectionLabel({
+  icon: Icon,
+  label,
+  right,
+}: {
+  icon: React.ComponentType<{
+    size?: number
+    strokeWidth?: number
+    style?: React.CSSProperties
+    'aria-hidden'?: boolean
+  }>
+  label: string
+  right?: React.ReactNode
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2">
+        <Icon size={14} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
+        <h2
+          className="font-display"
+          style={{
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--text-primary)',
+          }}
+        >
+          {label}
+        </h2>
+      </div>
+      <div
+        aria-hidden
+        className="hidden flex-1 sm:block"
+        style={{
+          height: 1,
+          minWidth: 24,
+          background:
+            'linear-gradient(to right, color-mix(in srgb, #E85D2A 50%, transparent), transparent)',
+        }}
+      />
+      {right && <div className="ml-auto flex items-center gap-3 sm:ml-0">{right}</div>}
+    </div>
+  )
+}
 
 /**
  * Brand lockup that exactly mirrors the main nav header lockup
@@ -235,14 +298,14 @@ function BoardWatermark() {
  *   1. The × is absolutely positioned relative to the wrapper. If
  *      the inner button got the sortable transform instead, the ×
  *      would stay put while the image translated to its new slot
- *      during neighbour bumps — visible desync.
+ *      during neighbour bumps - visible desync.
  *   2. We want `visibility: hidden` on the whole tile (image + ×)
  *      while it's being actively dragged so only the DragOverlay
  *      clone follows the cursor; applying it to the wrapper does
  *      that in one step.
  *
  * Drag listeners stay on the inner image button so pressing the ×
- * never starts a drag — its onPointerDown also stops propagation
+ * never starts a drag - its onPointerDown also stops propagation
  * defensively in case any sibling listener gets added later.
  */
 function SortableCard({
@@ -273,7 +336,7 @@ function SortableCard({
         // For the active item, `transform` is the *cursor-delta*
         // (how far the user has dragged); applying that to a
         // visibility:hidden element is invisible during the drag but
-        // produces a visible "shake" on release — visibility flips
+        // produces a visible "shake" on release - visibility flips
         // back, the still-applied cursor transform transitions back
         // toward 0, and the post-drop FLIP transform fights it.
         //
@@ -298,7 +361,7 @@ function SortableCard({
         // draggable={false} + onDragStart preventDefault eliminate the
         // browser's native HTML5 drag preview (a translucent screenshot
         // that macOS browsers attach to image buttons, on top of
-        // @dnd-kit's DragOverlay — visible "ghost" above the overlay).
+        // @dnd-kit's DragOverlay - visible "ghost" above the overlay).
         draggable={false}
         onDragStart={(e) => e.preventDefault()}
         {...listeners}
@@ -449,7 +512,7 @@ function tierRemoveBtnStyle(disabled: boolean): React.CSSProperties {
 
 /**
  * Locks any drag transform to the vertical axis. Used by the tier-row
- * DragOverlay so the lifted clone slides up/down only — horizontal
+ * DragOverlay so the lifted clone slides up/down only - horizontal
  * cursor wobble can't drag a row out of its column, which makes the
  * vertical list feel deliberate and rails-y instead of free-floating.
  */
@@ -461,7 +524,7 @@ const restrictToVerticalAxis: Modifier = ({ transform }) => ({
 /**
  * Read-only visual twin of `SortableTierRow`. Rendered inside the
  * `DragOverlay` so the user sees a floating, fully-styled row track
- * the cursor during a drag — same pattern the card sortables use.
+ * the cursor during a drag - same pattern the card sortables use.
  * Width is forwarded from the source row (captured on drag start)
  * so the floating clone matches the original row exactly instead of
  * collapsing to its content's intrinsic width when portaled to body.
@@ -522,7 +585,7 @@ function TierRowOverlay({ tier, width }: { tier: TierDef; width: number | null }
  * One row in the tier editor. The whole `<li>` is the sortable node so
  * the FLIP transform shifts the entire row (handle + inputs + delete)
  * together when neighbours bump out of the way. Drag listeners live
- * *only* on the grip button — the color picker and label input must
+ * *only* on the grip button - the color picker and label input must
  * stay clickable/typeable without triggering a drag, and pointer-down
  * on the delete button gets stopPropagation defensively in case dnd-kit
  * ever decides to listen at the wrapper level.
@@ -560,7 +623,7 @@ function SortableTierRow({
       style={{
         // Mirror SortableCard's physics. While this row is the one being
         // dragged we hide it in-place and skip the cursor-delta transform
-        // — the floating clone in the DragOverlay does the visible work,
+        // - the floating clone in the DragOverlay does the visible work,
         // so the source's only job is to hold the DOM slot. On release,
         // useSortable applies one clean FLIP delta (old slot → new) and
         // animates the bump without fighting any lingering transforms.
@@ -631,6 +694,12 @@ export function TierListMaker() {
 
   const [tiers, setTiers] = useState<TierDef[]>(() => DEFAULT_TIERS.map((t) => ({ ...t })))
   const [cards, setCards] = useState<TierCard[]>([])
+  // Free-form chart title. Lives in component state to match the
+  // tiers/cards persistence model (in-memory only) - when we add
+  // chart persistence we'll lift all three together so they round-
+  // trip as one object. Capped well below typical screen widths to
+  // keep the heading from wrapping into a paragraph block.
+  const [title, setTitle] = useState('')
   const [activeId, setActiveId] = useState<string | null>(null)
   // Tier-row drag state. Kept in its own pair (instead of widening
   // `activeId`) because the two DndContexts are independent and we
@@ -802,7 +871,7 @@ export function TierListMaker() {
 
   // Reorder the tier rows when the user drags a row's grip handle.
   // Lives in its own DndContext below, completely independent of the
-  // card-drag context — these two interactions never share a sortable
+  // card-drag context - these two interactions never share a sortable
   // tree, so we don't need to dispatch on data.kind here.
   //
   // The trio of start/end/cancel mirrors the card-drag handlers below
@@ -961,6 +1030,50 @@ export function TierListMaker() {
         </div>
       </header>
 
+      {/* Snarky page lede. Sets the tone the moment you land: this
+          is free, this is irreverent, the rest of the internet is
+          getting away with murder for this. Visual language mirrors
+          the main gallery's italic-display tagline (orange quote
+          marks + display font) so the two pages feel like siblings
+          rather than the tier-list page feeling like a stripped-down
+          secondary tool. */}
+      <section
+        aria-label="About this page"
+        className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center"
+      >
+        <p
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(18px, 2.6vw, 26px)',
+            fontStyle: 'italic',
+            fontWeight: 700,
+            lineHeight: 1.3,
+            letterSpacing: '-0.01em',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>“</span>
+          I can&rsquo;t believe sites charge money to make tier lists
+          <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>”</span>
+        </p>
+        <p
+          className="mt-3 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+          style={{
+            fontSize: 11,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            fontWeight: 700,
+            color: 'var(--text-muted)',
+          }}
+        >
+          <span>Always free</span>
+          <span aria-hidden style={{ opacity: 0.5 }}>·</span>
+          <span>No signup</span>
+          <span aria-hidden style={{ opacity: 0.5 }}>·</span>
+          <span>Runs in your browser</span>
+        </p>
+      </section>
+
       <div className="mx-auto max-w-6xl px-4 pt-6">
         {editorOpen && (
           <section
@@ -972,23 +1085,24 @@ export function TierListMaker() {
               boxShadow: 'var(--shadow-card)',
             }}
           >
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                Tier rows
-              </p>
-              <button
-                type="button"
-                onClick={addTier}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
-                style={{ ...ctrlBase, height: 28 }}
-              >
-                <Plus size={14} aria-hidden />
-                Add tier
-              </button>
-            </div>
+            <SectionLabel
+              icon={Layers}
+              label="Tier rows"
+              right={
+                <button
+                  type="button"
+                  onClick={addTier}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                  style={{ ...ctrlBase, height: 28 }}
+                >
+                  <Plus size={14} aria-hidden />
+                  Add tier
+                </button>
+              }
+            />
             {/* Tier-row reorder lives in its own DndContext, isolated
                 from the card-drag context below. closestCenter is the
-                right choice for a vertical list — the cursor's vertical
+                right choice for a vertical list - the cursor's vertical
                 center picks the nearest neighbour row cleanly. The
                 restrictToVerticalAxis modifier keeps the floating
                 overlay locked to the column for a rails-y feel. */}
@@ -1039,82 +1153,120 @@ export function TierListMaker() {
           onDragCancel={onDragCancel}
         >
           <section aria-label="Image pool" className="mb-8">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                Pool
-              </h2>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {pasteHint}
-              </p>
-              {cards.some((c) => c.tierId === null) && (
-                <button
-                  type="button"
-                  onClick={clearBankOnly}
-                  className="text-xs underline-offset-2 hover:underline"
-                  style={{ color: 'var(--text-muted)' }}
+            <SectionLabel
+              icon={Inbox}
+              label="Pool"
+              right={
+                <>
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {pasteHint}
+                  </span>
+                  {cards.some((c) => c.tierId === null) && (
+                    <button
+                      type="button"
+                      onClick={clearBankOnly}
+                      className="text-xs underline-offset-2 hover:underline"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      Clear pool
+                    </button>
+                  )}
+                </>
+              }
+            />
+            {(() => {
+              const poolCards = cards.filter((c) => c.tierId === null)
+              const isEmpty = poolCards.length === 0
+              return (
+                <DropZone
+                  id="bank"
+                  className="flex min-h-[128px] flex-wrap content-center items-center gap-2 p-3"
+                  style={{
+                    borderRadius: 8,
+                    // Dashed border in the empty state visually advertises
+                    // the drop zone (matches the platform convention every
+                    // user has internalized from Notion / Figma / Drive
+                    // upload widgets). Switches to a solid 1px border once
+                    // there are cards in the pool so the dashed pattern
+                    // doesn't fight visually with the rendered thumbs.
+                    border: isEmpty
+                      ? '1.5px dashed color-mix(in srgb, var(--text-primary) 22%, transparent)'
+                      : '1px solid var(--border-subtle)',
+                    boxShadow: 'var(--shadow-card)',
+                    background: isEmpty
+                      ? 'color-mix(in srgb, var(--bg-surface) 70%, transparent)'
+                      : 'var(--bg-surface)',
+                  }}
                 >
-                  Clear pool
-                </button>
-              )}
-            </div>
-            <DropZone
-              id="bank"
-              className="flex min-h-[128px] flex-wrap content-center items-center gap-2 p-3"
-              style={{
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                boxShadow: 'var(--shadow-card)',
-                background: 'var(--bg-surface)',
-              }}
-            >
-              {(() => {
-                const poolCards = cards.filter((c) => c.tierId === null)
-                if (poolCards.length === 0) {
-                  return (
-                    <p className="w-full py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                      Upload or paste images, then drag them into a tier.
-                    </p>
-                  )
-                }
-                return (
-                  <SortableContext items={poolCards.map((c) => c.id)} strategy={rectSortingStrategy}>
-                    {poolCards.map((c) => (
-                      <SortableCard
-                        key={c.id}
-                        id={c.id}
-                        src={c.src}
-                        kind={c.kind}
-                        onRemove={() => removeCard(c.id)}
+                  {isEmpty ? (
+                    <div className="w-full py-8 text-center">
+                      <ImagePlus
+                        size={28}
+                        strokeWidth={1.75}
+                        aria-hidden
+                        style={{
+                          color: '#E85D2A',
+                          opacity: 0.7,
+                          display: 'inline-block',
+                          marginBottom: 6,
+                        }}
                       />
-                    ))}
-                  </SortableContext>
-                )
-              })()}
-            </DropZone>
+                      <p
+                        className="text-sm"
+                        style={{ color: 'var(--text-primary)', fontWeight: 600 }}
+                      >
+                        Drop images here to get started
+                      </p>
+                      <p
+                        className="mt-1 text-xs"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        Upload, paste from clipboard, or add cards from the
+                        gallery with the layers icon.
+                      </p>
+                    </div>
+                  ) : (
+                    <SortableContext items={poolCards.map((c) => c.id)} strategy={rectSortingStrategy}>
+                      {poolCards.map((c) => (
+                        <SortableCard
+                          key={c.id}
+                          id={c.id}
+                          src={c.src}
+                          kind={c.kind}
+                          onRemove={() => removeCard(c.id)}
+                        />
+                      ))}
+                    </SortableContext>
+                  )}
+                </DropZone>
+              )
+            })()}
           </section>
 
-          {/* Section header for the chart. Mirrors the Pool header
-              pattern above (label + right-aligned action). The action
-              slot holds Clear chart, which sends every tier-assigned
-              card back to the pool - only rendered when there's
-              something to clear so the slot doesn't sit inert. */}
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-              Chart
-            </h2>
-            {cards.some((c) => c.tierId !== null) && (
-              <button
-                type="button"
-                onClick={clearChart}
-                className="inline-flex items-center gap-1 px-3 text-xs font-medium"
-                style={{ ...ctrlBase, height: 30 }}
-                aria-label="Move every charted card back to the pool"
-              >
-                <RotateCcw size={14} aria-hidden />
-                Clear chart
-              </button>
-            )}
-          </div>
+          {/* Section header for the chart. Same SectionLabel pattern
+              as the Pool above so the page reads as two consistent
+              named regions. The action slot holds Clear chart, which
+              sends every tier-assigned card back to the pool - only
+              rendered when there's something to clear so the slot
+              doesn't sit inert. */}
+          <SectionLabel
+            icon={Trophy}
+            label="Chart"
+            right={
+              cards.some((c) => c.tierId !== null) ? (
+                <button
+                  type="button"
+                  onClick={clearChart}
+                  className="inline-flex items-center gap-1 px-3 text-xs font-medium"
+                  style={{ ...ctrlBase, height: 30 }}
+                  aria-label="Move every charted card back to the pool"
+                >
+                  <RotateCcw size={14} aria-hidden />
+                  Clear chart
+                </button>
+              ) : undefined
+            }
+          />
 
           <div
             className="relative overflow-hidden rounded-[12px] p-4 sm:p-5"
@@ -1125,6 +1277,59 @@ export function TierListMaker() {
                 'linear-gradient(180deg, color-mix(in srgb, var(--bg-surface) 97%, var(--bg)) 0%, color-mix(in srgb, var(--bg-surface) 92%, var(--bg)) 100%)',
             }}
           >
+            {/* Brand-orange top accent strip. Two-pixel band fading
+                left + right so the chart frame reads as a *board*
+                with a header, not just another panel. Pointer-events
+                none so it never intercepts a drag-over the chart's
+                top edge. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-0 right-0 top-0"
+              style={{
+                height: 2,
+                background:
+                  'linear-gradient(90deg, transparent 0%, color-mix(in srgb, #E85D2A 75%, transparent) 30%, color-mix(in srgb, #E85D2A 75%, transparent) 70%, transparent 100%)',
+                opacity: 0.85,
+              }}
+            />
+            {/* Editable chart title. Lives inside the chart frame so it
+                pairs with the BoardWatermark footer (title up top,
+                brand stamp down bottom) and will be captured by any
+                future "export as image" feature. We use a real <input>
+                rather than contentEditable for accessibility (proper
+                label semantics, form-style focus ring, placeholder)
+                and to dodge the host of selection / paste / IME quirks
+                that contentEditable brings. Background is transparent
+                and the only chrome is a focus underline so the field
+                reads as a heading at rest and an editor on focus. */}
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Untitled tier list"
+              maxLength={80}
+              aria-label="Tier list title"
+              className="tier-list-title mb-3 block w-full bg-transparent text-center font-display font-extrabold tracking-tight outline-none transition-colors sm:mb-4"
+              style={{
+                color: 'var(--text-primary)',
+                fontSize: 'clamp(20px, 3.4vw, 28px)',
+                lineHeight: 1.15,
+                letterSpacing: '-0.015em',
+                // Hairline placeholder when empty; on focus we draw a
+                // brand-accent underline so it's obvious the field is
+                // live without flashing a heavy input border that
+                // would compete visually with the tier rows below.
+                borderBottom: '1px solid transparent',
+                paddingBottom: 4,
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderBottomColor =
+                  'color-mix(in srgb, #E85D2A 55%, transparent)'
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderBottomColor = 'transparent'
+              }}
+            />
             <section
               aria-label="Tier list"
               className="relative z-[1] flex flex-col overflow-hidden"
@@ -1217,8 +1422,12 @@ export function TierListMaker() {
           </DragOverlay>
         </DndContext>
 
+        {/* Footer note. The "always free / no signup / runs in
+            browser" trio already lives in the lede above, so down
+            here we say the part that matters specifically for the
+            tier-list page: uploaded images never leave the device. */}
         <p className="mt-8 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-          Runs in your browser only. Images are not uploaded to any server.
+          Your images stay on your device. Nothing is uploaded to any server.
         </p>
       </div>
     </div>

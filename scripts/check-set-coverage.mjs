@@ -313,7 +313,7 @@ function renderMarkdown(report, totalMissing, anyFailed) {
   lines.push('')
   for (const r of report) {
     if (!r.ok) {
-      lines.push(`### ${r.label} — fetch failed`)
+      lines.push(`### ${r.label} - fetch failed`)
       lines.push('```')
       lines.push(r.error)
       lines.push('```')

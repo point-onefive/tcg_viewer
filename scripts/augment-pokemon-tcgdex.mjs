@@ -1,11 +1,11 @@
 /**
  * Augments data/pokemon-cards-raw.json with cards from TCGdex
- * (https://tcgdex.dev) — pokemontcg.io frequently lags on alt arts and
+ * (https://tcgdex.dev) - pokemontcg.io frequently lags on alt arts and
  * Special Illustration Rares for newly-released sets.
  *
  * For each set in our raw list, this script:
  *   1. Maps our pokemontcg.io set id (e.g. "me2pt5") to TCGdex's id ("me02.5")
- *      via name match — most reliable since the IDs use slightly different
+ *      via name match - most reliable since the IDs use slightly different
  *      conventions (zero-padding, "pt" vs ".").
  *   2. Fetches TCGdex's full card list for that set.
  *   3. For any card that doesn't already exist in our raw bundle (by id),
@@ -128,7 +128,7 @@ for (let i = 0; i < targets.length; i++) {
       : String(c.localId)
     const ourId = `${s.id}-${localUnpadded}`
     if (existingIds.has(normalizeId(ourId))) continue
-    // Skip cards TCGdex doesn't have art for yet — useless without an image.
+    // Skip cards TCGdex doesn't have art for yet - useless without an image.
     if (!c.image) continue
 
     // Synthesize a minimal pokemontcg.io-compatible card row. The bundle
@@ -160,7 +160,7 @@ for (let i = 0; i < targets.length; i++) {
 }
 
 if (newCards.length === 0) {
-  console.log('\nNothing to augment — all sets already have full coverage.')
+  console.log('\nNothing to augment - all sets already have full coverage.')
 } else {
   const merged = [...ourCards, ...newCards]
   writeFileSync(RAW_CARDS, JSON.stringify(merged, null, 2))

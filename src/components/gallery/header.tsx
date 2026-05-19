@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
+import { Bookmark, HelpCircle, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
@@ -35,8 +35,243 @@ const ONE_PIECE_COLORS = [
   'Yellow',
 ] as const
 
+// Swatch palette for the Color facet popover. Mirrors card-tile.tsx's
+// COLOR_MAP so the chip beside each option matches the colour accent
+// the card itself wears in the grid. Kept here (not imported from
+// card-tile) so this component has no inverse dependency on a tile
+// rendering concern.
+const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
+  Red: '#ef4444',
+  Blue: '#3b82f6',
+  Green: '#22c55e',
+  Purple: '#a855f7',
+  Black: '#9ca3af',
+  Yellow: '#eab308',
+}
+
 interface HeaderProps {
   sets: CardSet[]
+}
+
+type FacetOption = { value: string; label: string; swatch?: string }
+
+/**
+ * Custom popover dropdown for a single-select filter facet. Replaces
+ * the native <select> for the in-app Card type / Colour pickers so the
+ * options list inherits site styling (dark surface, rounded corners,
+ * brand typography) instead of falling back to the OS-default menu - * which on macOS Chrome paints an opaque white panel that ignores
+ * dark mode and feels foreign next to the rest of the header.
+ *
+ * The trigger + dismissal physics mirror the Collection picker above:
+ *
+ *   - Click trigger to toggle.
+ *   - Outside mousedown OR Escape key closes (effect installed only
+ *     while open, so we don't leak listeners).
+ *   - AnimatePresence fades + slides 4px so the open/close motion
+ *     matches the Collection picker exactly.
+ *
+ * `swatch` on an option draws a small filled circle to the left of
+ * the label (used by the Colour facet) so the dropdown reads as a
+ * palette, not a plain text list.
+ */
+function FacetPopover({
+  placeholder,
+  ariaLabel,
+  value,
+  onChange,
+  options,
+  ctrl,
+  ctrlActive,
+  menuMinWidth = 160,
+}: {
+  placeholder: string
+  ariaLabel: string
+  value: string | null
+  onChange: (next: string | null) => void
+  options: ReadonlyArray<FacetOption>
+  ctrl: React.CSSProperties
+  ctrlActive: React.CSSProperties
+  menuMinWidth?: number
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const selectedOption = value ? options.find((o) => o.value === value) : null
+  const triggerLabel = selectedOption?.label ?? placeholder
+  const isActive = Boolean(value)
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        /* outline-none keeps focus indication consistent with the
+           Collection picker beside it; keyboard users still get a
+           visible focus ring via the global :focus-visible rule
+           (selects/inputs) - buttons here use hover/active styling
+           instead, matching the header's existing button language. */
+        className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+        style={{ ...(isActive ? ctrlActive : ctrl), height: 30 }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+      >
+        {selectedOption?.swatch && (
+          <span
+            aria-hidden
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              background: selectedOption.swatch,
+              flexShrink: 0,
+              boxShadow: '0 0 0 1px color-mix(in srgb, var(--text-primary) 18%, transparent)',
+            }}
+          />
+        )}
+        <span>{triggerLabel}</span>
+        <ChevronDown
+          size={12}
+          strokeWidth={2.25}
+          style={{
+            transition: 'transform 180ms ease',
+            transform: open ? 'rotate(180deg)' : 'rotate(0)',
+            color: 'var(--text-muted)',
+          }}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="listbox"
+            aria-label={ariaLabel}
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 top-full mt-1.5 overflow-hidden"
+            style={{
+              transformOrigin: 'top left',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              boxShadow: 'var(--shadow-card)',
+              zIndex: 60,
+              padding: 4,
+              minWidth: menuMinWidth,
+            }}
+          >
+            {/* "Clear" row: null value, shown as a reset action.
+                Sits above the real options so the popover reads as
+                "[All] / Red / Green / …" the same way the trigger
+                label shows the placeholder when no value is set. */}
+            <FacetOptionRow
+              label={placeholder}
+              selected={value === null}
+              onClick={() => {
+                onChange(null)
+                setOpen(false)
+              }}
+            />
+            {options.map((opt) => (
+              <FacetOptionRow
+                key={opt.value}
+                label={opt.label}
+                swatch={opt.swatch}
+                selected={value === opt.value}
+                onClick={() => {
+                  onChange(opt.value)
+                  setOpen(false)
+                }}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/**
+ * Single row inside a FacetPopover menu. Extracted so the trigger's
+ * "clear" row and the option rows share identical sizing, hover, and
+ * selected-state physics without duplication.
+ */
+function FacetOptionRow({
+  label,
+  swatch,
+  selected,
+  onClick,
+}: {
+  label: string
+  swatch?: string
+  selected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="option"
+      aria-selected={selected}
+      onClick={onClick}
+      className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
+      style={{
+        height: 30,
+        borderRadius: 5,
+        background: selected ? 'var(--text-primary)' : 'transparent',
+        color: selected ? 'var(--bg)' : 'var(--text-primary)',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={(e) => {
+        if (!selected) {
+          e.currentTarget.style.background =
+            'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) e.currentTarget.style.background = 'transparent'
+      }}
+    >
+      <Check
+        size={12}
+        strokeWidth={2.5}
+        style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
+      />
+      {swatch && (
+        <span
+          aria-hidden
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            background: swatch,
+            flexShrink: 0,
+            boxShadow: selected
+              ? '0 0 0 1px color-mix(in srgb, var(--bg) 35%, transparent)'
+              : '0 0 0 1px color-mix(in srgb, var(--text-primary) 18%, transparent)',
+          }}
+        />
+      )}
+      <span className="flex-1">{label}</span>
+    </button>
+  )
 }
 
 export function Header({ sets }: HeaderProps) {
@@ -85,11 +320,20 @@ export function Header({ sets }: HeaderProps) {
   // Tier-list queue count is global (the tier list maker is collection-agnostic).
   const tierPoolCount = tierPool.length
 
-  // Shared style token · matches logo's rounded-rect language
+  // Shared style token · matches logo's rounded-rect language.
+  // Border uses color-mix against --text-primary (rather than the
+  // global --border-subtle token) so the rounded-rect always reads
+  // as a button at rest. The previous --border-subtle = 6% opacity
+  // was invisible against the dark surface, which made focus rings
+  // on individual controls (from globals.css :focus-visible) look
+  // like an inconsistency between siblings rather than an additive
+  // accessibility cue. 14% is dim enough to feel quiet but firm
+  // enough to anchor the control without competing with active
+  // (orange) state styling below.
   const ctrl: React.CSSProperties = {
     background: 'var(--bg-surface)',
     color: 'var(--text-primary)',
-    border: '1px solid var(--border-subtle)',
+    border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
     borderRadius: 6,
   }
 
@@ -273,6 +517,22 @@ export function Header({ sets }: HeaderProps) {
             )}
           </Link>
 
+          {/* How-it-works · compact ? icon that points returning users
+              to /help (where the deprecated guided tour content now
+              lives in document form). Kept icon-only and slotted next
+              to Feedback so the two "meta" actions sit together,
+              separated from the action-bearing controls (Tiers,
+              Board) by their visual grouping. */}
+          <Link
+            href="/help"
+            className="inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="How it works"
+            title="How it works"
+          >
+            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
+
           {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
           <a
             href="https://x.com/point_onefive"
@@ -282,7 +542,6 @@ export function Header({ sets }: HeaderProps) {
             style={{ ...ctrl, width: 30, height: 30 }}
             aria-label="Feedback on X (@point_onefive)"
             title="Feedback & suggestions"
-            data-tour="feedback"
           >
             <svg width="11" height="11" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
               <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
@@ -301,7 +560,6 @@ export function Header({ sets }: HeaderProps) {
             }}
             onClick={() => setBoardOpen(true)}
             aria-label={`Open board (${pinnedCount} pinned)`}
-            data-tour="board"
           >
             <Bookmark size={12} strokeWidth={2} fill={pinnedCount > 0 ? 'currentColor' : 'none'} />
             Board
@@ -363,7 +621,6 @@ export function Header({ sets }: HeaderProps) {
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
-            data-tour="menu"
           >
             {mobileOpen ? <X size={15} /> : <Menu size={15} />}
           </button>
@@ -384,7 +641,7 @@ export function Header({ sets }: HeaderProps) {
           style={{ maxWidth: 1800, height: 40 }}
         >
           {/* Collection Filter (custom popover so menu stays inside the site) */}
-          <div ref={collectionRef} className="relative" data-tour="collection">
+          <div ref={collectionRef} className="relative">
             <button
               type="button"
               onClick={() => setCollectionOpen((o) => !o)}
@@ -488,7 +745,6 @@ export function Header({ sets }: HeaderProps) {
             onChange={(e) => setActiveSet(e.target.value || null)}
             className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
             style={{ ...(activeSet ? ctrlActive : ctrl), height: 30 }}
-            data-tour="set"
           >
             <option value="">All Sets</option>
             {sets.map((s) => (
@@ -505,38 +761,49 @@ export function Header({ sets }: HeaderProps) {
               state is visible without scanning the chip strip below. */}
           {showOnePieceFacets && (
             <>
-              <select
-                value={activeCardType || ''}
-                onChange={(e) => setActiveCardType(e.target.value || null)}
-                className="px-3 text-xs outline-none cursor-pointer appearance-none"
-                style={{ ...(activeCardType ? ctrlActive : ctrl), height: 30 }}
-                aria-label="Filter by card type"
-              >
-                <option value="">All types</option>
-                {ONE_PIECE_CARD_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={activeColor || ''}
-                onChange={(e) => setActiveColor(e.target.value || null)}
-                className="px-3 text-xs outline-none cursor-pointer appearance-none"
-                style={{ ...(activeColor ? ctrlActive : ctrl), height: 30 }}
-                aria-label="Filter by color"
-              >
-                <option value="">All colors</option>
-                {ONE_PIECE_COLORS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              {/* Custom popovers (not native <select>) so the menu
+                  inherits site styling. The native dropdown overlay
+                  on macOS Chrome paints an opaque white panel that
+                  ignores dark mode and feels foreign next to the
+                  rest of the header. Mobile keeps native selects - those bring up the OS picker which is genuinely
+                  better tuned for touch. */}
+              <FacetPopover
+                placeholder="All types"
+                ariaLabel="Filter by card type"
+                value={activeCardType}
+                onChange={setActiveCardType}
+                options={ONE_PIECE_CARD_TYPES}
+                ctrl={ctrl}
+                ctrlActive={ctrlActive}
+                menuMinWidth={140}
+              />
+              <FacetPopover
+                placeholder="All colors"
+                ariaLabel="Filter by color"
+                value={activeColor}
+                onChange={setActiveColor}
+                options={ONE_PIECE_COLORS.map((c) => ({
+                  value: c,
+                  label: c,
+                  swatch: ONE_PIECE_COLOR_SWATCHES[c],
+                }))}
+                ctrl={ctrl}
+                ctrlActive={ctrlActive}
+                menuMinWidth={140}
+              />
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="inline-flex items-center px-3 text-xs font-medium"
+                /* outline-none mirrors the sibling selects so this
+                   button doesn't show Chromium's after-click focus
+                   ring (which slipped through as a bright white box
+                   while the selects suppressed it). Keyboard focus
+                   is still indicated via the globals.css :focus-visible
+                   rule, which targets inputs/selects/textareas; for
+                   buttons we rely on hover/pressed state instead, in
+                   line with the existing focus-styling comment in
+                   globals.css. */
+                className="inline-flex items-center px-3 text-xs font-medium outline-none"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={onlyAltArt}
                 aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
@@ -583,7 +850,7 @@ export function Header({ sets }: HeaderProps) {
             )}
           </div>
 
-          {/* Spacer pushes the zoom widget to the right edge — keeps
+          {/* Spacer pushes the zoom widget to the right edge - keeps
               filters left-aligned (logical reading order) and the
               tactile zoom slider away from the click-heavy filter
               group so users don't bump it by mistake. */}
@@ -601,9 +868,13 @@ export function Header({ sets }: HeaderProps) {
               <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
             </svg>
             <input
-              type="range" min={1} max={12} step={1} value={zoom}
+              /* Max matches MAX_COLUMNS in card-grid so the rightmost
+                 tick maps to the densest grid (≈30 columns). Widened
+                 from 72→110px so the extra range still has enough
+                 pixels per tick to grab. */
+              type="range" min={1} max={29} step={1} value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              className="zoom-slider" aria-label="Zoom level" style={{ width: 72 }}
+              className="zoom-slider" aria-label="Zoom level" style={{ width: 110 }}
             />
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
               <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
@@ -652,7 +923,7 @@ export function Header({ sets }: HeaderProps) {
           {/* One Piece-only facets in the mobile sheet. Sit between
               Set and Search just like in the desktop nav so muscle
               memory carries over. Mobile selects don't close the
-              sheet — the user often wants to combine facets, and
+              sheet - the user often wants to combine facets, and
               closing per-change would force them to re-open it. */}
           {showOnePieceFacets && (
             <>
@@ -687,7 +958,9 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium"
+                /* outline-none matches the sibling selects (see the
+                   desktop alt-art button for the long version). */
+                className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium outline-none"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl) }}
                 aria-pressed={onlyAltArt}
               >
@@ -737,7 +1010,9 @@ export function Header({ sets }: HeaderProps) {
               <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
             </svg>
             <input
-              type="range" min={1} max={12} step={1} value={zoom}
+              /* Matches the desktop slider's range so mobile users
+                 get the same "as tiny as it gets" zoom-out. */
+              type="range" min={1} max={29} step={1} value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
               className="zoom-slider flex-1" aria-label="Zoom level"
             />
@@ -768,6 +1043,20 @@ export function Header({ sets }: HeaderProps) {
             )}
           </Link>
 
+          {/* How-it-works link · groups with Feedback so the two
+              "meta" actions sit at the bottom of the mobile sheet,
+              separated from the filter/action controls above. */}
+          <Link
+            href="/help"
+            onClick={() => setMobileOpen(false)}
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            style={{ ...ctrl }}
+            aria-label="How it works"
+          >
+            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
+            <span>How it works</span>
+          </Link>
+
           {/* Feedback link - give the X handle a visible home in mobile nav */}
           <a
             href="https://x.com/point_onefive"
@@ -776,7 +1065,6 @@ export function Header({ sets }: HeaderProps) {
             onClick={() => setMobileOpen(false)}
             className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
             style={{ ...ctrl }}
-            data-tour="feedback-mobile"
             aria-label="Feedback on X (@point_onefive)"
           >
             <svg width="12" height="12" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>

@@ -7,7 +7,6 @@ import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
-import { OnboardingTour } from '@/components/gallery/onboarding-tour'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
@@ -15,6 +14,12 @@ export default function Home() {
   const sets = getSets(activeCollection)
   const ready = hasData(activeCollection)
 
+  // The old first-visit OnboardingTour was removed in favour of a
+  // standalone /help page reachable from the HelpCircle icon in the
+  // header. Rationale: the tour was perma-stale (UI features kept
+  // outpacing the 7-step script) and only ever ran on the user's
+  // first paint; a document at /help serves first-timers and the
+  // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
       <Header sets={sets} />
@@ -30,7 +35,6 @@ export default function Home() {
       )}
       <BoardPanel cards={cards} />
       <Footer />
-      {ready && <OnboardingTour />}
     </main>
   )
 }
