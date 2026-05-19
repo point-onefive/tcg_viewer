@@ -55,6 +55,16 @@ interface StoreState {
   setActiveRarity: (r: string | null) => void
   activeColor: string | null
   setActiveColor: (c: string | null) => void
+  // Filter on Card.cardType (e.g. "LEADER", "CHARACTER", "EVENT",
+  // "STAGE" for One Piece). Stored as the uppercase string so it
+  // matches the raw value in the bundles without normalisation.
+  activeCardType: string | null
+  setActiveCardType: (t: string | null) => void
+  // When true, only show cards with at least one variant (alt art).
+  // Boolean rather than a count threshold — the user's mental model
+  // is "show me cards that have alt art", not "show me cards with N+".
+  onlyAltArt: boolean
+  setOnlyAltArt: (v: boolean) => void
   zoom: number
   setZoom: (z: number) => void
   lightboxCardId: string | null
@@ -104,6 +114,8 @@ export const useStore = create<StoreState>()(
           activeSet: null,
           activeRarity: null,
           activeColor: null,
+          activeCardType: null,
+          onlyAltArt: false,
           searchQuery: '',
           lightboxCardId: null,
         }),
@@ -115,6 +127,10 @@ export const useStore = create<StoreState>()(
       setActiveRarity: (activeRarity) => set({ activeRarity }),
       activeColor: null,
       setActiveColor: (activeColor) => set({ activeColor }),
+      activeCardType: null,
+      setActiveCardType: (activeCardType) => set({ activeCardType }),
+      onlyAltArt: false,
+      setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
       zoom: 5,
       setZoom: (zoom) => set({ zoom }),
       lightboxCardId: null,

@@ -42,6 +42,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     activeSet, setActiveSet,
     activeRarity, setActiveRarity,
     activeColor, setActiveColor,
+    activeCardType, setActiveCardType,
+    onlyAltArt, setOnlyAltArt,
     activeCollection,
     zoom,
   } = useStore()
@@ -244,6 +246,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     if (activeSet) result = result.filter((c) => c.setCode === activeSet)
     if (activeRarity) result = result.filter((c) => c.rarity === activeRarity)
     if (activeColor) result = result.filter((c) => c.colors?.includes(activeColor))
+    if (activeCardType) result = result.filter((c) => c.cardType === activeCardType)
+    if (onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       result = result.filter(
@@ -254,7 +258,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       )
     }
     return result
-  }, [cards, activeSet, activeRarity, activeColor, searchQuery])
+  }, [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery])
 
   // Card counts per set (from filtered results) — shown in collapsed headers.
   const setCounts = useMemo(() => {
@@ -335,6 +339,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             setActiveSet(null)
             setActiveRarity(null)
             setActiveColor(null)
+            setActiveCardType(null)
+            setOnlyAltArt(false)
             setSearchQuery('')
           }}
           className="px-3 py-1.5 text-xs font-medium"
@@ -419,7 +425,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
           )}
         </div>
         {/* Active filter chips - visible only when at least one filter is on */}
-        {(activeSet || activeRarity || activeColor || searchQuery.trim()) && (
+        {(activeSet || activeRarity || activeColor || activeCardType || onlyAltArt || searchQuery.trim()) && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <span
               className="text-[10px] tracking-[0.18em] uppercase mr-1"
@@ -430,11 +436,20 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             {activeSet && (
               <FilterChip label={activeSet} onClear={() => setActiveSet(null)} />
             )}
+            {activeCardType && (
+              <FilterChip
+                label={formatCardType(activeCardType)}
+                onClear={() => setActiveCardType(null)}
+              />
+            )}
             {activeRarity && (
               <FilterChip label={activeRarity} onClear={() => setActiveRarity(null)} />
             )}
             {activeColor && (
               <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />
+            )}
+            {onlyAltArt && (
+              <FilterChip label="Has alt art" onClear={() => setOnlyAltArt(false)} />
             )}
             {searchQuery.trim() && (
               <FilterChip
@@ -448,6 +463,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setActiveSet(null)
                 setActiveRarity(null)
                 setActiveColor(null)
+                setActiveCardType(null)
+                setOnlyAltArt(false)
                 setSearchQuery('')
               }}
               className="text-[10px] tracking-[0.14em] uppercase underline underline-offset-2 ml-1"
@@ -624,6 +641,16 @@ function SetHeaderRow({
       </button>
     </div>
   )
+}
+
+/**
+ * Display label for a Card.cardType filter value. The raw values in
+ * the bundle are SHOUTY ("LEADER", "CHARACTER", …) which look harsh
+ * inside a chip; we lowercase + capitalise for the UI without
+ * changing the source-of-truth value in the store.
+ */
+function formatCardType(t: string): string {
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
 }
 
 function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {

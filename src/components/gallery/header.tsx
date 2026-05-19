@@ -3,11 +3,37 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
+import { Bookmark, Layers, Menu, Sparkles, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
+
+/**
+ * One Piece-only filter facets. Card types and the canonical colour
+ * wheel are concepts every TCG has, but the *values* differ per game
+ * (Pokémon uses energy types, Digimon uses 6 different colours, etc).
+ * Until we sit down and pick the right values for each TCG, these
+ * controls are gated on `activeCollection === 'one-piece'`.
+ *
+ * `value` is the raw string the bundle stores (uppercase for cardType,
+ * Title-case for colour), `label` is what we show in the option.
+ */
+const ONE_PIECE_CARD_TYPES = [
+  { value: 'LEADER', label: 'Leader' },
+  { value: 'CHARACTER', label: 'Character' },
+  { value: 'EVENT', label: 'Event' },
+  { value: 'STAGE', label: 'Stage' },
+] as const
+
+const ONE_PIECE_COLORS = [
+  'Red',
+  'Green',
+  'Blue',
+  'Purple',
+  'Black',
+  'Yellow',
+] as const
 
 interface HeaderProps {
   sets: CardSet[]
@@ -17,11 +43,20 @@ export function Header({ sets }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
+    activeColor, setActiveColor,
+    activeCardType, setActiveCardType,
+    onlyAltArt, setOnlyAltArt,
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
     tierPool,
   } = useStore()
+
+  // One Piece is the only collection with curated filter facets right
+  // now (see ONE_PIECE_CARD_TYPES / ONE_PIECE_COLORS above). Gate the
+  // new controls on this flag instead of repeating the comparison in
+  // each render slot.
+  const showOnePieceFacets = activeCollection === 'one-piece'
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collectionOpen, setCollectionOpen] = useState(false)
   const collectionRef = useRef<HTMLDivElement>(null)
@@ -322,6 +357,62 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
 
+          {/* One Piece-only facet filters. Card type + colour are
+              <select> for visual consistency with the Set dropdown,
+              Alt-art is a small toggle pill (binary state). They sit
+              between Set and Search so the filter group reads
+              left-to-right as: scope (set) → facet narrowing (type,
+              colour, alt art) → free text (search). */}
+          {showOnePieceFacets && (
+            <>
+              <select
+                value={activeCardType || ''}
+                onChange={(e) => setActiveCardType(e.target.value || null)}
+                className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none"
+                style={{ ...(activeCardType ? ctrlActive : ctrl), height: 30 }}
+                aria-label="Filter by card type"
+              >
+                <option value="">All types</option>
+                {ONE_PIECE_CARD_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={activeColor || ''}
+                onChange={(e) => setActiveColor(e.target.value || null)}
+                className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none"
+                style={{ ...(activeColor ? ctrlActive : ctrl), height: 30 }}
+                aria-label="Filter by color"
+              >
+                <option value="">All colors</option>
+                {ONE_PIECE_COLORS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setOnlyAltArt(!onlyAltArt)}
+                className="inline-flex items-center gap-1.5 px-2.5 text-xs font-medium"
+                style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
+                aria-pressed={onlyAltArt}
+                aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
+                title="Show only cards with alt art"
+              >
+                <Sparkles
+                  size={12}
+                  strokeWidth={2.25}
+                  aria-hidden
+                  style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
+                />
+                <span>Alt art</span>
+              </button>
+            </>
+          )}
+
           {/* Search */}
           <div
             className="relative w-40 transition-[width] duration-300 focus-within:w-56"
@@ -551,6 +642,59 @@ export function Header({ sets }: HeaderProps) {
               </option>
             ))}
           </select>
+
+          {/* One Piece-only facets in the mobile sheet. Sit between
+              Set and Search just like in the desktop nav so muscle
+              memory carries over. Mobile selects don't close the
+              sheet — the user often wants to combine facets, and
+              closing per-change would force them to re-open it. */}
+          {showOnePieceFacets && (
+            <>
+              <select
+                value={activeCardType || ''}
+                onChange={(e) => setActiveCardType(e.target.value || null)}
+                className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
+                style={{ ...(activeCardType ? ctrlActive : ctrl) }}
+                aria-label="Filter by card type"
+              >
+                <option value="">All types</option>
+                {ONE_PIECE_CARD_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={activeColor || ''}
+                onChange={(e) => setActiveColor(e.target.value || null)}
+                className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
+                style={{ ...(activeColor ? ctrlActive : ctrl) }}
+                aria-label="Filter by color"
+              >
+                <option value="">All colors</option>
+                {ONE_PIECE_COLORS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setOnlyAltArt(!onlyAltArt)}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+                style={{ ...(onlyAltArt ? ctrlActive : ctrl) }}
+                aria-pressed={onlyAltArt}
+              >
+                <Sparkles
+                  size={14}
+                  strokeWidth={2.25}
+                  aria-hidden
+                  style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
+                />
+                <span>Only cards with alt art</span>
+              </button>
+            </>
+          )}
 
           <div className="relative w-full">
             <input
