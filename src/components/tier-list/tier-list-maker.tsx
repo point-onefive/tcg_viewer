@@ -22,6 +22,7 @@ import {
   ArrowUp,
   Layers,
   Plus,
+  RotateCcw,
   Trash2,
   Upload,
 } from 'lucide-react'
@@ -527,6 +528,17 @@ export function TierListMaker() {
     [removeFromTierPool],
   )
 
+  // Move every tier-assigned card back to the pool. Non-destructive:
+  // images aren't removed, blob URLs aren't revoked, and gallery items
+  // stay in the tierPool store - so the user can re-rank them without
+  // losing their working set.
+  const clearChart = useCallback(() => {
+    setCards((prev) => {
+      if (!prev.some((c) => c.tierId !== null)) return prev
+      return prev.map((c) => (c.tierId === null ? c : { ...c, tierId: null }))
+    })
+  }, [])
+
   const clearBankOnly = useCallback(() => {
     const removedFromStore: string[] = []
     setCards((prev) => {
@@ -849,18 +861,27 @@ export function TierListMaker() {
             </DropZone>
           </section>
 
-          {/* Section header for the chart. Kept for visual rhythm
-              parity with the Pool header above; the previous in-app
-              snapshot/export action was removed because cross-origin
-              card images taint the rendered canvas and the export was
-              unreliable. Users can rely on their OS screenshot tool. */}
+          {/* Section header for the chart. Mirrors the Pool header
+              pattern above (label + right-aligned action). The action
+              slot holds Clear chart, which sends every tier-assigned
+              card back to the pool - only rendered when there's
+              something to clear so the slot doesn't sit inert. */}
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               Chart
             </h2>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              Use your screenshot tool to save (⌘⇧4 on macOS · ⊞ Shift S on Windows)
-            </p>
+            {cards.some((c) => c.tierId !== null) && (
+              <button
+                type="button"
+                onClick={clearChart}
+                className="inline-flex items-center gap-1 px-3 text-xs font-medium"
+                style={{ ...ctrlBase, height: 30 }}
+                aria-label="Move every charted card back to the pool"
+              >
+                <RotateCcw size={14} aria-hidden />
+                Clear chart
+              </button>
+            )}
           </div>
 
           <div
