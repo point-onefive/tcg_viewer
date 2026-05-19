@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, Layers, Menu, SlidersHorizontal, Sparkles, X, Check, ChevronDown } from 'lucide-react'
+import { Bookmark, Layers, Menu, Sparkles, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
@@ -35,103 +35,6 @@ const ONE_PIECE_COLORS = [
   'Yellow',
 ] as const
 
-// Hex swatches for the colour pills inside the Filters popover. Picked
-// to read clearly against `var(--bg-surface)` in both themes — slightly
-// muted so a row of six dots doesn't feel like a clown wig.
-const ONE_PIECE_COLOR_HEX: Record<(typeof ONE_PIECE_COLORS)[number], string> = {
-  Red: '#dc2626',
-  Green: '#16a34a',
-  Blue: '#2563eb',
-  Purple: '#9333ea',
-  Black: '#1f2937',
-  Yellow: '#eab308',
-}
-
-/**
- * Stacked label + pill row inside the Filters popover. Pulled out so
- * the popover JSX reads top-to-bottom as a sequence of sections, not
- * a wall of repeated wrappers.
- */
-function FilterSection({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="mb-3 last:mb-0">
-      <div
-        className="text-[10px] tracking-[0.18em] uppercase mb-1.5"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {label}
-      </div>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
-    </div>
-  )
-}
-
-/**
- * Compact selectable chip used inside the Filters popover. Selected
- * pills flip to the primary fill (matching the Collection popover's
- * selected-row treatment) instead of the orange ring used on the
- * header controls — inside a dedicated filter panel the ring would
- * just compete with itself.
- */
-function FilterPill({
-  selected,
-  onClick,
-  swatch,
-  children,
-}: {
-  selected: boolean
-  onClick: () => void
-  swatch?: string
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={selected}
-      onClick={onClick}
-      className="inline-flex items-center gap-1.5 px-2.5 text-[11px] font-medium whitespace-nowrap transition-colors"
-      style={{
-        height: 26,
-        borderRadius: 5,
-        background: selected ? 'var(--text-primary)' : 'var(--bg)',
-        color: selected ? 'var(--bg)' : 'var(--text-primary)',
-        border: '1px solid var(--border-subtle)',
-        cursor: 'pointer',
-      }}
-      onMouseEnter={(e) => {
-        if (!selected) {
-          e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!selected) e.currentTarget.style.background = 'var(--bg)'
-      }}
-    >
-      {swatch && (
-        <span
-          aria-hidden
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 999,
-            background: swatch,
-            boxShadow: 'inset 0 0 0 1px color-mix(in srgb, #000 25%, transparent)',
-            flexShrink: 0,
-          }}
-        />
-      )}
-      <span>{children}</span>
-    </button>
-  )
-}
-
 interface HeaderProps {
   sets: CardSet[]
 }
@@ -157,11 +60,6 @@ export function Header({ sets }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collectionOpen, setCollectionOpen] = useState(false)
   const collectionRef = useRef<HTMLDivElement>(null)
-  // Desktop "Filters" popover holds the One Piece facet controls
-  // (type / colour / alt-art). Mobile keeps them stacked inline in
-  // the sheet — popovers on tiny screens are awkward.
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const filtersRef = useRef<HTMLDivElement>(null)
 
   // Close collection dropdown on outside click / Escape
   useEffect(() => {
@@ -179,37 +77,6 @@ export function Header({ sets }: HeaderProps) {
       document.removeEventListener('keydown', onKey)
     }
   }, [collectionOpen])
-
-  // Same outside-click / Escape handling for the Filters popover.
-  // Kept separate from collection so closing one doesn't dismiss the
-  // other (e.g. user is mid-pick).
-  useEffect(() => {
-    if (!filtersOpen) return
-    const onDown = (e: MouseEvent) => {
-      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) {
-        setFiltersOpen(false)
-      }
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFiltersOpen(false) }
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [filtersOpen])
-
-  // How many One Piece facets are active right now. Drives the badge
-  // on the Filters button and the show/hide of the inline "Clear"
-  // affordance inside the popover.
-  const opFacetCount =
-    (activeCardType ? 1 : 0) + (activeColor ? 1 : 0) + (onlyAltArt ? 1 : 0)
-
-  const clearOnePieceFacets = () => {
-    setActiveCardType(null)
-    setActiveColor(null)
-    setOnlyAltArt(false)
-  }
 
   const activeCollectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
 
@@ -373,364 +240,17 @@ export function Header({ sets }: HeaderProps) {
           </span>
         </div>
 
-        {/* ── Desktop controls ── */}
+        {/* ── Desktop row-1 utility cluster · theme, tiers, X, board ──
+            Filters live in row 2 below; the top row stays reserved for
+            site-level actions so the brand + tagline have breathing
+            room and the cluster only changes if we add another action,
+            not another facet. */}
         <div className="hidden lg:flex items-center gap-2">
-          {/* Collection Filter (custom popover so menu stays inside the site) */}
-          <div ref={collectionRef} className="relative" data-tour="collection">
-            <button
-              type="button"
-              onClick={() => setCollectionOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-              style={{ ...ctrl, height: 30 }}
-              aria-haspopup="listbox"
-              aria-expanded={collectionOpen}
-              aria-label="Collection"
-            >
-              <span>{activeCollectionName}</span>
-              <ChevronDown
-                size={12}
-                strokeWidth={2.25}
-                style={{
-                  transition: 'transform 180ms ease',
-                  transform: collectionOpen ? 'rotate(180deg)' : 'rotate(0)',
-                  color: 'var(--text-muted)',
-                }}
-              />
-            </button>
-
-            <AnimatePresence>
-              {collectionOpen && (
-                <motion.div
-                  role="listbox"
-                  aria-label="Collection"
-                  initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                  transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute left-0 top-full mt-1.5 min-w-[200px] overflow-hidden"
-                  style={{
-                    transformOrigin: 'top left',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 8,
-                    boxShadow: 'var(--shadow-card)',
-                    zIndex: 60,
-                    padding: 4,
-                  }}
-                >
-                  {COLLECTIONS.map((c) => {
-                    const selected = c.id === activeCollection
-                    const disabled = !c.available
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        disabled={disabled}
-                        onClick={() => {
-                          if (disabled) return
-                          setActiveCollection(c.id)
-                          setCollectionOpen(false)
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
-                        style={{
-                          height: 30,
-                          borderRadius: 5,
-                          background: selected ? 'var(--text-primary)' : 'transparent',
-                          color: selected
-                            ? 'var(--bg)'
-                            : disabled
-                            ? 'var(--text-muted)'
-                            : 'var(--text-primary)',
-                          cursor: disabled ? 'not-allowed' : 'pointer',
-                          opacity: disabled ? 0.55 : 1,
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!selected && !disabled) {
-                            e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!selected) e.currentTarget.style.background = 'transparent'
-                        }}
-                      >
-                        <Check
-                          size={12}
-                          strokeWidth={2.5}
-                          style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
-                        />
-                        <span className="flex-1">{c.name}</span>
-                        {disabled && (
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                            soon
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Set Filter */}
-          <select
-            value={activeSet || ''}
-            onChange={(e) => setActiveSet(e.target.value || null)}
-            className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
-            style={{ ...(activeSet ? ctrlActive : ctrl), height: 30 }}
-            data-tour="set"
-          >
-            <option value="">All Sets</option>
-            {sets.map((s) => (
-              <option key={s.setCode} value={s.setCode}>
-                {s.setCode} · {s.setName}
-              </option>
-            ))}
-          </select>
-
-          {/* One Piece-only facet filters live in a single popover so
-              the header doesn't grow a new pill every time we add a
-              dimension. Button stays compact (icon + label + optional
-              count) so the nav scales as we curate facets for other
-              TCGs in the future. */}
-          {showOnePieceFacets && (
-            <div ref={filtersRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setFiltersOpen((o) => !o)}
-                className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-                style={{ ...(opFacetCount > 0 ? ctrlActive : ctrl), height: 30 }}
-                aria-haspopup="dialog"
-                aria-expanded={filtersOpen}
-                aria-label={
-                  opFacetCount > 0
-                    ? `Filters (${opFacetCount} active)`
-                    : 'Filters'
-                }
-              >
-                <SlidersHorizontal
-                  size={12}
-                  strokeWidth={2.25}
-                  aria-hidden
-                  style={{ color: opFacetCount > 0 ? '#E85D2A' : 'var(--text-muted)' }}
-                />
-                <span>Filters</span>
-                {opFacetCount > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                    style={{
-                      minWidth: 16,
-                      height: 16,
-                      padding: '0 4px',
-                      borderRadius: 4,
-                      background: '#E85D2A',
-                      color: '#fff',
-                    }}
-                  >
-                    {opFacetCount}
-                  </span>
-                )}
-                <ChevronDown
-                  size={12}
-                  strokeWidth={2.25}
-                  style={{
-                    transition: 'transform 180ms ease',
-                    transform: filtersOpen ? 'rotate(180deg)' : 'rotate(0)',
-                    color: 'var(--text-muted)',
-                  }}
-                />
-              </button>
-
-              <AnimatePresence>
-                {filtersOpen && (
-                  <motion.div
-                    role="dialog"
-                    aria-label="One Piece filters"
-                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                    transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute right-0 top-full mt-1.5 overflow-hidden"
-                    style={{
-                      width: 300,
-                      transformOrigin: 'top right',
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 8,
-                      boxShadow: 'var(--shadow-card)',
-                      zIndex: 60,
-                      padding: 12,
-                    }}
-                  >
-                    <FilterSection label="Card type">
-                      <FilterPill
-                        selected={!activeCardType}
-                        onClick={() => setActiveCardType(null)}
-                      >
-                        All
-                      </FilterPill>
-                      {ONE_PIECE_CARD_TYPES.map((t) => (
-                        <FilterPill
-                          key={t.value}
-                          selected={activeCardType === t.value}
-                          onClick={() => setActiveCardType(t.value)}
-                        >
-                          {t.label}
-                        </FilterPill>
-                      ))}
-                    </FilterSection>
-
-                    <FilterSection label="Color">
-                      <FilterPill
-                        selected={!activeColor}
-                        onClick={() => setActiveColor(null)}
-                      >
-                        All
-                      </FilterPill>
-                      {ONE_PIECE_COLORS.map((c) => (
-                        <FilterPill
-                          key={c}
-                          selected={activeColor === c}
-                          onClick={() => setActiveColor(c)}
-                          /* Tiny coloured swatch makes the colour pills
-                             readable at a glance without bloating the
-                             popover with full-bleed colour fills. */
-                          swatch={ONE_PIECE_COLOR_HEX[c]}
-                        >
-                          {c}
-                        </FilterPill>
-                      ))}
-                    </FilterSection>
-
-                    {/* Alt-art is a binary toggle, so it gets its own
-                        full-width row rather than living inside a pill
-                        group where "selected" reads as a choice. */}
-                    <button
-                      type="button"
-                      onClick={() => setOnlyAltArt(!onlyAltArt)}
-                      className="w-full inline-flex items-center gap-2 px-2.5 text-xs font-medium mt-3"
-                      style={{
-                        height: 30,
-                        borderRadius: 6,
-                        background: onlyAltArt
-                          ? 'color-mix(in srgb, #E85D2A 14%, transparent)'
-                          : 'transparent',
-                        color: onlyAltArt ? '#E85D2A' : 'var(--text-primary)',
-                        border: `1px solid ${
-                          onlyAltArt
-                            ? 'color-mix(in srgb, #E85D2A 45%, transparent)'
-                            : 'var(--border-subtle)'
-                        }`,
-                        cursor: 'pointer',
-                        transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
-                      }}
-                      aria-pressed={onlyAltArt}
-                    >
-                      <Sparkles
-                        size={12}
-                        strokeWidth={2.25}
-                        aria-hidden
-                        style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
-                      />
-                      <span className="flex-1 text-left">Only cards with alt art</span>
-                      {onlyAltArt && <Check size={12} strokeWidth={2.75} aria-hidden />}
-                    </button>
-
-                    {opFacetCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={clearOnePieceFacets}
-                        className="mt-3 text-[10px] tracking-[0.14em] uppercase underline underline-offset-2"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        Clear filters
-                      </button>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* Search */}
-          <div
-            className="relative w-40 transition-[width] duration-300 focus-within:w-56"
-            style={{ height: 30 }}
-          >
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search cards…"
-              className="w-full h-full pl-3 pr-7 text-xs outline-none"
-              style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Clear search"
-                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
-                style={{
-                  right: 6,
-                  width: 16,
-                  height: 16,
-                  borderRadius: 999,
-                  background: 'var(--text-primary)',
-                  color: 'var(--bg)',
-                  cursor: 'pointer',
-                  border: 'none',
-                  padding: 0,
-                }}
-              >
-                <X size={10} strokeWidth={3} />
-              </button>
-            )}
-          </div>
-
-          {/* Divider - prominent vertical rule separating filter group from zoom */}
-          <div
-            aria-hidden
-            style={{
-              width: 1,
-              height: 24,
-              background: 'var(--text-muted)',
-              opacity: 0.45,
-              margin: '0 6px',
-            }}
-          />
-
-          {/* Zoom slider */}
-          <div
-            className="flex items-center gap-2 px-3"
-            style={{ ...ctrl, height: 30 }}
-          >
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-              <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-            </svg>
-            <input
-              type="range" min={1} max={12} step={1} value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="zoom-slider" aria-label="Zoom level" style={{ width: 72 }}
-            />
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-              <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-            </svg>
-          </div>
-
           <ThemeToggle />
 
           <Link
             href="/tier-list"
-            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium max-sm:hidden"
+            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
             style={{
               ...ctrl,
               height: 30,
@@ -847,6 +367,257 @@ export function Header({ sets }: HeaderProps) {
           >
             {mobileOpen ? <X size={15} /> : <Menu size={15} />}
           </button>
+        </div>
+      </div>
+
+      {/* ── Desktop row-2 filter cluster · lg+ only ───────────────
+          All the gallery-narrowing controls live here so the brand
+          row stays uncluttered. Subtle top border separates it from
+          row 1 as a visual sub-toolbar without adding background
+          weight. */}
+      <div
+        className="hidden lg:block"
+        style={{ borderTop: '1px solid var(--border-subtle)' }}
+      >
+        <div
+          className="mx-auto flex items-center gap-2 px-4"
+          style={{ maxWidth: 1800, height: 40 }}
+        >
+          {/* Collection Filter (custom popover so menu stays inside the site) */}
+          <div ref={collectionRef} className="relative" data-tour="collection">
+            <button
+              type="button"
+              onClick={() => setCollectionOpen((o) => !o)}
+              className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+              style={{ ...ctrl, height: 30 }}
+              aria-haspopup="listbox"
+              aria-expanded={collectionOpen}
+              aria-label="Collection"
+            >
+              <span>{activeCollectionName}</span>
+              <ChevronDown
+                size={12}
+                strokeWidth={2.25}
+                style={{
+                  transition: 'transform 180ms ease',
+                  transform: collectionOpen ? 'rotate(180deg)' : 'rotate(0)',
+                  color: 'var(--text-muted)',
+                }}
+              />
+            </button>
+
+            <AnimatePresence>
+              {collectionOpen && (
+                <motion.div
+                  role="listbox"
+                  aria-label="Collection"
+                  initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute left-0 top-full mt-1.5 min-w-[200px] overflow-hidden"
+                  style={{
+                    transformOrigin: 'top left',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 8,
+                    boxShadow: 'var(--shadow-card)',
+                    zIndex: 60,
+                    padding: 4,
+                  }}
+                >
+                  {COLLECTIONS.map((c) => {
+                    const selected = c.id === activeCollection
+                    const disabled = !c.available
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        disabled={disabled}
+                        onClick={() => {
+                          if (disabled) return
+                          setActiveCollection(c.id)
+                          setCollectionOpen(false)
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
+                        style={{
+                          height: 30,
+                          borderRadius: 5,
+                          background: selected ? 'var(--text-primary)' : 'transparent',
+                          color: selected
+                            ? 'var(--bg)'
+                            : disabled
+                            ? 'var(--text-muted)'
+                            : 'var(--text-primary)',
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                          opacity: disabled ? 0.55 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!selected && !disabled) {
+                            e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!selected) e.currentTarget.style.background = 'transparent'
+                        }}
+                      >
+                        <Check
+                          size={12}
+                          strokeWidth={2.5}
+                          style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
+                        />
+                        <span className="flex-1">{c.name}</span>
+                        {disabled && (
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                            soon
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Set Filter */}
+          <select
+            value={activeSet || ''}
+            onChange={(e) => setActiveSet(e.target.value || null)}
+            className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
+            style={{ ...(activeSet ? ctrlActive : ctrl), height: 30 }}
+            data-tour="set"
+          >
+            <option value="">All Sets</option>
+            {sets.map((s) => (
+              <option key={s.setCode} value={s.setCode}>
+                {s.setCode} · {s.setName}
+              </option>
+            ))}
+          </select>
+
+          {/* One Piece-only facet filters · live inline alongside the
+              other narrowing controls so the user sees every available
+              dimension at a glance instead of opening a popover. Each
+              spreads `ctrlActive` when holding a value so the active
+              state is visible without scanning the chip strip below. */}
+          {showOnePieceFacets && (
+            <>
+              <select
+                value={activeCardType || ''}
+                onChange={(e) => setActiveCardType(e.target.value || null)}
+                className="px-3 text-xs outline-none cursor-pointer appearance-none"
+                style={{ ...(activeCardType ? ctrlActive : ctrl), height: 30 }}
+                aria-label="Filter by card type"
+              >
+                <option value="">All types</option>
+                {ONE_PIECE_CARD_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={activeColor || ''}
+                onChange={(e) => setActiveColor(e.target.value || null)}
+                className="px-3 text-xs outline-none cursor-pointer appearance-none"
+                style={{ ...(activeColor ? ctrlActive : ctrl), height: 30 }}
+                aria-label="Filter by color"
+              >
+                <option value="">All colors</option>
+                {ONE_PIECE_COLORS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setOnlyAltArt(!onlyAltArt)}
+                className="inline-flex items-center gap-1.5 px-2.5 text-xs font-medium"
+                style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
+                aria-pressed={onlyAltArt}
+                aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
+                title="Show only cards with alt art"
+              >
+                <Sparkles
+                  size={12}
+                  strokeWidth={2.25}
+                  aria-hidden
+                  style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
+                />
+                <span>Alt art</span>
+              </button>
+            </>
+          )}
+
+          {/* Search */}
+          <div
+            className="relative w-44 transition-[width] duration-300 focus-within:w-64"
+            style={{ height: 30 }}
+          >
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search cards…"
+              className="w-full h-full pl-3 pr-7 text-xs outline-none"
+              style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
+                style={{
+                  right: 6,
+                  width: 16,
+                  height: 16,
+                  borderRadius: 999,
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg)',
+                  cursor: 'pointer',
+                  border: 'none',
+                  padding: 0,
+                }}
+              >
+                <X size={10} strokeWidth={3} />
+              </button>
+            )}
+          </div>
+
+          {/* Spacer pushes the zoom widget to the right edge — keeps
+              filters left-aligned (logical reading order) and the
+              tactile zoom slider away from the click-heavy filter
+              group so users don't bump it by mistake. */}
+          <div className="flex-1" />
+
+          {/* Zoom slider */}
+          <div
+            className="flex items-center gap-2 px-3"
+            style={{ ...ctrl, height: 30 }}
+          >
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+              <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+            </svg>
+            <input
+              type="range" min={1} max={12} step={1} value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="zoom-slider" aria-label="Zoom level" style={{ width: 72 }}
+            />
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+              <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+            </svg>
+          </div>
         </div>
       </div>
 

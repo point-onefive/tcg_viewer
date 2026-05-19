@@ -15,11 +15,20 @@ interface CardGridProps {
 }
 
 const CARD_RATIO = 7 / 5 // height / width
-const HEADER_H = 48    // px reserved for fixed header
+// The fixed header is single-row on mobile (48px) and two-row on
+// desktop (48px brand row + 40px filter row = 88px). Below the lg
+// breakpoint the filter row collapses behind the hamburger sheet so
+// the spacer can stay short.
+const HEADER_H_MOBILE = 48
+const HEADER_H_DESKTOP = 88
+const LG_BREAKPOINT = 1024
+function headerHeightFor(windowWidth: number): number {
+  return windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
+}
 
 // Minimum columns so that 1 full card fits within the viewport height
 function minColumnsForViewport(windowWidth: number, windowHeight: number): number {
-  const usableHeight = windowHeight - HEADER_H - GAP
+  const usableHeight = windowHeight - headerHeightFor(windowWidth) - GAP
   const containerWidth = Math.min(windowWidth, 1800) - 32
   // cardWidth = containerWidth / cols, cardHeight = cardWidth * CARD_RATIO
   // We need cardHeight <= usableHeight
@@ -240,6 +249,11 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   }, [])
 
   const columns = zoomToColumns(zoom, windowWidth, windowHeight)
+  // Pre-compute the active header height once per render — used for
+  // the layout spacer below the fixed header, the virtualizer's
+  // scrollMargin, and the column-fitting math (`minColumnsForViewport`
+  // also recomputes it, but cheaply).
+  const headerH = headerHeightFor(windowWidth)
 
   const filtered = useMemo(() => {
     let result = cards
@@ -320,7 +334,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     // the viewport. Each tile costs subscriptions, animations, and an
     // image request, so 4 is plenty (≈2 rows of preload).
     overscan: 4,
-    scrollMargin: 48,
+    scrollMargin: headerH,
   })
 
   if (!mounted) {
@@ -359,8 +373,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   return (
     <div className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800 }}>
-      {/* Fixed 48px header spacer */}
-      <div style={{ height: 48 }} />
+      {/* Spacer matches the fixed header (48px mobile, 88px desktop). */}
+      <div style={{ height: headerH }} />
 
       {/* Collection title - top-level grouping (collection > set).
           Sits on a lifted surface panel to create depth against the page bg. */}
