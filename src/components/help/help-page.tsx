@@ -1,8 +1,15 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, HelpCircle } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
+
+// All in-page illustrative card art is served from the same R2 CDN
+// the main gallery uses, so cards are CDN-cached + WebP-optimized by
+// Next's image pipeline the same way the gallery tiles are. Pinned
+// to this constant so a future migration only touches one line.
+const CDN_BASE = 'https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/'
 
 /**
  * Tiny in-app reference manual. Reads like a one-pager so you can
@@ -85,6 +92,8 @@ export function HelpPage() {
           videos, no signup, no popup tour ever again.
         </Lede>
 
+        <HeroMosaic />
+
         <Section title="Quick start">
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
@@ -155,21 +164,24 @@ export function HelpPage() {
         </Section>
 
         <Section title="Lightbox">
-          <ul className="space-y-2 text-sm leading-relaxed">
-            <li>
-              Click a card to open. Big art on the left, every alt print (variant)
-              as thumbnails on the right.
-            </li>
-            <li>
-              <Kbd>←</Kbd> / <Kbd>→</Kbd> flips through variants. <Kbd>Esc</Kbd>{' '}
-              closes.
-            </li>
-            <li>
-              Each variant can be pinned or queued for the tier-list maker
-              individually - so you can pin <em>just</em> the leader alt without
-              its base art.
-            </li>
-          </ul>
+          <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
+            <ul className="space-y-2 text-sm leading-relaxed">
+              <li>
+                Click a card to open. Big art on the left, every alt print
+                (variant) as thumbnails on the right.
+              </li>
+              <li>
+                <Kbd>←</Kbd> / <Kbd>→</Kbd> flips through variants.{' '}
+                <Kbd>Esc</Kbd> closes.
+              </li>
+              <li>
+                Each variant can be pinned or queued for the tier-list maker
+                individually - so you can pin <em>just</em> the leader alt
+                without its base art.
+              </li>
+            </ul>
+            <AltArtStack />
+          </div>
         </Section>
 
         <Section title="Pin board">
@@ -203,6 +215,7 @@ export function HelpPage() {
               Everything runs locally. Nothing uploads.
             </li>
           </ul>
+          <TierListMock />
         </Section>
 
         <Section title="Theme">
@@ -365,5 +378,215 @@ function Kbd({ children }: { children: React.ReactNode }) {
     >
       {children}
     </span>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Illustrative visuals. Each one renders real card art from the live R2 CDN
+// so the help page shows what the user is about to see, not generic stock
+// imagery. We pick One Piece OP01 cards because:
+//
+//   * The OP01 set is the entry point for most visitors (default collection).
+//   * The cards are visually distinctive (Luffy / Zoro / Sanji / Nami have
+//     immediate brand recognition even for non-One-Piece fans).
+//   * OP01 alt arts are some of the best-looking pieces in the bundle, so
+//     they double as "look how nice this art is" eye candy.
+//
+// All three components are decorative and use `alt=""` + `aria-hidden`
+// because the surrounding prose already does the explaining. A screen
+// reader gets the doc; the sighted user gets the doc + pretty pictures.
+// ---------------------------------------------------------------------------
+
+type HeroCard = { code: string; rotate: number; offsetY: number; z: number }
+
+const HERO_MOSAIC_CARDS: HeroCard[] = [
+  { code: 'OP01-001_p1', rotate: -7, offsetY: 6,  z: 1 },
+  { code: 'OP01-003_p1', rotate: -3, offsetY: -4, z: 3 },
+  { code: 'OP01-013_p2', rotate: 1,  offsetY: 2,  z: 5 },
+  { code: 'OP01-016_p3', rotate: -1, offsetY: -2, z: 5 },
+  { code: 'OP01-013_p4', rotate: 4,  offsetY: -4, z: 3 },
+  { code: 'OP01-047_p4', rotate: 7,  offsetY: 6,  z: 1 },
+]
+
+/**
+ * Fanned strip of six alt-art cards directly below the page lede.
+ * Functions as a wordless tagline: "this is what you're about to
+ * spend your evening clicking through". Cards slightly overlap with
+ * alternating rotation so the strip reads as a hand of cards rather
+ * than a stock product grid. The negative horizontal margin lets the
+ * strip break out past the prose container on roomy viewports for
+ * extra heroic feel; capped via overflow-hidden on the wrapper so
+ * it never introduces a horizontal scrollbar on mobile.
+ */
+function HeroMosaic() {
+  return (
+    <div className="-mx-4 mb-10 overflow-hidden">
+      <div
+        aria-hidden
+        className="flex items-center justify-center"
+        style={{ gap: 'clamp(2px, 0.8vw, 8px)' }}
+      >
+        {HERO_MOSAIC_CARDS.map((c) => (
+          <div
+            key={c.code}
+            className="relative shrink-0 overflow-hidden"
+            style={{
+              width: 'clamp(70px, 13vw, 118px)',
+              aspectRatio: '5 / 7',
+              borderRadius: 10,
+              transform: `rotate(${c.rotate}deg) translateY(${c.offsetY}px)`,
+              boxShadow:
+                '0 10px 28px rgba(0,0,0,0.32), 0 0 0 1px color-mix(in srgb, var(--text-primary) 8%, transparent)',
+              zIndex: c.z,
+            }}
+          >
+            <Image
+              src={`${CDN_BASE}${c.code}.png`}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 14vw, 118px"
+              style={{ objectFit: 'cover' }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Two cards offset behind one another. Direct visual for the
+ * "variants stack" concept the Lightbox section talks about - the
+ * gallery uses the same pattern on cards that have alt arts, so the
+ * shape is already familiar by the time the user reads about it.
+ * Sized so it sits to the right of the bullet list at sm+ widths
+ * and gets its own row below the list on phones.
+ */
+function AltArtStack() {
+  return (
+    <div
+      aria-hidden
+      className="relative mx-auto"
+      style={{ width: 156, aspectRatio: '5 / 7' }}
+    >
+      {/* Back card peeks out so the reader can tell at a glance that
+          there are two distinct prints here, not a single tilted
+          card. */}
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{
+          borderRadius: 10,
+          transform: 'translate(10px, 8px) rotate(4deg)',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+        }}
+      >
+        <Image
+          src={`${CDN_BASE}OP01-013_p1.png`}
+          alt=""
+          fill
+          sizes="156px"
+          style={{ objectFit: 'cover' }}
+        />
+      </div>
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{
+          borderRadius: 10,
+          boxShadow:
+            '0 14px 36px rgba(0,0,0,0.35), 0 0 0 1px color-mix(in srgb, var(--text-primary) 10%, transparent)',
+        }}
+      >
+        <Image
+          src={`${CDN_BASE}OP01-013.png`}
+          alt=""
+          fill
+          sizes="156px"
+          style={{ objectFit: 'cover' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+type MockTier = { label: string; color: string; cards: string[] }
+
+const TIER_MOCK_ROWS: MockTier[] = [
+  // Tier colors lifted from DEFAULT_TIERS in tier-list-maker.tsx so
+  // the mock looks exactly like what the user gets if they land on
+  // /tier-list and add nothing. Single-card S row is a deliberate
+  // joke: of course Luffy is solo S tier.
+  { label: 'S', color: '#ff5a5f', cards: ['OP01-003'] },
+  { label: 'A', color: '#f6b352', cards: ['OP01-001', 'OP01-013_p2'] },
+  { label: 'B', color: '#f6e58d', cards: ['OP01-016', 'OP01-022', 'OP01-002_p1'] },
+]
+
+/**
+ * Compact, decorative tier-list visual. Mirrors the layout language
+ * of the real tier-list maker (colored letter cell + thumb row) at
+ * roughly half scale so it sits comfortably inside the help-page
+ * prose column. Decorative only - this never animates, never accepts
+ * input, and is `aria-hidden` because the surrounding bullet list
+ * already explains every mechanic in plain text.
+ */
+function TierListMock() {
+  return (
+    <div
+      aria-hidden
+      className="mt-4 overflow-hidden"
+      style={{
+        borderRadius: 8,
+        border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
+        background: 'var(--bg-surface)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      {TIER_MOCK_ROWS.map((row, idx) => (
+        <div
+          key={row.label}
+          className="flex"
+          style={{
+            borderTop:
+              idx === 0
+                ? 'none'
+                : '1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)',
+          }}
+        >
+          <div
+            className="flex w-[46px] shrink-0 items-center justify-center font-display"
+            style={{
+              background: row.color,
+              color: '#111',
+              fontWeight: 900,
+              fontSize: 18,
+              lineHeight: 1,
+            }}
+          >
+            {row.label}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 p-2">
+            {row.cards.map((code) => (
+              <div
+                key={code}
+                className="relative overflow-hidden"
+                style={{
+                  width: 38,
+                  aspectRatio: '5 / 7',
+                  borderRadius: 3,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                }}
+              >
+                <Image
+                  src={`${CDN_BASE}${code}.png`}
+                  alt=""
+                  fill
+                  sizes="38px"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
