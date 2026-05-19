@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, Layers, Menu, Sparkles, X, Check, ChevronDown } from 'lucide-react'
+import { Bookmark, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet } from '@/lib/types'
@@ -536,19 +536,13 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="inline-flex items-center gap-1.5 px-2.5 text-xs font-medium"
+                className="inline-flex items-center px-3 text-xs font-medium"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={onlyAltArt}
                 aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
                 title="Show only cards with alt art"
               >
-                <Sparkles
-                  size={12}
-                  strokeWidth={2.25}
-                  aria-hidden
-                  style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
-                />
-                <span>Alt art</span>
+                Alt art
               </button>
             </>
           )}
@@ -693,17 +687,11 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+                className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl) }}
                 aria-pressed={onlyAltArt}
               >
-                <Sparkles
-                  size={14}
-                  strokeWidth={2.25}
-                  aria-hidden
-                  style={{ color: onlyAltArt ? '#E85D2A' : 'var(--text-muted)' }}
-                />
-                <span>Only cards with alt art</span>
+                Only cards with alt art
               </button>
             </>
           )}
