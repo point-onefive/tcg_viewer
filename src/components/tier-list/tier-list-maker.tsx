@@ -15,15 +15,12 @@ import {
 } from '@dnd-kit/core'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { toBlob } from 'html-to-image'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
 import {
   ArrowDown,
   ArrowUp,
-  Clipboard,
   Layers,
-  Loader2,
   Plus,
   Trash2,
   Upload,
@@ -396,46 +393,8 @@ function tierRemoveBtnStyle(disabled: boolean): React.CSSProperties {
   }
 }
 
-async function copyNodeAsImage(node: HTMLElement): Promise<'copied' | 'downloaded'> {
-  const blob = await toBlob(node, {
-    pixelRatio: 2,
-    cacheBust: true,
-    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg') || '#111',
-  })
-  if (!blob) throw new Error('Could not render image')
-
-  // Try the Async Clipboard image path first. It rejects in plenty of
-  // real-world contexts (no user gesture, Safari/Firefox image-write
-  // gating, OS permission prompts, non-secure origin, etc.) — when it
-  // does, we still want the user to get their snapshot, so fall through
-  // to a PNG download instead of surfacing "Export failed".
-  const canTryClipboardImage =
-    typeof navigator !== 'undefined' &&
-    navigator.clipboard &&
-    typeof navigator.clipboard.write === 'function' &&
-    typeof ClipboardItem !== 'undefined'
-
-  if (canTryClipboardImage) {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
-      return 'copied'
-    } catch (err) {
-      console.warn('Clipboard image write rejected, falling back to download', err)
-    }
-  }
-
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'cardwall-tier-list.png'
-  a.click()
-  URL.revokeObjectURL(url)
-  return 'downloaded'
-}
-
 export function TierListMaker() {
   const formId = useId()
-  const boardRef = useRef<HTMLDivElement>(null)
 
   const tierPool = useStore((s) => s.tierPool)
   const removeFromTierPool = useStore((s) => s.removeFromTierPool)
@@ -445,8 +404,6 @@ export function TierListMaker() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [editorOpen, setEditorOpen] = useState(true)
   const [pasteHint, setPasteHint] = useState('Paste images anywhere on this page')
-  const [exporting, setExporting] = useState<'copy' | null>(null)
-  const [exportHint, setExportHint] = useState<string | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
@@ -603,20 +560,6 @@ export function TierListMaker() {
       ;[copy[idx], copy[j]] = [copy[j], copy[idx]]
       return copy
     })
-  }, [])
-
-  const exportCopy = useCallback(async () => {
-    if (!boardRef.current) return
-    try {
-      setExporting('copy')
-      const result = await copyNodeAsImage(boardRef.current)
-      setExportHint(result === 'copied' ? 'Copied to clipboard' : 'Clipboard unavailable: downloaded PNG')
-    } catch (err) {
-      console.error('Tier list export failed', err)
-      setExportHint('Export failed; try again')
-    } finally {
-      setExporting(null)
-    }
   }, [])
 
   const uploadChip: React.CSSProperties = {
@@ -906,41 +849,21 @@ export function TierListMaker() {
             </DropZone>
           </section>
 
-          {/* Chart toolbar lives outside the boardRef snapshot target on
-              purpose: it docks the export action right next to the chart
-              it operates on (clearer UX than burying it in the nav), but
-              must not appear in the rendered image written to the
-              clipboard. */}
+          {/* Section header for the chart. Kept for visual rhythm
+              parity with the Pool header above; the previous in-app
+              snapshot/export action was removed because cross-origin
+              card images taint the rendered canvas and the export was
+              unreliable. Users can rely on their OS screenshot tool. */}
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               Chart
             </h2>
-            <div className="flex items-center gap-3">
-              {exportHint && (
-                <span
-                  role="status"
-                  aria-live="polite"
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  {exportHint}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={exportCopy}
-                className="inline-flex items-center gap-1 px-3 text-xs font-medium"
-                style={{ ...ctrlBase, height: 30 }}
-                disabled={exporting !== null}
-              >
-                {exporting === 'copy' ? <Loader2 size={14} className="animate-spin" /> : <Clipboard size={14} />}
-                Copy chart
-              </button>
-            </div>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Use your screenshot tool to save (⌘⇧4 on macOS · ⊞ Shift S on Windows)
+            </p>
           </div>
 
           <div
-            ref={boardRef}
             className="relative overflow-hidden rounded-[12px] p-4 sm:p-5"
             style={{
               border: '1px solid var(--border-subtle)',
