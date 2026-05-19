@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import {
+  closestCenter,
   DndContext,
   DragOverlay,
   PointerSensor,
@@ -15,16 +16,17 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import {
+  arrayMove,
   SortableContext,
   rectSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
 import {
-  ArrowDown,
-  ArrowUp,
+  GripVertical,
   Layers,
   Plus,
   RotateCcw,
@@ -444,6 +446,105 @@ function tierRemoveBtnStyle(disabled: boolean): React.CSSProperties {
   }
 }
 
+/**
+ * One row in the tier editor. The whole `<li>` is the sortable node so
+ * the FLIP transform shifts the entire row (handle + inputs + delete)
+ * together when neighbours bump out of the way. Drag listeners live
+ * *only* on the grip button — the color picker and label input must
+ * stay clickable/typeable without triggering a drag, and pointer-down
+ * on the delete button gets stopPropagation defensively in case dnd-kit
+ * ever decides to listen at the wrapper level.
+ *
+ * Same `isDragging` transform/transition suppression as `SortableCard`:
+ * during the drag, the source is dimmed in-place at its DOM slot and
+ * receives no cursor-delta transform, so on release the only thing
+ * useSortable applies is the FLIP delta (old slot → new slot), animated
+ * smoothly with no drop-release shake.
+ */
+function SortableTierRow({
+  tier,
+  idx,
+  onLabelChange,
+  onColorChange,
+  onRemove,
+  canRemove,
+}: {
+  tier: TierDef
+  idx: number
+  onLabelChange: (value: string) => void
+  onColorChange: (value: string) => void
+  onRemove: () => void
+  canRemove: boolean
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: tier.id,
+    data: { kind: 'tier-row', id: tier.id },
+  })
+
+  return (
+    <li
+      ref={setNodeRef}
+      className="flex flex-wrap items-center gap-2 p-2"
+      style={{
+        transform: isDragging ? undefined : CSS.Translate.toString(transform),
+        transition: isDragging ? undefined : transition,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 5 : undefined,
+        borderRadius: 6,
+        border: '1px solid var(--border-subtle)',
+        background: 'color-mix(in srgb, var(--bg-surface) 88%, var(--bg))',
+      }}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label={`Reorder tier ${tier.label}`}
+        title="Drag to reorder"
+        className="inline-flex shrink-0 items-center justify-center"
+        style={{
+          ...ctrlBase,
+          width: 28,
+          height: 30,
+          padding: 0,
+          cursor: isDragging ? 'grabbing' : 'grab',
+          touchAction: 'none',
+          color: 'var(--text-muted)',
+        }}
+      >
+        <GripVertical size={16} aria-hidden />
+      </button>
+      <input
+        aria-label={`Tier ${idx + 1} color`}
+        type="color"
+        value={tier.color}
+        onChange={(e) => onColorChange(e.target.value)}
+        className="h-9 w-12 cursor-pointer rounded border bg-transparent"
+        style={{ borderColor: 'var(--border-subtle)' }}
+      />
+      <input
+        aria-label={`Tier ${idx + 1} label`}
+        type="text"
+        value={tier.label}
+        onChange={(e) => onLabelChange(e.target.value)}
+        className="min-w-[6rem] flex-1 px-2 py-1.5 text-sm font-bold outline-none"
+        style={{ ...ctrlBase, borderRadius: 6 }}
+      />
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        className="inline-flex items-center justify-center"
+        style={tierRemoveBtnStyle(!canRemove)}
+        disabled={!canRemove}
+        onClick={onRemove}
+        aria-label="Remove tier"
+      >
+        <Trash2 size={16} />
+      </button>
+    </li>
+  )
+}
+
 export function TierListMaker() {
   const formId = useId()
 
@@ -614,13 +715,18 @@ export function TierListMaker() {
     setCards((prev) => prev.map((c) => (c.tierId === tierId ? { ...c, tierId: null } : c)))
   }, [])
 
-  const moveTier = useCallback((idx: number, dir: -1 | 1) => {
+  // Reorder the tier rows when the user drags a row's grip handle.
+  // Lives in its own DndContext below, completely independent of the
+  // card-drag context — these two interactions never share a sortable
+  // tree, so we don't need to dispatch on data.kind here.
+  const onTierDragEnd = useCallback((e: DragEndEvent) => {
+    const { active, over } = e
+    if (!over || active.id === over.id) return
     setTiers((prev) => {
-      const j = idx + dir
-      if (j < 0 || j >= prev.length) return prev
-      const copy = [...prev]
-      ;[copy[idx], copy[j]] = [copy[j], copy[idx]]
-      return copy
+      const oldIndex = prev.findIndex((t) => t.id === active.id)
+      const newIndex = prev.findIndex((t) => t.id === over.id)
+      if (oldIndex < 0 || newIndex < 0) return prev
+      return arrayMove(prev, oldIndex, newIndex)
     })
   }, [])
 
@@ -770,74 +876,37 @@ export function TierListMaker() {
                 Add tier
               </button>
             </div>
-            <ul className="flex flex-col gap-2">
-              {tiers.map((tier, idx) => (
-                <li
-                  key={tier.id}
-                  className="flex flex-wrap items-center gap-2 p-2"
-                  style={{
-                    borderRadius: 6,
-                    border: '1px solid var(--border-subtle)',
-                    background: 'color-mix(in srgb, var(--bg-surface) 88%, var(--bg))',
-                  }}
-                >
-                  <input
-                    aria-label={`Tier ${idx + 1} color`}
-                    type="color"
-                    value={tier.color}
-                    onChange={(e) =>
-                      setTiers((prev) => prev.map((t) => (t.id === tier.id ? { ...t, color: e.target.value } : t)))
-                    }
-                    className="h-9 w-12 cursor-pointer rounded border bg-transparent"
-                    style={{ borderColor: 'var(--border-subtle)' }}
-                  />
-                  <input
-                    aria-label={`Tier ${idx + 1} label`}
-                    type="text"
-                    value={tier.label}
-                    onChange={(e) =>
-                      setTiers((prev) => prev.map((t) => (t.id === tier.id ? { ...t, label: e.target.value } : t)))
-                    }
-                    className="min-w-[6rem] flex-1 px-2 py-1.5 text-sm font-bold outline-none"
-                    style={{ ...ctrlBase, borderRadius: 6 }}
-                  />
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center"
-                      style={{ ...ctrlBase, width: 30, height: 30, padding: 0 }}
-                      onClick={() => moveTier(idx, -1)}
-                      disabled={idx === 0}
-                      aria-label="Move tier up"
-                    >
-                      <ArrowUp size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center"
-                      style={{ ...ctrlBase, width: 30, height: 30, padding: 0 }}
-                      onClick={() => moveTier(idx, 1)}
-                      disabled={idx === tiers.length - 1}
-                      aria-label="Move tier down"
-                    >
-                      <ArrowDown size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center"
-                      style={tierRemoveBtnStyle(tiers.length <= 1)}
-                      disabled={tiers.length <= 1}
-                      onClick={() => removeTier(tier.id)}
-                      aria-label="Remove tier"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {/* Tier-row reorder lives in its own DndContext, isolated
+                from the card-drag context below. closestCenter is the
+                right choice for a vertical list — the cursor's vertical
+                center picks the nearest neighbour row cleanly. */}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={onTierDragEnd}
+            >
+              <SortableContext items={tiers.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                <ul className="flex flex-col gap-2">
+                  {tiers.map((tier, idx) => (
+                    <SortableTierRow
+                      key={tier.id}
+                      tier={tier}
+                      idx={idx}
+                      onLabelChange={(value) =>
+                        setTiers((prev) => prev.map((t) => (t.id === tier.id ? { ...t, label: value } : t)))
+                      }
+                      onColorChange={(value) =>
+                        setTiers((prev) => prev.map((t) => (t.id === tier.id ? { ...t, color: value } : t)))
+                      }
+                      onRemove={() => removeTier(tier.id)}
+                      canRemove={tiers.length > 1}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
             <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-              Rename tiers (S+, S-, etc.), reorder rows, and drag items between rows.
+              Drag the grip handle to reorder rows. Rename tiers (S+, S-, etc.) and drag images between rows.
             </p>
           </section>
         )}
