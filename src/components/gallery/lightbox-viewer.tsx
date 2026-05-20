@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Bookmark, Layers } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
+import { filterCards } from '@/lib/card-filter'
 
 interface LightboxViewerProps { cards: Card[] }
 
@@ -18,14 +19,52 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     isPinned,
     toggleTierPool,
     isInTierPool,
+    activeSet,
+    activeRarity,
+    activeColor,
+    activeCardType,
+    onlyAltArt,
+    searchQuery,
   } = useStore()
   const [focused, setFocused] = useState(0)
 
-  const currentIndex = useMemo(
-    () => cards.findIndex((c) => c.id === lightboxCardId),
-    [cards, lightboxCardId]
+  // Mirror CardGrid's filter so arrow-key navigation stays inside
+  // the user's filter scope. Without this the lightbox walked the
+  // entire JSON bundle - opening the first "Leader" then hitting
+  // ArrowRight jumped to a non-Leader, which read as a bug because
+  // the wall behind the lightbox only showed leaders.
+  const filteredCards = useMemo(
+    () =>
+      filterCards(cards, {
+        activeSet,
+        activeRarity,
+        activeColor,
+        activeCardType,
+        onlyAltArt,
+        searchQuery,
+      }),
+    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery],
   )
-  const card = currentIndex >= 0 ? cards[currentIndex] : null
+
+  // Card lookup uses the *unfiltered* pool on purpose: if the user
+  // opens a card and then narrows the filter so it would be excluded
+  // (e.g. opens Luffy, then switches Card type to "Event"), we want
+  // the lightbox to keep rendering Luffy rather than vanishing
+  // mid-view. Navigation will still operate on the filtered list -
+  // see `currentIndex` below.
+  const card = useMemo(
+    () => cards.find((c) => c.id === lightboxCardId) ?? null,
+    [cards, lightboxCardId],
+  )
+
+  // Position inside the filtered list. -1 means the open card is
+  // currently outside the filter scope - in that case next/prev
+  // become no-ops (counter shows "— / N") rather than teleporting
+  // the user to an unrelated card.
+  const currentIndex = useMemo(
+    () => filteredCards.findIndex((c) => c.id === lightboxCardId),
+    [filteredCards, lightboxCardId],
+  )
 
   // Full list of images: base first, then alternates
   const images = useMemo(() => {
@@ -98,12 +137,16 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   }
 
   const goNext = useCallback(() => {
-    if (currentIndex < cards.length - 1) openLightbox(cards[currentIndex + 1].id)
-  }, [currentIndex, cards, openLightbox])
+    if (currentIndex < 0) return // open card is outside current filter scope
+    if (currentIndex < filteredCards.length - 1) {
+      openLightbox(filteredCards[currentIndex + 1].id)
+    }
+  }, [currentIndex, filteredCards, openLightbox])
 
   const goPrev = useCallback(() => {
-    if (currentIndex > 0) openLightbox(cards[currentIndex - 1].id)
-  }, [currentIndex, cards, openLightbox])
+    if (currentIndex <= 0) return // -1 = out of scope, 0 = already first
+    openLightbox(filteredCards[currentIndex - 1].id)
+  }, [currentIndex, filteredCards, openLightbox])
 
   useEffect(() => {
     if (!lightboxCardId) return
@@ -170,7 +213,8 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 letterSpacing: '0.08em',
               }}
             >
-              {currentIndex + 1} <span style={{ opacity: 0.4 }}>/</span> {cards.length}
+              {currentIndex >= 0 ? currentIndex + 1 : '—'}{' '}
+              <span style={{ opacity: 0.4 }}>/</span> {filteredCards.length}
             </div>
 
             {/* Pin + Tier + Close group · rounded-rect matching nav language */}
@@ -313,7 +357,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               <button
                 className="lb-arrow"
                 onClick={(e) => { e.stopPropagation(); goNext() }}
-                disabled={currentIndex >= cards.length - 1}
+                disabled={currentIndex < 0 || currentIndex >= filteredCards.length - 1}
                 aria-label="Next card"
               >
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

@@ -5,6 +5,7 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ChevronRight, X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
+import { filterCards } from '@/lib/card-filter'
 import { CardTile } from './card-tile'
 
 // Base gap (px) at normal zoom. We tighten this at high column
@@ -298,42 +299,24 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // the One Piece facets row adds another 40px on mobile.
   const headerH = headerHeightFor(windowWidth, activeCollection)
 
-  const filtered = useMemo(() => {
-    let result = cards
-    if (activeSet) result = result.filter((c) => c.setCode === activeSet)
-    if (activeRarity) result = result.filter((c) => c.rarity === activeRarity)
-    if (activeColor) result = result.filter((c) => c.colors?.includes(activeColor))
-    if (activeCardType) result = result.filter((c) => c.cardType === activeCardType)
-    if (onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
-      // Search now covers card rules text (effect / trigger) and
-      // tag-like metadata (types, attributes), not just the name /
-      // code / set. Matching is a single literal substring against
-      // the lowercased haystack - so "when attacking" works as a
-      // phrase, and "reduce" surfaces the 5 cards that mention
-      // damage reduction even if "reduce" isn't in their name.
-      //
-      // We do not split on whitespace + AND the tokens (yet). That
-      // would be more powerful but breaks naive phrase searches,
-      // and the current single-substring path matches what every
-      // other "search a card pile" UI does. Performance is fine at
-      // 2.5k cards x ~7 fields scanned per keystroke; the React
-      // input is already controlled-rerender naturally throttled by
-      // typing speed.
-      result = result.filter((c) => {
-        if (c.name.toLowerCase().includes(q)) return true
-        if (c.code.toLowerCase().includes(q)) return true
-        if (c.setName.toLowerCase().includes(q)) return true
-        if ((c.effect || '').toLowerCase().includes(q)) return true
-        if ((c.trigger || '').toLowerCase().includes(q)) return true
-        if (c.types?.some((t) => t.toLowerCase().includes(q))) return true
-        if (c.attributes?.some((a) => a.toLowerCase().includes(q))) return true
-        return false
-      })
-    }
-    return result
-  }, [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery])
+  // Filter logic lives in @/lib/card-filter so the lightbox viewer
+  // can apply the exact same filter on the same inputs - that's what
+  // keeps arrow-key navigation inside the filter scope ("opened a
+  // Leader, arrow advances to the next Leader, not the next card in
+  // the JSON bundle"). Keep the dep list aligned with the keys we
+  // pass into filterCards or memoisation will silently drift.
+  const filtered = useMemo(
+    () =>
+      filterCards(cards, {
+        activeSet,
+        activeRarity,
+        activeColor,
+        activeCardType,
+        onlyAltArt,
+        searchQuery,
+      }),
+    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery],
+  )
 
   // Card counts per set (from filtered results) - shown in collapsed headers.
   const setCounts = useMemo(() => {
