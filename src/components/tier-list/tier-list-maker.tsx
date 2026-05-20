@@ -1036,7 +1036,19 @@ export function TierListMaker() {
           the main gallery's italic-display tagline (orange quote
           marks + display font) so the two pages feel like siblings
           rather than the tier-list page feeling like a stripped-down
-          secondary tool. */}
+          secondary tool.
+
+          Both lines are pinned to a single row at every viewport.
+          On mobile the quote was wrapping mid-phrase ("...to make /
+          tier lists") which neutered the punchline rhythm, and the
+          value-statement triplet was wrapping each pill onto its
+          own line, which looked accidental. Solution: lock both
+          with white-space:nowrap and use viewport-width-keyed
+          clamps for font-size / letter-spacing / gap so the text
+          scales down smoothly on narrow phones instead of
+          breaking. The clamp lower bounds were tuned against
+          iPhone SE (375px) and the smallest common Android width
+          (~360px) using the dev-tools device emulator. */}
       <section
         aria-label="About this page"
         className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center"
@@ -1044,12 +1056,22 @@ export function TierListMaker() {
         <p
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(18px, 2.6vw, 26px)',
+            // Sized to fit the 52-char line inside the px-4 content
+            // box at every common phone width. Empirical scaling
+            // from a measured 694px-viewport render: at 694px the
+            // line is ~660px wide at 23.6px font, so we need
+            // fontSize <= ~10.5px at 320px usable width (288px),
+            // ~11.5px at 360 (328 usable), ~12.5px at 390 (358),
+            // etc. 3vw + 10px floor satisfies all of those with a
+            // small safety margin. Cap stays at 26px so the
+            // desktop look is unchanged from the previous design.
+            fontSize: 'clamp(10px, 3vw, 26px)',
             fontStyle: 'italic',
             fontWeight: 700,
             lineHeight: 1.3,
             letterSpacing: '-0.01em',
             color: 'var(--text-secondary)',
+            whiteSpace: 'nowrap',
           }}
         >
           <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>“</span>
@@ -1057,13 +1079,21 @@ export function TierListMaker() {
           <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>”</span>
         </p>
         <p
-          className="mt-3 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+          className="mt-3 flex flex-nowrap items-center justify-center"
           style={{
-            fontSize: 11,
-            letterSpacing: '0.18em',
+            // Triple-clamped: font, letter-spacing, and gap all
+            // shrink together on narrow widths so the three pills
+            // ("Always free · No signup · Runs in your browser")
+            // fit on one line down to ~360px. Above ~480px we hit
+            // the upper bounds and the strip looks identical to
+            // the previous fixed-11px design.
+            fontSize: 'clamp(8.5px, 2.4vw, 11px)',
+            letterSpacing: 'clamp(0.06em, 0.5vw, 0.18em)',
             textTransform: 'uppercase',
             fontWeight: 700,
             color: 'var(--text-muted)',
+            whiteSpace: 'nowrap',
+            gap: 'clamp(4px, 1.4vw, 12px)',
           }}
         >
           <span>Always free</span>
