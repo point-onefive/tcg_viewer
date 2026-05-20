@@ -667,6 +667,94 @@ export function Header({ sets }: HeaderProps) {
         </div>
       </div>
 
+      {/* ── Mobile row-2 · persistent filter strip ───────────────────
+          Search and Set both used to live behind the hamburger, which
+          meant any narrowing of the wall on mobile cost two extra
+          taps (open sheet → adjust → close sheet → look at results).
+          Pulling the two highest-frequency filters out into an always-
+          visible second row matches the desktop row-2 pattern and
+          eliminates the "open then close" loop. Less-used controls
+          (Collection, Card type, Color, Alt art, Zoom) still live in
+          the hamburger sheet below - they don't earn the persistent
+          real estate.
+
+          The 40px row height is chosen to match the desktop row-2
+          height exactly, so HEADER_H_MOBILE in card-grid.tsx maps to
+          88px (48 brand row + 40 filter row) - same total as desktop. */}
+      <div
+        className="lg:hidden flex items-center gap-2 px-4"
+        style={{
+          height: 40,
+          borderTop: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div className="relative flex-1" style={{ height: 30 }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Name, code, or card text…"
+            className="w-full h-full pl-3 pr-8 text-xs outline-none"
+            style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
+            aria-label="Search cards"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
+              style={{
+                right: 6,
+                width: 16,
+                height: 16,
+                borderRadius: 999,
+                background: 'var(--text-primary)',
+                color: 'var(--bg)',
+                cursor: 'pointer',
+                border: 'none',
+                padding: 0,
+              }}
+            >
+              <X size={10} strokeWidth={3} />
+            </button>
+          )}
+        </div>
+
+        {/* Set selector stays native here · the mobile OS picker
+            (bottom sheet on Android, wheel on iOS) handles a 50-set
+            list better than any custom popover, and we don't have
+            the desktop-overlay-bleed problem because mobile select
+            overlays are confined to the page. */}
+        <select
+          value={activeSet || ''}
+          onChange={(e) => setActiveSet(e.target.value || null)}
+          className="px-2 text-xs outline-none cursor-pointer appearance-none"
+          style={{
+            ...(activeSet ? ctrlActive : ctrl),
+            height: 30,
+            maxWidth: 110,
+            // Reserve room for a small chevron painted via SVG bg.
+            // Native arrow is suppressed via appearance:none so the
+            // control matches the styled language of the surrounding
+            // pills.
+            paddingRight: 22,
+            backgroundImage:
+              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 6px center',
+          }}
+          aria-label="Filter by set"
+        >
+          <option value="">All Sets</option>
+          {sets.map((s) => (
+            <option key={s.setCode} value={s.setCode}>
+              {s.setCode} · {s.setName}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* ── Desktop row-2 filter cluster · lg+ only ───────────────
           All the gallery-narrowing controls live here so the brand
           row stays uncluttered. Subtle top border separates it from
@@ -963,25 +1051,17 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
 
-          <select
-            value={activeSet || ''}
-            onChange={(e) => { setActiveSet(e.target.value || null); setMobileOpen(false) }}
-            className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
-            style={{ ...(activeSet ? ctrlActive : ctrl) }}
-          >
-            <option value="">All Sets</option>
-            {sets.map((s) => (
-              <option key={s.setCode} value={s.setCode}>
-                {s.setCode} · {s.setName}
-              </option>
-            ))}
-          </select>
+          {/* NOTE: Search and Set used to live here. Both were promoted
+              to a persistent mobile row-2 strip directly under the
+              brand row, so they no longer require opening this sheet
+              just to narrow the wall. This sheet now holds the less-
+              frequent controls only: Collection, the One Piece facets
+              (Card type / Color / Alt art), Zoom, and the nav links. */}
 
-          {/* One Piece-only facets in the mobile sheet. Sit between
-              Set and Search just like in the desktop nav so muscle
-              memory carries over. Mobile selects don't close the
-              sheet - the user often wants to combine facets, and
-              closing per-change would force them to re-open it. */}
+          {/* One Piece-only facets in the mobile sheet. Mobile selects
+              don't close the sheet - the user often wants to combine
+              facets, and closing per-change would force them to
+              re-open it. */}
           {showOnePieceFacets && (
             <>
               <select
@@ -1025,38 +1105,6 @@ export function Header({ sets }: HeaderProps) {
               </button>
             </>
           )}
-
-          <div className="relative w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Name, code, or card text…"
-              className="w-full pl-3 pr-9 py-2 text-sm outline-none"
-              style={{ ...(searchQuery.trim() ? ctrlActive : ctrl) }}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Clear search"
-                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
-                style={{
-                  right: 8,
-                  width: 20,
-                  height: 20,
-                  borderRadius: 999,
-                  background: 'var(--text-primary)',
-                  color: 'var(--bg)',
-                  cursor: 'pointer',
-                  border: 'none',
-                  padding: 0,
-                }}
-              >
-                <X size={12} strokeWidth={3} />
-              </button>
-            )}
-          </div>
 
           {/* Zoom row · matches desktop icon language */}
           <div className="flex items-center gap-2 px-3 py-2" style={{ ...ctrl }}>

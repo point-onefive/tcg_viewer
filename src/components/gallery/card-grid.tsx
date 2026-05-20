@@ -18,11 +18,14 @@ interface CardGridProps {
 }
 
 const CARD_RATIO = 7 / 5 // height / width
-// The fixed header is single-row on mobile (48px) and two-row on
-// desktop (48px brand row + 40px filter row = 88px). Below the lg
-// breakpoint the filter row collapses behind the hamburger sheet so
-// the spacer can stay short.
-const HEADER_H_MOBILE = 48
+// The fixed header is two-row at every breakpoint now:
+//   mobile : 48 brand row + 40 persistent search/set row = 88
+//   desktop: 48 brand row + 40 filter toolbar           = 88
+// The mobile row-2 was added when search/set were promoted out of
+// the hamburger sheet so people don't have to open the menu to
+// type a query or pick a set. Heights match exactly so virtualized
+// scroll math is identical across breakpoints.
+const HEADER_H_MOBILE = 88
 const HEADER_H_DESKTOP = 88
 const LG_BREAKPOINT = 1024
 // Hard ceiling on how tiny we let cards get. Picked empirically: at
