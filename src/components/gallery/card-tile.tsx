@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { Bookmark, Layers } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 
@@ -38,11 +37,14 @@ interface CardTileProps {
 
 export function CardTile({ card, priority = false }: CardTileProps) {
   const [loaded, setLoaded] = useState(false)
+  // Pin / tier-pool actions were intentionally moved off the tile and
+  // into the lightbox. The tile is now a single-purpose target: click
+  // to drill in, see the big art + every alt print, and choose
+  // pin / queue from there (per-variant, not just the base art). This
+  // keeps the wall feeling like a museum vs. a control surface, and
+  // means the hover hit area doesn't reveal floating circular buttons
+  // that competed with the card art at small zoom levels.
   const openLightbox = useStore((s) => s.openLightbox)
-  const togglePin = useStore((s) => s.togglePin)
-  const isPinned = useStore((s) => s.isPinned({ cardId: card.id }))
-  const toggleTierPool = useStore((s) => s.toggleTierPool)
-  const inTierPool = useStore((s) => s.isInTierPool(card.id))
   const cardRef = useRef<HTMLDivElement>(null)
 
   const primaryColor = card.colors?.[0] ? (COLOR_MAP[card.colors[0]] ?? 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.15)'
@@ -120,41 +122,6 @@ export function CardTile({ card, priority = false }: CardTileProps) {
 
         {/* Color accent bar - bottom edge on hover */}
         <div className="card-tile__colorbar" />
-
-        {/* Pin / bookmark toggle - top-right. Pins the base art.
-            Variants are pinned individually from the lightbox. */}
-        <button
-          type="button"
-          className={`card-tile__pin${isPinned ? ' card-tile__pin--active' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation()
-            togglePin({ cardId: card.id })
-          }}
-          aria-label={isPinned ? 'Remove from board' : 'Pin to board'}
-          aria-pressed={isPinned}
-        >
-          <Bookmark size={14} strokeWidth={2} fill={isPinned ? 'currentColor' : 'none'} />
-        </button>
-
-        {/* Add base art to tier-list pool - sits below the pin.
-            Variants are added individually from the lightbox. */}
-        <button
-          type="button"
-          className={`card-tile__tier-btn${inTierPool ? ' card-tile__tier-btn--active' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleTierPool({
-              id: card.id,
-              src: card.imageLarge || card.imageSmall,
-              label: `${card.name}${card.code ? ` (${card.code})` : ''}`,
-            })
-          }}
-          aria-label={inTierPool ? 'Remove from tier list pool' : 'Add to tier list pool'}
-          aria-pressed={inTierPool}
-          title={inTierPool ? 'Queued for tier list · click to remove' : 'Add to tier list pool'}
-        >
-          <Layers size={14} strokeWidth={2} fill={inTierPool ? 'currentColor' : 'none'} />
-        </button>
       </div>
     </div>
   )

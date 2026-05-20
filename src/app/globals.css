@@ -254,99 +254,11 @@ html.lenis, html.lenis body {
   outline-offset: 2px;
 }
 
-/* Pin / bookmark toggle on each card tile.
-   Hidden by default, fades in on hover. Stays visible when active (pinned).
-   IMPORTANT: backdrop-filter is intentionally NOT on the resting style.
-   At rest the button is opacity:0 but a `backdrop-filter` still forces
-   the browser to allocate a compositor layer and sample pixels beneath
-   it - multiplied by ~90 tiles in the virtual window that's a hidden
-   perf tax. We apply it only when the button is actually visible. */
-.card-tile__pin {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 6;
-  width: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity 180ms ease, transform 180ms ease, background 180ms ease;
-}
-
-.card-tile:hover .card-tile__pin,
-.card-tile:focus-within .card-tile__pin,
-.card-tile__pin--active {
-  opacity: 1;
-  transform: translateY(0);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.card-tile__pin:hover {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-.card-tile__pin--active {
-  background: var(--text-primary);
-  color: var(--bg);
-}
-
-.card-tile__pin--active:hover {
-  background: var(--text-primary);
-}
-
-/* Add-to-tier-list toggle - sits directly below the pin button.
-   Same visual language as the pin so the action set reads as a stack.
-   See .card-tile__pin above for why backdrop-filter is hover-only. */
-.card-tile__tier-btn {
-  position: absolute;
-  top: 40px;
-  right: 8px;
-  z-index: 6;
-  width: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity 180ms ease, transform 180ms ease, background 180ms ease;
-}
-
-.card-tile:hover .card-tile__tier-btn,
-.card-tile:focus-within .card-tile__tier-btn,
-.card-tile__tier-btn--active {
-  opacity: 1;
-  transform: translateY(0);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.card-tile__tier-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-.card-tile__tier-btn--active {
-  background: #E85D2A;
-  color: #fff;
-}
-
-.card-tile__tier-btn--active:hover {
-  background: #d24d1c;
-}
+/* The per-tile Pin / Add-to-tier hover buttons used to live here.
+   They were removed so the wall stays a single-purpose browsing
+   surface - click a tile to drill into the lightbox, then pin or
+   queue from there (per-variant, not just the base art). See
+   card-tile.tsx for the rationale. */
 
 /* ─── Variant indicator: stacked-card effect ─────────────────── */
 /* Cards with alternates render with 2 "peek" sheets sitting behind
