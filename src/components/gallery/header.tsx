@@ -667,20 +667,14 @@ export function Header({ sets }: HeaderProps) {
         </div>
       </div>
 
-      {/* ── Mobile row-2 · persistent filter strip ───────────────────
-          Search and Set both used to live behind the hamburger, which
-          meant any narrowing of the wall on mobile cost two extra
-          taps (open sheet → adjust → close sheet → look at results).
-          Pulling the two highest-frequency filters out into an always-
-          visible second row matches the desktop row-2 pattern and
-          eliminates the "open then close" loop. Less-used controls
-          (Collection, Card type, Color, Alt art, Zoom) still live in
-          the hamburger sheet below - they don't earn the persistent
-          real estate.
-
-          The 40px row height is chosen to match the desktop row-2
-          height exactly, so HEADER_H_MOBILE in card-grid.tsx maps to
-          88px (48 brand row + 40 filter row) - same total as desktop. */}
+      {/* ── Mobile row-2 · Search + Set ──────────────────────────────
+          First of three persistent filter rows on mobile (rows 3 and
+          4 are below). Search and Set are the two highest-frequency
+          filters so they get the top spot directly under the brand
+          row. Every other filter (Card type / Color / Alt art / Zoom)
+          now also lives outside the hamburger - see the rows below.
+          The 40px row height matches desktop row-2 and rows 3/4 so
+          virtualized scroll math in card-grid stays clean. */}
       <div
         className="lg:hidden flex items-center gap-2 px-4"
         style={{
@@ -753,6 +747,115 @@ export function Header({ sets }: HeaderProps) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* ── Mobile row-3 · One Piece facets ──────────────────────────
+          Card type / Color / Alt art used to live behind the hamburger
+          too. Promoted here so every filter on the page is one tap
+          away. Only rendered for One Piece because no other TCG has
+          these facets wired up yet (Pokemon's energies / Digimon's
+          colors will eventually slot in the same row). Compact pill
+          language matches desktop row-2. */}
+      {showOnePieceFacets && (
+        <div
+          className="lg:hidden flex items-center gap-2 px-4"
+          style={{
+            height: 40,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <select
+            value={activeCardType || ''}
+            onChange={(e) => setActiveCardType(e.target.value || null)}
+            className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+            style={{
+              ...(activeCardType ? ctrlActive : ctrl),
+              height: 30,
+              paddingRight: 22,
+              backgroundImage:
+                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 6px center',
+            }}
+            aria-label="Filter by card type"
+          >
+            <option value="">All types</option>
+            {ONE_PIECE_CARD_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={activeColor || ''}
+            onChange={(e) => setActiveColor(e.target.value || null)}
+            className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+            style={{
+              ...(activeColor ? ctrlActive : ctrl),
+              height: 30,
+              paddingRight: 22,
+              backgroundImage:
+                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 6px center',
+            }}
+            aria-label="Filter by color"
+          >
+            <option value="">All colors</option>
+            {ONE_PIECE_COLORS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setOnlyAltArt(!onlyAltArt)}
+            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+            style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
+            aria-pressed={onlyAltArt}
+            aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
+          >
+            Alt art
+          </button>
+        </div>
+      )}
+
+      {/* ── Mobile row-4 · Zoom slider ───────────────────────────────
+          Zoom was the last hamburger-only control. Promoted here so
+          the entire filter set is reachable without ever opening the
+          sheet. Matches the desktop slider's range (1-29) so mobile
+          users get the same "as tiny as it gets" zoom-out. The
+          surrounding rect-grid icons mirror the desktop language. */}
+      <div
+        className="lg:hidden flex items-center gap-2 px-4"
+        style={{
+          height: 40,
+          borderTop: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div
+          className="flex items-center gap-2 flex-1 px-3"
+          style={{ ...ctrl, height: 30 }}
+        >
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+            <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+          </svg>
+          <input
+            type="range" min={1} max={29} step={1} value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            className="zoom-slider flex-1" aria-label="Zoom level"
+          />
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+            <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+          </svg>
+        </div>
       </div>
 
       {/* ── Desktop row-2 filter cluster · lg+ only ───────────────
@@ -1051,83 +1154,16 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
 
-          {/* NOTE: Search and Set used to live here. Both were promoted
-              to a persistent mobile row-2 strip directly under the
-              brand row, so they no longer require opening this sheet
-              just to narrow the wall. This sheet now holds the less-
-              frequent controls only: Collection, the One Piece facets
-              (Card type / Color / Alt art), Zoom, and the nav links. */}
-
-          {/* One Piece-only facets in the mobile sheet. Mobile selects
-              don't close the sheet - the user often wants to combine
-              facets, and closing per-change would force them to
-              re-open it. */}
-          {showOnePieceFacets && (
-            <>
-              <select
-                value={activeCardType || ''}
-                onChange={(e) => setActiveCardType(e.target.value || null)}
-                className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
-                style={{ ...(activeCardType ? ctrlActive : ctrl) }}
-                aria-label="Filter by card type"
-              >
-                <option value="">All types</option>
-                {ONE_PIECE_CARD_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={activeColor || ''}
-                onChange={(e) => setActiveColor(e.target.value || null)}
-                className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none"
-                style={{ ...(activeColor ? ctrlActive : ctrl) }}
-                aria-label="Filter by color"
-              >
-                <option value="">All colors</option>
-                {ONE_PIECE_COLORS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setOnlyAltArt(!onlyAltArt)}
-                /* outline-none matches the sibling selects (see the
-                   desktop alt-art button for the long version). */
-                className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium outline-none"
-                style={{ ...(onlyAltArt ? ctrlActive : ctrl) }}
-                aria-pressed={onlyAltArt}
-              >
-                Only cards with alt art
-              </button>
-            </>
-          )}
-
-          {/* Zoom row · matches desktop icon language */}
-          <div className="flex items-center gap-2 px-3 py-2" style={{ ...ctrl }}>
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-              <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-            </svg>
-            <input
-              /* Matches the desktop slider's range so mobile users
-                 get the same "as tiny as it gets" zoom-out. */
-              type="range" min={1} max={29} step={1} value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="zoom-slider flex-1" aria-label="Zoom level"
-            />
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-              <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-            </svg>
-          </div>
+          {/* NOTE: The mobile sheet used to be the home for every
+              filter on the page. We've since promoted them all to
+              persistent rows directly under the brand row:
+                row-2: Search + Set
+                row-3: Card type + Color + Alt art (One Piece only)
+                row-4: Zoom slider
+              So this sheet now only holds Collection (above) and the
+              meta nav links (below). The trade-off is a taller fixed
+              header on mobile, but every filter is one tap away with
+              no sheet-open / sheet-close round-trip. */}
 
           <Link
             href="/tier-list"

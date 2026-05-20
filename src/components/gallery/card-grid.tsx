@@ -18,14 +18,22 @@ interface CardGridProps {
 }
 
 const CARD_RATIO = 7 / 5 // height / width
-// The fixed header is two-row at every breakpoint now:
-//   mobile : 48 brand row + 40 persistent search/set row = 88
-//   desktop: 48 brand row + 40 filter toolbar           = 88
-// The mobile row-2 was added when search/set were promoted out of
-// the hamburger sheet so people don't have to open the menu to
-// type a query or pick a set. Heights match exactly so virtualized
-// scroll math is identical across breakpoints.
-const HEADER_H_MOBILE = 88
+// The fixed header height depends on breakpoint *and* (on mobile)
+// which TCG is active, because every filter was lifted out of the
+// hamburger sheet and into persistent rows under the brand row:
+//
+//   desktop : 48 brand + 40 filter toolbar                  =  88
+//   mobile  : 48 brand + 40 search/set
+//                      + 40 facets (One Piece only)
+//                      + 40 zoom slider                     = 128 or 168
+//
+// The taller mobile header eats a chunk of viewport but means zero
+// "open sheet, tweak, close sheet, scroll" round-trips for every
+// filter on the page. The non-One Piece TCGs skip the facets row so
+// they don't pay for filters that don't exist for them yet (Pokemon
+// types / Digimon colors will eventually slot into that same row).
+const HEADER_H_MOBILE_BASE = 128
+const HEADER_H_MOBILE_ONE_PIECE = 168
 const HEADER_H_DESKTOP = 88
 const LG_BREAKPOINT = 1024
 // Hard ceiling on how tiny we let cards get. Picked empirically: at
@@ -37,8 +45,11 @@ const LG_BREAKPOINT = 1024
 // no visual payoff.
 const MAX_COLUMNS = 30
 
-function headerHeightFor(windowWidth: number): number {
-  return windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
+function headerHeightFor(windowWidth: number, activeCollection: string): number {
+  if (windowWidth >= LG_BREAKPOINT) return HEADER_H_DESKTOP
+  return activeCollection === 'one-piece'
+    ? HEADER_H_MOBILE_ONE_PIECE
+    : HEADER_H_MOBILE_BASE
 }
 
 // Gap shrinks as the grid densifies. Around the default ~6 columns
@@ -56,8 +67,8 @@ function gapForColumns(cols: number): number {
 // height. Uses the default gap as a conservative upper bound - the
 // real gap may be tighter at high column counts, but that only
 // gives us *more* headroom for fitting cards vertically.
-function minColumnsForViewport(windowWidth: number, windowHeight: number): number {
-  const usableHeight = windowHeight - headerHeightFor(windowWidth) - GAP_DEFAULT
+function minColumnsForViewport(windowWidth: number, windowHeight: number, activeCollection: string): number {
+  const usableHeight = windowHeight - headerHeightFor(windowWidth, activeCollection) - GAP_DEFAULT
   const containerWidth = Math.min(windowWidth, 1800) - 32
   // cardWidth = containerWidth / cols, cardHeight = cardWidth * CARD_RATIO
   // We need cardHeight <= usableHeight
@@ -69,10 +80,10 @@ function minColumnsForViewport(windowWidth: number, windowHeight: number): numbe
 // zoom 1 = fewest cols (biggest cards). High zoom = up to
 // MAX_COLUMNS (smallest cards). Keep the simple "zoom + 1 → column
 // count" mapping so each slider tick still feels like one step.
-function zoomToColumns(zoom: number, windowWidth: number, windowHeight: number) {
+function zoomToColumns(zoom: number, windowWidth: number, windowHeight: number, activeCollection: string) {
   const desired = zoom + 1
   const capped = Math.min(desired, MAX_COLUMNS)
-  const floor = minColumnsForViewport(windowWidth, windowHeight)
+  const floor = minColumnsForViewport(windowWidth, windowHeight, activeCollection)
   return Math.max(capped, floor)
 }
 
@@ -279,12 +290,13 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     }
   }, [])
 
-  const columns = zoomToColumns(zoom, windowWidth, windowHeight)
+  const columns = zoomToColumns(zoom, windowWidth, windowHeight, activeCollection)
   // Pre-compute the active header height once per render - used for
   // the layout spacer below the fixed header, the virtualizer's
   // scrollMargin, and the column-fitting math (`minColumnsForViewport`
-  // also recomputes it, but cheaply).
-  const headerH = headerHeightFor(windowWidth)
+  // also recomputes it, but cheaply). Depends on collection because
+  // the One Piece facets row adds another 40px on mobile.
+  const headerH = headerHeightFor(windowWidth, activeCollection)
 
   const filtered = useMemo(() => {
     let result = cards
