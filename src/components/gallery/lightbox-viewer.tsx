@@ -76,8 +76,29 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
 
   const hasMultiple = images.length > 1
 
-  // Reset focused variant when card changes
-  useEffect(() => { setFocused(0) }, [lightboxCardId])
+  // Reset focused variant when the open card changes. Uses React's
+  // "adjust state during render" pattern (not a useEffect) so the
+  // reset is synchronous - the first render after a card change
+  // already uses focused=0. With the old useEffect-based reset the
+  // first render still ran with the *previous* card's focused value;
+  // if that was >= the new card's images.length (e.g. switching from
+  // a 7-variant Nami to a 1-variant Nami while focused=3), the
+  // unguarded `images[focused].id` access below crashed the whole
+  // page. See https://react.dev/learn/you-might-not-need-an-effect
+  // ("Adjusting state when a prop changes").
+  const [prevLightboxCardId, setPrevLightboxCardId] = useState(lightboxCardId)
+  if (prevLightboxCardId !== lightboxCardId) {
+    setPrevLightboxCardId(lightboxCardId)
+    setFocused(0)
+  }
+
+  // Belt-and-suspenders clamp. The during-render reset above already
+  // guarantees focused is 0 the moment a card change is observed,
+  // but variant-stepping (wheel / swipe / Arrow up-down / clicking a
+  // variant in the fan) could still race ahead of an in-flight card
+  // change in theory. A clamp is essentially free and makes the
+  // whole block crash-proof regardless of how state gets in.
+  const safeFocused = images.length > 0 ? Math.min(focused, images.length - 1) : 0
 
   const stepVariant = useCallback((delta: number) => {
     setFocused((f) => {
@@ -220,8 +241,9 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             {/* Pin + Tier + Close group · rounded-rect matching nav language */}
             <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
               {card && (() => {
-                const img = images[focused]
-                const pinArg = focused === 0
+                const img = images[safeFocused]
+                if (!img) return null
+                const pinArg = safeFocused === 0
                   ? { cardId: card.id }
                   : { cardId: card.id, variantId: img.id }
                 const pinned = isPinned(pinArg)
@@ -279,8 +301,8 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             {/* Cards fan */}
             <div className="lb-stage">
               {images.map((img, i) => {
-                const offset = i - focused
-                const isActive = i === focused
+                const offset = i - safeFocused
+                const isActive = i === safeFocused
                 return (
                   <motion.div
                     key={img.id}
@@ -372,7 +394,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 {images.map((img, i) => (
                   <button
                     key={img.id}
-                    className={`lb-dot${i === focused ? ' lb-dot--active' : ''}`}
+                    className={`lb-dot${i === safeFocused ? ' lb-dot--active' : ''}`}
                     onClick={() => setFocused(i)}
                     aria-label={`View ${img.label}`}
                   />
