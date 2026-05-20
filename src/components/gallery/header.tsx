@@ -83,6 +83,8 @@ function FacetPopover({
   ctrl,
   ctrlActive,
   menuMinWidth = 160,
+  menuMaxHeight,
+  triggerMaxWidth,
 }: {
   placeholder: string
   ariaLabel: string
@@ -92,6 +94,17 @@ function FacetPopover({
   ctrl: React.CSSProperties
   ctrlActive: React.CSSProperties
   menuMinWidth?: number
+  // Cap menu height + add inner scroll. Without this a 50-item set
+  // list would render as a 1500px-tall panel that walks off the
+  // bottom of the viewport (and at common scroll positions, off the
+  // top of it too). With it the menu stays comfortably inside the
+  // page and the user scrolls inside the popover, never inside the
+  // OS overlay.
+  menuMaxHeight?: number
+  // Clamp the trigger width so a long label ("OP01 · Romance Dawn")
+  // doesn't stretch the row and shove the rest of the filter strip
+  // around. Selected text truncates with an ellipsis at this width.
+  triggerMaxWidth?: number
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -127,7 +140,11 @@ function FacetPopover({
            (selects/inputs) - buttons here use hover/active styling
            instead, matching the header's existing button language. */
         className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
-        style={{ ...(isActive ? ctrlActive : ctrl), height: 30 }}
+        style={{
+          ...(isActive ? ctrlActive : ctrl),
+          height: 30,
+          ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
+        }}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
@@ -145,7 +162,16 @@ function FacetPopover({
             }}
           />
         )}
-        <span>{triggerLabel}</span>
+        <span
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+          }}
+        >
+          {triggerLabel}
+        </span>
         <ChevronDown
           size={12}
           strokeWidth={2.25}
@@ -166,7 +192,7 @@ function FacetPopover({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 top-full mt-1.5 overflow-hidden"
+            className="absolute left-0 top-full mt-1.5"
             style={{
               transformOrigin: 'top left',
               background: 'var(--bg-surface)',
@@ -176,6 +202,16 @@ function FacetPopover({
               zIndex: 60,
               padding: 4,
               minWidth: menuMinWidth,
+              // When menuMaxHeight is set, the panel becomes its own
+              // scroll container so long lists (e.g. 50+ sets) stay
+              // inside the page bounds instead of overflowing past
+              // the viewport into the browser chrome (which is what
+              // a native <select> would do). Clear row scrolls with
+              // the rest - having it pin to the top added visual
+              // chrome that didn't earn its keep on shorter lists.
+              ...(menuMaxHeight
+                ? { maxHeight: menuMaxHeight, overflowY: 'auto', overflowX: 'hidden' }
+                : { overflow: 'hidden' }),
             }}
           >
             {/* "Clear" row: null value, shown as a reset action.
@@ -743,20 +779,34 @@ export function Header({ sets }: HeaderProps) {
             </AnimatePresence>
           </div>
 
-          {/* Set Filter */}
-          <select
-            value={activeSet || ''}
-            onChange={(e) => setActiveSet(e.target.value || null)}
-            className="px-3 py-1.5 text-xs outline-none cursor-pointer appearance-none max-w-[150px]"
-            style={{ ...(activeSet ? ctrlActive : ctrl), height: 30 }}
-          >
-            <option value="">All Sets</option>
-            {sets.map((s) => (
-              <option key={s.setCode} value={s.setCode}>
-                {s.setCode} · {s.setName}
-              </option>
-            ))}
-          </select>
+          {/* Set Filter · custom popover (not <select>) so the menu
+              stays inside the page DOM and scrolls internally. The
+              native <select> overlay on macOS Chrome is a platform
+              popup that can extend past the page viewport up into
+              the browser chrome / above the tabs - visually jarring
+              and inconsistent with the Card type / Color popovers
+              right next to it which already use this component. */}
+          <FacetPopover
+            placeholder="All Sets"
+            ariaLabel="Filter by set"
+            value={activeSet}
+            onChange={setActiveSet}
+            options={sets.map((s) => ({
+              value: s.setCode,
+              label: `${s.setCode} · ${s.setName}`,
+            }))}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            menuMinWidth={220}
+            // Cap height to ~12 rows. With 50+ sets the panel would
+            // otherwise be ~1500px tall; this keeps it firmly inside
+            // the page and lets the user scroll within the popover.
+            menuMaxHeight={360}
+            // Match the old native select's effective width budget
+            // so the row layout doesn't shift when a long set name
+            // is selected.
+            triggerMaxWidth={180}
+          />
 
           {/* One Piece-only facet filters · live inline alongside the
               other narrowing controls so the user sees every available
