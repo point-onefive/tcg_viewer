@@ -877,7 +877,10 @@ export function Header({ sets }: HeaderProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search cards…"
+              /* Placeholder hints at the new card-text coverage so
+                 users discover they can search rules text ("when
+                 attacking", "blocker") instead of just names. */
+              placeholder="Name, code, or card text…"
               className="w-full h-full pl-3 pr-7 text-xs outline-none"
               style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
             />
@@ -1028,7 +1031,7 @@ export function Header({ sets }: HeaderProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search cards…"
+              placeholder="Name, code, or card text…"
               className="w-full pl-3 pr-9 py-2 text-sm outline-none"
               style={{ ...(searchQuery.trim() ? ctrlActive : ctrl) }}
             />

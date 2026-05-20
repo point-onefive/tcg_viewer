@@ -292,12 +292,30 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     if (onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
-      result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.code.toLowerCase().includes(q) ||
-          c.setName.toLowerCase().includes(q)
-      )
+      // Search now covers card rules text (effect / trigger) and
+      // tag-like metadata (types, attributes), not just the name /
+      // code / set. Matching is a single literal substring against
+      // the lowercased haystack - so "when attacking" works as a
+      // phrase, and "reduce" surfaces the 5 cards that mention
+      // damage reduction even if "reduce" isn't in their name.
+      //
+      // We do not split on whitespace + AND the tokens (yet). That
+      // would be more powerful but breaks naive phrase searches,
+      // and the current single-substring path matches what every
+      // other "search a card pile" UI does. Performance is fine at
+      // 2.5k cards x ~7 fields scanned per keystroke; the React
+      // input is already controlled-rerender naturally throttled by
+      // typing speed.
+      result = result.filter((c) => {
+        if (c.name.toLowerCase().includes(q)) return true
+        if (c.code.toLowerCase().includes(q)) return true
+        if (c.setName.toLowerCase().includes(q)) return true
+        if ((c.effect || '').toLowerCase().includes(q)) return true
+        if ((c.trigger || '').toLowerCase().includes(q)) return true
+        if (c.types?.some((t) => t.toLowerCase().includes(q))) return true
+        if (c.attributes?.some((a) => a.toLowerCase().includes(q))) return true
+        return false
+      })
     }
     return result
   }, [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery])
