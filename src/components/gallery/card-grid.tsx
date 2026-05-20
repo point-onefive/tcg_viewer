@@ -45,6 +45,16 @@ const LG_BREAKPOINT = 1024
 // noise and DOM weight per visible row grows roughly linearly with
 // no visual payoff.
 const MAX_COLUMNS = 30
+// Tighter ceiling for sub-lg viewports. On a 390px phone screen
+// 14 cols already puts each tile around 22px wide / 31px tall,
+// which is the edge of "you can still identify the card." Anything
+// past that and tiles collapse into colour noise - especially at
+// the bottom of the slider, where the desktop floor (30 cols) on
+// mobile produced a ~10x14px tile that was effectively unusable.
+// Cap is applied both as a slider `max` in the mobile zoom row
+// AND inside zoomToColumns() so stale persisted desktop zoom
+// values don't sneak past the cap when the user loads on mobile.
+const MAX_COLUMNS_MOBILE = 14
 
 function headerHeightFor(windowWidth: number, activeCollection: string): number {
   if (windowWidth >= LG_BREAKPOINT) return HEADER_H_DESKTOP
@@ -83,7 +93,11 @@ function minColumnsForViewport(windowWidth: number, windowHeight: number, active
 // count" mapping so each slider tick still feels like one step.
 function zoomToColumns(zoom: number, windowWidth: number, windowHeight: number, activeCollection: string) {
   const desired = zoom + 1
-  const capped = Math.min(desired, MAX_COLUMNS)
+  // Per-breakpoint ceiling - the desktop ceiling (30) produced
+  // ugly sub-15px tiles on mobile. See MAX_COLUMNS_MOBILE comment
+  // above for the empirical justification.
+  const ceiling = windowWidth >= LG_BREAKPOINT ? MAX_COLUMNS : MAX_COLUMNS_MOBILE
+  const capped = Math.min(desired, ceiling)
   const floor = minColumnsForViewport(windowWidth, windowHeight, activeCollection)
   return Math.max(capped, floor)
 }
@@ -329,6 +343,24 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const allCollapsed =
     visibleSetCodes.length > 0 && visibleSetCodes.every((s) => collapsedSets.has(s))
 
+  // While the user is actively filtering, ignore the per-set collapse
+  // state and render everything expanded. Otherwise sets that happened
+  // to be collapsed-by-default still contributed their header row to
+  // the layout when they had matches - producing a stack of 44px
+  // header strips between the matches the user actually wanted to
+  // see (e.g. searching "nami" with most sets collapsed yielded ~250px
+  // of "OP02 · 1 cards" / "OP03 · 1 cards" headers between the OP01
+  // and OP04 hits). The underlying `collapsedSets` state is left
+  // untouched so the user's normal collapse layout snaps back the
+  // instant they clear filters.
+  const hasActiveFilter =
+    !!activeSet ||
+    !!activeRarity ||
+    !!activeColor ||
+    !!activeCardType ||
+    onlyAltArt ||
+    searchQuery.trim().length > 0
+
   const { rows, rowMeta, firstCardRowIndex } = useMemo(() => {
     const rows: (Card[] | CardSet)[] = []
     const rowMeta: ('cards' | 'header')[] = []
@@ -339,7 +371,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     for (const card of filtered) {
       if (card.setCode !== currentSet) {
         currentSet = card.setCode
-        currentCollapsed = collapsedSets.has(currentSet)
+        currentCollapsed = hasActiveFilter ? false : collapsedSets.has(currentSet)
         const set = sets.find((s) => s.setCode === currentSet)
         if (set) {
           rows.push(set)
@@ -358,7 +390,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     }
 
     return { rows, rowMeta, firstCardRowIndex }
-  }, [filtered, columns, sets, collapsedSets])
+  }, [filtered, columns, sets, collapsedSets, hasActiveFilter])
 
   const estimateSize = useCallback(
     (index: number) => {
@@ -543,7 +575,12 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
           if (type === 'header') {
             const set = row as CardSet
-            const isCollapsed = collapsedSets.has(set.setCode)
+            // During filtering we force-expand every set (see the
+            // `hasActiveFilter` block in the rows useMemo), so the
+            // chevron should show "expanded" too - otherwise the
+            // arrow would point right while the cards underneath
+            // are clearly visible, which reads as a bug.
+            const isCollapsed = hasActiveFilter ? false : collapsedSets.has(set.setCode)
             const count = setCounts.get(set.setCode) ?? 0
             return (
               <SetHeaderRow
