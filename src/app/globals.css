@@ -562,13 +562,17 @@ html.lenis, html.lenis body {
   right: 0;
   bottom: 0;
   z-index: 70;
-  width: min(380px, 94vw);
+  /* Mobile / tablet default: edge-to-edge. The old min(380px, 94vw)
+     left a ~6vw sliver of the gallery visible underneath, which read
+     as visual noise and made it tempting for users to try scrolling
+     the page through that sliver instead of interacting with the
+     board. Going full-width on mobile + locking body scroll in JS
+     gives the panel single-surface focus. */
+  width: 100%;
   display: flex;
   flex-direction: column;
   background: var(--bg);
-  border-left: 1px solid var(--border-subtle);
   outline: none;
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
 }
 
 .board-panel__header {
@@ -701,17 +705,25 @@ html.lenis, html.lenis body {
   gap: 10px;
 }
 
-/* Fit more per row on wider panels (larger screens) */
-@media (min-width: 480px) {
-  .board-panel {
-    width: min(440px, 94vw);
-  }
-}
-
+/* Tighten the grid as the panel widens so the per-tile size stays
+   roughly consistent across breakpoints. Triggered on viewport
+   (not on panel) width since the panel is still 100% wide here. */
 @media (min-width: 640px) {
   .board-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+  }
+}
+
+/* Desktop only: revert to a right-docked slide-over panel so the
+   gallery underneath stays visible while the user reorganises pins.
+   Below this breakpoint the panel is full-screen (see .board-panel
+   above) because a sliver of background on a phone is just noise. */
+@media (min-width: 1024px) {
+  .board-panel {
+    width: min(440px, 94vw);
+    border-left: 1px solid var(--border-subtle);
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
   }
 }
 

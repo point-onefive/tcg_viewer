@@ -127,6 +127,20 @@ export function BoardPanel({ cards }: BoardPanelProps) {
     return () => window.removeEventListener('keydown', handler)
   }, [boardOpen, setBoardOpen])
 
+  // Lock body scroll while the board is open. Without this, on
+  // mobile the gallery underneath kept scrolling when a user dragged
+  // inside the board (especially the empty space below the pin grid),
+  // which felt like the board "leaked" - they'd close it and find
+  // their scroll position 800px away from where they'd opened it.
+  // Matches the lightbox's scroll-lock pattern so behaviour is
+  // consistent across modal surfaces.
+  useEffect(() => {
+    document.body.style.overflow = boardOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [boardOpen])
+
   // Focus trap - move focus into panel when it opens
   useEffect(() => {
     if (boardOpen) {
