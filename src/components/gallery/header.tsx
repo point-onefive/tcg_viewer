@@ -845,7 +845,14 @@ export function Header({ sets }: HeaderProps) {
             <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
           </svg>
           <input
-            type="range" min={1} max={29} step={1} value={zoom}
+            /* max is 13 on mobile (vs 29 on desktop, see row-2
+               slider). card-grid caps mobile output at 14 columns
+               because the desktop ceiling of 30 cols produced
+               unreadable ~10x14px tiles on phones - aligning the
+               slider's max with that cap means the entire slider
+               travel maps to a visible change instead of having a
+               silent dead zone past tick 13. */
+            type="range" min={1} max={13} step={1} value={Math.min(zoom, 13)}
             onChange={(e) => setZoom(Number(e.target.value))}
             className="zoom-slider flex-1" aria-label="Zoom level"
           />
