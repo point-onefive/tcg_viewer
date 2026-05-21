@@ -19,7 +19,35 @@ export default function Home() {
   // gets the same filtered view because they all receive these `cards`
   // -- there's no second-pass filter that could disagree with itself.
   const cards = useMemo(() => applyRegionFilter(rawCards, showJpVariants), [rawCards, showJpVariants])
-  const sets = getSets(activeCollection)
+  const rawSets = getSets(activeCollection)
+  // Filter the set list to hide any set that is empty under the current
+  // JP setting (e.g. ST-30, which is 100% JP-exclusive, vanishes from the
+  // Set dropdown when JP is off). Without this filter the dropdown was
+  // the loudest "nothing changed" signal in the page: a user would flip
+  // JP off, see ST-30 still listed, scroll to it, find it empty, and
+  // conclude the toggle was broken. Mixed-region sets like PROMO stay
+  // listed; their count just shrinks.
+  const sets = useMemo(() => {
+    const codesWithCards = new Set(cards.map((c) => c.setCode))
+    return rawSets.filter((s) => codesWithCards.has(s.setCode))
+  }, [rawSets, cards])
+  // Count of JP-exclusive entries in the raw data (does NOT change when
+  // the toggle flips, so we read it off `rawCards` rather than `cards`).
+  // Surfaced on the JP pill as "JP · 432" so the user always knows how
+  // much content the toggle controls, even when they're scrolled to a
+  // part of the wall (OP01, OP02...) where flipping the toggle has no
+  // visible effect because no card in that region is JP-exclusive.
+  const jpExclusiveCount = useMemo(
+    () =>
+      rawCards.reduce((n, c) => {
+        if (c.regions?.length === 1 && c.regions[0] === 'JP') return n + 1
+        const jpVariants = (c.variants ?? []).filter(
+          (v) => v.regions?.length === 1 && v.regions[0] === 'JP',
+        ).length
+        return n + jpVariants
+      }, 0),
+    [rawCards],
+  )
   const ready = hasData(activeCollection)
 
   // The old first-visit OnboardingTour was removed in favour of a
@@ -30,7 +58,7 @@ export default function Home() {
   // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
-      <Header sets={sets} />
+      <Header sets={sets} jpExclusiveCount={jpExclusiveCount} />
       {ready ? (
         <>
           <CardGrid cards={cards} sets={sets} />

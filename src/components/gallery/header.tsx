@@ -51,6 +51,15 @@ const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
 
 interface HeaderProps {
   sets: CardSet[]
+  // Total number of Japan-exclusive entries (JP-only base cards +
+  // JP-only variants) in the active collection's raw data. Shown as
+  // a subtle count on the JP toggle pill so the user always knows
+  // how much content the toggle controls -- without this, flipping
+  // the pill near the top of the wall (OP01 / OP02 / ...) made it
+  // feel like nothing happened because no card in those sets is
+  // JP-exclusive. Collections without any JP content (everything
+  // except One Piece today) pass 0 and the badge stays hidden.
+  jpExclusiveCount?: number
 }
 
 type FacetOption = { value: string; label: string; swatch?: string }
@@ -310,7 +319,7 @@ function FacetOptionRow({
   )
 }
 
-export function Header({ sets }: HeaderProps) {
+export function Header({ sets, jpExclusiveCount = 0 }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
@@ -822,12 +831,39 @@ export function Header({ sets }: HeaderProps) {
           <button
             type="button"
             onClick={() => setShowJpVariants(!showJpVariants)}
-            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
             style={{ ...(showJpVariants ? ctrlActive : ctrl), height: 30 }}
             aria-pressed={showJpVariants}
-            aria-label={showJpVariants ? 'Showing Japanese-exclusive variants' : 'Hiding Japanese-exclusive variants'}
+            aria-label={
+              jpExclusiveCount > 0
+                ? showJpVariants
+                  ? `Showing ${jpExclusiveCount} Japanese-exclusive entries`
+                  : `Hiding ${jpExclusiveCount} Japanese-exclusive entries`
+                : showJpVariants
+                  ? 'Showing Japanese-exclusive variants'
+                  : 'Hiding Japanese-exclusive variants'
+            }
           >
             JP
+            {jpExclusiveCount > 0 && (
+              <span
+                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                style={{
+                  minWidth: 16,
+                  height: 16,
+                  padding: '0 4px',
+                  borderRadius: 4,
+                  background: showJpVariants
+                    ? 'var(--bg)'
+                    : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
+                  color: showJpVariants
+                    ? 'var(--text-primary)'
+                    : 'var(--text-muted)',
+                }}
+              >
+                {jpExclusiveCount}
+              </span>
+            )}
           </button>
         </div>
       )}
@@ -1081,21 +1117,56 @@ export function Header({ sets }: HeaderProps) {
                   alt arts (Family Deck Set, Storage Box variants,
                   magazine promos, ST-30, etc.). Same active-state
                   styling as Alt art so the two pills read as
-                  siblings. */}
+                  siblings.
+
+                  When the active collection has any JP-exclusive
+                  content, the count is shown as a small badge inside
+                  the pill ("JP 432") so the user knows exactly how
+                  much the toggle controls -- without this badge the
+                  toggle felt broken near the top of the wall (OP01,
+                  OP02, ...) because none of those sets contain
+                  JP-exclusive cards and nothing visibly changed. */}
               <button
                 type="button"
                 onClick={() => setShowJpVariants(!showJpVariants)}
-                className="inline-flex items-center px-3 text-xs font-medium outline-none"
+                className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none"
                 style={{ ...(showJpVariants ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={showJpVariants}
-                aria-label={showJpVariants ? 'Showing Japanese-exclusive variants' : 'Hiding Japanese-exclusive variants'}
+                aria-label={
+                  jpExclusiveCount > 0
+                    ? showJpVariants
+                      ? `Showing ${jpExclusiveCount} Japanese-exclusive entries`
+                      : `Hiding ${jpExclusiveCount} Japanese-exclusive entries`
+                    : showJpVariants
+                      ? 'Showing Japanese-exclusive variants'
+                      : 'Hiding Japanese-exclusive variants'
+                }
                 title={
                   showJpVariants
-                    ? 'Hide Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos)'
-                    : 'Show Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos)'
+                    ? 'Hide Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos, ST-30)'
+                    : 'Show Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos, ST-30)'
                 }
               >
                 JP
+                {jpExclusiveCount > 0 && (
+                  <span
+                    className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                    style={{
+                      minWidth: 16,
+                      height: 16,
+                      padding: '0 4px',
+                      borderRadius: 4,
+                      background: showJpVariants
+                        ? 'var(--bg)'
+                        : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
+                      color: showJpVariants
+                        ? 'var(--text-primary)'
+                        : 'var(--text-muted)',
+                    }}
+                  >
+                    {jpExclusiveCount}
+                  </span>
+                )}
               </button>
             </>
           )}
