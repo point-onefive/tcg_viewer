@@ -30,7 +30,6 @@ import {
   Check,
   ClipboardList,
   Copy,
-  Film,
   GripVertical,
   Image as ImageIcon,
   ImagePlus,
@@ -45,7 +44,6 @@ import {
 } from 'lucide-react'
 import {
   buildExportFilename,
-  captureChartGif,
   captureChartPng,
   copyBlobToClipboard,
   downloadBlob,
@@ -1143,14 +1141,14 @@ export function TierListMaker() {
 
   // ─── Chart export ────────────────────────────────────────────────
   // `chartFrameRef` points at the bordered chart container that the
-  // export pipeline snapshots. The CSS blip border lives *behind*
-  // this node (a `::before` orange ring at z-index -1, inset -2px,
-  // with the `chart-blip` opacity animation), so html-to-image
-  // captures the chart itself without the animation -- the GIF
-  // path then redraws the outline procedurally per frame using the
-  // same opacity curve. See src/lib/chart-export.ts.
+  // PNG export pipeline snapshots. The CSS blip border lives on the
+  // chart's `::before` (z-index -1, inset:0, the `chart-blip`
+  // opacity animation), so html-to-image captures whatever the
+  // border looks like at the exact moment of capture -- a dim or a
+  // bright frame depending on where the animation is in its loop.
+  // See src/lib/chart-export.ts.
   const chartFrameRef = useRef<HTMLDivElement | null>(null)
-  const [exporting, setExporting] = useState<'png' | 'gif' | 'copy' | null>(null)
+  const [exporting, setExporting] = useState<'png' | 'copy' | null>(null)
   const [exportFlash, setExportFlash] = useState<string | null>(null)
   // Thin brand-orange blip border around the chart -- mostly dim,
   // with a brief brightness flash once per loop. Defaults OFF --
@@ -1234,31 +1232,6 @@ export function TierListMaker() {
       setExporting(null)
     }
   }, [exporting, title, flashExport])
-
-  const handleSaveGif = useCallback(async () => {
-    if (!chartFrameRef.current || exporting !== null) return
-    setExporting('gif')
-    setExportFlash(null)
-    try {
-      const blob = await captureChartGif(chartFrameRef.current, {
-        numFrames: 24,
-        fps: 12,
-        maxWidth: 900,
-        withBorder: borderAnimated,
-      })
-      downloadBlob(blob, buildExportFilename(title, 'gif'))
-      flashExport(
-        borderAnimated
-          ? 'Saved GIF - drag the file into your tweet'
-          : 'Saved still GIF (animation off)',
-      )
-    } catch (err) {
-      console.error('GIF export failed', err)
-      flashExport('Export failed - try again')
-    } finally {
-      setExporting(null)
-    }
-  }, [exporting, title, flashExport, borderAnimated])
 
   const clearBankOnly = useCallback(() => {
     const removedFromStore: string[] = []
@@ -1737,12 +1710,13 @@ export function TierListMaker() {
                   )}
                   {/* Toggle the thin brand-orange blip border around
                       the chart frame -- mostly dim, with a brief
-                      brightness flash once per loop. Controls both
-                      the on-screen presentation and whether the GIF
-                      export bakes in the animation, so what the user
-                      previews is what the GIF will look like. State
-                      persists across reloads via localStorage (see
-                      borderAnimated useEffect above). */}
+                      brightness flash once per loop. The PNG export
+                      captures whatever frame of the animation is on
+                      screen at the moment of capture, so leave the
+                      toggle on if you want the orange line baked
+                      into the saved PNG. State persists across
+                      reloads via localStorage (see borderAnimated
+                      useEffect above). */}
                   <button
                     type="button"
                     onClick={() => setBorderAnimated((v) => !v)}
@@ -1758,8 +1732,8 @@ export function TierListMaker() {
                     }}
                     title={
                       borderAnimated
-                        ? 'Hide the brand-orange blip outline around the chart (and skip it in GIF exports)'
-                        : 'Show the brand-orange blip outline around the chart (animated GIF exports will include it)'
+                        ? 'Hide the brand-orange blip outline around the chart'
+                        : 'Show the brand-orange blip outline around the chart (PNG exports will include it at its current frame)'
                     }
                   >
                     Border: {borderAnimated ? 'On' : 'Off'}
@@ -1803,31 +1777,6 @@ export function TierListMaker() {
                       <ImageIcon size={14} aria-hidden />
                     )}
                     Save PNG
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveGif}
-                    disabled={exporting !== null || exportDisabled}
-                    className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-                    style={{
-                      ...ctrlBase,
-                      height: 30,
-                      opacity: exportDisabled ? 0.4 : exporting !== null && exporting !== 'gif' ? 0.5 : 1,
-                      // Tint the GIF button so it stands out as
-                      // the headline "share-ready" action vs the
-                      // more conventional PNG actions next to it.
-                      borderColor: 'color-mix(in srgb, #E85D2A 45%, var(--border-subtle))',
-                      color: exporting === 'gif' || exportDisabled ? 'var(--text-muted)' : '#E85D2A',
-                    }}
-                    aria-label="Download chart as animated GIF"
-                    title="Download an animated GIF (orange outline blip around the chart). Browsers don't allow GIFs on the clipboard, so drag the downloaded file into your tweet compose box - Twitter/X auto-plays it as a video."
-                  >
-                    {exporting === 'gif' ? (
-                      <Loader2 size={14} className="animate-spin" aria-hidden />
-                    ) : (
-                      <Film size={14} aria-hidden />
-                    )}
-                    Save GIF
                   </button>
                   {hasChartedCards && (
                     <button
