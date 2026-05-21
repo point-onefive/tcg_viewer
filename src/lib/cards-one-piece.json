@@ -2161,6 +2161,27 @@
           "TW": "OP01-016_p7"
         },
         "source": "bandai"
+      },
+      {
+        "id": "OP01-016_p9_sc",
+        "label": "p9_sc",
+        "imageUrl": "https://source.windoent.com/OnePiecePc/Picture/1698029989426%E5%BC%82%E7%94%BB%E5%A8%9C%E7%BE%8E%E5%AE%A3%E4%BC%A0%E5%9B%BE%281%29.jpg",
+        "distribution": "1st Anniversary Set (Simplified Chinese) — Serialized Limited",
+        "regions": [],
+        "languages": [
+          "SC"
+        ],
+        "exclusiveTo": [
+          "SC"
+        ],
+        "imagesByLanguage": {
+          "sc": "https://source.windoent.com/OnePiecePc/Picture/1698029989426%E5%BC%82%E7%94%BB%E5%A8%9C%E7%BE%8E%E5%AE%A3%E4%BC%A0%E5%9B%BE%281%29.jpg"
+        },
+        "regionalIds": {
+          "SC": "OP01-016_p9_sc"
+        },
+        "stamp": "event",
+        "source": "bandai"
       }
     ]
   },
