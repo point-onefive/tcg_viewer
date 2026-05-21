@@ -1141,23 +1141,27 @@ export function TierListMaker() {
 
   // ─── Chart export ────────────────────────────────────────────────
   // `chartFrameRef` points at the bordered chart container that the
-  // PNG export pipeline snapshots. The CSS blip border lives on the
-  // chart's `::before` (z-index -1, inset:0, the `chart-blip`
-  // opacity animation), so html-to-image captures whatever the
-  // border looks like at the exact moment of capture -- a dim or a
-  // bright frame depending on where the animation is in its loop.
+  // PNG export pipeline snapshots. The CSS gradient ring lives on
+  // the chart's `::before` (z-index -1, inset:0, the
+  // `chart-grad-spin` keyframes rotating `--chart-grad-angle`), so
+  // html-to-image captures whatever angle the gradient is at the
+  // exact moment of capture. Since we no longer export an animated
+  // GIF, that single still frame is the whole point -- the
+  // rotation just makes the on-screen preview eye-catching, while
+  // the PNG bakes in one frozen angle of the brand-palette ring.
   // See src/lib/chart-export.ts.
   const chartFrameRef = useRef<HTMLDivElement | null>(null)
   const [exporting, setExporting] = useState<'png' | 'copy' | null>(null)
   const [exportFlash, setExportFlash] = useState<string | null>(null)
-  // Thin brand-orange blip border around the chart -- mostly dim,
-  // with a brief brightness flash once per loop. Defaults OFF --
-  // it's an opt-in flourish for users who want the eye-catching
-  // version for a social share, not the default visual treatment.
-  // Preference persists to localStorage so users who turn it on
-  // don't have to redo the toggle every page visit. Reading
-  // localStorage is deferred to a post-mount effect to avoid an
-  // SSR / hydration mismatch (the server has no `localStorage`).
+  // Rotating gradient ring around the chart -- mascot-palette
+  // conic-gradient (hat orange · goggle cyan · jeans royal blue)
+  // spinning once every 6s. Defaults OFF -- it's an opt-in flourish
+  // for users who want the eye-catching version for a social share,
+  // not the default visual treatment. Preference persists to
+  // localStorage so users who turn it on don't have to redo the
+  // toggle every page visit. Reading localStorage is deferred to a
+  // post-mount effect to avoid an SSR / hydration mismatch (the
+  // server has no `localStorage`).
   const [borderAnimated, setBorderAnimated] = useState(false)
   useEffect(() => {
     try {
@@ -1708,15 +1712,16 @@ export function TierListMaker() {
                       {exportFlash ?? emptyHint}
                     </span>
                   )}
-                  {/* Toggle the thin brand-orange blip border around
-                      the chart frame -- mostly dim, with a brief
-                      brightness flash once per loop. The PNG export
-                      captures whatever frame of the animation is on
-                      screen at the moment of capture, so leave the
-                      toggle on if you want the orange line baked
-                      into the saved PNG. State persists across
-                      reloads via localStorage (see borderAnimated
-                      useEffect above). */}
+                  {/* Toggle the mascot-palette gradient ring around
+                      the chart frame -- a thin conic gradient
+                      (orange · cyan · royal blue) rotating once
+                      every 6s. The PNG export captures whatever
+                      angle the gradient is on screen at the moment
+                      of capture, so leave the toggle on if you
+                      want the rainbow line baked into the saved
+                      PNG. State persists across reloads via
+                      localStorage (see borderAnimated useEffect
+                      above). */}
                   <button
                     type="button"
                     onClick={() => setBorderAnimated((v) => !v)}
@@ -1732,8 +1737,8 @@ export function TierListMaker() {
                     }}
                     title={
                       borderAnimated
-                        ? 'Hide the brand-orange blip outline around the chart'
-                        : 'Show the brand-orange blip outline around the chart (PNG exports will include it at its current frame)'
+                        ? 'Hide the mascot-palette gradient outline around the chart'
+                        : 'Show a rotating mascot-palette gradient outline around the chart (PNG exports will bake in whatever angle the ring is on at capture time)'
                     }
                   >
                     Border: {borderAnimated ? 'On' : 'Off'}
