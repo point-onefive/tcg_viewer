@@ -21,17 +21,19 @@
  * the first export click, not on every tier-list page load.
  */
 
-// Matches `.chart-frame-animated::before { background: #E85D2A }`
-// in globals.css. Keeping the colours and ring thickness in sync
-// with the CSS is what makes the exported GIF look identical to
-// what the user sees on the page.
-const BRAND_ORANGE = '232, 93, 42'
+// All of these stay in lockstep with `.chart-frame-animated` in
+// globals.css. Keeping the geometry and colours in sync is what
+// makes the exported GIF look identical to what the user sees on
+// the page.
+const BRAND_ORANGE_RGB = '232, 93, 42'
+const BRAND_ORANGE_BRIGHT_RGB = '255, 180, 128'
 const RING_THICKNESS = 2
 const CHART_BORDER_RADIUS = 12
-// Pulse range matches the `chart-strobe` keyframe in globals.css
-// (opacity 0.4 -> 1 -> 0.4 over one loop).
-const STROBE_MIN_OPACITY = 0.4
-const STROBE_MAX_OPACITY = 1.0
+// Opacity of the always-on thin outline. Matches `::before` in CSS.
+const BASE_OUTLINE_OPACITY = 0.4
+// Radius of the running-highlight blob, in destination-canvas
+// pixels. Matches the ~80px blob size in CSS.
+const HIGHLIGHT_RADIUS = 80
 
 function resolveBackground(): string {
   if (typeof document === 'undefined') return '#111'
@@ -87,38 +89,100 @@ export async function captureChartPng(node: HTMLElement): Promise<Blob> {
 }
 
 /**
- * Compute the strobe opacity at a given loop progress (0..1).
- * Smooth in/out sine wave between `STROBE_MIN_OPACITY` and
- * `STROBE_MAX_OPACITY`. One full pulse per loop, matching the
- * `chart-strobe` keyframe in globals.css.
+ * Walk the perimeter of a rounded rectangle of size `w` x `h` with
+ * corner radius `r`. Returns the (x, y) point at fraction `t` of
+ * the way around (t in [0, 1)). Used to position the running
+ * highlight at any moment in the loop.
+ *
+ * Segments, clockwise from the top edge's left start:
+ *   1. top straight    (length: w - 2r)
+ *   2. top-right arc   (length: pi*r/2)
+ *   3. right straight  (length: h - 2r)
+ *   4. bottom-right arc(length: pi*r/2)
+ *   5. bottom straight (length: w - 2r)
+ *   6. bottom-left arc (length: pi*r/2)
+ *   7. left straight   (length: h - 2r)
+ *   8. top-left arc    (length: pi*r/2)
+ *
+ * This is the canvas analogue of CSS `offset-path: inset(0 round Npx)`
+ * which traces the same rounded-rect perimeter for the `::after`
+ * highlight blob on the page.
  */
-function strobeOpacity(progress: number): number {
-  // sin shifted so progress=0 starts at min, progress=0.5 hits max,
-  // progress=1 returns to min. Same shape as the CSS keyframe.
-  const wave = (1 - Math.cos(progress * Math.PI * 2)) / 2 // 0..1..0
-  return STROBE_MIN_OPACITY + (STROBE_MAX_OPACITY - STROBE_MIN_OPACITY) * wave
+function perimeterPoint(
+  w: number,
+  h: number,
+  r: number,
+  t: number,
+): { x: number; y: number } {
+  const edgeH = Math.max(w - 2 * r, 0)
+  const edgeV = Math.max(h - 2 * r, 0)
+  const arc = (Math.PI * r) / 2
+  const total = 2 * edgeH + 2 * edgeV + 4 * arc
+
+  let d = ((t % 1) + 1) % 1 // wrap into [0,1)
+  d *= total
+
+  // 1. top edge: (r,0) -> (w-r,0)
+  if (d < edgeH) return { x: r + d, y: 0 }
+  d -= edgeH
+
+  // 2. top-right corner: arc from -pi/2 to 0
+  if (d < arc) {
+    const a = (d / arc) * (Math.PI / 2) - Math.PI / 2
+    return { x: w - r + r * Math.cos(a), y: r + r * Math.sin(a) }
+  }
+  d -= arc
+
+  // 3. right edge: (w,r) -> (w,h-r)
+  if (d < edgeV) return { x: w, y: r + d }
+  d -= edgeV
+
+  // 4. bottom-right corner: arc from 0 to pi/2
+  if (d < arc) {
+    const a = (d / arc) * (Math.PI / 2)
+    return { x: w - r + r * Math.cos(a), y: h - r + r * Math.sin(a) }
+  }
+  d -= arc
+
+  // 5. bottom edge: (w-r,h) -> (r,h)
+  if (d < edgeH) return { x: w - r - d, y: h }
+  d -= edgeH
+
+  // 6. bottom-left corner: arc from pi/2 to pi
+  if (d < arc) {
+    const a = (d / arc) * (Math.PI / 2) + Math.PI / 2
+    return { x: r + r * Math.cos(a), y: h - r + r * Math.sin(a) }
+  }
+  d -= arc
+
+  // 7. left edge: (0,h-r) -> (0,r)
+  if (d < edgeV) return { x: 0, y: h - r - d }
+  d -= edgeV
+
+  // 8. top-left corner: arc from pi to 3pi/2
+  const a = (d / arc) * (Math.PI / 2) + Math.PI
+  return { x: r + r * Math.cos(a), y: r + r * Math.sin(a) }
 }
 
 /**
- * Draw a single frame of the brand-orange strobing outline around
+ * Draw a single frame of the brand-orange running outline around
  * the perimeter of the canvas. `progress` is the position in the
- * loop (0..1); the outline stays put and only its opacity pulses
- * per the strobe wave.
+ * loop (0..1); a thin static outline stays put and a small bright
+ * highlight blob travels along it.
  *
  * Implementation mirrors the on-screen CSS effect in globals.css:
- * the chart's `::before` pseudo-element is a flat orange box
- * positioned one ring outside the chart, with its opacity animated
- * by the `chart-strobe` keyframe. Here we build the same effect
- * by clipping to a thin perimeter ring (outer rounded rect minus
- * inner rounded rect, evenodd fill) and filling that ring with
- * flat orange at the strobe's current opacity.
+ * the chart's `::before` is a flat orange box at `inset: -2px`
+ * (the static thin outline) and `::after` is a blob that follows
+ * `offset-path: inset(0 round 12px)`. Here we build both layers
+ * by clipping the canvas to a thin perimeter ring and drawing a
+ * uniform base fill plus a radial-gradient blob centred on the
+ * current perimeter point.
  *
- * Why we don't sweep / rotate: a rotating highlight needs the
- * gradient origin to live somewhere (canvas centre is the only
- * sensible choice), but a conic-gradient with a thick highlight
- * lobe inevitably reads as a fat moving wedge in the GIF -- it
- * was the chunky-rotation look you saw before. A pulsing flat
- * outline doesn't have that geometry, and it matches the site.
+ * Why we don't sweep with a conic gradient: a conic gradient is
+ * anchored at the canvas centre, so any visible-thickness ring
+ * intersected by the gradient's bright peak shows a fat moving
+ * wedge in the corners (geometry, not opacity). Walking a finite
+ * radial blob along the actual perimeter has no corner spill.
  */
 function drawSweepBorder(
   ctx: CanvasRenderingContext2D,
@@ -127,14 +191,16 @@ function drawSweepBorder(
   progress: number,
 ) {
   const ring = RING_THICKNESS
-  const opacity = strobeOpacity(progress)
 
   ctx.save()
 
-  // Annulus clip: outer rounded rect minus inner rounded rect, with
-  // evenodd winding so only the thin ring between them paints. This
-  // is the canvas analogue of the CSS `::before` sitting at
-  // `inset: -2px` over an opaque chart background.
+  // Annulus clip: outer rounded rect minus inner rounded rect with
+  // evenodd winding so only the thin ring between them paints.
+  // Everything we draw inside this save/restore is automatically
+  // confined to the 2px outline, including the radial blob -- so
+  // the blob's interior portion is invisible (same as how the
+  // chart's opaque background hides the inside half of the CSS
+  // ::after blob).
   const outerR = CHART_BORDER_RADIUS
   const innerR = Math.max(outerR - ring, 1)
   ctx.beginPath()
@@ -142,8 +208,25 @@ function drawSweepBorder(
   ctx.roundRect(ring, ring, width - 2 * ring, height - 2 * ring, innerR)
   ctx.clip('evenodd')
 
-  ctx.fillStyle = `rgba(${BRAND_ORANGE}, ${opacity.toFixed(3)})`
+  // Layer 1: static thin outline (always-on, low opacity).
+  ctx.fillStyle = `rgba(${BRAND_ORANGE_RGB}, ${BASE_OUTLINE_OPACITY})`
   ctx.fillRect(0, 0, width, height)
+
+  // Layer 2: running highlight at the current perimeter point.
+  const { x, y } = perimeterPoint(width, height, outerR, progress)
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, HIGHLIGHT_RADIUS)
+  grad.addColorStop(0, `rgba(${BRAND_ORANGE_BRIGHT_RGB}, 1)`)
+  grad.addColorStop(0.25, `rgba(${BRAND_ORANGE_RGB}, 0.9)`)
+  grad.addColorStop(0.65, `rgba(${BRAND_ORANGE_RGB}, 0)`)
+  grad.addColorStop(1, `rgba(${BRAND_ORANGE_RGB}, 0)`)
+  ctx.fillStyle = grad
+  ctx.fillRect(
+    x - HIGHLIGHT_RADIUS,
+    y - HIGHLIGHT_RADIUS,
+    HIGHLIGHT_RADIUS * 2,
+    HIGHLIGHT_RADIUS * 2,
+  )
+
   ctx.restore()
 }
 
@@ -175,14 +258,15 @@ function renderGifFrame(
 
 export interface GifOptions {
   /**
-   * Number of frames in the loop. The strobe is a smooth pulse
-   * (not a sweep), so we don't need as many frames as a rotation
-   * would. 18 frames at 10 fps gives a 1.8s loop that matches the
-   * `chart-strobe 1.8s` animation in globals.css exactly.
+   * Number of frames in the loop. The highlight has to walk all
+   * the way around the perimeter so we want enough samples to
+   * keep the motion smooth without bloating the file. 36 frames
+   * at 12 fps = 3 seconds, matching the `chart-run 3s` animation
+   * in globals.css exactly.
    */
   numFrames?: number
   /**
-   * Frames per second. 10 fps with 18 frames gives a 1.8s loop.
+   * Frames per second. 12 fps with 36 frames gives a 3s loop.
    * Browsers clamp GIF delays to a 10ms minimum, so don't push
    * fps too high or the player will silently slow down.
    */
@@ -225,8 +309,8 @@ export async function captureChartGif(
   node: HTMLElement,
   options: GifOptions = {},
 ): Promise<Blob> {
-  const numFrames = options.numFrames ?? 18
-  const fps = options.fps ?? 10
+  const numFrames = options.numFrames ?? 36
+  const fps = options.fps ?? 12
   const maxWidth = options.maxWidth ?? 1100
   const withBorder = options.withBorder ?? true
 
@@ -272,16 +356,19 @@ export async function captureChartGif(
     return new Blob([outStatic.buffer], { type: 'image/gif' })
   }
 
-  // Derive the palette from the strobe at peak brightness
-  // (progress=0.5, opacity=1) so the brightest orange has a
-  // dedicated palette entry. Quantizing a dim frame instead
-  // would clip the highlight to muddy beige.
-  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.5)
+  // Derive the palette from a frame where the running highlight
+  // is mid-edge (progress=0.125 = top edge centre on a typical
+  // chart aspect ratio) so the brightest orange has a dedicated
+  // palette entry. Quantizing a corner-arc frame would still work
+  // but the straight-edge variant gives the encoder a cleaner
+  // sample of both the outline and the highlight gradient.
+  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.125)
   const palette = quantize(representative, 256)
 
   for (let i = 0; i < numFrames; i++) {
-    // Loop progress 0..1, evenly spaced. The strobe wave makes
-    // this cycle pulse min -> max -> min in one full loop.
+    // Loop progress 0..1, evenly spaced. `perimeterPoint` maps
+    // each value to a point on the rounded-rect perimeter, so the
+    // highlight blob walks all the way around exactly once.
     const progress = i / numFrames
     const frame = renderGifFrame(frameCanvas, baseCanvas, progress)
     const indexed = applyPalette(frame, palette)

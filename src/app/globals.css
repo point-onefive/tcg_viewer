@@ -357,29 +357,41 @@ html.lenis, html.lenis body {
   }
 }
 
-/* ─── Tier-list chart strobing border ──────────────────────────────
-   A thin brand-orange outline around the chart frame that pulses
-   in opacity to catch the eye in a busy social-timeline scroll.
+/* ─── Tier-list chart running-light border ─────────────────────────
+   A thin brand-orange outline traces the chart frame on the
+   tier-list page; a small bright highlight runs around that
+   outline on a loop (chase-light effect). Catches the eye in a
+   busy social-timeline scroll without dominating the chart.
    Plays purely on the page (CSS-only); the export pipeline
-   re-creates it frame-by-frame for the GIF download so the saved
-   file matches what users see (see src/lib/chart-export.ts).
+   re-creates the same effect frame-by-frame for the GIF download
+   so the saved file matches what users see (see src/lib/chart-export.ts).
 
-   Implementation: a `::before` pseudo-element sits one ring
-   outside the chart frame, filled with flat brand orange. The
-   chart's opaque background covers everything except a 2px sliver
-   around the perimeter, so visually we see a single thin outline.
-   A keyframe animation cycles its opacity from 0.4 -> 1 -> 0.4
-   every 1.8s, producing the subtle strobe.
+   Two-layer implementation:
 
-   Previous version used a rotating conic-gradient sweep which
-   read as a fat moving wedge in the GIF export (because a thick
-   stroke styled with a conic gradient spills its bright peak into
-   the corner pixels). Strobing a flat outline avoids that
-   geometry entirely and looks identical on-screen and in the
-   exported GIF. */
-@keyframes chart-strobe {
-  0%, 100% { opacity: 0.4; }
-  50%      { opacity: 1; }
+   1. `::before` is the static thin outline -- a 2px brand-orange
+      ring at low opacity that's always visible. The chart's
+      opaque background covers everything except a 2px sliver
+      around the perimeter, so the orange box is seen as a thin
+      outline only.
+
+   2. `::after` is the moving highlight -- a small bright orange
+      blob with a radial gradient, positioned along the chart's
+      perimeter via `offset-path`. The `offset-distance` is
+      animated from 0% to 100%, walking the highlight around the
+      rounded-rectangle perimeter once per loop. The blob is
+      blurred and most of it sits inside the chart (hidden by the
+      opaque content); only the part that bleeds into the 2px ring
+      brightens up the local outline -- exactly the chase-light
+      look.
+
+   Why not a rotating conic-gradient sweep: a conic gradient is
+   anchored at the canvas centre, so any visible-thickness ring
+   intersected by the gradient's bright peak shows a fat moving
+   wedge in the corners (geometry, not opacity). A finite blob
+   following the perimeter parametrically has no corner spill. */
+@keyframes chart-run {
+  from { offset-distance: 0%; }
+  to   { offset-distance: 100%; }
 }
 
 .chart-frame-animated {
@@ -398,18 +410,50 @@ html.lenis, html.lenis body {
   border-radius: 13px;
   pointer-events: none;
   background: #E85D2A;
-  animation: chart-strobe 1.8s ease-in-out infinite;
-  /* Soft outer glow so the strobe has a faint halo as it pulses,
-     similar to how an LED outline bleeds slightly into the bezel. */
-  box-shadow: 0 0 14px -3px color-mix(in srgb, #E85D2A 55%, transparent);
+  opacity: 0.4;
 }
 
-/* Reduced-motion users get a static orange ring at the strobe's
-   midpoint brightness -- on-brand without the pulse. */
+.chart-frame-animated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Blob size: ~80px gives a smooth localised glow that travels
+     visibly without flooding the corners. Half the blob sits
+     inside the chart (hidden by opaque content); only the bright
+     edge bleeds into the 2px outline ring on whichever side the
+     blob currently overlaps. */
+  width: 80px;
+  height: 80px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    #ffb480 0%,
+    #E85D2A 25%,
+    transparent 65%
+  );
+  border-radius: 50%;
+  /* Trace the chart's outer perimeter. `inset(0 round 12px)`
+     resolves against the containing block (the .chart-frame-animated
+     padding box), matching the chart's border-radius. */
+  offset-path: inset(0 round 12px);
+  offset-distance: 0%;
+  /* `offset-rotate: 0deg` keeps the blob upright as it moves; with
+     a circular radial gradient the rotation doesn't matter visually
+     but explicit 0deg is one less surprise in browser defaults. */
+  offset-rotate: 0deg;
+  animation: chart-run 3s linear infinite;
+}
+
+/* Reduced-motion users get just the static thin outline at full
+   visibility -- on-brand without the running highlight. */
 @media (prefers-reduced-motion: reduce) {
   .chart-frame-animated::before {
-    animation: none;
     opacity: 0.7;
+  }
+  .chart-frame-animated::after {
+    display: none;
   }
 }
 
