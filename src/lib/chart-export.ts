@@ -46,7 +46,16 @@ export async function captureChartCanvas(
   const { toCanvas } = await import('html-to-image')
   return toCanvas(node, {
     pixelRatio,
-    cacheBust: false,
+    // `cacheBust: true` appends a unique query string to every
+    // image fetch so html-to-image bypasses any cached *no-CORS*
+    // response the browser might have stashed before R2 grew its
+    // CORS headers. Without this, the first export after a page
+    // load still hits the pre-CORS cache and the canvas comes
+    // back tainted (toBlob -> SecurityError), even though every
+    // <img> on the page is now `crossOrigin="anonymous"`. Cost
+    // is one re-fetch per card per export, which is fine for a
+    // human-triggered action.
+    cacheBust: true,
     backgroundColor: resolveBackground(),
   })
 }

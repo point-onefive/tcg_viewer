@@ -404,6 +404,17 @@ function SortableCard({
           src={src}
           alt=""
           draggable={false}
+          // `crossOrigin="anonymous"` forces the browser to load the
+          // image with a CORS request (Origin header). Without it,
+          // even though R2 now sends `Access-Control-Allow-Origin: *`,
+          // the browser may have cached a previous *no-CORS* load
+          // that still taints any canvas the image draws into -- and
+          // a tainted canvas makes `toBlob()` / `getImageData()`
+          // throw SecurityError, which is exactly what kills the
+          // chart export the moment a real card lands in a tier.
+          // For uploaded `blob:` URLs the attribute is ignored
+          // (same-origin), so unconditional is safe.
+          crossOrigin="anonymous"
           // pointer-events:none forwards every press / drag motion
           // straight to the parent <button>, so the browser never has
           // a chance to initiate native image-drag against the <img>.
@@ -1892,6 +1903,11 @@ export function TierListMaker() {
                     src={activeCard.src}
                     alt=""
                     draggable={false}
+                    // See SortableCard above for why this matters --
+                    // keeps the drag-overlay image CORS-clean so it
+                    // doesn't taint a downstream chart capture if
+                    // the drag is interrupted mid-export.
+                    crossOrigin="anonymous"
                     style={{
                       width: '100%',
                       height: '100%',
