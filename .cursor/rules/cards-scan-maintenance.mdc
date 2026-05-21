@@ -1,0 +1,61 @@
+---
+description: How to discover and ingest net-new One Piece card prints
+alwaysApply: true
+---
+
+# Card catalog maintenance — `npm run cards:scan`
+
+The One Piece bundle (`src/lib/cards-one-piece.json`) is the source of
+truth for the gallery. New prints drop continuously across many
+sources (Bandai boosters, tournament packs, Premium Bandai limited
+boxes, Mainland anniversary serialized prints, championship prizes,
+magazine inserts). To find them, run:
+
+```bash
+npm run cards:scan          # ~7 min: every source, quick mode
+npm run cards:scan:full     # +~17 min: also full Limitless detail crawl
+```
+
+The scan is **read-only** — it writes `data/scan-report.{json,md}`
+but never touches the bundle. Ingestion is always explicit.
+
+## When to suggest running the scan
+
+Proactively offer the scan in these situations:
+
+- User asks "what's new", "any new cards", "did anything drop", or
+  similar
+- User mentions a specific card or product they don't see in the
+  gallery
+- User mentions a recent tournament weekend, a new booster release,
+  or a Premium Bandai product launch
+- User says "let's catch up the catalog" or refers to data freshness
+- It's been a while since the last scan in this conversation and the
+  user is doing catalog-adjacent work
+
+## After running the scan
+
+1. Read `data/scan-report.md` — it has per-source counts and
+   categorized lists of net-new print ids.
+2. Present a concise summary to the user grouped by source (Bandai
+   cardlist, SC, products, Limitless) with category counts for
+   Limitless ("47 × Championship 2024 Top Players Pack", etc.).
+3. Ask which findings the user wants to ingest. Don't assume.
+4. For approved ingestions, use the appropriate playbook:
+   - Bulk Bandai/Limitless prints → see `docs/data-pipeline.md` §4.1
+     or §4.2 (run dedupe + generate).
+   - One-off prints from non-catalog sources (e.g. CN serialized
+     anniversary cards Bandai doesn't index) → add the variant
+     manually to `src/lib/cards-one-piece.json`, mirroring the
+     OP01-016 `_p9_sc` pattern (commit `652a28c`).
+
+## Don't
+
+- Don't auto-merge scan findings into the bundle. The "always merge"
+  pattern was tried and broke things when CDNs renamed files.
+- Don't run `cards:scan:full` by default — `--full` is only needed
+  when actually ingesting newly-surfaced Limitless prints and we
+  need their full metadata.
+- Don't commit `data/scan-report.{json,md}` — `data/` is gitignored.
+
+Full pipeline reference: `docs/data-pipeline.md` §4.0.
