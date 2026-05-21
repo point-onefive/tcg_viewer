@@ -66,10 +66,49 @@ export type LanguagePickerValue = 'EN' | 'JP'
  * `applyLanguageFilter` uses this both to decide which prints to
  * surface AND to pick which localized image URL to render — the
  * iteration order IS the preference order.
+ *
+ * EN is strict: only `en.onepiece-cardgame.com` (and the R2 mirror
+ * populated from it). EN_ASIA was previously included here under the
+ * assumption that "asia-en.onepiece-cardgame.com" served English-text
+ * scans for Asian-region English speakers. In practice Bandai uses
+ * that catalogue to LIST Japanese-region promos (Promotion Pack EX
+ * Vol.N, Premium Card Collection, Standard Battle prizes, etc.) for
+ * Asian collectors who play the JP format — and the files behind the
+ * URLs are the Japanese scans, sometimes byte-identical to the JP
+ * CDN (verified for OP07-015_p3.png: r2-mirror SHA-256 ===
+ * jp-CDN SHA-256). That meant EN mode was leaking JP-text cards
+ * like the OP07-015 Monkey.D.Dragon Promotion Pack EX Vol.3 print
+ * (the user's bug report screenshot).
+ *
+ * Resolution:
+ *
+ *   - EN bucket: drop EN_ASIA. EN now means "Bandai's main English
+ *     site (en.onepiece-cardgame.com) listed this card" with no
+ *     exceptions. Cards/variants tagged ONLY as EN_ASIA fall out of
+ *     EN mode entirely; this is the desired behaviour per user
+ *     feedback ("EN button = EN only, JP button = JP only, never
+ *     mixed").
+ *
+ *   - JP bucket: add EN_ASIA as a fallback after JP. Because
+ *     asia-en's actual content is Japanese-text artwork, the right
+ *     home for those prints IS the JP picker. Cards that have BOTH
+ *     a jp URL and an en_asia URL (e.g. ST-30 base cards) render
+ *     the JP URL because it comes first in the order. Cards that
+ *     only have the en_asia URL (e.g. OP01-021_p1_aen "Winner
+ *     prize for September 2022 Standard Battle") still surface
+ *     under JP, rendered from asia-en — which is, again, the JP
+ *     scan with a different hostname. dedupeVariants collapses any
+ *     near-duplicates via filename key so we don't show the same
+ *     artwork twice in the fan.
+ *
+ * Long-term, the data layer should be re-run with stricter EN_ASIA
+ * detection (don't tag a print as EN_ASIA unless the URL actually
+ * serves English-text glyphs) — until that happens the runtime
+ * bucket mapping below is the source of truth.
  */
 export const LANGUAGE_GROUPS: Record<LanguagePickerValue, CardLanguage[]> = {
-  EN: ['EN', 'EN_ASIA'],
-  JP: ['JP'],
+  EN: ['EN'],
+  JP: ['JP', 'EN_ASIA'],
 }
 
 /** Stable iteration order for the active region buckets. */
