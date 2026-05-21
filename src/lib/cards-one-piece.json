@@ -1710,6 +1710,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP01-033_p7",
+        "label": "p7",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-033_p7.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (touge369)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -1817,6 +1826,24 @@
         "label": "p3",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-035_p3.png",
         "distribution": "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP01-035_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-035_p4.png",
+        "distribution": "Special Card (Denim2)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP01-035_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-035_p5.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (Yosuke Adachi)",
         "regions": [
           "EN"
         ]
@@ -2129,6 +2156,15 @@
         "distribution": "ONE PIECE CARD THE BEST【PRB-01】",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP01-041_p6",
+        "label": "p6",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-041_p6.png",
+        "distribution": "Alternate Art (SOWSOW)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -3705,6 +3741,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP01-077_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-077_p2.png",
+        "distribution": "Championship 2024 Top Players Pack (Misa Matoki)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -3821,7 +3866,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-079.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-079.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-079.png",
+    "variants": [
+      {
+        "id": "OP01-079_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-079_p1.png",
+        "distribution": "Promotion Pack 2023 (Mutsumi Sasaki)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP01-080",
@@ -3982,7 +4038,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-084.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-084.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-084.png",
+    "variants": [
+      {
+        "id": "OP01-084_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-084_p1.png",
+        "distribution": "Store Championship Participation Pack Vol.2 (Misa Matoki)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP01-085",
@@ -4298,6 +4365,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP01-093_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-093_p2.png",
+        "distribution": "Promotion Pack 2023 (Hagane Tsurugi)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -4351,6 +4427,15 @@
         "distribution": "フラッグシップバトル2023 10月優勝記念品",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP01-094_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-094_p2.png",
+        "distribution": "Alternate Art (KISUKE)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -4611,6 +4696,15 @@
         "label": "p1",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-101_p1.png",
         "distribution": "Included in Event Pack Vol.2",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP01-101_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-101_p2.png",
+        "distribution": "Championship 2023 Event Pack (Hayaken-sarena)",
         "regions": [
           "EN"
         ]
@@ -5344,6 +5438,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP01-120_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-120_p3.png",
+        "distribution": "Serial Card",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -5857,6 +5960,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP02-008_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-008_p2.png",
+        "distribution": "Alternate Art (Nekobayashi)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -6080,6 +6192,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP02-013_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-013_p4.png",
+        "distribution": "Japanese 2nd Anniversary Set",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -7890,7 +8011,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-053.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-053.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-053.png",
+    "variants": [
+      {
+        "id": "OP02-053_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-053_p1.png",
+        "distribution": "Regional Participation Pack Vol.2 (HISASHI HUJIWARA)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP02-054",
@@ -9568,6 +9700,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP02-096_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-096_p2.png",
+        "distribution": "Alternate Art (BISAI)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -9663,6 +9804,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP02-098_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-098_p2.png",
+        "distribution": "Prize Cards (Anderson)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -9745,6 +9895,15 @@
         "distribution": "ONE PIECE CARD THE BEST【PRB-01】",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP02-099_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-099_p3.png",
+        "distribution": "Special Card (DAI-XT.)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -10059,6 +10218,15 @@
         "distribution": "プレミアムカードコレクション - ベストセレクションvol.1 -",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP02-106_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-106_p3.png",
+        "distribution": "Pirate Foil (Nijihayashi)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -10414,6 +10582,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP02-114_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-114_p2.png",
+        "distribution": "Alternate Art (tatsuya)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -10599,6 +10776,15 @@
         "distribution": "プレミアムカードコレクション - ベストセレクションvol.1 -",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP02-117_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-117_p3.png",
+        "distribution": "Alternate Art (Bashikou)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -11909,7 +12095,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-026.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-026.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-026.png",
+    "variants": [
+      {
+        "id": "OP03-026_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-026_p1.png",
+        "distribution": "Regional Participation Pack Vol.2 (kankurou)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-027",
@@ -12075,7 +12272,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-031.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-031.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-031.png",
+    "variants": [
+      {
+        "id": "OP03-031_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-031_p1.png",
+        "distribution": "Store Championship Participation Pack Vol.2 (Koushi Rokushiro)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-032",
@@ -12108,7 +12316,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-032.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-032.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-032.png",
+    "variants": [
+      {
+        "id": "OP03-032_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-032_p1.png",
+        "distribution": "Kingdoms of Intrigue Dash Pack (DAI-XT.)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-033",
@@ -12152,6 +12371,24 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP03-033_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-033_p3.png",
+        "distribution": "Championship 2024 Celebration Pack (KISUKE)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP03-033_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-033_p2.png",
+        "distribution": "Full Art (KISUKE)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -12814,7 +13051,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-050.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-050.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-050.png",
+    "variants": [
+      {
+        "id": "OP03-050_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-050_p1.png",
+        "distribution": "Kingdoms of Intrigue Dash Pack (Nekobayashi)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-051",
@@ -13635,7 +13883,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-069.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-069.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-069.png",
+    "variants": [
+      {
+        "id": "OP03-069_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-069_p1.png",
+        "distribution": "Regional Participation Pack Vol.2 (kankurou)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-070",
@@ -13668,7 +13927,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-070.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-070.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-070.png",
+    "variants": [
+      {
+        "id": "OP03-070_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-070_p1.png",
+        "distribution": "Kingdoms of Intrigue Dash Pack (Nijihayashi)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-071",
@@ -14170,6 +14440,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP03-081_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-081_p2.png",
+        "distribution": "Kingdoms of Intrigue Dash Pack (otton)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -14342,6 +14621,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP03-086_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-086_p2.png",
+        "distribution": "Regional Participation Pack Vol.2 (kankurou)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -14424,6 +14712,24 @@
         "label": "p2",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-088_p2.png",
         "distribution": "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP03-088_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-088_p3.png",
+        "distribution": "Championship 2024 Celebration Pack (KOUTARO SUGI)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP03-088_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-088_p4.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (KOUTARO SUGI)",
         "regions": [
           "EN"
         ]
@@ -14594,7 +14900,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-091.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-091.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-091.png",
+    "variants": [
+      {
+        "id": "OP03-091_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-091_p1.png",
+        "distribution": "Store Championship Participation Pack Vol.2 (BISAI)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-092",
@@ -15062,6 +15379,15 @@
         "regions": [
           "EN"
         ]
+      },
+      {
+        "id": "OP03-102_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-102_p3.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (Nijihayashi)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -15351,7 +15677,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-109.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-109.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-109.png",
+    "variants": [
+      {
+        "id": "OP03-109_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-109_p1.png",
+        "distribution": "Regional Participation Pack Vol.2 (HISASHI HUJIWARA)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP03-110",
@@ -15565,6 +15902,15 @@
         "label": "p6",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-112_p6.png",
         "distribution": "CS 25-26 Celebration Pack",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP03-112_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-112_p5.png",
+        "distribution": "Full Art (otton)",
         "regions": [
           "EN"
         ]
@@ -15857,6 +16203,15 @@
         "distribution": "チャンピオンシップ2024 WAVE2 3on3 Autumn ベスト16記念品",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP03-116_p8",
+        "label": "p8",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-116_p8.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (Hashimoto Q)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -16589,6 +16944,15 @@
         "label": "p2",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-010_p2.png",
         "distribution": "CS 25-26 Celebration Pack",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP04-010_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-010_p3.png",
+        "distribution": "CS 25–26 Celebration Pack (S-KINOKO)",
         "regions": [
           "EN"
         ]
@@ -19516,6 +19880,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP04-083_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-083_p4.png",
+        "distribution": "Japanese 2nd Anniversary Set",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -22686,6 +23059,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP05-036_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-036_p3.png",
+        "distribution": "Pirate Foil (BISAI)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -23679,6 +24061,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP05-060_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-060_p5.png",
+        "distribution": "Anime 25th Collection\n                     (EB02)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -23756,7 +24147,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-062.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-062.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-062.png",
+    "variants": [
+      {
+        "id": "OP05-062_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-062_p1.png",
+        "distribution": "Illustration Box Vol.1 (Peach Momoko)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP05-063",
@@ -24019,6 +24421,15 @@
         "label": "p6",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-067_p6.png",
         "distribution": "CS 25-26 Event Pack Finalist Ver.",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP05-067_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-067_p3.png",
+        "distribution": "Special Card (otton)",
         "regions": [
           "EN"
         ]
@@ -25727,6 +26138,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP05-102_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-102_p3.png",
+        "distribution": "Championship 2024 Top Players Pack Vol.2 (kankurou)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -25918,6 +26338,24 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP05-106_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-106_p3.png",
+        "distribution": "Championship 2024 Celebration Pack (ASAKI KURODA)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP05-106_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-106_p2.png",
+        "distribution": "Full Art (ASAKI KURODA)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -27724,6 +28162,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP06-025_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-025_p3.png",
+        "distribution": "Championship 2024 Top Players Pack Vol.2 (sacanahen)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -28660,6 +29107,15 @@
         "distribution": "ONE PIECE CARD THE BEST vol.2【PRB-02】",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP06-047_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-047_p4.png",
+        "distribution": "Special Card (Hashimoto Q)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -30207,6 +30663,24 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP06-076_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-076_p4.png",
+        "distribution": "Pirate Foil (Denim2)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP06-076_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-076_p3.png",
+        "distribution": "CS 25–26 Celebration Pack (Katsuo Tadano)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -30927,6 +31401,15 @@
         "distribution": "プロモーションパックEX Vol.2",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP06-092_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-092_p2.png",
+        "distribution": "Championship 2024 Top Players Pack Vol.2 (Misa Matoki)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -32206,6 +32689,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP06-118_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-118_p3.png",
+        "distribution": "Japanese 2nd Anniversary Set (NIJIMAARC)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -33969,6 +34461,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP07-038_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-038_p3.png",
+        "distribution": "2025 PSA Magazine Promo (Denim2)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -34710,6 +35211,24 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP07-053_p6",
+        "label": "p6",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-053_p6.png",
+        "distribution": "3rd Anniversary! Treasure Campaign Pack (Hagane Tsurugi)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP07-053_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-053_p5.png",
+        "distribution": "3rd Anniversary Event Winner (Shun Saeki)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -35155,6 +35674,15 @@
         "distribution": "プロモーションパックEX Vol.2",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP07-064_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-064_p4.png",
+        "distribution": "Championship 2024 Top Players Pack Vol.2 (KAORU HAGIYA)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -35777,6 +36305,24 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP07-080_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-080_p3.png",
+        "distribution": "CS 25–26 Celebration Pack (SHINRA AGENCY Co. Ltd.)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP07-080_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-080_p2.png",
+        "distribution": "Full Art (SHINRA AGENCY Co. Ltd.)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -36505,6 +37051,15 @@
         "regions": [
           "EN"
         ]
+      },
+      {
+        "id": "OP07-100_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-100_p3.png",
+        "distribution": "CS 25–26 Celebration Pack (COGA)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -37060,6 +37615,24 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP07-113_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-113_p3.png",
+        "distribution": "also available with Finalist and Champion stamp (Takumi Ishikawa)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "OP07-113_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-113_p2.png",
+        "distribution": "Illustration Box Vol.3 (BISAI)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -38105,6 +38678,15 @@
         "distribution": "プロモーションパックEX Vol.2",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP08-020_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-020_p2.png",
+        "distribution": "Championship 2024 Top Players Pack Vol.2 (Miche(BoureiKoubou))",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -39833,6 +40415,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP08-067_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-067_p3.png",
+        "distribution": "Store Treasure Cup May 2025 Champion (kicori)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -41958,6 +42549,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP09-001_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-001_p4.png",
+        "distribution": "Alternate Art (otton)",
+        "regions": [
+          "JP"
+        ]
       }
     ]
   },
@@ -43342,7 +43942,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-029.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-029.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-029.png",
+    "variants": [
+      {
+        "id": "OP09-029_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-029_p1.png",
+        "distribution": "Giveaway at C2E2 (Chicago Comic & Entertainment Expo) 2025 and UK Games Expo 2025 (kito)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP09-030",
@@ -43552,6 +44163,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP09-034_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-034_p3.png",
+        "distribution": "Alternate Art (kicori)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -49696,7 +50316,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-057.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-057.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-057.png",
+    "variants": [
+      {
+        "id": "OP10-057_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-057_p1.png",
+        "distribution": "Alternate Art",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
   },
   {
     "id": "OP10-058",
@@ -51763,6 +52394,24 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP10-111_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-111_p3.png",
+        "distribution": "Alternate Art",
+        "regions": [
+          "JP"
+        ]
+      },
+      {
+        "id": "OP10-111_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-111_p2.png",
+        "distribution": "Set Sail Event October 2025 (Denim2)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -51852,7 +52501,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-113.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-113.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-113.png",
+    "variants": [
+      {
+        "id": "OP10-113_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-113_p1.png",
+        "distribution": "Set Sail Event October 2025 (Denim2)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP10-114",
@@ -53643,6 +54303,15 @@
         "regions": [
           "EN"
         ]
+      },
+      {
+        "id": "OP11-041_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-041_p3.png",
+        "distribution": "Official Playmat & Card Set -Whole Cake Island Arc- (otton)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -54820,6 +55489,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP11-073_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-073_p2.png",
+        "distribution": "Alternate Art",
+        "regions": [
+          "JP"
+        ]
       }
     ]
   },
@@ -55973,6 +56651,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP11-106_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-106_p3.png",
+        "distribution": "Special Card (Hashimoto Q)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -57106,7 +57793,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-018.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-018.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-018.png",
+    "variants": [
+      {
+        "id": "OP12-018_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-018_p1.png",
+        "distribution": "Alternate Art",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
   },
   {
     "id": "OP12-019",
@@ -57649,6 +58347,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP12-031_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-031_p3.png",
+        "distribution": "Store Treasure Cup November 2025 Top Cut (BISAI)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -58795,6 +59502,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP12-062_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-062_p2.png",
+        "distribution": "Full Art (kicori)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -59915,6 +60631,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP12-093_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-093_p2.png",
+        "distribution": "Full Art (Katsuo Tadano)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -60640,6 +61365,15 @@
         "distribution": "プレミアムカードコレクション - ベストセレクション vol.5 -",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "OP12-112_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-112_p3.png",
+        "distribution": "Alternate Art (Akanegumo)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -61521,6 +62255,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP13-016_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-016_p2.png",
+        "distribution": "Treasure Cup March 2026 Top 64 (Katsuo Tadano)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -65454,6 +66197,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "OP13-119_p6",
+        "label": "p6",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-119_p6.png",
+        "distribution": "Store Treasure Cup March 2026 Winner (otton)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -66601,7 +67353,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-029.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-029.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-029.png",
+    "variants": [
+      {
+        "id": "OP14-029_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-029_p1.png",
+        "distribution": "Full Art (Naruse Uroko)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP14-030",
@@ -66676,6 +67439,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP14-031_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-031_p2.png",
+        "distribution": "Treasure Cup May 2026 Top 64 (Hashimoto Q)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -67137,7 +67909,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-043.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-043.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-043.png",
+    "variants": [
+      {
+        "id": "OP14-043_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-043_p1.png",
+        "distribution": "Full Art (SHINRA AGENCY Co. Ltd.)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP14-044",
@@ -68192,7 +68975,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-074.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-074.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-074.png",
+    "variants": [
+      {
+        "id": "OP14-074_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-074_p1.png",
+        "distribution": "Full Art (Kou Takase)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP14-075",
@@ -69430,7 +70224,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-108.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-108.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-108.png",
+    "variants": [
+      {
+        "id": "OP14-108_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-108_p1.png",
+        "distribution": "Full Art (eiji kaneda)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "OP14-109",
@@ -69591,6 +70396,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP14-112_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-112_p3.png",
+        "distribution": "CS26-27 Regionals Season 1 Top 64 (otton)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -69845,6 +70659,15 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "OP14-119_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-119_p3.png",
+        "distribution": "CS26-27 Regionals Season 1 Top 8 (Akanegumo)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -69889,6 +70712,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "OP14-120_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-120_p2.png",
+        "distribution": "CS26-27 Regionals Season 1 Top 16 (Akanegumo)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -74561,6 +75393,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST01-006_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST01-006_p5.png",
+        "distribution": "English Version 1st Anniversary Set (Ono Tako)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -74795,6 +75636,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST01-009_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST01-009_p2.png",
+        "distribution": "Full Art (NAOSHI KOMI)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -74968,6 +75818,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST01-011_p7",
+        "label": "p7",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST01-011_p7.png",
+        "distribution": "Pirate Foil",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -75079,6 +75938,15 @@
         "distribution": "週刊少年ジャンプ19号応募者全員サービス（2025年4月7日売）",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "ST01-012_p8",
+        "label": "p8",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST01-012_p8.png",
+        "distribution": "3rd Anniversary Event Winner (Yuki Tabata)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -76121,6 +76989,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST02-013_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST02-013_p2.png",
+        "distribution": "Full Art",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -76326,7 +77203,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-001.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-001.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-001.png",
+    "variants": [
+      {
+        "id": "ST03-001_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-001_p1.png",
+        "distribution": "Premium Card Collection -Leader Collection-",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "ST03-002",
@@ -76421,6 +77309,15 @@
         "distribution": "スタンダードバトルパックVol.5",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "ST03-003_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-003_p3.png",
+        "distribution": "Championship 2024 Celebration Pack",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -76597,6 +77494,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST03-005_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-005_p3.png",
+        "distribution": "Championship 2023 Celebration Pack (Hayaken-sarena)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -76681,6 +77587,24 @@
         "label": "p2",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-007_p2.png",
         "distribution": "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST03-007_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-007_p4.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (kankurou)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST03-007_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-007_p3.png",
+        "distribution": "Championship 2023 Celebration Pack (kankurou)",
         "regions": [
           "EN"
         ]
@@ -77254,7 +78178,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-001.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-001.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-001.png",
+    "variants": [
+      {
+        "id": "ST04-001_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-001_p1.png",
+        "distribution": "Premium Card Collection -Leader Collection-",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "ST04-002",
@@ -77388,6 +78323,15 @@
         "distribution": "プロモーションパックEX Vol.2",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "ST04-003_p6",
+        "label": "p6",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-003_p6.png",
+        "distribution": "Alternate Art (Studio Vigor Co. Ltd)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -77707,6 +78651,24 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "ST04-010_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-010_p3.png",
+        "distribution": "Championship 2023 Celebration Pack (Suemi jun)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST04-010_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-010_p2.png",
+        "distribution": "Full Art (Suemi jun)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -77768,6 +78730,15 @@
         "distribution": "ジャンプGIGA 2023 SPRING 応募者全員サービス",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "ST04-011_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-011_p4.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (Koushi Rokushiro)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -78864,7 +79835,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-002.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-002.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-002.png",
+    "variants": [
+      {
+        "id": "ST06-002_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-002_p1.png",
+        "distribution": "Promotion Pack 2023 (BISAI)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "ST06-003",
@@ -79028,6 +80010,15 @@
         "label": "p4",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-006_p4.png",
         "distribution": "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST06-006_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-006_p5.png",
+        "distribution": "Premium Card Collection -Bandai Card Games Fest. 23-24 Edition- (Nekobayashi)",
         "regions": [
           "EN"
         ]
@@ -79304,7 +80295,18 @@
       "JP"
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-012.png",
-    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-012.png"
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-012.png",
+    "variants": [
+      {
+        "id": "ST06-012_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-012_p1.png",
+        "distribution": "Prize Cards (Studio Vigor Co. Ltd)",
+        "regions": [
+          "EN"
+        ]
+      }
+    ]
   },
   {
     "id": "ST06-013",
@@ -79902,6 +80904,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST07-010_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST07-010_p1.png",
+        "distribution": "Alternate Art (Hatori Kyoka)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -80211,6 +81222,15 @@
         "distribution": "プレミアムカードコレクション-ウタ-",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "ST08-002_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST08-002_p1.png",
+        "distribution": "Alternate Art (sowsow)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -81435,6 +82455,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST10-006_p5",
+        "label": "p5",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST10-006_p5.png",
+        "distribution": "3rd Anniversary! Treasure Campaign Pack (phima)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -82256,6 +83285,15 @@
         "regions": [
           "JP"
         ]
+      },
+      {
+        "id": "ST12-003_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST12-003_p2.png",
+        "distribution": "also available with Finalist and Champion stamp (Bashikou)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -82856,6 +83894,24 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "ST13-001_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-001_p3.png",
+        "distribution": "Premium Card Collection -Leader Collection- (Hokuyuu)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST13-001_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-001_p2.png",
+        "distribution": "Alternate Art (DAI-XT.)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -82900,6 +83956,24 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "ST13-002_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-002_p3.png",
+        "distribution": "Premium Card Collection -Leader Collection- (Hokuyuu)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST13-002_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-002_p2.png",
+        "distribution": "Alternate Art (DAI-XT.)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -82953,6 +84027,24 @@
         "label": "p2",
         "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-003_p2.png",
         "distribution": "ONE PIECE CARD GAME and Football Team DORTMUND collaboration event",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST13-003_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-003_p4.png",
+        "distribution": "Premium Card Collection -Leader Collection- (Hokuyuu)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "ST13-003_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-003_p3.png",
+        "distribution": "Misc. Promos (Shin Kashiwaguma)",
         "regions": [
           "EN"
         ]
@@ -83651,6 +84743,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "ST13-016_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-016_p2.png",
+        "distribution": "Illustration Box Vol.2 (Peach Momoko)",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -86849,6 +87950,15 @@
         "distribution": "-Ace & Newgate- [ST-22]",
         "regions": [
           "EN",
+          "JP"
+        ]
+      },
+      {
+        "id": "ST22-003_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST22-003_p2.png",
+        "distribution": "Alternate Art",
+        "regions": [
           "JP"
         ]
       }
@@ -90573,6 +91683,24 @@
           "EN",
           "JP"
         ]
+      },
+      {
+        "id": "EB01-014_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB01-014_p3.png",
+        "distribution": "CS 25–26 Celebration Pack (Hashimoto Q)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "EB01-014_p2",
+        "label": "p2",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB01-014_p2.png",
+        "distribution": "Full Art (Hashimoto Q)",
+        "regions": [
+          "EN"
+        ]
       }
     ]
   },
@@ -92800,6 +93928,15 @@
         "regions": [
           "EN",
           "JP"
+        ]
+      },
+      {
+        "id": "EB02-006_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB02-006_p3.png",
+        "distribution": "Extra Grand Battle 2026 Winner",
+        "regions": [
+          "EN"
         ]
       }
     ]
@@ -99764,6 +100901,24 @@
         "distribution": "プロモーションパックEX Vol.4",
         "regions": [
           "JP"
+        ]
+      },
+      {
+        "id": "PRB02-005_p3",
+        "label": "p3",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/PRB02-005_p3.png",
+        "distribution": "Red Bull Double Don!! Store Qualifier Top 2 (Bashikou)",
+        "regions": [
+          "EN"
+        ]
+      },
+      {
+        "id": "PRB02-005_p4",
+        "label": "p4",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/PRB02-005_p4.png",
+        "distribution": "Red Bull Double Don!! Finals Top 32 (Bashikou)",
+        "regions": [
+          "EN"
         ]
       }
     ]
