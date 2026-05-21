@@ -1183,8 +1183,18 @@ export function TierListMaker() {
         fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
       }}
     >
+      {/* px-4 lives on the *inner* max-w-6xl div, not the outer
+          <header>, so the header's horizontal bounds line up
+          exactly with the main content wrapper below (which also
+          uses `mx-auto max-w-6xl px-4`). When px-4 sits on the
+          outer element instead, the inner content can grow to
+          the full 1152px max-w-6xl while the main content tops
+          out at 1120px (1152 - 32), leaving the nav buttons 16px
+          further left and right than the chart frame on wide
+          viewports. Same pattern as the main gallery (header.tsx
+          + card-grid.tsx both put px-4 inside the maxWidth). */}
       <header
-        className="sticky top-0 z-20 px-4 py-3"
+        className="sticky top-0 z-20 py-3"
         style={{
           background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
           backdropFilter: 'blur(18px) saturate(140%)',
@@ -1192,7 +1202,7 @@ export function TierListMaker() {
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
           <div className="flex flex-wrap items-center gap-3">
             {/* Brand cluster: logo + beta tag stay tightly paired (gap-2)
                 so they read as one identity unit, distinct from the page
