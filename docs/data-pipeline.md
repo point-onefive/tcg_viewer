@@ -221,6 +221,7 @@ atomically (writes to `.tmp`, rotates to `.bak`, renames into place).
 
 | Script                                  | Reads                                                              | Writes                                                                              | Notes                                                                                                              |
 | --------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `scan-for-new-cards.mjs`                | Every fetcher's output + `src/lib/cards-one-piece.json`            | `data/scan-report.{json,md}`                                                        | The "what's new across every source" orchestrator (npm: `cards:scan`). Read-only relative to the bundle. `--full` also runs the Limitless detail crawl. `--skip-{bandai,cn,products,limitless}` to narrow. |
 | `fetch-card-data.mjs`                   | Bandai region site HTML                                            | `data/by-language/<lang>.json`                                                      | `--language=` selects region; `--language=all` sweeps every region; `--language=legacy` keeps the old EN+JP merge. |
 | `fetch-bandai-products.mjs` *(Phase 8)* | Bandai `/products/` listing + per-product HTML for every region    | `data/by-language/<region>-products.json`                                           | Synthetic rows tagged with the product label so the deduper can bucket by `distribution`. `asia-tw-products.json` is intentionally empty (no distinct catalogue). |
 | `fetch-bandai-cn.mjs` *(Phase 8)*       | `onepieceserve.windoent.com/onepiece/cardList/...` + `products/productsinfo/webInfo/<id>` | `data/by-language/cn.json` + `data/by-language/cn-products.json`         | Normalizes `_0N`→`_pN`; strips rarity overlays (`SP`/`P-R`/`P-SR`/…). Product extracts get a synthetic `_p9NN` suffix tied to the product id so they bucket as variants. |
@@ -238,6 +239,42 @@ atomically (writes to `.tmp`, rotates to `.bak`, renames into place).
 ---
 
 ## 4. The refresh playbook
+
+### 4.0 "What's new since last sweep?" (~7 min, read-only)
+
+This is the **manual maintenance command**. Run it whenever you want to
+know whether anything new has dropped across any source — Bandai
+boosters, tournament prize packs, Premium Bandai limited boxes,
+Mainland anniversary sets, magazine inserts, championship prizes.
+It hits every source we know about, diffs against the shipping bundle
+in `src/lib/cards-one-piece.json`, and prints a categorized report of
+**net-new print ids the bundle doesn't have yet**.
+
+```bash
+npm run cards:scan                 # ~7 min: every source, quick mode
+npm run cards:scan:full            # +~17 min: also full Limitless detail crawl
+node scripts/scan-for-new-cards.mjs --skip-limitless   # narrow the run
+```
+
+Cadence: once a week is plenty. Bandai drops a new product or
+Limitless catalogues a new tournament pack roughly monthly; the
+serialized / anniversary one-offs (the high-heat stuff) trickle in
+two or three at a time. The scan is the dragnet that catches them.
+
+Outputs:
+
+- Stdout: short summary table per source + sample of the first 8 new
+  prints from each (good for chat / quick triage).
+- `data/scan-report.json`: full machine-readable list of every new
+  print id, partitioned by source, with categories for Limitless
+  (championship prizes vs. anniversary boxes vs. promo packs etc.).
+- `data/scan-report.md`: same data as GitHub-flavored markdown, paste
+  into an issue or chat thread.
+
+The scan **writes nothing to the bundle**. It surfaces findings; the
+operator (you or the agent) decides what to ingest. To actually pull
+a print into the bundle, follow the §4.1 or §4.2 playbook focused on
+the relevant source.
 
 ### 4.1 Daily / on-demand (~15 min, no image downloads)
 
