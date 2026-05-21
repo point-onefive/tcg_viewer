@@ -37,11 +37,33 @@ const MIN_RETENTION_RATIO = 0.8
 const ALLOW_PARTIAL = process.argv.includes('--allow-partial')
 const DRY_RUN = process.argv.includes('--dry-run')
 
-const SITE = 'https://en.onepiece-cardgame.com'
-const LIST_URL = `${SITE}/cardlist/`
+const EN_SITE = 'https://en.onepiece-cardgame.com'
+const EN_LIST_URL = `${EN_SITE}/cardlist/`
+const JP_SITE = 'https://www.onepiece-cardgame.com'
+const JP_LIST_URL = `${JP_SITE}/cardlist/`
+// Backwards-compat alias: existing parseCardBlock builds the image URL from
+// `SITE`, which used to be the EN host. Kept here so the EN parse path is
+// unchanged; JP cards are parsed against JP_SITE separately below.
+const SITE = EN_SITE
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
+// Opt-out: by default we union the EN scrape with the JP scrape's variants
+// of any EN base card we already know about (e.g. the JP-only Family Deck
+// Set Nami `ST01-007_r1`, the JP-only Storage Box Nami `_p6`/`_p7`, and
+// every comparable promo across the catalogue). JP-only base cards (i.e.
+// JP cards whose base ID we've never seen on EN) are skipped to avoid
+// surfacing unreleased EN content; we can revisit that policy later.
+const EN_ONLY = process.argv.includes('--en-only')
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+// Strip variant suffix (`_p1`, `_p2`, `_r1`, etc.) from a card ID. Mirrors
+// the same regex used in scripts/generate-card-data.mjs so the "is the base
+// card present?" check in the JP merge stays consistent with how the
+// generator groups variants under a base card.
+function baseCardId(id) {
+  return id.replace(/_[a-z]\d+$/i, '')
+}
 
 async function fetchHTML(url, body = null) {
   const init = {
@@ -59,6 +81,17 @@ async function fetchHTML(url, body = null) {
   const res = await fetch(url, init)
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`)
   return res.text()
+}
+
+// Resolve a relative image path from a Bandai cardlist HTML response. The
+// HTML uses `../images/cardlist/card/<ID>.png?<cache-bust>` which is
+// relative to `<host>/cardlist/`; we strip the leading `..` and prefix
+// the region's site origin.
+function resolveBandaiImageUrl(rawPath, hostOrigin) {
+  if (!rawPath) return null
+  let path = rawPath
+  if (path.startsWith('../')) path = path.replace(/^\.\.\//, '/')
+  return `${hostOrigin}${path.split('?')[0]}`
 }
 
 function decodeHtml(s) {
@@ -155,7 +188,7 @@ function parseNumber(text) {
   return isNaN(n) ? null : n
 }
 
-function parseCardBlock(block, pack) {
+function parseCardBlock(block, pack, hostOrigin = SITE) {
   const idMatch = block.match(/<dl\s+class="modalCol"\s+id="([^"]+)"/)
   if (!idMatch) return null
   const id = idMatch[1]
@@ -173,9 +206,7 @@ function parseCardBlock(block, pack) {
   const name = nameMatch ? htmlToText(nameMatch[1]) : id
 
   const imgMatch = block.match(/<img[^>]*data-src="([^"]+)"/)
-  let imgPath = imgMatch ? imgMatch[1] : null
-  if (imgPath && imgPath.startsWith('../')) imgPath = imgPath.replace(/^\.\.\//, '/')
-  const imgFullUrl = imgPath ? `${SITE}${imgPath.split('?')[0]}` : null
+  const imgFullUrl = resolveBandaiImageUrl(imgMatch ? imgMatch[1] : null, hostOrigin)
 
   const cost = parseNumber(extractField(block, 'cost'))
   const attributes = parseAttributes(extractField(block, 'attribute') ?? '')
@@ -229,12 +260,12 @@ function parseCardBlock(block, pack) {
   }
 }
 
-function parseAllCards(html, pack) {
+function parseAllCards(html, pack, hostOrigin = SITE) {
   const cards = []
   const re = /<dl\s+class="modalCol"[\s\S]*?<\/dl>/g
   let m
   while ((m = re.exec(html)) !== null) {
-    const card = parseCardBlock(m[0], pack)
+    const card = parseCardBlock(m[0], pack, hostOrigin)
     if (card) cards.push(card)
   }
   return cards
@@ -253,7 +284,7 @@ function diffCards(prevList, nextList) {
   const next = new Map(nextList.map((c) => [c.id, c]))
   const added = [...next.keys()].filter((id) => !prev.has(id))
   const removed = [...prev.keys()].filter((id) => !next.has(id))
-  const COMPARE_FIELDS = ['name', 'rarity', 'category', 'cost', 'power', 'counter', 'effect', 'trigger', 'distribution']
+  const COMPARE_FIELDS = ['name', 'rarity', 'category', 'cost', 'power', 'counter', 'effect', 'trigger', 'distribution', 'regions']
   const changed = []
   for (const [id, nc] of next) {
     const pc = prev.get(id)
@@ -300,38 +331,100 @@ function printDiffReport(prev, next) {
   }
 }
 
-async function main() {
-  mkdirSync(DATA_DIR, { recursive: true })
-
-  console.log('Fetching pack list from Bandai...')
-  const landingHtml = await fetchHTML(LIST_URL)
+/**
+ * Scrape every series on a Bandai cardlist site (EN or JP) and return the
+ * unique card list. Returns the new cards (no dedup across `seen`) plus the
+ * list of packs that failed so the caller can fail loud or filter.
+ */
+async function scrapeRegion(label, listUrl, hostOrigin) {
+  console.log(`\n[${label}] Fetching pack list from ${hostOrigin}...`)
+  const landingHtml = await fetchHTML(listUrl)
   const packs = parseSeriesOptions(landingHtml)
-  console.log(`Found ${packs.length} series.`)
+  console.log(`[${label}] Found ${packs.length} series.`)
 
-  const allCards = []
-  const seen = new Set()
+  const cards = []
   const failed = []
 
   for (let i = 0; i < packs.length; i++) {
     const pack = packs[i]
     const tag = pack.title_parts.label ?? pack.title_parts.title ?? pack.id
-    process.stdout.write(`[${i + 1}/${packs.length}] ${tag} (${pack.id})... `)
+    process.stdout.write(`[${label} ${i + 1}/${packs.length}] ${tag} (${pack.id})... `)
     try {
-      const html = await fetchHTML(LIST_URL, `series=${pack.id}`)
-      const cards = parseAllCards(html, pack)
-      let added = 0
-      for (const c of cards) {
-        if (seen.has(c.id)) continue
-        seen.add(c.id)
-        allCards.push(c)
-        added++
-      }
-      console.log(`${cards.length} cards (${added} new)`)
+      const html = await fetchHTML(listUrl, `series=${pack.id}`)
+      const found = parseAllCards(html, pack, hostOrigin)
+      console.log(`${found.length} cards`)
+      cards.push(...found)
     } catch (err) {
       console.log(`FAILED: ${err.message}`)
       failed.push(pack)
     }
     if (i < packs.length - 1) await sleep(300)
+  }
+
+  return { packs, cards, failed }
+}
+
+async function main() {
+  mkdirSync(DATA_DIR, { recursive: true })
+
+  // ---- EN scrape (canonical) ----
+  // EN data is the source of truth. Card metadata, set membership, ordering
+  // -- all of it comes from EN. JP is consulted only to fill in variants
+  // EN hasn't listed yet (and is opt-out via --en-only).
+  const en = await scrapeRegion('EN', EN_LIST_URL, EN_SITE)
+
+  const allCards = []
+  const seen = new Set()
+  for (const c of en.cards) {
+    if (seen.has(c.id)) continue
+    seen.add(c.id)
+    allCards.push({ ...c, regions: ['EN'] })
+  }
+  console.log(`\n[EN] ${allCards.length} unique cards.`)
+
+  const failed = [...en.failed.map((p) => ({ region: 'EN', pack: p }))]
+
+  // ---- JP merge (additive only) ----
+  // For every card the JP site shows, we include it iff:
+  //   1. We don't have it from EN yet, AND
+  //   2. Its base ID (e.g. ST01-007 for ST01-007_p6) IS already in our EN set.
+  // The second guard is the "no leaks" policy: a brand-new JP-only card from
+  // an unreleased EN set wouldn't have its base ID in EN yet, so we skip it.
+  // What we DO pick up are JP-only alt-arts of characters already in EN --
+  // Family Deck Set variants, JP Storage Box variants, JP-only event promos
+  // -- which is exactly the gap that originally surfaced (Nami _p6/_p7/_r1).
+  if (!EN_ONLY) {
+    const enBaseIds = new Set(allCards.map((c) => baseCardId(c.id)))
+    const jp = await scrapeRegion('JP', JP_LIST_URL, JP_SITE)
+    failed.push(...jp.failed.map((p) => ({ region: 'JP', pack: p })))
+
+    let jpAdded = 0
+    let jpAlreadyHave = 0
+    let jpSkippedNoBase = 0
+    for (const c of jp.cards) {
+      if (seen.has(c.id)) {
+        // Card exists on both sites -- tag the existing record as multi-region.
+        const existing = allCards.find((x) => x.id === c.id)
+        if (existing && !existing.regions.includes('JP')) existing.regions.push('JP')
+        jpAlreadyHave++
+        continue
+      }
+      if (!enBaseIds.has(baseCardId(c.id))) {
+        jpSkippedNoBase++
+        continue
+      }
+      seen.add(c.id)
+      allCards.push({ ...c, regions: ['JP'] })
+      jpAdded++
+    }
+
+    console.log(
+      `\n[JP] +${jpAdded} new variants of EN base cards, ` +
+      `${jpAlreadyHave} already in EN (tagged multi-region), ` +
+      `${jpSkippedNoBase} skipped (JP-only base ID, no EN counterpart yet).`
+    )
+  } else {
+    console.log(`\n[JP] Skipped (--en-only).`)
   }
 
   // ---- Safety rails ----
@@ -344,7 +437,7 @@ async function main() {
 
   if (failed.length > 0) {
     console.warn(`\nFailed packs (${failed.length}):`)
-    failed.forEach((p) => console.warn(`  - ${p.title_parts.label ?? p.id} (id=${p.id})`))
+    failed.forEach((f) => console.warn(`  - [${f.region}] ${f.pack.title_parts.label ?? f.pack.id} (id=${f.pack.id})`))
     if (!ALLOW_PARTIAL) {
       console.error(
         `\nRefusing to overwrite data/cards.json: ${failed.length} series failed to fetch. ` +
@@ -377,9 +470,19 @@ async function main() {
   writeFileSync(CARDS_TMP_PATH, JSON.stringify(allCards, null, 2))
   if (existsSync(CARDS_PATH)) copyFileSync(CARDS_PATH, CARDS_BAK_PATH)
   renameSync(CARDS_TMP_PATH, CARDS_PATH)
-  writeFileSync(PACKS_PATH, JSON.stringify(packs, null, 2))
+  // packs.json is EN-only on purpose. The downstream generator uses it for
+  // pack-id-based bucketing (PROMO / Premium Bandai Exclusives), and those
+  // bucket IDs are EN site IDs. JP scrape contributes cards, not packs.
+  writeFileSync(PACKS_PATH, JSON.stringify(en.packs, null, 2))
 
-  console.log(`\nWrote ${allCards.length} unique cards to data/cards.json (previous saved to data/cards.json.bak)`)
+  const jpCount = allCards.filter((c) => c.regions.includes('JP') && !c.regions.includes('EN')).length
+  const dualCount = allCards.filter((c) => c.regions.includes('EN') && c.regions.includes('JP')).length
+  console.log(
+    `\nWrote ${allCards.length} unique cards to data/cards.json ` +
+    `(EN-only: ${allCards.length - jpCount - dualCount}, ` +
+    `dual-region: ${dualCount}, ` +
+    `JP-only: ${jpCount}). Previous saved to data/cards.json.bak.`
+  )
 }
 
 main().catch((err) => {

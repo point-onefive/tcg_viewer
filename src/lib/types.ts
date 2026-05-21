@@ -1,3 +1,5 @@
+export type CardRegion = 'EN' | 'JP'
+
 export type CardVariant = {
   id: string
   label: string        // e.g. "p1", "p2", "r1"
@@ -8,6 +10,11 @@ export type CardVariant = {
   // labels and substring-based filtering. Undefined for cards Bandai ships
   // with no distribution metadata (rare).
   distribution?: string
+  // Which Bandai region(s) list this variant. JP-only variants are alt-arts
+  // from Japan-only promos (Family Deck Sets, JP Storage Boxes, etc.) that
+  // EN Bandai hasn't published. Undefined on data generated before the JP
+  // merge landed.
+  regions?: CardRegion[]
 }
 
 export type Card = {
@@ -32,6 +39,7 @@ export type Card = {
   // For starter-set cards this typically echoes the set name, e.g.
   // "-Straw Hat Crew-[ST-01]".
   distribution?: string
+  regions?: CardRegion[]
   imageSmall: string
   imageLarge?: string
   variants?: CardVariant[]

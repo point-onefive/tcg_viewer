@@ -82,14 +82,24 @@ async function downloadFromCDN() {
     const card = cards[i]
     const dest = join(CARDS_DIR, `${card.id}.png`)
 
-    // Skip already downloaded
+    // Skip already downloaded -- no throttle on skip, otherwise resuming a
+    // partially-downloaded run takes 30+ minutes just to no-op past the
+    // cached files.
     if (existsSync(dest)) {
       skipped++
       continue
     }
 
+    if (!card.img_full_url) {
+      console.warn(`  SKIP ${card.id}: no img_full_url in data`)
+      failed.push(card.id)
+      continue
+    }
+
     try {
-      const res = await fetch(card.img_full_url)
+      const res = await fetch(card.img_full_url, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
       const arrayBuffer = await res.arrayBuffer()
@@ -104,7 +114,7 @@ async function downloadFromCDN() {
       failed.push(card.id)
     }
 
-    // Throttle
+    // Throttle only on actual network calls.
     await new Promise((r) => setTimeout(r, CDN_DELAY_MS))
   }
 

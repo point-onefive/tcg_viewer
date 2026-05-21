@@ -169,6 +169,8 @@ for (const [base, variants] of grouped) {
   // "_p4 = 2025 NEW YEAR EVENT" instead of just "p4". We pass it through
   // unparsed; downstream code can do substring matching on "Pre-Release",
   // "Tournament Pack", etc. without us having to maintain a taxonomy here.
+  // `regions` records where Bandai lists this variant (EN, JP, or both) so
+  // the UI can show a small "JP" pip on JP-exclusive promos if desired.
   const altVariants = variants
     .filter(v => v.id !== base)
     .map(v => ({
@@ -176,6 +178,7 @@ for (const [base, variants] of grouped) {
       label: variantLabel(v.id) ?? v.id,
       imageUrl: `${IMAGE_BASE}/${v.id}.png`,
       distribution: v.distribution ?? undefined,
+      regions: v.regions ?? undefined,
     }))
 
   cards.push({
@@ -197,6 +200,7 @@ for (const [base, variants] of grouped) {
     effect: canonical.effect ? canonical.effect.replace(/<br>/g, '\n') : null,
     trigger: canonical.trigger ? canonical.trigger.replace(/<br>/g, '\n') : null,
     distribution: canonical.distribution ?? undefined,
+    regions: canonical.regions ?? undefined,
     imageSmall: `${IMAGE_BASE}/${base}.png`,
     imageLarge: `${IMAGE_BASE}/${base}.png`,
     variants: altVariants.length > 0 ? altVariants : undefined,
