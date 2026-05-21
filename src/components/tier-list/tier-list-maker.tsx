@@ -60,13 +60,17 @@ export type TierDef = {
  * Where a tier card image came from. Drives the rendered aspect ratio:
  *
  * - `gallery` - added via the "Add to tier list pool" button on a card
- *   in the main wall. Rendered portrait at the natural TCG card aspect
- *   (5:7) with `object-contain` so the full card art + frame is always
- *   visible (no cropping of the card title, cost, etc.).
+ *   in the main wall. Rendered portrait at the standard TCG card
+ *   aspect (5:7) with `object-contain` so the full card art + frame
+ *   is always visible (no cropping of the card title, cost, etc.).
  *
- * - `upload` - uploaded from disk or pasted from the clipboard. We have
- *   no idea what shape these are (screenshots, memes, square portraits)
- *   so we render them square with `object-cover` for a clean grid.
+ * - `upload` - uploaded from disk or pasted from the clipboard. We
+ *   render these at their NATURAL aspect ratio with `object-contain`
+ *   so nothing the user pasted is cropped. Height is locked to
+ *   `THUMB_H_PORTRAIT` (matching gallery rows so the tier strip
+ *   stays vertically aligned) and width floats according to the
+ *   intrinsic image dimensions — wide screenshots get wide tiles,
+ *   portrait phone pics get narrow tiles, squares stay square.
  */
 export type TierCardKind = 'gallery' | 'upload'
 
@@ -83,22 +87,41 @@ export type TierCard = {
    * back to `"Uploaded image"` for those.
    */
   label?: string
+  /**
+   * Intrinsic image aspect ratio (width / height) for `upload`
+   * cards. Captured asynchronously when the file is decoded so the
+   * tile renders at the pasted image's natural shape instead of
+   * being cropped to a square. Undefined until the decode resolves
+   * (and always undefined for `gallery` cards — those use the
+   * canonical 5:7 TCG ratio).
+   */
+  aspectRatio?: number
 }
 
 /**
- * Thumb width is shared between square (upload) and portrait (gallery)
- * thumbs so they flow consistently in tier rows. Portrait height is
- * derived from the standard TCG card ratio (5:7) - a ~78×109 box that
- * matches whole cards from the gallery without cropping.
+ * Row height shared by every tier tile. Derived from the standard
+ * TCG card ratio (5:7) so portrait gallery cards land at ~78×109 with
+ * no cropping. Upload tiles pin the same height and let their width
+ * float by aspect ratio — squares become 109×109, 16:9 screenshots
+ * become ~194×109, etc.
+ *
+ * `THUMB_W_DEFAULT` is the fallback width for an upload that hasn't
+ * decoded yet (we don't know its intrinsic dimensions until the
+ * browser parses the file). Sized to match the gallery card so a
+ * just-pasted tile doesn't shove the row layout twice — once at
+ * paste time and again when the natural dimensions arrive.
  */
-const THUMB_W = 78
-const THUMB_H_SQUARE = 78
-const THUMB_H_PORTRAIT = Math.round(THUMB_W * (7 / 5)) // 109
+const THUMB_W_DEFAULT = 78
+const THUMB_H_PORTRAIT = Math.round(THUMB_W_DEFAULT * (7 / 5)) // 109
 
-function thumbDimensions(kind: TierCardKind) {
-  return kind === 'gallery'
-    ? { width: THUMB_W, height: THUMB_H_PORTRAIT, fit: 'contain' as const }
-    : { width: THUMB_W, height: THUMB_H_SQUARE, fit: 'cover' as const }
+function thumbDimensions(kind: TierCardKind, aspectRatio?: number) {
+  if (kind === 'gallery') {
+    return { width: THUMB_W_DEFAULT, height: THUMB_H_PORTRAIT, fit: 'contain' as const }
+  }
+  const width = aspectRatio
+    ? Math.max(24, Math.round(THUMB_H_PORTRAIT * aspectRatio))
+    : THUMB_W_DEFAULT
+  return { width, height: THUMB_H_PORTRAIT, fit: 'contain' as const }
 }
 
 const DEFAULT_TIERS: TierDef[] = [
@@ -331,11 +354,13 @@ function SortableCard({
   id,
   src,
   kind,
+  aspectRatio,
   onRemove,
 }: {
   id: string
   src: string
   kind: TierCardKind
+  aspectRatio?: number
   onRemove: () => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -343,7 +368,7 @@ function SortableCard({
     data: { kind: 'card', id },
   })
 
-  const { width, height, fit } = thumbDimensions(kind)
+  const { width, height, fit } = thumbDimensions(kind, aspectRatio)
 
   return (
     <div
@@ -1041,6 +1066,34 @@ export function TierListMaker() {
     if (!next.length) return
     setCards((c) => [...c, ...next])
     setPasteHint(`${next.length} image${next.length === 1 ? '' : 's'} added`)
+
+    // Resolve each upload's intrinsic aspect ratio async, then patch
+    // it back onto the matching TierCard. Until this resolves the
+    // tile renders at the THUMB_W_DEFAULT × THUMB_H_PORTRAIT
+    // fallback; once it lands the tile snaps to the pasted image's
+    // natural shape (squares stay square, wide screenshots get wide
+    // tiles, phone portraits get narrow tiles) — and `object-contain`
+    // guarantees nothing is cropped during either phase. We measure
+    // off-DOM with `new Image()` so the layout-affecting tier-row
+    // <img> doesn't need its own onLoad handler / state.
+    for (const tile of next) {
+      const probe = new Image()
+      probe.onload = () => {
+        const w = probe.naturalWidth
+        const h = probe.naturalHeight
+        if (!w || !h) return
+        const ratio = w / h
+        setCards((cs) =>
+          cs.map((c) => (c.id === tile.id ? { ...c, aspectRatio: ratio } : c)),
+        )
+      }
+      probe.onerror = () => {
+        // Image failed to decode (corrupt paste, unsupported format).
+        // Leave aspectRatio undefined — the tile stays at the square
+        // fallback rather than crashing the row layout.
+      }
+      probe.src = tile.src
+    }
   }, [])
 
   const addFiles = useCallback(
@@ -1666,6 +1719,7 @@ export function TierListMaker() {
                           id={c.id}
                           src={c.src}
                           kind={c.kind}
+                          aspectRatio={c.aspectRatio}
                           onRemove={() => removeCard(c.id)}
                         />
                       ))}
@@ -1910,6 +1964,7 @@ export function TierListMaker() {
                               id={c.id}
                               src={c.src}
                               kind={c.kind}
+                              aspectRatio={c.aspectRatio}
                               onRemove={() => removeCard(c.id)}
                             />
                           ))}
@@ -1925,7 +1980,7 @@ export function TierListMaker() {
 
           <DragOverlay adjustScale={false} dropAnimation={null}>
             {activeCard ? (() => {
-              const { width, height, fit } = thumbDimensions(activeCard.kind)
+              const { width, height, fit } = thumbDimensions(activeCard.kind, activeCard.aspectRatio)
               return (
                 <div
                   className="pointer-events-none overflow-hidden opacity-[0.98]"
