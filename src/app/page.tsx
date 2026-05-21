@@ -8,44 +8,39 @@ import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
-import { applyRegionFilter } from '@/lib/card-filter'
+import { applyRegionFilter, hasJpContent } from '@/lib/card-filter'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
-  const showJpVariants = useStore((s) => s.showJpVariants)
+  const jpOnly = useStore((s) => s.jpOnly)
   const rawCards = getCards(activeCollection)
   // applyRegionFilter is the single chokepoint for the JP toggle. Every
   // surface that lists cards (grid, lightbox, board, alt-art counts)
   // gets the same filtered view because they all receive these `cards`
   // -- there's no second-pass filter that could disagree with itself.
-  const cards = useMemo(() => applyRegionFilter(rawCards, showJpVariants), [rawCards, showJpVariants])
+  //
+  // Default (jpOnly=false): strips JP-only base cards + JP-only variants
+  // for a noise-free EN-focused catalogue. JP on: narrows the wall to
+  // only the ~350 cards with JP-exclusive content, with variants intact.
+  const cards = useMemo(() => applyRegionFilter(rawCards, jpOnly), [rawCards, jpOnly])
   const rawSets = getSets(activeCollection)
   // Filter the set list to hide any set that is empty under the current
-  // JP setting (e.g. ST-30, which is 100% JP-exclusive, vanishes from the
-  // Set dropdown when JP is off). Without this filter the dropdown was
-  // the loudest "nothing changed" signal in the page: a user would flip
-  // JP off, see ST-30 still listed, scroll to it, find it empty, and
-  // conclude the toggle was broken. Mixed-region sets like PROMO stay
-  // listed; their count just shrinks.
+  // filter (e.g. when JP is on, EN-only sets like OP-12 may have very
+  // few or no cards left; when JP is off, the all-JP ST-30 vanishes).
+  // Without this filter the set dropdown would still list "empty" sets
+  // and the page would feel unresponsive to the toggle.
   const sets = useMemo(() => {
     const codesWithCards = new Set(cards.map((c) => c.setCode))
     return rawSets.filter((s) => codesWithCards.has(s.setCode))
   }, [rawSets, cards])
-  // Count of JP-exclusive entries in the raw data (does NOT change when
-  // the toggle flips, so we read it off `rawCards` rather than `cards`).
-  // Surfaced on the JP pill as "JP · 432" so the user always knows how
-  // much content the toggle controls, even when they're scrolled to a
-  // part of the wall (OP01, OP02...) where flipping the toggle has no
-  // visible effect because no card in that region is JP-exclusive.
-  const jpExclusiveCount = useMemo(
-    () =>
-      rawCards.reduce((n, c) => {
-        if (c.regions?.length === 1 && c.regions[0] === 'JP') return n + 1
-        const jpVariants = (c.variants ?? []).filter(
-          (v) => v.regions?.length === 1 && v.regions[0] === 'JP',
-        ).length
-        return n + jpVariants
-      }, 0),
+  // How many cards the JP-only filter would surface if the user clicks
+  // it right now (i.e. the future wall size after the narrow). Shown on
+  // the pill as "JP 353" so the user sees the magnitude of the change
+  // before clicking - same idea as showing "1.2k results" next to a
+  // search query. Read off `rawCards` because the count is a property
+  // of the bundle, not the current filter state.
+  const jpEligibleCount = useMemo(
+    () => rawCards.filter(hasJpContent).length,
     [rawCards],
   )
   const ready = hasData(activeCollection)
@@ -58,7 +53,7 @@ export default function Home() {
   // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
-      <Header sets={sets} jpExclusiveCount={jpExclusiveCount} />
+      <Header sets={sets} jpEligibleCount={jpEligibleCount} />
       {ready ? (
         <>
           <CardGrid cards={cards} sets={sets} />

@@ -51,15 +51,15 @@ const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
 
 interface HeaderProps {
   sets: CardSet[]
-  // Total number of Japan-exclusive entries (JP-only base cards +
-  // JP-only variants) in the active collection's raw data. Shown as
-  // a subtle count on the JP toggle pill so the user always knows
-  // how much content the toggle controls -- without this, flipping
-  // the pill near the top of the wall (OP01 / OP02 / ...) made it
-  // feel like nothing happened because no card in those sets is
-  // JP-exclusive. Collections without any JP content (everything
-  // except One Piece today) pass 0 and the badge stays hidden.
-  jpExclusiveCount?: number
+  // Number of cards the JP-only narrowing filter would surface if the
+  // user clicks the pill right now (i.e. cards that have at least one
+  // JP-exclusive variant, OR are JP-only base cards themselves). Shown
+  // as a small count on the JP pill so the user sees the magnitude of
+  // the upcoming change BEFORE clicking -- same idea as a search engine
+  // showing "1.2k results" next to a query. Collections without any
+  // JP content (everything except One Piece today) pass 0 and the badge
+  // stays hidden.
+  jpEligibleCount?: number
 }
 
 type FacetOption = { value: string; label: string; swatch?: string }
@@ -319,14 +319,14 @@ function FacetOptionRow({
   )
 }
 
-export function Header({ sets, jpExclusiveCount = 0 }: HeaderProps) {
+export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
-    showJpVariants, setShowJpVariants,
+    jpOnly, setJpOnly,
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
@@ -830,22 +830,22 @@ export function Header({ sets, jpExclusiveCount = 0 }: HeaderProps) {
           </button>
           <button
             type="button"
-            onClick={() => setShowJpVariants(!showJpVariants)}
+            onClick={() => setJpOnly(!jpOnly)}
             className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
-            style={{ ...(showJpVariants ? ctrlActive : ctrl), height: 30 }}
-            aria-pressed={showJpVariants}
+            style={{ ...(jpOnly ? ctrlActive : ctrl), height: 30 }}
+            aria-pressed={jpOnly}
             aria-label={
-              jpExclusiveCount > 0
-                ? showJpVariants
-                  ? `Showing ${jpExclusiveCount} Japanese-exclusive entries`
-                  : `Hiding ${jpExclusiveCount} Japanese-exclusive entries`
-                : showJpVariants
-                  ? 'Showing Japanese-exclusive variants'
-                  : 'Hiding Japanese-exclusive variants'
+              jpEligibleCount > 0
+                ? jpOnly
+                  ? `Showing only ${jpEligibleCount} cards with Japan-exclusive content. Click to clear.`
+                  : `Show only the ${jpEligibleCount} cards with Japan-exclusive content`
+                : jpOnly
+                  ? 'Showing only cards with Japan-exclusive content'
+                  : 'Show only cards with Japan-exclusive content'
             }
           >
             JP
-            {jpExclusiveCount > 0 && (
+            {jpEligibleCount > 0 && (
               <span
                 className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
                 style={{
@@ -853,15 +853,15 @@ export function Header({ sets, jpExclusiveCount = 0 }: HeaderProps) {
                   height: 16,
                   padding: '0 4px',
                   borderRadius: 4,
-                  background: showJpVariants
+                  background: jpOnly
                     ? 'var(--bg)'
                     : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                  color: showJpVariants
+                  color: jpOnly
                     ? 'var(--text-primary)'
                     : 'var(--text-muted)',
                 }}
               >
-                {jpExclusiveCount}
+                {jpEligibleCount}
               </span>
             )}
           </button>
@@ -1110,45 +1110,48 @@ export function Header({ sets, jpExclusiveCount = 0 }: HeaderProps) {
               >
                 Alt art
               </button>
-              {/* JP toggle · sits next to "Alt art" so the two
-                  variant-related controls cluster together. Off by
-                  default so the gallery looks identical to before the
-                  JP merge landed; flip on to reveal Japan-exclusive
-                  alt arts (Family Deck Set, Storage Box variants,
-                  magazine promos, ST-30, etc.). Same active-state
-                  styling as Alt art so the two pills read as
-                  siblings.
+              {/* JP narrowing filter · mirrors the "Alt art" pill
+                  next to it. Off by default so the gallery looks
+                  identical to a regular EN catalogue (JP-only base
+                  cards and JP-only variants are stripped). Click to
+                  narrow the wall to ONLY cards that have Japan-
+                  exclusive content -- a JP-only base card (ST-30,
+                  JP P-XXX promos) or at least one JP-only variant
+                  (Family Deck Set Nami ST01-007_r1, etc.). Inside
+                  those surfaced cards, the JP variants are revealed
+                  in the carousel so they sit alongside the EN art
+                  for comparison.
 
-                  When the active collection has any JP-exclusive
-                  content, the count is shown as a small badge inside
-                  the pill ("JP 432") so the user knows exactly how
-                  much the toggle controls -- without this badge the
-                  toggle felt broken near the top of the wall (OP01,
-                  OP02, ...) because none of those sets contain
-                  JP-exclusive cards and nothing visibly changed. */}
+                  The count badge ("JP 353") is the size of the
+                  post-filter wall, so the user sees the magnitude
+                  of the upcoming change before clicking. Without
+                  this preview, an earlier toggle-style design felt
+                  broken because clicking it from the top of the
+                  wall produced no visible change -- the affected
+                  cards were all the way down in ST-30 / promos. */}
               <button
                 type="button"
-                onClick={() => setShowJpVariants(!showJpVariants)}
+                onClick={() => setJpOnly(!jpOnly)}
                 className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none"
-                style={{ ...(showJpVariants ? ctrlActive : ctrl), height: 30 }}
-                aria-pressed={showJpVariants}
+                style={{ ...(jpOnly ? ctrlActive : ctrl), height: 30 }}
+                aria-pressed={jpOnly}
                 aria-label={
-                  jpExclusiveCount > 0
-                    ? showJpVariants
-                      ? `Showing ${jpExclusiveCount} Japanese-exclusive entries`
-                      : `Hiding ${jpExclusiveCount} Japanese-exclusive entries`
-                    : showJpVariants
-                      ? 'Showing Japanese-exclusive variants'
-                      : 'Hiding Japanese-exclusive variants'
+                  jpEligibleCount > 0
+                    ? jpOnly
+                      ? `Showing only ${jpEligibleCount} cards with Japan-exclusive content. Click to clear.`
+                      : `Show only the ${jpEligibleCount} cards with Japan-exclusive content`
+                    : jpOnly
+                      ? 'Showing only cards with Japan-exclusive content'
+                      : 'Show only cards with Japan-exclusive content'
                 }
                 title={
-                  showJpVariants
-                    ? 'Hide Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos, ST-30)'
-                    : 'Show Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos, ST-30)'
+                  jpOnly
+                    ? 'Showing only cards with JP-exclusive content (Family Deck Set, Storage Box, JP magazine promos, ST-30). Click to clear.'
+                    : `Narrow the wall to ${jpEligibleCount} cards with JP-exclusive content (Family Deck Set, Storage Box, JP magazine promos, ST-30)`
                 }
               >
                 JP
-                {jpExclusiveCount > 0 && (
+                {jpEligibleCount > 0 && (
                   <span
                     className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
                     style={{
@@ -1156,15 +1159,15 @@ export function Header({ sets, jpExclusiveCount = 0 }: HeaderProps) {
                       height: 16,
                       padding: '0 4px',
                       borderRadius: 4,
-                      background: showJpVariants
+                      background: jpOnly
                         ? 'var(--bg)'
                         : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                      color: showJpVariants
+                      color: jpOnly
                         ? 'var(--text-primary)'
                         : 'var(--text-muted)',
                     }}
                   >
-                    {jpExclusiveCount}
+                    {jpEligibleCount}
                   </span>
                 )}
               </button>

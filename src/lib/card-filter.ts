@@ -15,37 +15,55 @@ export interface CardFilterState {
   searchQuery: string
 }
 
+const isJpOnly = (regions?: string[]) =>
+  Array.isArray(regions) && regions.length === 1 && regions[0] === 'JP'
+
 /**
- * Hide Japan-exclusive content based on the user's region preference.
+ * Does this card surface any Japan-exclusive content? True when the
+ * base card itself is JP-only (e.g. ST-30, JP P-XXX promos) OR when
+ * at least one of its variants is JP-only (e.g. the Family Deck Set
+ * Nami ST01-007_r1). Used both to decide eligibility for the "JP"
+ * narrowing filter and to compute the count shown on the pill.
+ */
+export function hasJpContent(card: Card): boolean {
+  if (isJpOnly(card.regions)) return true
+  return card.variants?.some((v) => isJpOnly(v.regions)) ?? false
+}
+
+/**
+ * Apply the user's region preference to the raw card list.
  *
  * The Phase 3 ingestion put both EN cards and JP-only alt-art variants
- * into the same JSON bundle. By default the gallery should feel
- * EN-only (because that's what most users came for); this helper is
- * the single point that strips JP-only content out of the pipeline
- * when `showJpVariants` is false.
+ * into the same JSON bundle. Two modes:
  *
- * What gets stripped:
- *   - JP-only base cards (rare today - see "regions: ['JP']" at the
- *     top level - but possible once we admit the 55 JP-exclusive base
- *     cards in Phase 5).
- *   - JP-only variants inside each card's `variants` array (the common
- *     case: e.g. the JP Family Deck Set Nami ST01-007_r1).
+ *   - jpOnly: false (DEFAULT)
+ *       Regular EN-focused catalogue. Strip JP-only base cards from
+ *       the wall and JP-only variants from each card's carousel, so
+ *       the gallery looks identical to before the JP merge landed.
+ *       This is the "no noise" mode.
  *
- * What stays untouched:
- *   - EN-only cards.
- *   - Cards listed on both EN and JP (`regions: ['EN', 'JP']`), since
- *     they're the same Bandai card ID with the same image; the "EN"
- *     tag is enough to show them.
+ *   - jpOnly: true
+ *       Narrow the wall to ONLY cards that have JP-exclusive content
+ *       (JP-only base cards + cards with at least one JP-only variant).
+ *       Inside each surfaced card, leave every variant intact so the
+ *       JP Family Deck Set, Storage Box, magazine promos, etc. are
+ *       visible alongside the EN art for comparison.
+ *
+ * Mirrors how `onlyAltArt` works: clicking it narrows the wall to the
+ * subset the user is currently interested in, rather than silently
+ * adding/removing content they may never scroll to.
  *
  * Runs BEFORE filterCards so the alt-art toggle counts only visible
  * variants (otherwise a card whose only "alt art" is a hidden JP
  * variant would falsely appear in "Alt art" results with an empty
  * carousel).
  */
-export function applyRegionFilter(cards: Card[], showJpVariants: boolean): Card[] {
-  if (showJpVariants) return cards
-  const isJpOnly = (regions?: string[]) =>
-    Array.isArray(regions) && regions.length === 1 && regions[0] === 'JP'
+export function applyRegionFilter(cards: Card[], jpOnly: boolean): Card[] {
+  if (jpOnly) {
+    // JP-only mode: keep cards with JP content, leave variants intact.
+    return cards.filter(hasJpContent)
+  }
+  // Default mode: strip JP-only base cards + JP-only variants.
   const out: Card[] = []
   for (const c of cards) {
     if (isJpOnly(c.regions)) continue

@@ -65,14 +65,21 @@ interface StoreState {
   // is "show me cards that have alt art", not "show me cards with N+".
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
-  // When true, surface Japan-exclusive variants (and JP-only base
-  // cards) in the gallery / lightbox / alt-art counts. Default false
-  // so the casual EN browser sees the same catalogue they always have;
-  // collectors who want the JP Family Deck Set Nami, Storage Box Set
-  // alt-arts, JP magazine promos, etc. flip the toggle. Persisted so
-  // the preference survives reloads.
-  showJpVariants: boolean
-  setShowJpVariants: (v: boolean) => void
+  // When true, narrow the wall to ONLY cards that have Japan-exclusive
+  // content (a JP-only variant such as the Family Deck Set Nami, or a
+  // JP-only base card such as ST-30). Mirrors `onlyAltArt` -- it's a
+  // narrowing filter, not a hide/show toggle. Default false:
+  //   - off : regular EN-focused catalogue. JP-only base cards are
+  //           hidden from the wall, JP-only variants are stripped from
+  //           carousels. Same UX as before the JP merge landed.
+  //   - on  : wall shrinks to ~350 JP-eligible cards. Inside each
+  //           surfaced card the JP variants are now visible too, so
+  //           the carousel for e.g. Nami ST01-007 jumps from 6 dots
+  //           to 9 (the Family Deck Set, Storage Box, etc. variants
+  //           the user came here to see).
+  // Persisted so the preference survives reloads.
+  jpOnly: boolean
+  setJpOnly: (v: boolean) => void
   zoom: number
   setZoom: (z: number) => void
   lightboxCardId: string | null
@@ -139,8 +146,8 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
-      showJpVariants: false,
-      setShowJpVariants: (showJpVariants) => set({ showJpVariants }),
+      jpOnly: false,
+      setJpOnly: (jpOnly) => set({ jpOnly }),
       zoom: 5,
       setZoom: (zoom) => set({ zoom }),
       lightboxCardId: null,
@@ -226,9 +233,9 @@ export const useStore = create<StoreState>()(
         activeCollection: state.activeCollection,
         pinned: state.pinned,
         tierPool: state.tierPool,
-        showJpVariants: state.showJpVariants,
+        jpOnly: state.jpOnly,
       }),
-      version: 7,
+      version: 8,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -246,10 +253,20 @@ export const useStore = create<StoreState>()(
             : []
         }
         if (fromVersion < 7) {
-          // showJpVariants introduced in v7. Default false so the gallery
-          // looks identical to before the JP merge landed; users who want
-          // JP alt arts flip the toggle in the header.
-          s.showJpVariants = false
+          // Introduced (and later removed) `showJpVariants` in v7. The v8
+          // bump replaces it with `jpOnly` which has different semantics
+          // (narrowing filter, not hide/show), so we just drop the old
+          // field and let `jpOnly` start at its v8 default.
+          delete (s as { showJpVariants?: boolean }).showJpVariants
+        }
+        if (fromVersion < 8) {
+          // jpOnly introduced in v8. Default false so the gallery looks
+          // identical to the regular EN-focused catalogue; clicking the
+          // "JP" pill in the header narrows the wall to only cards with
+          // Japan-exclusive content (mirrors how "Alt art" narrows to
+          // cards that have variants).
+          delete (s as { showJpVariants?: boolean }).showJpVariants
+          s.jpOnly = false
         }
         return s as StoreState
       },
