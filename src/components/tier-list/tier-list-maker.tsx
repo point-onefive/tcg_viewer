@@ -39,7 +39,6 @@ import {
   Loader2,
   Plus,
   RotateCcw,
-  Sparkles,
   Trash2,
   Trophy,
   Upload,
@@ -1128,16 +1127,18 @@ export function TierListMaker() {
   const [exporting, setExporting] = useState<'png' | 'gif' | 'copy' | null>(null)
   const [exportFlash, setExportFlash] = useState<string | null>(null)
   // Animated brand-orange sweep around the chart perimeter.
-  // Defaults ON so the feature is discoverable on first visit,
-  // but persists to localStorage so users who turn it off don't
-  // have to redo it every page load. Reading localStorage is
+  // Defaults OFF -- it's an opt-in flourish for users who want
+  // the eye-catching version for a social share, not the
+  // default visual treatment. Preference persists to
+  // localStorage so users who turn it on don't have to redo
+  // the toggle every page visit. Reading localStorage is
   // deferred to a post-mount effect to avoid an SSR / hydration
   // mismatch (the server has no `localStorage`).
-  const [borderAnimated, setBorderAnimated] = useState(true)
+  const [borderAnimated, setBorderAnimated] = useState(false)
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem('tier-list:border-animated')
-      if (stored === '0') setBorderAnimated(false)
+      if (stored === '1') setBorderAnimated(true)
     } catch {
       // localStorage may throw in private windows / quota-full;
       // leaving the default is fine.
@@ -1734,7 +1735,6 @@ export function TierListMaker() {
                         : 'Show the sweeping brand-orange border around the chart (animated GIF exports will include it)'
                     }
                   >
-                    <Sparkles size={14} aria-hidden />
                     Border: {borderAnimated ? 'On' : 'Off'}
                   </button>
                   <button
