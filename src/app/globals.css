@@ -358,31 +358,23 @@ html.lenis, html.lenis body {
 }
 
 /* ─── Tier-list chart running-light border ─────────────────────────
-   A thin brand-orange outline traces the chart frame on the
-   tier-list page; a small bright highlight runs around that
-   outline on a loop (chase-light effect). Catches the eye in a
-   busy social-timeline scroll without dominating the chart.
-   Plays purely on the page (CSS-only); the export pipeline
-   re-creates the same effect frame-by-frame for the GIF download
-   so the saved file matches what users see (see src/lib/chart-export.ts).
+   A small brand-orange highlight runs around the chart frame's
+   perimeter on a loop (chase-light effect). No static base ring --
+   just the moving blob, so the chart looks clean when the blob is
+   on the opposite side. Plays purely on the page (CSS-only); the
+   export pipeline re-creates the same effect frame-by-frame for
+   the GIF download so the saved file matches what users see
+   (see src/lib/chart-export.ts).
 
-   Two-layer implementation:
-
-   1. `::before` is the static thin outline -- a 2px brand-orange
-      ring at low opacity that's always visible. The chart's
-      opaque background covers everything except a 2px sliver
-      around the perimeter, so the orange box is seen as a thin
-      outline only.
-
-   2. `::after` is the moving highlight -- a small bright orange
-      blob with a radial gradient, positioned along the chart's
-      perimeter via `offset-path`. The `offset-distance` is
-      animated from 0% to 100%, walking the highlight around the
-      rounded-rectangle perimeter once per loop. The blob is
-      blurred and most of it sits inside the chart (hidden by the
-      opaque content); only the part that bleeds into the 2px ring
-      brightens up the local outline -- exactly the chase-light
-      look.
+   `::after` is a small radial-gradient blob positioned along the
+   chart's perimeter via `offset-path`. The `offset-distance` is
+   animated from 0% to 100%, walking the highlight around the
+   rounded-rectangle perimeter once per loop. At `z-index: -1`
+   inside the chart's `isolation: isolate` stacking context, most
+   of the blob sits behind the chart's content (hidden by the
+   opaque background); only the bright edge that bleeds into the
+   chart's edge brightens the local perimeter -- exactly the
+   chase-light look.
 
    Why not a rotating conic-gradient sweep: a conic gradient is
    anchored at the canvas centre, so any visible-thickness ring
@@ -399,20 +391,6 @@ html.lenis, html.lenis body {
   isolation: isolate;
 }
 
-.chart-frame-animated::before {
-  content: '';
-  position: absolute;
-  /* 2px ring outside the chart on every side. Combined with the
-     chart's opaque background on top of it, only this 2px sliver
-     of orange peeks out -- the thin outline we want. */
-  inset: -2px;
-  z-index: -1;
-  border-radius: 13px;
-  pointer-events: none;
-  background: #E85D2A;
-  opacity: 0.4;
-}
-
 .chart-frame-animated::after {
   content: '';
   position: absolute;
@@ -421,8 +399,8 @@ html.lenis, html.lenis body {
   /* Blob size: ~80px gives a smooth localised glow that travels
      visibly without flooding the corners. Half the blob sits
      inside the chart (hidden by opaque content); only the bright
-     edge bleeds into the 2px outline ring on whichever side the
-     blob currently overlaps. */
+     edge bleeds into the outline ring on whichever side the blob
+     currently overlaps. */
   width: 80px;
   height: 80px;
   z-index: -1;
@@ -446,12 +424,9 @@ html.lenis, html.lenis body {
   animation: chart-run 3s linear infinite;
 }
 
-/* Reduced-motion users get just the static thin outline at full
-   visibility -- on-brand without the running highlight. */
+/* Reduced-motion users get no chase light -- the chart frame just
+   sits with its normal border, no animation. */
 @media (prefers-reduced-motion: reduce) {
-  .chart-frame-animated::before {
-    opacity: 0.7;
-  }
   .chart-frame-animated::after {
     display: none;
   }

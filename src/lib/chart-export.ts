@@ -29,8 +29,6 @@ const BRAND_ORANGE_RGB = '232, 93, 42'
 const BRAND_ORANGE_BRIGHT_RGB = '255, 180, 128'
 const RING_THICKNESS = 2
 const CHART_BORDER_RADIUS = 12
-// Opacity of the always-on thin outline. Matches `::before` in CSS.
-const BASE_OUTLINE_OPACITY = 0.4
 // Radius of the running-highlight blob, in destination-canvas
 // pixels. Matches the ~80px blob size in CSS.
 const HIGHLIGHT_RADIUS = 80
@@ -165,18 +163,19 @@ function perimeterPoint(
 }
 
 /**
- * Draw a single frame of the brand-orange running outline around
- * the perimeter of the canvas. `progress` is the position in the
- * loop (0..1); a thin static outline stays put and a small bright
- * highlight blob travels along it.
+ * Draw a single frame of the brand-orange chase light around the
+ * perimeter of the canvas. `progress` is the position in the loop
+ * (0..1); a small bright highlight blob walks along the perimeter
+ * once per loop. No static base outline -- only the moving blob,
+ * matching the on-screen `::after` element after the static
+ * `::before` ring was removed.
  *
- * Implementation mirrors the on-screen CSS effect in globals.css:
- * the chart's `::before` is a flat orange box at `inset: -2px`
- * (the static thin outline) and `::after` is a blob that follows
- * `offset-path: inset(0 round 12px)`. Here we build both layers
- * by clipping the canvas to a thin perimeter ring and drawing a
- * uniform base fill plus a radial-gradient blob centred on the
- * current perimeter point.
+ * Implementation mirrors the on-screen CSS in globals.css: the
+ * chart's `::after` follows `offset-path: inset(0 round 12px)`,
+ * which is what `perimeterPoint(w, h, r, t)` computes here. The
+ * radial blob is clipped to a thin perimeter ring so it only
+ * paints in the chart's outline area (the canvas analogue of the
+ * chart's opaque content covering the inner half of the CSS blob).
  *
  * Why we don't sweep with a conic gradient: a conic gradient is
  * anchored at the canvas centre, so any visible-thickness ring
@@ -196,9 +195,8 @@ function drawSweepBorder(
 
   // Annulus clip: outer rounded rect minus inner rounded rect with
   // evenodd winding so only the thin ring between them paints.
-  // Everything we draw inside this save/restore is automatically
-  // confined to the 2px outline, including the radial blob -- so
-  // the blob's interior portion is invisible (same as how the
+  // The radial blob is automatically confined to the outline area,
+  // so the blob's interior portion is invisible (same as how the
   // chart's opaque background hides the inside half of the CSS
   // ::after blob).
   const outerR = CHART_BORDER_RADIUS
@@ -208,11 +206,7 @@ function drawSweepBorder(
   ctx.roundRect(ring, ring, width - 2 * ring, height - 2 * ring, innerR)
   ctx.clip('evenodd')
 
-  // Layer 1: static thin outline (always-on, low opacity).
-  ctx.fillStyle = `rgba(${BRAND_ORANGE_RGB}, ${BASE_OUTLINE_OPACITY})`
-  ctx.fillRect(0, 0, width, height)
-
-  // Layer 2: running highlight at the current perimeter point.
+  // Running highlight at the current perimeter point.
   const { x, y } = perimeterPoint(width, height, outerR, progress)
   const grad = ctx.createRadialGradient(x, y, 0, x, y, HIGHLIGHT_RADIUS)
   grad.addColorStop(0, `rgba(${BRAND_ORANGE_BRIGHT_RGB}, 1)`)
