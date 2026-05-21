@@ -1143,23 +1143,23 @@ export function TierListMaker() {
 
   // ─── Chart export ────────────────────────────────────────────────
   // `chartFrameRef` points at the bordered chart container that the
-  // export pipeline snapshots. The CSS running-light border lives
-  // *behind* this node (a `::before` static outline + `::after`
-  // running highlight, both at z-index -1, inset -2px), so
-  // html-to-image captures the chart itself without the animated
-  // ring -- the GIF path then redraws the ring procedurally per
-  // frame to match the on-screen look. See src/lib/chart-export.ts.
+  // export pipeline snapshots. The CSS blip border lives *behind*
+  // this node (a `::before` orange ring at z-index -1, inset -2px,
+  // with the `chart-blip` opacity animation), so html-to-image
+  // captures the chart itself without the animation -- the GIF
+  // path then redraws the outline procedurally per frame using the
+  // same opacity curve. See src/lib/chart-export.ts.
   const chartFrameRef = useRef<HTMLDivElement | null>(null)
   const [exporting, setExporting] = useState<'png' | 'gif' | 'copy' | null>(null)
   const [exportFlash, setExportFlash] = useState<string | null>(null)
-  // Thin brand-orange running-light border around the chart.
-  // Defaults OFF -- it's an opt-in flourish for users who want
-  // the eye-catching version for a social share, not the
-  // default visual treatment. Preference persists to
-  // localStorage so users who turn it on don't have to redo
-  // the toggle every page visit. Reading localStorage is
-  // deferred to a post-mount effect to avoid an SSR / hydration
-  // mismatch (the server has no `localStorage`).
+  // Thin brand-orange blip border around the chart -- mostly dim,
+  // with a brief brightness flash once per loop. Defaults OFF --
+  // it's an opt-in flourish for users who want the eye-catching
+  // version for a social share, not the default visual treatment.
+  // Preference persists to localStorage so users who turn it on
+  // don't have to redo the toggle every page visit. Reading
+  // localStorage is deferred to a post-mount effect to avoid an
+  // SSR / hydration mismatch (the server has no `localStorage`).
   const [borderAnimated, setBorderAnimated] = useState(false)
   useEffect(() => {
     try {
@@ -1735,13 +1735,14 @@ export function TierListMaker() {
                       {exportFlash ?? emptyHint}
                     </span>
                   )}
-                  {/* Toggle the thin brand-orange running-light border
-                      around the chart frame. Controls both the
-                      on-screen presentation and whether the GIF
-                      export bakes in the animation, so what the
-                      user previews is what the GIF will look like.
-                      State persists across reloads via localStorage
-                      (see borderAnimated useEffect above). */}
+                  {/* Toggle the thin brand-orange blip border around
+                      the chart frame -- mostly dim, with a brief
+                      brightness flash once per loop. Controls both
+                      the on-screen presentation and whether the GIF
+                      export bakes in the animation, so what the user
+                      previews is what the GIF will look like. State
+                      persists across reloads via localStorage (see
+                      borderAnimated useEffect above). */}
                   <button
                     type="button"
                     onClick={() => setBorderAnimated((v) => !v)}
@@ -1757,8 +1758,8 @@ export function TierListMaker() {
                     }}
                     title={
                       borderAnimated
-                        ? 'Hide the running brand-orange outline around the chart (and skip it in GIF exports)'
-                        : 'Show the running brand-orange outline around the chart (animated GIF exports will include it)'
+                        ? 'Hide the brand-orange blip outline around the chart (and skip it in GIF exports)'
+                        : 'Show the brand-orange blip outline around the chart (animated GIF exports will include it)'
                     }
                   >
                     Border: {borderAnimated ? 'On' : 'Off'}
@@ -1819,7 +1820,7 @@ export function TierListMaker() {
                       color: exporting === 'gif' || exportDisabled ? 'var(--text-muted)' : '#E85D2A',
                     }}
                     aria-label="Download chart as animated GIF"
-                    title="Download an animated GIF (orange highlight running around the chart). Browsers don't allow GIFs on the clipboard, so drag the downloaded file into your tweet compose box - Twitter/X auto-plays it as a video."
+                    title="Download an animated GIF (orange outline blip around the chart). Browsers don't allow GIFs on the clipboard, so drag the downloaded file into your tweet compose box - Twitter/X auto-plays it as a video."
                   >
                     {exporting === 'gif' ? (
                       <Loader2 size={14} className="animate-spin" aria-hidden />

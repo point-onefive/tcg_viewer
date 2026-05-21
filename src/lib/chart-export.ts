@@ -22,24 +22,29 @@
  */
 
 // All of these stay in lockstep with `.chart-frame-animated` in
-// globals.css. Keeping the geometry and colours in sync is what
-// makes the exported GIF look identical to what the user sees on
-// the page.
+// globals.css. Keeping the geometry, colours, and timing in sync
+// is what makes the exported GIF look identical to what the user
+// sees on the page.
 const BRAND_ORANGE_RGB = '232, 93, 42'
-const BRAND_ORANGE_BRIGHT_RGB = '255, 180, 128'
 // CSS border-radius applied to the chart frame in
 // tier-list-maker.tsx (`rounded-[12px]`). The runtime border
 // radius in the GIF's output coordinate space is this value
 // scaled by `pixelRatio * downscaleFactor`, computed at draw
-// time so the chase light hugs the actual captured corner.
+// time so the outline hugs the actual captured corner.
 const CSS_BORDER_RADIUS_PX = 12
 // Pixel ratio used by `captureChartCanvas` in the GIF path.
 // Match this constant if you change the call below.
 const GIF_CAPTURE_PIXEL_RATIO = 2
-// Radius of the running-highlight blob, in destination-canvas
-// pixels. ~80px gives a clearly-visible bright spot that fades
-// out before it overwhelms the chart contents.
-const HIGHLIGHT_RADIUS = 80
+// Thickness of the blip outline in output pixels. 2 matches
+// `inset: -2px` on the CSS `::before`.
+const BLIP_LINE_WIDTH = 2
+// Opacity at the dim baseline (most frames). Matches the
+// `chart-blip` keyframe in globals.css.
+const BLIP_DIM = 0.3
+// Opacity at the peak of the blip flash.
+const BLIP_PEAK = 1.0
+// Opacity at the post-peak shoulder (matches the 40% keyframe).
+const BLIP_SHOULDER = 0.45
 
 function resolveBackground(): string {
   if (typeof document === 'undefined') return '#111'
@@ -95,160 +100,89 @@ export async function captureChartPng(node: HTMLElement): Promise<Blob> {
 }
 
 /**
- * Walk the perimeter of a rounded rectangle of size `w` x `h` with
- * corner radius `r`. Returns the (x, y) point at fraction `t` of
- * the way around (t in [0, 1)). Used to position the running
- * highlight at any moment in the loop.
+ * Compute the blip outline's opacity at a given loop progress
+ * (0..1). Piecewise-linear interpolation through the same
+ * keyframes as the `chart-blip` animation in globals.css:
  *
- * Segments, clockwise from the top edge's left start:
- *   1. top straight    (length: w - 2r)
- *   2. top-right arc   (length: pi*r/2)
- *   3. right straight  (length: h - 2r)
- *   4. bottom-right arc(length: pi*r/2)
- *   5. bottom straight (length: w - 2r)
- *   6. bottom-left arc (length: pi*r/2)
- *   7. left straight   (length: h - 2r)
- *   8. top-left arc    (length: pi*r/2)
+ *   progress 0.00 -> BLIP_DIM        (baseline)
+ *   progress 0.20 -> BLIP_PEAK       (bright flash)
+ *   progress 0.40 -> BLIP_SHOULDER   (post-peak shoulder)
+ *   progress 1.00 -> BLIP_DIM        (back to baseline)
  *
- * This is the canvas analogue of CSS `offset-path: inset(0 round Npx)`
- * which traces the same rounded-rect perimeter for the `::after`
- * highlight blob on the page.
+ * Keeping this in lockstep with the CSS keyframes is what makes
+ * the exported GIF read identically to the on-page preview.
  */
-function perimeterPoint(
-  w: number,
-  h: number,
-  r: number,
-  t: number,
-): { x: number; y: number } {
-  const edgeH = Math.max(w - 2 * r, 0)
-  const edgeV = Math.max(h - 2 * r, 0)
-  const arc = (Math.PI * r) / 2
-  const total = 2 * edgeH + 2 * edgeV + 4 * arc
-
-  let d = ((t % 1) + 1) % 1 // wrap into [0,1)
-  d *= total
-
-  // 1. top edge: (r,0) -> (w-r,0)
-  if (d < edgeH) return { x: r + d, y: 0 }
-  d -= edgeH
-
-  // 2. top-right corner: arc from -pi/2 to 0
-  if (d < arc) {
-    const a = (d / arc) * (Math.PI / 2) - Math.PI / 2
-    return { x: w - r + r * Math.cos(a), y: r + r * Math.sin(a) }
+function blipOpacity(progress: number): number {
+  const p = ((progress % 1) + 1) % 1
+  if (p < 0.2) {
+    // Ramp up to the peak.
+    const t = p / 0.2
+    return BLIP_DIM + (BLIP_PEAK - BLIP_DIM) * t
   }
-  d -= arc
-
-  // 3. right edge: (w,r) -> (w,h-r)
-  if (d < edgeV) return { x: w, y: r + d }
-  d -= edgeV
-
-  // 4. bottom-right corner: arc from 0 to pi/2
-  if (d < arc) {
-    const a = (d / arc) * (Math.PI / 2)
-    return { x: w - r + r * Math.cos(a), y: h - r + r * Math.sin(a) }
+  if (p < 0.4) {
+    // Fast drop from peak to shoulder.
+    const t = (p - 0.2) / 0.2
+    return BLIP_PEAK - (BLIP_PEAK - BLIP_SHOULDER) * t
   }
-  d -= arc
-
-  // 5. bottom edge: (w-r,h) -> (r,h)
-  if (d < edgeH) return { x: w - r - d, y: h }
-  d -= edgeH
-
-  // 6. bottom-left corner: arc from pi/2 to pi
-  if (d < arc) {
-    const a = (d / arc) * (Math.PI / 2) + Math.PI / 2
-    return { x: r + r * Math.cos(a), y: h - r + r * Math.sin(a) }
-  }
-  d -= arc
-
-  // 7. left edge: (0,h-r) -> (0,r)
-  if (d < edgeV) return { x: 0, y: h - r - d }
-  d -= edgeV
-
-  // 8. top-left corner: arc from pi to 3pi/2
-  const a = (d / arc) * (Math.PI / 2) + Math.PI
-  return { x: r + r * Math.cos(a), y: r + r * Math.sin(a) }
+  // Slow fade from shoulder back to baseline over the rest of the
+  // loop, so the blip reads as a decaying flash instead of a
+  // two-state strobe.
+  const t = (p - 0.4) / 0.6
+  return BLIP_SHOULDER - (BLIP_SHOULDER - BLIP_DIM) * t
 }
 
 /**
- * Draw a single frame of the brand-orange chase light around the
- * perimeter of the canvas. `progress` is the position in the loop
- * (0..1); a small bright highlight blob walks along the perimeter
- * once per loop. No static base outline -- only the moving blob,
- * matching the on-screen `.chart-frame-animated::after`.
+ * Draw a single frame of the brand-orange "blip" outline around
+ * the perimeter of the canvas. The outline never moves; its
+ * opacity flashes from dim to bright once per loop. The shape is
+ * a solid stroked rounded-rectangle that hugs the chart's
+ * captured rounded corners.
  *
- * Implementation mirrors the on-screen CSS in globals.css. The
- * chart's `::after` follows `offset-path: inset(0 round 12px)`,
- * which is what `perimeterPoint(w, h, r, t)` computes here. The
- * blob is clipped to the chart's rounded interior so its outer
- * lobe doesn't poke out past the chart's rounded corners, then
- * painted on top of the already-rendered chart. The bright peak
- * of the radial gradient sits right at the chart's edge (in the
- * padding area where no children are drawn) and tapers to fully
- * transparent before it bleeds far enough inward to disturb the
- * cards -- visually identical to how the page's z-index:-1 blob
- * gets covered by opaque children but shows through in the
- * padding gap.
+ * Why this is GIF-friendly:
+ *   - Solid colour (no gradient) so the 256-colour palette only
+ *     needs a handful of orange shades for the whole loop.
+ *   - Same shape every frame, only the colour changes -> the
+ *     encoder's frame compression actually helps because most
+ *     pixels are identical across consecutive frames.
+ *   - Most frames live near the dim baseline, so they share one
+ *     palette entry and compress especially well.
  *
- * `borderRadius` is passed in from the caller because the
- * captured canvas's actual corner radius depends on the capture's
- * pixelRatio and the downscale-to-`maxWidth` factor, not the raw
- * CSS value. Hardcoding 12 makes the chase light's perimeter walk
- * drift off the chart's actual corners as soon as the chart is
- * wider than `maxWidth / pixelRatio`.
- *
- * Why we don't sweep with a conic gradient: a conic gradient is
- * anchored at the canvas centre, so any visible-thickness ring
- * intersected by the gradient's bright peak shows a fat moving
- * wedge in the corners (geometry, not opacity). Walking a finite
- * radial blob along the actual perimeter has no corner spill.
+ * `borderRadius` is passed from the caller because the captured
+ * canvas's actual corner radius depends on the capture's
+ * pixelRatio and downscale factor, not the raw CSS value.
  */
-function drawSweepBorder(
+function drawBlipOutline(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   progress: number,
   borderRadius: number,
 ) {
+  const opacity = blipOpacity(progress)
   ctx.save()
-
-  // Clip to the chart's rounded interior so the blob's outer lobe
-  // can't paint past the captured chart's rounded corners. The
-  // captured baseCanvas already has transparent pixels outside
-  // those corners (html-to-image respects CSS border-radius), so
-  // painting outside would leave visible orange smudges in the
-  // GIF's corner gaps.
+  ctx.strokeStyle = `rgba(${BRAND_ORANGE_RGB}, ${opacity.toFixed(3)})`
+  ctx.lineWidth = BLIP_LINE_WIDTH
+  // Inset the stroke by half its thickness so it draws inside the
+  // canvas bounds instead of being clipped at the edges. Inner
+  // radius is shrunk by the same amount so the stroke's outer
+  // edge still matches the captured chart's rounded corners.
+  const inset = BLIP_LINE_WIDTH / 2
   ctx.beginPath()
-  ctx.roundRect(0, 0, width, height, borderRadius)
-  ctx.clip()
-
-  // Walk perimeter at the chart's outer edge -- matches the
-  // on-page `offset-path: inset(0 round 12px)` exactly.
-  const { x, y } = perimeterPoint(width, height, borderRadius, progress)
-
-  // Radial blob centred on the perimeter point. Bright peach at
-  // the centre, brand orange at 25%, fading to fully transparent
-  // by 65% so the gradient softly tapers into the chart contents.
-  const grad = ctx.createRadialGradient(x, y, 0, x, y, HIGHLIGHT_RADIUS)
-  grad.addColorStop(0, `rgba(${BRAND_ORANGE_BRIGHT_RGB}, 1)`)
-  grad.addColorStop(0.25, `rgba(${BRAND_ORANGE_RGB}, 0.9)`)
-  grad.addColorStop(0.65, `rgba(${BRAND_ORANGE_RGB}, 0)`)
-  grad.addColorStop(1, `rgba(${BRAND_ORANGE_RGB}, 0)`)
-  ctx.fillStyle = grad
-  ctx.fillRect(
-    x - HIGHLIGHT_RADIUS,
-    y - HIGHLIGHT_RADIUS,
-    HIGHLIGHT_RADIUS * 2,
-    HIGHLIGHT_RADIUS * 2,
+  ctx.roundRect(
+    inset,
+    inset,
+    width - BLIP_LINE_WIDTH,
+    height - BLIP_LINE_WIDTH,
+    Math.max(borderRadius - inset, 1),
   )
-
+  ctx.stroke()
   ctx.restore()
 }
 
 /**
  * Composite a single GIF frame onto `out`: draw the static chart
- * canvas first, then overlay the strobing outline at the given
- * loop progress. Returns the raw RGBA byte buffer for the encoder.
+ * canvas first, then overlay the blip outline at the given loop
+ * progress. Returns the raw RGBA byte buffer for the encoder.
  *
  * `imageSmoothingQuality = 'high'` is critical when the base canvas
  * is larger than the GIF (e.g. retina capture downscaled to fit the
@@ -268,21 +202,21 @@ function renderGifFrame(
   ctx.imageSmoothingQuality = 'high'
   ctx.clearRect(0, 0, out.width, out.height)
   ctx.drawImage(baseCanvas, 0, 0, out.width, out.height)
-  drawSweepBorder(ctx, out.width, out.height, progress, borderRadius)
+  drawBlipOutline(ctx, out.width, out.height, progress, borderRadius)
   return ctx.getImageData(0, 0, out.width, out.height).data
 }
 
 export interface GifOptions {
   /**
-   * Number of frames in the loop. The highlight has to walk all
-   * the way around the perimeter so we want enough samples to
-   * keep the motion smooth without bloating the file. 36 frames
-   * at 12 fps = 3 seconds, matching the `chart-run 3s` animation
-   * in globals.css exactly.
+   * Number of frames in the loop. The blip animation is mostly
+   * a static dim outline with a brief flash; ~25 frames is plenty
+   * to render the flash smoothly without bloating the file. 25
+   * frames at 10 fps = 2.5s, matching the `chart-blip 2.5s`
+   * animation in globals.css exactly.
    */
   numFrames?: number
   /**
-   * Frames per second. 12 fps with 36 frames gives a 3s loop.
+   * Frames per second. 10 fps with 25 frames gives a 2.5s loop.
    * Browsers clamp GIF delays to a 10ms minimum, so don't push
    * fps too high or the player will silently slow down.
    */
@@ -292,13 +226,12 @@ export interface GifOptions {
    * chart canvas is downscaled to fit. 1100px gives card art
    * enough pixels to stay sharp after palette quantization
    * while keeping a typical 6-tier board comfortably under
-   * Twitter's 15MB GIF cap (the trimmed-down 2px outline helps
-   * the encoder too -- less orange noise means more palette
-   * budget for the actual card images).
+   * Twitter's 15MB GIF cap. The blip outline is just a thin
+   * stroked rectangle, so it adds negligible bytes per frame.
    */
   maxWidth?: number
   /**
-   * Draw the animated strobing outline on top of each frame.
+   * Draw the animated blip outline on top of each frame.
    * When `false`, the encoder emits a single static frame --
    * useful when the on-screen border toggle is off and the
    * user wants the export to match what they're previewing.
@@ -308,25 +241,24 @@ export interface GifOptions {
 }
 
 /**
- * Encode the chart as an animated GIF with a strobing outline
- * that pulses on a loop. Pipeline:
+ * Encode the chart as an animated GIF with the brand-orange blip
+ * outline animation. Pipeline:
  *
  *  1. Capture the chart DOM node to a canvas once (html-to-image).
  *  2. Downscale to `maxWidth` for a reasonable file size.
- *  3. For each frame, composite the downscaled chart + the
- *     strobing outline at this frame's pulse opacity onto a
- *     working canvas.
- *  4. Quantize once from a representative frame and reuse the
- *     palette for every frame -- avoids palette flicker between
- *     frames and lets the encoder elide redundant palette tables.
+ *  3. For each frame, composite the downscaled chart + the blip
+ *     outline at this frame's opacity onto a working canvas.
+ *  4. Quantize once from a representative frame (the bright peak)
+ *     and reuse the palette for every frame -- avoids palette
+ *     flicker and lets the encoder elide redundant palette tables.
  *  5. Encode all frames into a single GIF blob via `gifenc`.
  */
 export async function captureChartGif(
   node: HTMLElement,
   options: GifOptions = {},
 ): Promise<Blob> {
-  const numFrames = options.numFrames ?? 36
-  const fps = options.fps ?? 12
+  const numFrames = options.numFrames ?? 25
+  const fps = options.fps ?? 10
   const maxWidth = options.maxWidth ?? 1100
   const withBorder = options.withBorder ?? true
 
@@ -381,19 +313,18 @@ export async function captureChartGif(
     return new Blob([outStatic.buffer], { type: 'image/gif' })
   }
 
-  // Derive the palette from a frame where the running highlight
-  // is mid-edge (progress=0.125 = top edge centre on a typical
-  // chart aspect ratio) so the brightest orange has a dedicated
-  // palette entry. Quantizing a corner-arc frame would still work
-  // but the straight-edge variant gives the encoder a cleaner
-  // sample of both the outline and the highlight gradient.
-  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.125, borderRadius)
+  // Derive the palette from the bright-peak frame (progress=0.2,
+  // opacity=BLIP_PEAK) so the brightest orange has a dedicated
+  // palette entry. Quantizing a baseline-dim frame would still
+  // work but the peak frame guarantees the flash colour is
+  // sampled at full intensity.
+  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.2, borderRadius)
   const palette = quantize(representative, 256)
 
   for (let i = 0; i < numFrames; i++) {
-    // Loop progress 0..1, evenly spaced. `perimeterPoint` maps
-    // each value to a point on the rounded-rect perimeter, so the
-    // highlight blob walks all the way around exactly once.
+    // Loop progress 0..1, evenly spaced. `blipOpacity` maps each
+    // value to an outline opacity, so the loop renders one full
+    // dim -> peak -> dim cycle.
     const progress = i / numFrames
     const frame = renderGifFrame(frameCanvas, baseCanvas, progress, borderRadius)
     const indexed = applyPalette(frame, palette)

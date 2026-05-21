@@ -357,33 +357,33 @@ html.lenis, html.lenis body {
   }
 }
 
-/* ─── Tier-list chart running-light border ─────────────────────────
-   A small brand-orange highlight runs around the chart frame's
-   perimeter on a loop (chase-light effect). No static base ring --
-   just the moving blob, so the chart looks clean when the blob is
-   on the opposite side. Plays purely on the page (CSS-only); the
-   export pipeline re-creates the same effect frame-by-frame for
-   the GIF download so the saved file matches what users see
-   (see src/lib/chart-export.ts).
+/* ─── Tier-list chart "blip" border ────────────────────────────────
+   A thin brand-orange outline that's mostly dim, with a single
+   brief brightness flash once per loop -- like a status LED or a
+   sonar ping. Designed deliberately for the GIF export pipeline:
 
-   `::after` is a small radial-gradient blob positioned along the
-   chart's perimeter via `offset-path`. The `offset-distance` is
-   animated from 0% to 100%, walking the highlight around the
-   rounded-rectangle perimeter once per loop. At `z-index: -1`
-   inside the chart's `isolation: isolate` stacking context, most
-   of the blob sits behind the chart's content (hidden by the
-   opaque background); only the bright edge that bleeds into the
-   chart's edge brightens the local perimeter -- exactly the
-   chase-light look.
+   - Solid colour (no gradients) -> quantizes cleanly into the
+     GIF's 256-colour palette with no banding.
+   - One shape (a rounded rectangle outline) that never moves ->
+     most frames are pixel-identical to each other, so the GIF
+     encoder's per-frame compression actually helps.
+   - Two visual states (dim baseline + bright peak) with a short
+     ramp between them -> palette only needs ~6-8 orange shades
+     for the whole loop instead of one shade per frame.
 
-   Why not a rotating conic-gradient sweep: a conic gradient is
-   anchored at the canvas centre, so any visible-thickness ring
-   intersected by the gradient's bright peak shows a fat moving
-   wedge in the corners (geometry, not opacity). A finite blob
-   following the perimeter parametrically has no corner spill. */
-@keyframes chart-run {
-  from { offset-distance: 0%; }
-  to   { offset-distance: 100%; }
+   The on-page version (this file) and the GIF version (see
+   src/lib/chart-export.ts) use the same opacity curve and the
+   same loop length, so the exported file looks exactly like what
+   you preview on the page. */
+@keyframes chart-blip {
+  /* Most of the loop sits at the dim baseline. */
+  0%, 100% { opacity: 0.3; }
+  /* Quick ramp up to a brief bright peak at ~20% of the loop. */
+  20%      { opacity: 1; }
+  /* Soft fade back to baseline over the remaining 60% of the
+     loop, so the blip reads as a single decaying flash rather
+     than two-state strobing. */
+  40%      { opacity: 0.45; }
 }
 
 .chart-frame-animated {
@@ -391,44 +391,26 @@ html.lenis, html.lenis body {
   isolation: isolate;
 }
 
-.chart-frame-animated::after {
+.chart-frame-animated::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  /* Blob size: ~80px gives a smooth localised glow that travels
-     visibly without flooding the corners. Half the blob sits
-     inside the chart (hidden by opaque content); only the bright
-     edge bleeds into the outline ring on whichever side the blob
-     currently overlaps. */
-  width: 80px;
-  height: 80px;
+  /* 2px ring outside the chart on every side. Combined with the
+     chart's opaque background sitting on top, only this 2px
+     sliver of orange peeks out -- the thin outline we want. */
+  inset: -2px;
   z-index: -1;
+  border-radius: 13px;
   pointer-events: none;
-  background: radial-gradient(
-    circle,
-    #ffb480 0%,
-    #E85D2A 25%,
-    transparent 65%
-  );
-  border-radius: 50%;
-  /* Trace the chart's outer perimeter. `inset(0 round 12px)`
-     resolves against the containing block (the .chart-frame-animated
-     padding box), matching the chart's border-radius. */
-  offset-path: inset(0 round 12px);
-  offset-distance: 0%;
-  /* `offset-rotate: 0deg` keeps the blob upright as it moves; with
-     a circular radial gradient the rotation doesn't matter visually
-     but explicit 0deg is one less surprise in browser defaults. */
-  offset-rotate: 0deg;
-  animation: chart-run 3s linear infinite;
+  background: #E85D2A;
+  animation: chart-blip 2.5s ease-in-out infinite;
 }
 
-/* Reduced-motion users get no chase light -- the chart frame just
-   sits with its normal border, no animation. */
+/* Reduced-motion users get the outline at the blip's baseline
+   opacity, no flash -- still on-brand, no motion. */
 @media (prefers-reduced-motion: reduce) {
-  .chart-frame-animated::after {
-    display: none;
+  .chart-frame-animated::before {
+    animation: none;
+    opacity: 0.4;
   }
 }
 
