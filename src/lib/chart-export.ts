@@ -27,10 +27,18 @@
 // the page.
 const BRAND_ORANGE_RGB = '232, 93, 42'
 const BRAND_ORANGE_BRIGHT_RGB = '255, 180, 128'
-const RING_THICKNESS = 2
-const CHART_BORDER_RADIUS = 12
+// CSS border-radius applied to the chart frame in
+// tier-list-maker.tsx (`rounded-[12px]`). The runtime border
+// radius in the GIF's output coordinate space is this value
+// scaled by `pixelRatio * downscaleFactor`, computed at draw
+// time so the chase light hugs the actual captured corner.
+const CSS_BORDER_RADIUS_PX = 12
+// Pixel ratio used by `captureChartCanvas` in the GIF path.
+// Match this constant if you change the call below.
+const GIF_CAPTURE_PIXEL_RATIO = 2
 // Radius of the running-highlight blob, in destination-canvas
-// pixels. Matches the ~80px blob size in CSS.
+// pixels. ~80px gives a clearly-visible bright spot that fades
+// out before it overwhelms the chart contents.
 const HIGHLIGHT_RADIUS = 80
 
 function resolveBackground(): string {
@@ -167,15 +175,27 @@ function perimeterPoint(
  * perimeter of the canvas. `progress` is the position in the loop
  * (0..1); a small bright highlight blob walks along the perimeter
  * once per loop. No static base outline -- only the moving blob,
- * matching the on-screen `::after` element after the static
- * `::before` ring was removed.
+ * matching the on-screen `.chart-frame-animated::after`.
  *
- * Implementation mirrors the on-screen CSS in globals.css: the
+ * Implementation mirrors the on-screen CSS in globals.css. The
  * chart's `::after` follows `offset-path: inset(0 round 12px)`,
  * which is what `perimeterPoint(w, h, r, t)` computes here. The
- * radial blob is clipped to a thin perimeter ring so it only
- * paints in the chart's outline area (the canvas analogue of the
- * chart's opaque content covering the inner half of the CSS blob).
+ * blob is clipped to the chart's rounded interior so its outer
+ * lobe doesn't poke out past the chart's rounded corners, then
+ * painted on top of the already-rendered chart. The bright peak
+ * of the radial gradient sits right at the chart's edge (in the
+ * padding area where no children are drawn) and tapers to fully
+ * transparent before it bleeds far enough inward to disturb the
+ * cards -- visually identical to how the page's z-index:-1 blob
+ * gets covered by opaque children but shows through in the
+ * padding gap.
+ *
+ * `borderRadius` is passed in from the caller because the
+ * captured canvas's actual corner radius depends on the capture's
+ * pixelRatio and the downscale-to-`maxWidth` factor, not the raw
+ * CSS value. Hardcoding 12 makes the chase light's perimeter walk
+ * drift off the chart's actual corners as soon as the chart is
+ * wider than `maxWidth / pixelRatio`.
  *
  * Why we don't sweep with a conic gradient: a conic gradient is
  * anchored at the canvas centre, so any visible-thickness ring
@@ -188,26 +208,27 @@ function drawSweepBorder(
   width: number,
   height: number,
   progress: number,
+  borderRadius: number,
 ) {
-  const ring = RING_THICKNESS
-
   ctx.save()
 
-  // Annulus clip: outer rounded rect minus inner rounded rect with
-  // evenodd winding so only the thin ring between them paints.
-  // The radial blob is automatically confined to the outline area,
-  // so the blob's interior portion is invisible (same as how the
-  // chart's opaque background hides the inside half of the CSS
-  // ::after blob).
-  const outerR = CHART_BORDER_RADIUS
-  const innerR = Math.max(outerR - ring, 1)
+  // Clip to the chart's rounded interior so the blob's outer lobe
+  // can't paint past the captured chart's rounded corners. The
+  // captured baseCanvas already has transparent pixels outside
+  // those corners (html-to-image respects CSS border-radius), so
+  // painting outside would leave visible orange smudges in the
+  // GIF's corner gaps.
   ctx.beginPath()
-  ctx.roundRect(0, 0, width, height, outerR)
-  ctx.roundRect(ring, ring, width - 2 * ring, height - 2 * ring, innerR)
-  ctx.clip('evenodd')
+  ctx.roundRect(0, 0, width, height, borderRadius)
+  ctx.clip()
 
-  // Running highlight at the current perimeter point.
-  const { x, y } = perimeterPoint(width, height, outerR, progress)
+  // Walk perimeter at the chart's outer edge -- matches the
+  // on-page `offset-path: inset(0 round 12px)` exactly.
+  const { x, y } = perimeterPoint(width, height, borderRadius, progress)
+
+  // Radial blob centred on the perimeter point. Bright peach at
+  // the centre, brand orange at 25%, fading to fully transparent
+  // by 65% so the gradient softly tapers into the chart contents.
   const grad = ctx.createRadialGradient(x, y, 0, x, y, HIGHLIGHT_RADIUS)
   grad.addColorStop(0, `rgba(${BRAND_ORANGE_BRIGHT_RGB}, 1)`)
   grad.addColorStop(0.25, `rgba(${BRAND_ORANGE_RGB}, 0.9)`)
@@ -239,6 +260,7 @@ function renderGifFrame(
   out: HTMLCanvasElement,
   baseCanvas: HTMLCanvasElement,
   progress: number,
+  borderRadius: number,
 ): Uint8ClampedArray {
   const ctx = out.getContext('2d')
   if (!ctx) throw new Error('2D context unavailable')
@@ -246,7 +268,7 @@ function renderGifFrame(
   ctx.imageSmoothingQuality = 'high'
   ctx.clearRect(0, 0, out.width, out.height)
   ctx.drawImage(baseCanvas, 0, 0, out.width, out.height)
-  drawSweepBorder(ctx, out.width, out.height, progress)
+  drawSweepBorder(ctx, out.width, out.height, progress, borderRadius)
   return ctx.getImageData(0, 0, out.width, out.height).data
 }
 
@@ -314,12 +336,21 @@ export async function captureChartGif(
   // downscaled it further to fit `maxWidth`, compounding the blur.
   // At 2x we get a sharp super-sample that downscales cleanly via
   // the 'high' smoothing quality set in `renderGifFrame`.
-  const baseCanvas = await captureChartCanvas(node, 2)
+  const baseCanvas = await captureChartCanvas(node, GIF_CAPTURE_PIXEL_RATIO)
 
   // Downscale if the captured canvas is wider than the cap.
   const scale = Math.min(1, maxWidth / baseCanvas.width)
   const w = Math.round(baseCanvas.width * scale)
   const h = Math.round(baseCanvas.height * scale)
+
+  // Border radius in output coordinates. The chart is rendered
+  // with `rounded-[12px]` in CSS, captured at pixelRatio 2, then
+  // downscaled by `scale`. Hardcoding 12 here would drift off the
+  // captured chart's actual corners the moment the chart is wider
+  // than maxWidth / pixelRatio (i.e. anything wider than 550 CSS
+  // px on a 2x retina) -- the chase light would walk inside or
+  // outside the visible corner curve depending on direction.
+  const borderRadius = CSS_BORDER_RADIUS_PX * GIF_CAPTURE_PIXEL_RATIO * scale
 
   const frameCanvas = document.createElement('canvas')
   frameCanvas.width = w
@@ -356,7 +387,7 @@ export async function captureChartGif(
   // palette entry. Quantizing a corner-arc frame would still work
   // but the straight-edge variant gives the encoder a cleaner
   // sample of both the outline and the highlight gradient.
-  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.125)
+  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.125, borderRadius)
   const palette = quantize(representative, 256)
 
   for (let i = 0; i < numFrames; i++) {
@@ -364,7 +395,7 @@ export async function captureChartGif(
     // each value to a point on the rounded-rect perimeter, so the
     // highlight blob walks all the way around exactly once.
     const progress = i / numFrames
-    const frame = renderGifFrame(frameCanvas, baseCanvas, progress)
+    const frame = renderGifFrame(frameCanvas, baseCanvas, progress, borderRadius)
     const indexed = applyPalette(frame, palette)
     encoder.writeFrame(indexed, w, h, { palette, delay })
   }
