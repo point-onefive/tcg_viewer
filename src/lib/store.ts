@@ -66,20 +66,17 @@ interface StoreState {
   // is "show me cards that have alt art", not "show me cards with N+".
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
-  // Single-select view mode for the gallery. Replaces the previous
-  // (language + onlyExclusives) pair with a flat 4-option picker:
+  // Single-select view mode for the gallery:
   //
   //   - 'EN'         : EN + Asia-EN cardlists. Card text reads in English.
   //                    Anything Bandai didn't publish in English is hidden.
   //   - 'JP'         : Japanese cardlist only -- the master catalogue
   //                    with the earliest release dates and richest promo
   //                    coverage. Card text reads in Japanese.
-  //   - 'CN'         : Chinese bucket (Simplified Mainland, Traditional
-  //                    HK/Macau, Traditional Taiwan). Phase 8 expanded
-  //                    this from TC+TW to include SC after integrating
-  //                    onepiece-cardgame.cn -- a single "CN" pill
-  //                    surfaces every Chinese-language print regardless
-  //                    of which Bandai regional catalogue it lives on.
+  //
+  // CN was removed in v13. See samples/jp-cn-compare/README.md for the
+  // why (Bandai's TC/TW CDNs hot-link the JP file for the vast majority
+  // of cards, so the CN bucket was just JP-under-a-different-URL).
   //
   // applyLanguageFilter (in card-filter.ts) handles the wall narrowing
   // + image-URL swapping. Persisted so the preference survives reloads.
@@ -153,8 +150,7 @@ export const useStore = create<StoreState>()(
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
       // Default to EN: the app's surface language is English, so an
       // English-speaking user starting fresh sees a wall they can read.
-      // JP / CN are one click away for users who want the master
-      // catalogue or the Chinese-language scans.
+      // JP is one click away for users who want the master catalogue.
       language: 'EN',
       setLanguage: (language) => set({ language }),
       zoom: 5,
@@ -244,7 +240,7 @@ export const useStore = create<StoreState>()(
         tierPool: state.tierPool,
         language: state.language,
       }),
-      version: 12,
+      version: 13,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -319,6 +315,21 @@ export const useStore = create<StoreState>()(
           // default) on rehydrate.
           const legacy = s as { language?: string }
           if (legacy.language === 'EXCLUSIVES') {
+            s.language = 'EN'
+          }
+        }
+        if (fromVersion < 13) {
+          // v13 drops CN from the picker. Bandai's TC/TW CDNs hot-link
+          // the JP file for the vast majority of cards, so the CN
+          // bucket was surfacing the JP image under a different URL
+          // and the same artwork showed up twice when users flipped
+          // languages -- the canonical "JP and CN look the same" bug
+          // captured in samples/jp-cn-compare/. SC-exclusive prints
+          // remain in the bundle but only reachable via search /
+          // drill-down, not via a top-level picker pill. Anyone
+          // persisted on CN falls back to EN on rehydrate.
+          const legacy = s as { language?: string }
+          if (legacy.language === 'CN') {
             s.language = 'EN'
           }
         }

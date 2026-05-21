@@ -218,32 +218,6 @@ html.lenis, html.lenis body {
   opacity: 0.6;
 }
 
-/* Language pill — top-left corner indicator showing which regional
-   scan (JP / TC / TW / SC / ASIA-EN) the tile is currently rendering.
-   Sized small enough to be unobtrusive at default zoom but visible
-   enough that switching the picker is clearly reflected on the wall.
-   Hidden in EN mode (the default) so it only appears when the user
-   has deliberately narrowed to a non-EN language. */
-.card-tile__lang-pill {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  z-index: 5;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  pointer-events: none;
-  user-select: none;
-  text-transform: uppercase;
-}
-
 /* Tier list maker thumbnails · same rounded rect + lift language as card tiles */
 .tier-list-thumb {
   border-radius: 8px;

@@ -4,7 +4,6 @@ import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
-import { resolveTileLanguage } from '@/lib/card-filter'
 
 const COLOR_MAP: Record<string, string> = {
   Red:       '#ef4444',
@@ -46,22 +45,11 @@ export function CardTile({ card, priority = false }: CardTileProps) {
   // means the hover hit area doesn't reveal floating circular buttons
   // that competed with the card art at small zoom levels.
   const openLightbox = useStore((s) => s.openLightbox)
-  const language = useStore((s) => s.language)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const primaryColor = card.colors?.[0] ? (COLOR_MAP[card.colors[0]] ?? 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.15)'
   const variantCount = card.variants?.length ?? 0
   const hasVariants = variantCount > 0
-
-  // Tiny language pill in the top-left corner so the user can see
-  // which Bandai regional scan is currently rendered. Hidden in EN
-  // mode (the default — showing "EN" on every tile would be noise).
-  // For CN mode, this also resolves to the specific sub-language
-  // we picked (TC / TW / SC) so the user can tell that the tile
-  // actually swapped scans when they switched languages — Bandai's
-  // localized art is otherwise indistinguishable at thumbnail size.
-  const tileLanguage = language === 'EN' ? null : resolveTileLanguage(card, language)
-  const tileLanguageLabel = tileLanguage?.replace('EN_ASIA', 'ASIA-EN') ?? null
 
   // Cursor-tracking shine. We throttle to one update per animation frame
   // because mousemove fires at 60–120Hz and each callback both touches the
@@ -153,12 +141,6 @@ export function CardTile({ card, priority = false }: CardTileProps) {
 
         {/* Color accent bar - bottom edge on hover */}
         <div className="card-tile__colorbar" />
-
-        {tileLanguageLabel && (
-          <span className="card-tile__lang-pill" aria-label={`Showing ${tileLanguageLabel} scan`}>
-            {tileLanguageLabel}
-          </span>
-        )}
       </div>
     </div>
   )

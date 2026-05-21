@@ -56,14 +56,14 @@ interface HeaderProps {
 /**
  * Language picker labels, kept here so the row of pills + the active-
  * pill style logic share the same source of truth. `description` is
- * the title tooltip so hovering reveals the actual Bandai sources
- * (e.g. "Japan only" / "Hong Kong + Taiwan + Mainland China").
+ * the title tooltip so hovering reveals the actual Bandai sources.
  *
- * Three options, no "All" or "Exclusives" anymore: the cross-region
- * modes confused users with visual duplicates of the same character
- * across regions and surfaced familiar-looking cards under "Exclusives"
- * because most prints have one region-locked alt but otherwise ship
- * globally. "Pick one language" is the cleanest mental model.
+ * Two options. CN was removed in v13 because Bandai's TC/TW CDNs
+ * hot-link the JP file for the vast majority of cards, so the CN
+ * picker shipped duplicate JP scans under a different URL. See
+ * samples/jp-cn-compare/ for the side-by-side proof. SC-exclusive
+ * prints remain in the bundle but are no longer surfaced via a
+ * top-level pill.
  */
 const LANGUAGE_OPTIONS: ReadonlyArray<{
   value: LanguagePickerValue
@@ -72,7 +72,6 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
 }> = [
   { value: 'EN', label: 'EN', description: 'English (Bandai EN + Asia-EN cardlists).' },
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
-  { value: 'CN', label: 'CN', description: 'Chinese (Bandai TC/TW + Mainland China SC).' },
 ]
 
 type FacetOption = { value: string; label: string; swatch?: string }
@@ -849,11 +848,8 @@ export function Header({ sets }: HeaderProps) {
             Alt art
           </button>
           {/* Language picker - mobile. Single-select pill group with
-              three options (EN | JP | CN). Each swaps the gallery to
-              that region's catalogue and artwork. The picker is THE
-              primary lens on the multi-language pipeline, so we keep
-              it always-visible rather than tucking it inside a
-              dropdown. */}
+              two options (EN | JP). Each swaps the gallery to that
+              region's catalogue and artwork. */}
           <div
             className="inline-flex items-center"
             style={{
@@ -1135,16 +1131,13 @@ export function Header({ sets }: HeaderProps) {
                 Alt art
               </button>
               {/* Language picker (desktop). Single-select pill group
-                  with three options. EN | JP | CN do two things in
-                  one motion: (1) trim the wall to cards Bandai
-                  publishes in that region, (2) swap every image URL
-                  to the matching localized scan. Cross-region "All"
-                  and "Exclusives" modes used to live here too but
-                  were removed — they showed the same character art
-                  multiple times because most prints have one
-                  region-locked alt but otherwise ship globally,
-                  which felt like duplication. "Pick one language" is
-                  the clean mental model. */}
+                  with two options. EN | JP do two things in one
+                  motion: (1) trim the wall to cards Bandai publishes
+                  in that region, (2) swap every image URL to the
+                  matching localized scan. CN was removed in v13 —
+                  Bandai's TC/TW CDNs hot-link the JP file so the CN
+                  pill shipped duplicate JP scans. See
+                  samples/jp-cn-compare/. */}
               <div
                 className="inline-flex items-center"
                 style={{

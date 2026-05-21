@@ -30,53 +30,50 @@ export type CardLanguage =
                // anniversary / serialized prints live.
 
 /**
- * Three mutually-exclusive view modes for the gallery, picked from the
+ * Two mutually-exclusive view modes for the gallery, picked from the
  * header pill group:
  *
  *   - 'EN' — show only the EN catalogue (en + asia-en), EN art
  *   - 'JP' — show only the JP catalogue, JP art
- *   - 'CN' — show only the CN bucket (TC + TW + SC), CN art
  *
- * Why no "ALL" or "EXCLUSIVES" mode anymore: user feedback was that
- * any mode that mixed buckets surfaced visual duplicates (the same
- * Luffy art three times in EN/JP/TC), and "EXCLUSIVES" was confusing
- * because most cards have one exclusive variant but otherwise ship
- * globally — so EXCLUSIVES still surfaced familiar-looking cards.
- * The simpler "one language per click" mental model wins by a
- * landslide on signal-to-noise. Users who want to find a region-
- * exclusive can drill in via the variant fan once they pick a
- * language. Legacy 'ALL' and 'EXCLUSIVES' values are migrated to
- * 'EN' in the Zustand persistence layer (see store.ts).
+ * Why CN was removed (the deprecation is documented in
+ * `samples/jp-cn-compare/README.md` with side-by-side screenshots):
+ * Bandai's TC / TW CDNs hot-link the JP file for the vast majority
+ * of cards — `curl`-confirmed byte-identical, same SHA-256. The CN
+ * picker therefore promised "view Chinese scans" but delivered "view
+ * the JP file under a different URL." That's the worst kind of
+ * affordance — it implies a difference that doesn't exist, burns
+ * render cycles re-decoding identical bytes on every flip, and
+ * confuses users (the canonical "JP and CN look the same" bug
+ * report). The SC source (`source.windoent.com`) has its own scans
+ * for a tiny long tail of Mainland-exclusive prints, but the bulk
+ * mirrors JP too, so the cost/benefit didn't justify keeping the
+ * picker option.
+ *
+ * SC-exclusive prints stay in the bundle (e.g. OP01-016 `_p9_sc`,
+ * the 1st Anniversary serialized Nami) — they just aren't reachable
+ * via a top-level "show me Chinese cards" affordance. Re-enabling
+ * CN later is reverting this file + the LANGUAGE_GROUPS table + the
+ * header pill list (a one-commit change).
+ *
+ * Legacy 'CN', 'ALL', and 'EXCLUSIVES' values in persisted Zustand
+ * state are migrated to 'EN' on rehydrate (see store.ts).
  */
-export type LanguagePickerValue = 'EN' | 'JP' | 'CN'
+export type LanguagePickerValue = 'EN' | 'JP'
 
 /**
  * Map a picker value to the ordered list of source languages it covers.
  * `applyLanguageFilter` uses this both to decide which prints to
  * surface AND to pick which localized image URL to render — the
  * iteration order IS the preference order.
- *
- * The CN order — `TC > TW > SC` — is deliberate. SC (Mainland China,
- * `source.windoent.com`) is the official Bandai feed but has known
- * filename mislabeling: e.g. the "base" image for OP01-006 is served
- * at `…1726626190407OP01-006_05.png` (the `_05` suffix suggests an
- * alt art) and the "base" image for OP01-057 collides with what TC
- * serves as the alt-art-1. If we resolved SC first, those mislabels
- * would surface as visible duplicates ("two of the same Paradise
- * Waterfall in CN mode") in the wall + lightbox. TC (`asia-tc`) has
- * reliable URL labeling — `OP01-057.png` is the base, `_p1.png` is
- * the first alt, etc. — so we resolve TC first and only fall back to
- * SC for SC-exclusive prints (1st Anniversary box cards, mainland-only
- * promos) where TC simply doesn't have an entry.
  */
 export const LANGUAGE_GROUPS: Record<LanguagePickerValue, CardLanguage[]> = {
   EN: ['EN', 'EN_ASIA'],
   JP: ['JP'],
-  CN: ['TC', 'TW', 'SC'],
 }
 
-/** Stable iteration order for the three region buckets. */
-export const LANGUAGE_BUCKETS: ReadonlyArray<LanguagePickerValue> = ['EN', 'JP', 'CN']
+/** Stable iteration order for the active region buckets. */
+export const LANGUAGE_BUCKETS: ReadonlyArray<LanguagePickerValue> = ['EN', 'JP']
 
 /**
  * Where each variant's image was ultimately scraped from. `bandai` is

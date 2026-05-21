@@ -82,9 +82,9 @@ export function exclusiveBucketOf(card: Card): LanguagePickerValue | null {
 /**
  * Apply the user's language picker selection to the raw card list.
  *
- * Behaviour matrix (the picker is a single-select, three-option group):
+ * Behaviour matrix (the picker is a single-select, two-option group):
  *
- *   - language === 'EN' | 'JP' | 'CN':
+ *   - language === 'EN' | 'JP':
  *       Filter the wall to cards that ship in at least one region in
  *       that bucket. Each surviving card has its `imageSmall` /
  *       `imageLarge` swapped to the matching localized scan (falling
@@ -100,7 +100,14 @@ export function applyLanguageFilter(
   cards: Card[],
   language: LanguagePickerValue,
 ): Card[] {
-  const bucket = LANGUAGE_GROUPS[language]
+  // Defensive fallback: any value not in LANGUAGE_GROUPS (e.g. a
+  // stale 'CN' persisted in localStorage from a previous deploy that
+  // missed its migration window, or a stale value still cached in
+  // memory during HMR) lands on the default EN bucket instead of
+  // crashing the page. The Zustand v13 migration rewrites 'CN' to
+  // 'EN' on rehydrate, but this guard means we never depend on the
+  // migration having run already.
+  const bucket = LANGUAGE_GROUPS[language] ?? LANGUAGE_GROUPS.EN
 
   const out: Card[] = []
   for (const c of cards) {
@@ -273,34 +280,6 @@ function pickLocalizedImage(
   for (const lang of bucket) {
     const key = lang.toLowerCase()
     if (imagesByLanguage[key]) return imagesByLanguage[key]!
-  }
-  return null
-}
-
-/**
- * Mirror of `pickLocalizedImage` that returns the *bucket key* (e.g.
- * 'JP', 'TC', 'TW', 'SC') for the language the tile is actually
- * sourcing its image from. CardTile uses this to render a tiny
- * language pill so the user can visually confirm that switching the
- * picker actually changed the image — without it, JP and CN tiles
- * look near-identical because Bandai reuses the same artwork across
- * every region and only the (illegible at thumbnail size) card text
- * is localized.
- *
- * Returns `null` when no per-language image is on file (the tile
- * falls back to `imageSmall`, which is the EN canonical) so the pill
- * stays hidden rather than mis-claiming a language.
- */
-export function resolveTileLanguage(
-  card: Card,
-  picker: LanguagePickerValue,
-): CardLanguage | null {
-  const bucket = LANGUAGE_GROUPS[picker]
-  const images = card.imagesByLanguage
-  if (!images) return null
-  for (const lang of bucket) {
-    const key = lang.toLowerCase()
-    if (images[key as keyof typeof images]) return lang
   }
   return null
 }
