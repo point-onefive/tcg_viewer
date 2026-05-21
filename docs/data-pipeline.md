@@ -327,3 +327,18 @@ node -e '
 # Which prints did Limitless add on top of Bandai's catalog?
 jq '[.byPrintId | to_entries[] | select(.value.source=="limitless") | .key]' data/inventory.json
 ```
+
+---
+
+## 9. UI: the language picker
+
+The header surfaces a single-select pill group with four options:
+
+- **EN** — narrows the wall to the EN catalogue (EN + Asia-EN) and renders English art. Default on first visit.
+- **JP** — Japanese catalogue, Japanese art. Master catalogue with the earliest releases and richest promo coverage.
+- **CN** — Traditional Chinese bucket (TC + TW), Traditional Chinese art.
+- **Exclusives** — *pivot* mode. Pools every card exclusive to exactly one region (EN-only + JP-only + CN-only) into one cross-region view. Each card keeps its native region's artwork.
+
+There is intentionally **no "All" view**. The "All" mode that shipped in v9 was scrapped because it made the wall feel like duplicates: the same Luffy art appearing three times (once per region) was visually noisy and didn't help any real user workflow. EN / JP / CN are the three "browse this catalogue" lenses; Exclusives is the "what can I only get here?" lens. That's the whole filter universe.
+
+Implementation lives in `src/lib/card-filter.ts::applyLanguageFilter` — a single function that takes the picker value and returns the narrowed + image-swapped card list. The store (`src/lib/store.ts`) holds the value and migrates pre-v10 persisted state forward.

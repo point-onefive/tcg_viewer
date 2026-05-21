@@ -34,18 +34,47 @@ export type CardLanguage =
  * Chinese" (mainland) is not on Bandai's official site and is not in
  * scope for this phase.
  */
-export type LanguagePickerValue = 'ALL' | 'EN' | 'JP' | 'CN'
+/**
+ * Four mutually-exclusive view modes for the gallery, each picked from
+ * the header pill group:
+ *
+ *   - 'EN'         — show only the EN catalogue (en + asia-en), EN art
+ *   - 'JP'         — show only the JP catalogue, JP art
+ *   - 'CN'         — show only the CN bucket (tc + tw), CN art
+ *   - 'EXCLUSIVES' — pivot to a cross-region "what's only available in
+ *                    one place" view: every print that ships in exactly
+ *                    one of {EN, JP, CN} buckets, all three pooled
+ *                    together. Each card stays on its native region's
+ *                    artwork.
+ *
+ * The legacy 'ALL' value is migrated to 'EN' in the Zustand persistence
+ * layer (see store.ts version-10 migration). Rationale: user feedback
+ * was that 'All' surfaced visual duplicates across regions (same
+ * Luffy art three times in EN/JP/TC); EN is the app's surface language
+ * so an English-speaking first-time visitor lands on a wall they can
+ * read. JP / CN are one click away.
+ */
+export type LanguagePickerValue = 'EN' | 'JP' | 'CN' | 'EXCLUSIVES'
 
 /**
  * Map a picker value to the set of source languages it covers. Used by
  * `applyLanguageFilter` to decide which prints to surface and which
  * image URL to render.
  */
-export const LANGUAGE_GROUPS: Record<Exclude<LanguagePickerValue, 'ALL'>, CardLanguage[]> = {
+/**
+ * Region buckets used by the three "single-language" picker values.
+ * `EXCLUSIVES` is a pivot mode, not a region, so it has no entry here;
+ * the filter walks `LANGUAGE_BUCKETS` itself to figure out which prints
+ * are exclusive to each bucket.
+ */
+export const LANGUAGE_GROUPS: Record<Exclude<LanguagePickerValue, 'EXCLUSIVES'>, CardLanguage[]> = {
   EN: ['EN', 'EN_ASIA'],
   JP: ['JP'],
   CN: ['TC', 'TW'],
 }
+
+/** Stable iteration order for the three region buckets. */
+export const LANGUAGE_BUCKETS: ReadonlyArray<Exclude<LanguagePickerValue, 'EXCLUSIVES'>> = ['EN', 'JP', 'CN']
 
 /**
  * Where each variant's image was ultimately scraped from. `bandai` is

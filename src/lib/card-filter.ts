@@ -1,5 +1,5 @@
 import type { Card, CardLanguage, CardVariant, LanguagePickerValue } from './types'
-import { LANGUAGE_GROUPS } from './types'
+import { LANGUAGE_GROUPS, LANGUAGE_BUCKETS } from './types'
 
 /**
  * The active filter state read off the Zustand store. Kept as a plain
@@ -32,52 +32,71 @@ export function hasJpContent(card: Card): boolean {
 }
 
 /**
- * Does the card carry at least one print exclusive to the given picker
- * bucket? "Exclusive" here means "ships only on the regions the picker
- * groups together" -- so for `picker === 'CN'` we look for prints
- * tagged `exclusiveTo: ['TC']`, `['TW']`, or `['TC','TW']` and nothing
- * else.
+ * Does this card surface any region-exclusive content in the given
+ * picker bucket? Returns true when EITHER:
  *
- * Backstops on the legacy `regions` array for cards generated before
- * Phase 7 so the helper works against stale bundles too.
+ *   - the BASE print is exclusive to this bucket (the entire card is
+ *     only published on this region's cardlist), OR
+ *   - at least one VARIANT is exclusive to this bucket (the base is
+ *     a global card but it has an alt art only published here, e.g.
+ *     a Japan-only Premium Card Collection reprint).
+ *
+ * The looser-than-strict semantics matter: the bundle only has 4
+ * strictly-base-exclusive cards across every region, but ~240 cards
+ * carry at least one region-exclusive alt art. The user's mental
+ * model of "language-exclusive content" includes both.
+ *
+ * Backstops on the legacy `regions` array for pre-Phase-7 bundles.
  */
-export function hasExclusiveTo(card: Card, picker: Exclude<LanguagePickerValue, 'ALL'>): boolean {
-  const bucket = LANGUAGE_GROUPS[picker]
+export function hasExclusiveTo(card: Card, bucketKey: Exclude<LanguagePickerValue, 'EXCLUSIVES'>): boolean {
+  const bucket = LANGUAGE_GROUPS[bucketKey]
   const inBucket = (set?: string[] | CardLanguage[]) =>
     Array.isArray(set) && set.length > 0 && (set as string[]).every((s) => bucket.includes(s as CardLanguage))
   if (inBucket(card.exclusiveTo)) return true
-  // Legacy fallback: JP-only via 2-region regions tag.
-  if (picker === 'JP' && isJpOnly(card.regions as string[])) return true
+  if (bucketKey === 'JP' && isJpOnly(card.regions as string[])) return true
   if (card.variants?.some((v) => inBucket(v.exclusiveTo)) ?? false) return true
-  if (picker === 'JP' && (card.variants?.some((v) => isJpOnly(v.regions as string[])) ?? false)) return true
+  if (bucketKey === 'JP' && (card.variants?.some((v) => isJpOnly(v.regions as string[])) ?? false)) return true
   return false
 }
 
 /**
- * Apply the user's language preference to the raw card list.
+ * Which single bucket is this card exclusive to, if any?
  *
- * Behaviour matrix:
+ * Returns `null` when the card has exclusive content in more than one
+ * bucket (rare -- e.g. one EN-only alt + one JP-only alt) or in zero
+ * buckets. Used by the `EXCLUSIVES` picker mode both as a "should
+ * this card surface?" predicate AND as the renderer's hint for which
+ * bucket's art to display.
+ */
+export function exclusiveBucketOf(card: Card): Exclude<LanguagePickerValue, 'EXCLUSIVES'> | null {
+  let hit: Exclude<LanguagePickerValue, 'EXCLUSIVES'> | null = null
+  for (const bucketKey of LANGUAGE_BUCKETS) {
+    if (hasExclusiveTo(card, bucketKey)) {
+      if (hit) return null
+      hit = bucketKey
+    }
+  }
+  return hit
+}
+
+/**
+ * Apply the user's language picker selection to the raw card list.
  *
- *   - language === 'ALL', onlyExclusives === false (default):
- *       Show every card. No URL swapping. Carousel shows every
- *       variant Bandai or Limitless tracks. Identical to the
- *       pre-Phase-7 default catalogue (plus the new regional alts
- *       picked up from asia-en / asia-tc / asia-tw).
+ * Behaviour matrix (the picker is a single-select, four-option group):
  *
- *   - language === 'EN' | 'JP' | 'CN', onlyExclusives === false:
- *       Filter the wall to cards that ship in at least one matching
- *       region. Each surviving card has its `imageSmall` / `imageLarge`
- *       swapped to the matching localized scan (falling back to the
- *       canonical EN render when the localized image is missing). Each
- *       variant carousel is filtered to prints that also ship in the
- *       selected region.
+ *   - language === 'EN' | 'JP' | 'CN':
+ *       Filter the wall to cards that ship in at least one region in
+ *       that bucket. Each surviving card has its `imageSmall` /
+ *       `imageLarge` swapped to the matching localized scan (falling
+ *       back to the canonical render when the localized image is
+ *       missing). Each variant carousel is filtered to prints that
+ *       also ship in the selected bucket.
  *
- *   - language === 'EN' | 'JP' | 'CN', onlyExclusives === true:
- *       Same as above, but additionally narrows the wall to cards
- *       whose BASE print is exclusive to that region. Wires up the
- *       header pill "EN-only N / JP-only N / CN-only N".
- *
- *   - onlyExclusives without a language is a no-op (defensive default).
+ *   - language === 'EXCLUSIVES':
+ *       Cross-region pivot. Show only cards exclusive to exactly ONE
+ *       bucket (EN-only, JP-only, or CN-only), pooled together. Each
+ *       card stays on its native bucket's artwork. This is the
+ *       "what can I only get in one place?" view.
  *
  * Always runs BEFORE filterCards so the alt-art toggle / search /
  * facet pickers all see the same post-language view.
@@ -85,38 +104,67 @@ export function hasExclusiveTo(card: Card, picker: Exclude<LanguagePickerValue, 
 export function applyLanguageFilter(
   cards: Card[],
   language: LanguagePickerValue,
-  onlyExclusives: boolean,
 ): Card[] {
-  if (language === 'ALL') {
-    if (!onlyExclusives) return cards
-    // "Exclusives" without a chosen language is meaningless; treat as no-op.
-    return cards
+  if (language === 'EXCLUSIVES') {
+    const out: Card[] = []
+    for (const c of cards) {
+      const exclusive = exclusiveBucketOf(c)
+      if (!exclusive) continue
+      const bucket = LANGUAGE_GROUPS[exclusive]
+      const inBucket = (set?: string[] | CardLanguage[]) =>
+        Array.isArray(set) && set.length > 0 && (set as string[]).every((s) => bucket.includes(s as CardLanguage))
+
+      // Pick the SPECIFIC exclusive print whose art to surface as the
+      // tile. Preference: an exclusive variant beats the base, because
+      // exclusivity is the whole point of this view and a global base
+      // print is the most boring case. Falls back to the base render
+      // when nothing better exists (defensive; exclusiveBucketOf
+      // guarantees something is exclusive here).
+      const exclusiveVariant = c.variants?.find((v) => inBucket(v.exclusiveTo))
+      const tileImg = exclusiveVariant
+        ? (pickLocalizedImage(exclusiveVariant.imagesByLanguage, bucket) ?? exclusiveVariant.imageUrl)
+        : (pickLocalizedImage(c.imagesByLanguage, bucket) ?? c.imageSmall)
+
+      // Carousel keeps only prints that ship in the exclusive bucket
+      // (so a JP-exclusive Roronoa Zoro doesn't surface its EN base
+      // alongside the JP-only alt). Each surviving variant uses its
+      // matching localized scan.
+      const variants = c.variants
+        ?.filter((v) => isInBucket(v.languages, bucket))
+        .map((v) => ({
+          ...v,
+          imageUrl: pickLocalizedImage(v.imagesByLanguage, bucket) ?? v.imageUrl,
+        }))
+
+      out.push({
+        ...c,
+        imageSmall: tileImg,
+        imageLarge: tileImg,
+        variants: variants && variants.length > 0 ? variants : undefined,
+      })
+    }
+    return out
   }
 
   const bucket = LANGUAGE_GROUPS[language]
-  const inBucket = (langs?: string[] | CardLanguage[]) =>
-    Array.isArray(langs) && (langs as string[]).some((l) => bucket.includes(l as CardLanguage))
 
   const out: Card[] = []
   for (const c of cards) {
     // Skip the card entirely if NEITHER the base print nor any variant
-    // is published in the chosen region. (A purely-Limitless card with
-    // no Bandai-region tag will fall through here; that's fine -- they
-    // still appear under 'ALL'.)
-    const baseInRegion = inBucket(c.languages) || inBucket(c.variants?.flatMap((v) => v.languages ?? []))
+    // is published in the chosen bucket. (A purely-Limitless card with
+    // no Bandai-region tag will fall through here.)
+    const baseInRegion = isInBucket(c.languages, bucket) || isInBucket(c.variants?.flatMap((v) => v.languages ?? []), bucket)
     if (!baseInRegion) continue
-
-    if (onlyExclusives && !hasExclusiveTo(c, language)) continue
 
     // Swap base image to the matching localized scan (first available
     // language in the picker's bucket). Falls back to the existing
     // imageSmall when no per-language map is present (older bundles).
     const baseImg = pickLocalizedImage(c.imagesByLanguage, bucket) ?? c.imageSmall
 
-    // Trim variants to those that ship in the chosen region, swap their
+    // Trim variants to those that ship in the chosen bucket, swap their
     // imageUrl, and forget regional images that don't apply.
     const variants = c.variants
-      ?.filter((v) => inBucket(v.languages))
+      ?.filter((v) => isInBucket(v.languages, bucket))
       .map((v) => ({
         ...v,
         imageUrl: pickLocalizedImage(v.imagesByLanguage, bucket) ?? v.imageUrl,
@@ -130,6 +178,11 @@ export function applyLanguageFilter(
     })
   }
   return out
+}
+
+function isInBucket(langs: string[] | CardLanguage[] | undefined, bucket: CardLanguage[]): boolean {
+  if (!Array.isArray(langs)) return false
+  return (langs as string[]).some((l) => bucket.includes(l as CardLanguage))
 }
 
 /**

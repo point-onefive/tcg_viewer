@@ -66,36 +66,28 @@ interface StoreState {
   // is "show me cards that have alt art", not "show me cards with N+".
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
-  // High-level language picker that swaps the gallery between Bandai's
-  // five regional catalogues. Values:
-  //   - 'ALL' : show every print Bandai publishes anywhere (default).
-  //             Each card uses its highest-priority image (EN → JP → CN)
-  //             but the carousel surfaces every regional alt and stamped
-  //             prize the catalogues list.
-  //   - 'EN'  : EN + Asia-EN cardlists. Card text reads in English.
-  //   - 'JP'  : Japanese cardlist only -- the master catalogue with the
-  //             earliest release dates and richest promo coverage.
-  //   - 'CN'  : Traditional Chinese (HK/Macau + Taiwan). Card text reads
-  //             in Traditional Chinese; "CN" is the user-facing label
-  //             because TC + TW cover the entire Chinese-language
-  //             Bandai catalogue (Simplified Chinese has no official
-  //             Bandai cardlist site).
-  // When a specific language is selected, applyLanguageFilter (in
-  // card-filter.ts) hides cards that ship in NO matching region and
-  // swaps each visible print's render URL to the matching localized
-  // scan. Persisted so the preference survives reloads.
+  // Single-select view mode for the gallery. Replaces the previous
+  // (language + onlyExclusives) pair with a flat 4-option picker:
+  //
+  //   - 'EN'         : EN + Asia-EN cardlists. Card text reads in English.
+  //                    Anything Bandai didn't publish in English is hidden.
+  //   - 'JP'         : Japanese cardlist only -- the master catalogue
+  //                    with the earliest release dates and richest promo
+  //                    coverage. Card text reads in Japanese.
+  //   - 'CN'         : Traditional Chinese bucket (HK/Macau + Taiwan).
+  //                    Card text reads in Traditional Chinese; "CN" is
+  //                    the user-facing label because TC + TW cover the
+  //                    entire Chinese-language Bandai catalogue.
+  //   - 'EXCLUSIVES' : pivot mode. Show only cards exclusive to ONE of
+  //                    the three buckets (EN-only, JP-only, or CN-only),
+  //                    all pooled together. Each card stays on its
+  //                    native region's artwork. This is the "what can I
+  //                    only get in one place?" view.
+  //
+  // applyLanguageFilter (in card-filter.ts) handles the wall narrowing
+  // + image-URL swapping. Persisted so the preference survives reloads.
   language: LanguagePickerValue
   setLanguage: (v: LanguagePickerValue) => void
-  // Sibling narrowing filter: when true, show only cards whose base
-  // print is exclusive to the currently-selected language (i.e. no
-  // other Bandai region publishes it). With `language='JP'` this is
-  // every Japan-only base card -- ST-30, magazine promos, JP-only
-  // Family Deck Set / Storage Box reprints. With `language='ALL'`
-  // (the default) the toggle has no effect because no language is
-  // selected to be "exclusive to". Mirrors the Alt-art toggle's
-  // semantics. Persisted.
-  onlyExclusives: boolean
-  setOnlyExclusives: (v: boolean) => void
   zoom: number
   setZoom: (z: number) => void
   lightboxCardId: string | null
@@ -147,7 +139,6 @@ export const useStore = create<StoreState>()(
           activeColor: null,
           activeCardType: null,
           onlyAltArt: false,
-          onlyExclusives: false,
           searchQuery: '',
           lightboxCardId: null,
         }),
@@ -163,10 +154,12 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
-      language: 'ALL',
+      // Default to EN: the app's surface language is English, so an
+      // English-speaking user starting fresh sees a wall they can read.
+      // JP / CN are one click away for users who want the master
+      // catalogue or the Chinese-language scans.
+      language: 'EN',
       setLanguage: (language) => set({ language }),
-      onlyExclusives: false,
-      setOnlyExclusives: (onlyExclusives) => set({ onlyExclusives }),
       zoom: 5,
       setZoom: (zoom) => set({ zoom }),
       lightboxCardId: null,
@@ -253,9 +246,8 @@ export const useStore = create<StoreState>()(
         pinned: state.pinned,
         tierPool: state.tierPool,
         language: state.language,
-        onlyExclusives: state.onlyExclusives,
       }),
-      version: 9,
+      version: 10,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -281,19 +273,32 @@ export const useStore = create<StoreState>()(
           delete (s as { showJpVariants?: boolean }).showJpVariants
         }
         if (fromVersion < 9) {
-          // v9 replaces the jpOnly boolean with a 4-way language picker
-          // ('ALL' | 'EN' | 'JP' | 'CN') and an onlyExclusives narrowing
-          // toggle. Map: jpOnly === true  -> language='JP' + exclusives;
-          //              jpOnly === false -> default 'ALL'.
+          // v9 replaced the jpOnly boolean with a 4-way (ALL|EN|JP|CN)
+          // picker + an `onlyExclusives` narrowing toggle. Pre-v9 maps
+          // jpOnly === true -> language='JP' + onlyExclusives=true.
           const legacy = s as { jpOnly?: boolean }
           if (legacy.jpOnly === true) {
             s.language = 'JP'
-            s.onlyExclusives = true
+            ;(s as { onlyExclusives?: boolean }).onlyExclusives = true
           } else {
-            s.language = 'ALL'
-            s.onlyExclusives = false
+            s.language = 'EN'
           }
           delete legacy.jpOnly
+        }
+        if (fromVersion < 10) {
+          // v10 collapses the (language, onlyExclusives) pair into a
+          // single 4-way picker (EN | JP | CN | EXCLUSIVES). Mapping:
+          //   - onlyExclusives === true   -> 'EXCLUSIVES' (cross-region)
+          //   - language === 'ALL'        -> 'EN' (new default; ALL was
+          //                                   too noisy per user feedback)
+          //   - language === 'EN'|'JP'|'CN' -> keep
+          const legacy = s as { language?: string; onlyExclusives?: boolean }
+          if (legacy.onlyExclusives === true) {
+            s.language = 'EXCLUSIVES'
+          } else if (legacy.language === 'ALL' || !legacy.language) {
+            s.language = 'EN'
+          }
+          delete legacy.onlyExclusives
         }
         return s as StoreState
       },

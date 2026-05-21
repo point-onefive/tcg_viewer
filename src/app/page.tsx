@@ -8,12 +8,11 @@ import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
-import { applyLanguageFilter, hasExclusiveTo } from '@/lib/card-filter'
+import { applyLanguageFilter, hasExclusiveTo, exclusiveBucketOf } from '@/lib/card-filter'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
   const language = useStore((s) => s.language)
-  const onlyExclusives = useStore((s) => s.onlyExclusives)
   const rawCards = getCards(activeCollection)
   // applyLanguageFilter is the single chokepoint for the language
   // picker. Every surface that lists cards (grid, lightbox, board,
@@ -21,8 +20,8 @@ export default function Home() {
   // receive these `cards` -- there's no second-pass filter that
   // could disagree with itself.
   const cards = useMemo(
-    () => applyLanguageFilter(rawCards, language, onlyExclusives),
-    [rawCards, language, onlyExclusives],
+    () => applyLanguageFilter(rawCards, language),
+    [rawCards, language],
   )
   const rawSets = getSets(activeCollection)
   // Filter the set list to hide any set that is empty under the current
@@ -34,16 +33,23 @@ export default function Home() {
     const codesWithCards = new Set(cards.map((c) => c.setCode))
     return rawSets.filter((s) => codesWithCards.has(s.setCode))
   }, [rawSets, cards])
-  // How many cards the "Exclusives" toggle would surface if the user
-  // clicks it right now -- the count is per-language, so the header can
-  // render "EN-only 253 / JP-only 39 / CN-only 0" depending on what's
-  // picked. Read off `rawCards` because the count is a property of the
-  // bundle, not the current filter state.
-  const exclusiveCounts = useMemo(() => ({
-    EN: rawCards.filter((c) => hasExclusiveTo(c, 'EN')).length,
-    JP: rawCards.filter((c) => hasExclusiveTo(c, 'JP')).length,
-    CN: rawCards.filter((c) => hasExclusiveTo(c, 'CN')).length,
-  }), [rawCards])
+  // How many distinct cards live in each bucket / surface in the
+  // EXCLUSIVES pivot. Drives the small count badge on the Exclusives
+  // pill so the user sees the magnitude before clicking. The
+  // EXCLUSIVES total uses `exclusiveBucketOf` (same predicate as the
+  // EXCLUSIVES filter mode) so the badge always equals the wall's
+  // tile count -- no off-by-N illusions when a card carries an
+  // exclusive print in multiple buckets.
+  const exclusiveCounts = useMemo(() => {
+    let EN = 0, JP = 0, CN = 0, EXCLUSIVES = 0
+    for (const c of rawCards) {
+      if (hasExclusiveTo(c, 'EN')) EN++
+      if (hasExclusiveTo(c, 'JP')) JP++
+      if (hasExclusiveTo(c, 'CN')) CN++
+      if (exclusiveBucketOf(c)) EXCLUSIVES++
+    }
+    return { EN, JP, CN, EXCLUSIVES }
+  }, [rawCards])
   const ready = hasData(activeCollection)
 
   // The old first-visit OnboardingTour was removed in favour of a

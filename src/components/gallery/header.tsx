@@ -51,12 +51,12 @@ const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
 
 interface HeaderProps {
   sets: CardSet[]
-  // Per-language exclusive-print counts. Renders inside the Exclusives
-  // pill as "EN-only 253 / JP-only 39 / CN-only 0" depending on the
-  // currently picked language. Collections without any multi-language
-  // content (everything except One Piece today) pass zeros and the
-  // badge stays hidden.
-  exclusiveCounts?: Record<Exclude<LanguagePickerValue, 'ALL'>, number>
+  // Per-bucket card counts. Drives the small count badge that hangs
+  // off the EXCLUSIVES pill ("Exclusives · 282" = EN-only + JP-only
+  // + CN-only). Collections without multi-language content (every
+  // collection except One Piece today) pass zeros and the badge
+  // stays hidden.
+  exclusiveCounts?: Record<Exclude<LanguagePickerValue, 'EXCLUSIVES'> | 'EXCLUSIVES', number>
 }
 
 /**
@@ -70,10 +70,10 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   label: string
   description: string
 }> = [
-  { value: 'ALL', label: 'All', description: 'Every region\u2014English, Japanese, and Chinese.' },
-  { value: 'EN',  label: 'EN',  description: 'English (Bandai EN + Asia-EN cardlists)' },
-  { value: 'JP',  label: 'JP',  description: 'Japanese (Bandai Japan cardlist; richest promo coverage)' },
-  { value: 'CN',  label: 'CN',  description: 'Chinese (Bandai Hong Kong / Macau / Taiwan; Traditional Chinese)' },
+  { value: 'EN',         label: 'EN',         description: 'English (Bandai EN + Asia-EN cardlists).' },
+  { value: 'JP',         label: 'JP',         description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
+  { value: 'CN',         label: 'CN',         description: 'Chinese (Bandai Hong Kong / Macau / Taiwan; Traditional Chinese).' },
+  { value: 'EXCLUSIVES', label: 'Exclusives', description: 'Pivot to cards exclusive to ONE region — EN-only, JP-only, and CN-only pooled together.' },
 ]
 
 type FacetOption = { value: string; label: string; swatch?: string }
@@ -341,20 +341,21 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
     language, setLanguage,
-    onlyExclusives, setOnlyExclusives,
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
     tierPool,
   } = useStore()
 
-  // Count shown on the Exclusives pill -- depends on whichever
-  // language is currently picked. With language === 'ALL' the badge
-  // shows the sum of all three buckets so the user gets a sense of
-  // the size of the "language-exclusive" universe before drilling in.
-  const exclusiveBadgeCount = language === 'ALL'
-    ? ((exclusiveCounts?.EN ?? 0) + (exclusiveCounts?.JP ?? 0) + (exclusiveCounts?.CN ?? 0))
-    : (exclusiveCounts?.[language] ?? 0)
+  // Per-option count badge. Only ever shown for the EXCLUSIVES pill --
+  // the EN/JP/CN counts (4k+ each) would dwarf the labels and add
+  // noise to the most-used controls. The EXCLUSIVES count is small
+  // (a few hundred) and is the one number that genuinely helps the
+  // user decide whether to click into that pivot mode.
+  function badgeCountFor(value: LanguagePickerValue): number | null {
+    if (value !== 'EXCLUSIVES') return null
+    return exclusiveCounts?.EXCLUSIVES ?? null
+  }
 
   // One Piece is the only collection with curated filter facets right
   // now (see ONE_PIECE_CARD_TYPES / ONE_PIECE_COLORS above). Gate the
@@ -858,10 +859,13 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
           >
             Alt art
           </button>
-          {/* Language picker - mobile. Single-select pill group instead
-              of a dropdown so the four options (All / EN / JP / CN)
-              are always visible -- this is the most important filter
-              in the multi-language pipeline and we want it surfaced. */}
+          {/* Language picker - mobile. Single-select pill group with
+              four options (EN | JP | CN | Exclusives). The first three
+              swap the gallery to that region's catalogue and artwork;
+              EXCLUSIVES pivots to a cross-region view of single-region
+              prints. The picker is THE primary lens on the
+              multi-language pipeline, so we keep it always-visible
+              rather than tucking it inside a dropdown. */}
           <div
             className="inline-flex items-center"
             style={{
@@ -875,6 +879,7 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
           >
             {LANGUAGE_OPTIONS.map((opt) => {
               const selected = language === opt.value
+              const count = badgeCountFor(opt.value)
               return (
                 <button
                   key={opt.value}
@@ -882,7 +887,7 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                   role="radio"
                   aria-checked={selected}
                   onClick={() => setLanguage(opt.value)}
-                  className="inline-flex items-center justify-center px-2 text-[11px] font-semibold outline-none"
+                  className="inline-flex items-center justify-center gap-1 px-2 text-[11px] font-semibold outline-none"
                   style={{
                     height: 24,
                     borderRadius: 4,
@@ -893,61 +898,27 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                   title={opt.description}
                 >
                   {opt.label}
+                  {count !== null && count > 0 && (
+                    <span
+                      className="inline-flex items-center justify-center text-[9px] font-bold leading-none"
+                      style={{
+                        minWidth: 14,
+                        height: 14,
+                        padding: '0 3px',
+                        borderRadius: 3,
+                        background: selected
+                          ? 'color-mix(in srgb, var(--bg) 25%, transparent)'
+                          : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
+                        color: selected ? 'var(--bg)' : 'var(--text-muted)',
+                      }}
+                    >
+                      {count}
+                    </span>
+                  )}
                 </button>
               )
             })}
           </div>
-          {/* Exclusives toggle - mobile. Narrows the wall to cards
-              that ONLY ship in the picked language. The count badge
-              ("EN-only 253" / "JP-only 39" / "CN-only 0") tells the
-              user the magnitude before clicking. With language='ALL'
-              the badge sums the three buckets. */}
-          <button
-            type="button"
-            onClick={() => setOnlyExclusives(!onlyExclusives)}
-            disabled={language === 'ALL'}
-            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
-            style={{
-              ...(onlyExclusives && language !== 'ALL' ? ctrlActive : ctrl),
-              height: 30,
-              opacity: language === 'ALL' ? 0.55 : 1,
-              cursor: language === 'ALL' ? 'not-allowed' : 'pointer',
-            }}
-            aria-pressed={onlyExclusives}
-            aria-label={
-              language === 'ALL'
-                ? 'Pick a language to enable exclusives filter'
-                : onlyExclusives
-                  ? `Showing only ${language}-exclusive cards. Click to clear.`
-                  : `Show only cards exclusive to ${language}`
-            }
-            title={
-              language === 'ALL'
-                ? 'Pick a language above to drill into its exclusives.'
-                : `Narrow to cards Bandai publishes ONLY on the ${language} cardlist.`
-            }
-          >
-            Exclusives
-            {exclusiveBadgeCount > 0 && (
-              <span
-                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                style={{
-                  minWidth: 16,
-                  height: 16,
-                  padding: '0 4px',
-                  borderRadius: 4,
-                  background: onlyExclusives && language !== 'ALL'
-                    ? 'var(--bg)'
-                    : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                  color: onlyExclusives && language !== 'ALL'
-                    ? 'var(--text-primary)'
-                    : 'var(--text-muted)',
-                }}
-              >
-                {exclusiveBadgeCount}
-              </span>
-            )}
-          </button>
         </div>
       )}
 
@@ -1193,17 +1164,15 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
               >
                 Alt art
               </button>
-              {/* Language picker (desktop). Pills group instead of a
-                  dropdown so the four options are always one click
-                  away -- the language is THE primary lens on the
-                  multi-language pipeline and we want to surface it.
-                  Selecting one (EN, JP, CN) does two things in one
-                  motion: (1) trims the wall to cards Bandai publishes
-                  in that region, (2) swaps every image URL to the
-                  matching localized scan so the gallery actually
-                  RENDERS in that language. 'All' is the default and
-                  matches the pre-Phase-7 behaviour (every regional
-                  print visible, EN art preferred). */}
+              {/* Language picker (desktop). Single-select pill group
+                  with four options. The first three (EN | JP | CN)
+                  do two things in one motion: (1) trim the wall to
+                  cards Bandai publishes in that region, (2) swap
+                  every image URL to the matching localized scan.
+                  'Exclusives' is the pivot mode: it pools cards
+                  unique to each region (EN-only + JP-only + CN-only)
+                  into one cross-region view so the user can browse
+                  "things I can only get in one place." */}
               <div
                 className="inline-flex items-center"
                 style={{
@@ -1217,6 +1186,7 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
               >
                 {LANGUAGE_OPTIONS.map((opt) => {
                   const selected = language === opt.value
+                  const count = badgeCountFor(opt.value)
                   return (
                     <button
                       key={opt.value}
@@ -1224,7 +1194,7 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                       role="radio"
                       aria-checked={selected}
                       onClick={() => setLanguage(opt.value)}
-                      className="inline-flex items-center justify-center px-2.5 text-[11px] font-semibold outline-none"
+                      className="inline-flex items-center justify-center gap-1 px-2.5 text-[11px] font-semibold outline-none"
                       style={{
                         height: 24,
                         borderRadius: 4,
@@ -1235,68 +1205,27 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                       title={opt.description}
                     >
                       {opt.label}
+                      {count !== null && count > 0 && (
+                        <span
+                          className="inline-flex items-center justify-center text-[9px] font-bold leading-none"
+                          style={{
+                            minWidth: 14,
+                            height: 14,
+                            padding: '0 3px',
+                            borderRadius: 3,
+                            background: selected
+                              ? 'color-mix(in srgb, var(--bg) 25%, transparent)'
+                              : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
+                            color: selected ? 'var(--bg)' : 'var(--text-muted)',
+                          }}
+                        >
+                          {count}
+                        </span>
+                      )}
                     </button>
                   )
                 })}
               </div>
-              {/* Exclusives narrowing filter (desktop). Reads the
-                  currently picked language and narrows to "cards
-                  Bandai ONLY publishes there." Disabled when
-                  language === 'ALL' (no region to be exclusive to);
-                  the count badge in that state is the sum of all
-                  three buckets so the user sees the scale of the
-                  region-exclusive universe before drilling in.
-
-                  The label "Exclusives" + per-language count badge
-                  replaces the older confusing "JP 358" pill: it
-                  reads clearly without the user needing to know
-                  what region the active filter targets. */}
-              <button
-                type="button"
-                onClick={() => setOnlyExclusives(!onlyExclusives)}
-                disabled={language === 'ALL'}
-                className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none"
-                style={{
-                  ...(onlyExclusives && language !== 'ALL' ? ctrlActive : ctrl),
-                  height: 30,
-                  opacity: language === 'ALL' ? 0.55 : 1,
-                  cursor: language === 'ALL' ? 'not-allowed' : 'pointer',
-                }}
-                aria-pressed={onlyExclusives}
-                aria-label={
-                  language === 'ALL'
-                    ? 'Pick a language to enable exclusives filter'
-                    : onlyExclusives
-                      ? `Showing only ${language}-exclusive cards. Click to clear.`
-                      : `Show only cards exclusive to ${language}`
-                }
-                title={
-                  language === 'ALL'
-                    ? 'Pick a language above to drill into its exclusives.'
-                    : `Narrow to cards Bandai publishes ONLY on the ${language} cardlist (no other region carries them).`
-                }
-              >
-                Exclusives
-                {exclusiveBadgeCount > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                    style={{
-                      minWidth: 16,
-                      height: 16,
-                      padding: '0 4px',
-                      borderRadius: 4,
-                      background: onlyExclusives && language !== 'ALL'
-                        ? 'var(--bg)'
-                        : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                      color: onlyExclusives && language !== 'ALL'
-                        ? 'var(--text-primary)'
-                        : 'var(--text-muted)',
-                    }}
-                  >
-                    {exclusiveBadgeCount}
-                  </span>
-                )}
-              </button>
             </>
           )}
 
