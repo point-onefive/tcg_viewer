@@ -164,6 +164,14 @@ export interface GifOptions {
    * board even at 30 frames.
    */
   maxWidth?: number
+  /**
+   * Draw the animated sweep border on top of each frame.
+   * When `false`, the encoder emits a single static frame --
+   * useful when the on-screen border toggle is off and the
+   * user wants the export to match what they're previewing.
+   * Default: `true`.
+   */
+  withBorder?: boolean
 }
 
 /**
@@ -186,6 +194,7 @@ export async function captureChartGif(
   const numFrames = options.numFrames ?? 24
   const fps = options.fps ?? 12
   const maxWidth = options.maxWidth ?? 900
+  const withBorder = options.withBorder ?? true
 
   const baseCanvas = await captureChartCanvas(node, 1.5)
 
@@ -201,6 +210,25 @@ export async function captureChartGif(
   const { GIFEncoder, quantize, applyPalette } = await import('gifenc')
   const encoder = GIFEncoder()
   const delay = Math.round(1000 / fps)
+
+  if (!withBorder) {
+    // Static GIF path: render one frame (the bare chart, no
+    // sweep), quantize it, and write a single-frame GIF. This
+    // exists so the export matches the on-screen preview when
+    // the user turns the animated-border toggle off -- they
+    // get a still GIF instead of a surprise animation.
+    const ctx = frameCanvas.getContext('2d')
+    if (!ctx) throw new Error('2D context unavailable')
+    ctx.clearRect(0, 0, w, h)
+    ctx.drawImage(baseCanvas, 0, 0, w, h)
+    const data = ctx.getImageData(0, 0, w, h).data
+    const palette = quantize(data, 256)
+    const indexed = applyPalette(data, palette)
+    encoder.writeFrame(indexed, w, h, { palette, delay })
+    encoder.finish()
+    const outStatic = new Uint8Array(encoder.bytes())
+    return new Blob([outStatic.buffer], { type: 'image/gif' })
+  }
 
   // Use a frame with the border in the middle of its sweep to
   // derive the palette. Quantizing the all-static-no-border

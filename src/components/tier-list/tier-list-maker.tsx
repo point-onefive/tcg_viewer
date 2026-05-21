@@ -39,6 +39,7 @@ import {
   Loader2,
   Plus,
   RotateCcw,
+  Sparkles,
   Trash2,
   Trophy,
   Upload,
@@ -1126,6 +1127,29 @@ export function TierListMaker() {
   const chartFrameRef = useRef<HTMLDivElement | null>(null)
   const [exporting, setExporting] = useState<'png' | 'gif' | 'copy' | null>(null)
   const [exportFlash, setExportFlash] = useState<string | null>(null)
+  // Animated brand-orange sweep around the chart perimeter.
+  // Defaults ON so the feature is discoverable on first visit,
+  // but persists to localStorage so users who turn it off don't
+  // have to redo it every page load. Reading localStorage is
+  // deferred to a post-mount effect to avoid an SSR / hydration
+  // mismatch (the server has no `localStorage`).
+  const [borderAnimated, setBorderAnimated] = useState(true)
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('tier-list:border-animated')
+      if (stored === '0') setBorderAnimated(false)
+    } catch {
+      // localStorage may throw in private windows / quota-full;
+      // leaving the default is fine.
+    }
+  }, [])
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('tier-list:border-animated', borderAnimated ? '1' : '0')
+    } catch {
+      // see note above
+    }
+  }, [borderAnimated])
   const exportFlashTimerRef = useRef<number | null>(null)
   useEffect(() => {
     return () => {
@@ -1193,16 +1217,21 @@ export function TierListMaker() {
         numFrames: 24,
         fps: 12,
         maxWidth: 900,
+        withBorder: borderAnimated,
       })
       downloadBlob(blob, buildExportFilename(title, 'gif'))
-      flashExport('Saved GIF - drag the file into your tweet')
+      flashExport(
+        borderAnimated
+          ? 'Saved GIF - drag the file into your tweet'
+          : 'Saved still GIF (animation off)',
+      )
     } catch (err) {
       console.error('GIF export failed', err)
       flashExport('Export failed - try again')
     } finally {
       setExporting(null)
     }
-  }, [exporting, title, flashExport])
+  }, [exporting, title, flashExport, borderAnimated])
 
   const clearBankOnly = useCallback(() => {
     const removedFromStore: string[] = []
@@ -1679,6 +1708,35 @@ export function TierListMaker() {
                       {exportFlash ?? emptyHint}
                     </span>
                   )}
+                  {/* Toggle the animated brand-orange sweep border
+                      around the chart frame. Controls both the
+                      on-screen presentation and whether the GIF
+                      export bakes in the animation, so what the
+                      user previews is what the GIF will look like.
+                      State persists across reloads via localStorage
+                      (see borderAnimated useEffect above). */}
+                  <button
+                    type="button"
+                    onClick={() => setBorderAnimated((v) => !v)}
+                    aria-pressed={borderAnimated}
+                    className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    style={{
+                      ...ctrlBase,
+                      height: 30,
+                      color: borderAnimated ? '#E85D2A' : 'var(--text-muted)',
+                      borderColor: borderAnimated
+                        ? 'color-mix(in srgb, #E85D2A 45%, var(--border-subtle))'
+                        : 'var(--border-subtle)',
+                    }}
+                    title={
+                      borderAnimated
+                        ? 'Hide the sweeping brand-orange border around the chart (and skip it in GIF exports)'
+                        : 'Show the sweeping brand-orange border around the chart (animated GIF exports will include it)'
+                    }
+                  >
+                    <Sparkles size={14} aria-hidden />
+                    Border: {borderAnimated ? 'On' : 'Off'}
+                  </button>
                   <button
                     type="button"
                     onClick={handleCopyPng}
@@ -1764,7 +1822,9 @@ export function TierListMaker() {
 
           <div
             ref={chartFrameRef}
-            className="chart-frame-animated relative overflow-hidden rounded-[12px] p-4 sm:p-5"
+            className={`relative overflow-hidden rounded-[12px] p-4 sm:p-5${
+              borderAnimated ? ' chart-frame-animated' : ''
+            }`}
             style={{
               border: '1px solid var(--border-subtle)',
               boxShadow: 'var(--shadow-card)',
