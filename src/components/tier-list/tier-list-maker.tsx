@@ -27,6 +27,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
 import {
+  Check,
+  ClipboardList,
+  Copy,
   GripVertical,
   ImagePlus,
   Inbox,
@@ -64,6 +67,14 @@ export type TierCard = {
   src: string
   tierId: string | null
   kind: TierCardKind
+  /**
+   * Human-readable label for gallery cards (e.g. `"Roronoa Zoro"` or
+   * `"Roronoa Zoro · p1"` for alt-art). Populated from the matching
+   * `TierPoolItem` when the card is added from the main gallery.
+   * Uploaded images don't have one - the Roster section will fall
+   * back to `"Uploaded image"` for those.
+   */
+  label?: string
 }
 
 /**
@@ -686,6 +697,240 @@ function SortableTierRow({
   )
 }
 
+/**
+ * Pull a `{ name, code }` pair out of a `TierCard` for the Roster
+ * section. Three shapes need to be handled:
+ *
+ *  - Gallery base card  - id `OP01-001`, label `"Roronoa Zoro"`
+ *  - Gallery variant     - id `OP01-001_p1`, label `"Roronoa Zoro · p1"`
+ *  - Uploaded image      - id is a UUID, no label
+ *
+ * For gallery items the card *code* is just the part of the id
+ * before the underscore (so `OP01-001_p1` → `OP01-001`). The label
+ * already carries the variant suffix (` · p1`) so we display it
+ * as-is and use the bare code in parens. Uploads degrade to
+ * `"Uploaded image"` with no code - users won't be copying these
+ * anywhere meaningful, but we still account for them so totals
+ * line up.
+ */
+function rosterEntryFor(card: TierCard): { name: string; code: string | null } {
+  if (card.kind === 'upload') {
+    return { name: 'Uploaded image', code: null }
+  }
+  const code = card.id.includes('_') ? card.id.slice(0, card.id.indexOf('_')) : card.id
+  const name = card.label?.trim() || code
+  return { name, code }
+}
+
+/**
+ * Build the plain-text payload the Roster's Copy button drops on
+ * the clipboard. Tweet-friendly: short header, then each non-empty
+ * tier as `<label>: name (code), name (code)`. Inline commas over
+ * bullets/newlines keep the whole list compact enough for a
+ * standard tweet or chat message without manual reformatting.
+ */
+function rosterToPlainText(
+  tiers: TierDef[],
+  cards: TierCard[],
+  title: string,
+): string {
+  const header = (title.trim() || 'Tier list').trim()
+  const lines: string[] = [header]
+  for (const tier of tiers) {
+    const tierCards = cards.filter((c) => c.tierId === tier.id)
+    if (tierCards.length === 0) continue
+    const entries = tierCards
+      .map((c) => {
+        const { name, code } = rosterEntryFor(c)
+        return code ? `${name} (${code})` : name
+      })
+      .join(', ')
+    lines.push(`${tier.label}: ${entries}`)
+  }
+  return lines.join('\n')
+}
+
+/**
+ * Read-only summary of every charted card, grouped by tier, with
+ * a single Copy button that drops the same data on the clipboard
+ * as plain text. Lives below the visual chart so it serves as the
+ * quick-reference / shareable version of the tier list - you can
+ * paste the output straight into a tweet, DM, or notes file
+ * without having to retype card names or look up serial numbers.
+ *
+ * Hidden entirely when no cards are charted yet so the page
+ * doesn't render an empty stub. Tiers with zero charted cards
+ * are also skipped to keep the block tight.
+ */
+function RosterSection({
+  tiers,
+  cards,
+  title,
+}: {
+  tiers: TierDef[]
+  cards: TierCard[]
+  title: string
+}) {
+  const [copied, setCopied] = useState(false)
+  const copyTimerRef = useRef<number | null>(null)
+
+  // Clear any pending "Copied!" timer if the component unmounts
+  // mid-flight - prevents a setState on an unmounted component
+  // and stops a stale label from briefly flashing in if the user
+  // navigates away and back.
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) {
+        window.clearTimeout(copyTimerRef.current)
+      }
+    }
+  }, [])
+
+  const chartedTiers = useMemo(
+    () =>
+      tiers
+        .map((tier) => ({
+          tier,
+          tierCards: cards.filter((c) => c.tierId === tier.id),
+        }))
+        .filter((t) => t.tierCards.length > 0),
+    [tiers, cards],
+  )
+
+  if (chartedTiers.length === 0) return null
+
+  const handleCopy = async () => {
+    const text = rosterToPlainText(tiers, cards, title)
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      if (copyTimerRef.current !== null) {
+        window.clearTimeout(copyTimerRef.current)
+      }
+      copyTimerRef.current = window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard API can fail in non-secure contexts or when the
+      // browser denies permission. Fall back to a textarea +
+      // execCommand select-and-copy so the button is still useful
+      // on older mobile browsers / http origins.
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      try {
+        document.execCommand('copy')
+        setCopied(true)
+        if (copyTimerRef.current !== null) {
+          window.clearTimeout(copyTimerRef.current)
+        }
+        copyTimerRef.current = window.setTimeout(() => setCopied(false), 1500)
+      } finally {
+        document.body.removeChild(ta)
+      }
+    }
+  }
+
+  return (
+    <section aria-label="Roster" className="mt-8">
+      <SectionLabel
+        icon={ClipboardList}
+        label="Roster"
+        right={
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            style={{
+              ...ctrlBase,
+              height: 30,
+              color: copied ? '#1f7a3f' : 'var(--text-primary)',
+              borderColor: copied
+                ? 'color-mix(in srgb, #1f7a3f 50%, var(--border-subtle))'
+                : 'var(--border-subtle)',
+            }}
+            aria-label="Copy roster as plain text"
+          >
+            {copied ? (
+              <>
+                <Check size={14} aria-hidden />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy size={14} aria-hidden />
+                Copy as text
+              </>
+            )}
+          </button>
+        }
+      />
+
+      <div
+        className="overflow-hidden rounded-[8px]"
+        style={{
+          border: '1px solid var(--border-subtle)',
+          boxShadow: 'var(--shadow-card)',
+          background: 'var(--bg-surface)',
+        }}
+      >
+        {chartedTiers.map(({ tier, tierCards }, idx) => (
+          <div
+            key={tier.id}
+            className="flex"
+            style={{
+              borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
+            }}
+          >
+            <div
+              className="flex w-[84px] shrink-0 items-center justify-center px-1 py-3 font-display text-base font-black leading-none sm:w-[94px] sm:text-lg"
+              style={{
+                background: tier.color,
+                color: '#111',
+                borderRight: '1px solid var(--border-subtle)',
+              }}
+            >
+              <span className="break-words text-center">{tier.label}</span>
+            </div>
+            <ul
+              className="flex flex-1 flex-col gap-1 px-3 py-2.5 text-sm"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {tierCards.map((c) => {
+                const { name, code } = rosterEntryFor(c)
+                return (
+                  <li
+                    key={c.id}
+                    className="flex items-baseline gap-2 leading-snug"
+                  >
+                    <span className="font-medium">{name}</span>
+                    {code && (
+                      <span
+                        className="font-mono text-xs"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        {code}
+                      </span>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <p
+        className="mt-2 text-xs"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        One-tap copy drops a tweet-ready version of this list on your clipboard.
+      </p>
+    </section>
+  )
+}
+
 export function TierListMaker() {
   const formId = useId()
 
@@ -812,7 +1057,13 @@ export function TierListMaker() {
         if (!have.has(item.id)) {
           // Every tierPool item comes from the main gallery, so render
           // them in the natural TCG card aspect (portrait, full-card).
-          additions.push({ id: item.id, src: item.src, tierId: null, kind: 'gallery' })
+          additions.push({
+            id: item.id,
+            src: item.src,
+            tierId: null,
+            kind: 'gallery',
+            label: item.label,
+          })
         }
       }
       if (additions.length === 0) return current
@@ -1451,6 +1702,13 @@ export function TierListMaker() {
             })() : null}
           </DragOverlay>
         </DndContext>
+
+        {/* Plain-text roster of every charted card, grouped by
+            tier, with a Copy button for quick share. Lives outside
+            the DndContext above on purpose - it's read-only and
+            doesn't need any of the drag wiring. Self-hides when
+            nothing is charted yet. */}
+        <RosterSection tiers={tiers} cards={cards} title={title} />
 
         {/* Footer note. The "always free / no signup / runs in
             browser" trio already lives in the lede above, so down
