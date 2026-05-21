@@ -51,29 +51,28 @@ const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
 
 interface HeaderProps {
   sets: CardSet[]
-  // Per-bucket card counts. Drives the small count badge that hangs
-  // off the EXCLUSIVES pill ("Exclusives · 282" = EN-only + JP-only
-  // + CN-only). Collections without multi-language content (every
-  // collection except One Piece today) pass zeros and the badge
-  // stays hidden.
-  exclusiveCounts?: Record<Exclude<LanguagePickerValue, 'EXCLUSIVES'> | 'EXCLUSIVES', number>
 }
 
 /**
  * Language picker labels, kept here so the row of pills + the active-
  * pill style logic share the same source of truth. `description` is
  * the title tooltip so hovering reveals the actual Bandai sources
- * (e.g. "Japan only" / "Hong Kong + Taiwan / Traditional Chinese").
+ * (e.g. "Japan only" / "Hong Kong + Taiwan + Mainland China").
+ *
+ * Three options, no "All" or "Exclusives" anymore: the cross-region
+ * modes confused users with visual duplicates of the same character
+ * across regions and surfaced familiar-looking cards under "Exclusives"
+ * because most prints have one region-locked alt but otherwise ship
+ * globally. "Pick one language" is the cleanest mental model.
  */
 const LANGUAGE_OPTIONS: ReadonlyArray<{
   value: LanguagePickerValue
   label: string
   description: string
 }> = [
-  { value: 'EN',         label: 'EN',         description: 'English (Bandai EN + Asia-EN cardlists).' },
-  { value: 'JP',         label: 'JP',         description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
-  { value: 'CN',         label: 'CN',         description: 'Chinese (Bandai Hong Kong / Macau / Taiwan; Traditional Chinese).' },
-  { value: 'EXCLUSIVES', label: 'Exclusives', description: 'Pivot to cards exclusive to ONE region — EN-only, JP-only, and CN-only pooled together.' },
+  { value: 'EN', label: 'EN', description: 'English (Bandai EN + Asia-EN cardlists).' },
+  { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
+  { value: 'CN', label: 'CN', description: 'Chinese (Bandai TC/TW + Mainland China SC).' },
 ]
 
 type FacetOption = { value: string; label: string; swatch?: string }
@@ -333,7 +332,7 @@ function FacetOptionRow({
   )
 }
 
-export function Header({ sets, exclusiveCounts }: HeaderProps) {
+export function Header({ sets }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
@@ -346,16 +345,6 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
     pinned, setBoardOpen,
     tierPool,
   } = useStore()
-
-  // Per-option count badge. Only ever shown for the EXCLUSIVES pill --
-  // the EN/JP/CN counts (4k+ each) would dwarf the labels and add
-  // noise to the most-used controls. The EXCLUSIVES count is small
-  // (a few hundred) and is the one number that genuinely helps the
-  // user decide whether to click into that pivot mode.
-  function badgeCountFor(value: LanguagePickerValue): number | null {
-    if (value !== 'EXCLUSIVES') return null
-    return exclusiveCounts?.EXCLUSIVES ?? null
-  }
 
   // One Piece is the only collection with curated filter facets right
   // now (see ONE_PIECE_CARD_TYPES / ONE_PIECE_COLORS above). Gate the
@@ -860,12 +849,11 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
             Alt art
           </button>
           {/* Language picker - mobile. Single-select pill group with
-              four options (EN | JP | CN | Exclusives). The first three
-              swap the gallery to that region's catalogue and artwork;
-              EXCLUSIVES pivots to a cross-region view of single-region
-              prints. The picker is THE primary lens on the
-              multi-language pipeline, so we keep it always-visible
-              rather than tucking it inside a dropdown. */}
+              three options (EN | JP | CN). Each swaps the gallery to
+              that region's catalogue and artwork. The picker is THE
+              primary lens on the multi-language pipeline, so we keep
+              it always-visible rather than tucking it inside a
+              dropdown. */}
           <div
             className="inline-flex items-center"
             style={{
@@ -879,7 +867,6 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
           >
             {LANGUAGE_OPTIONS.map((opt) => {
               const selected = language === opt.value
-              const count = badgeCountFor(opt.value)
               return (
                 <button
                   key={opt.value}
@@ -898,23 +885,6 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                   title={opt.description}
                 >
                   {opt.label}
-                  {count !== null && count > 0 && (
-                    <span
-                      className="inline-flex items-center justify-center text-[9px] font-bold leading-none"
-                      style={{
-                        minWidth: 14,
-                        height: 14,
-                        padding: '0 3px',
-                        borderRadius: 3,
-                        background: selected
-                          ? 'color-mix(in srgb, var(--bg) 25%, transparent)'
-                          : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                        color: selected ? 'var(--bg)' : 'var(--text-muted)',
-                      }}
-                    >
-                      {count}
-                    </span>
-                  )}
                 </button>
               )
             })}
@@ -1165,14 +1135,16 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                 Alt art
               </button>
               {/* Language picker (desktop). Single-select pill group
-                  with four options. The first three (EN | JP | CN)
-                  do two things in one motion: (1) trim the wall to
-                  cards Bandai publishes in that region, (2) swap
-                  every image URL to the matching localized scan.
-                  'Exclusives' is the pivot mode: it pools cards
-                  unique to each region (EN-only + JP-only + CN-only)
-                  into one cross-region view so the user can browse
-                  "things I can only get in one place." */}
+                  with three options. EN | JP | CN do two things in
+                  one motion: (1) trim the wall to cards Bandai
+                  publishes in that region, (2) swap every image URL
+                  to the matching localized scan. Cross-region "All"
+                  and "Exclusives" modes used to live here too but
+                  were removed — they showed the same character art
+                  multiple times because most prints have one
+                  region-locked alt but otherwise ship globally,
+                  which felt like duplication. "Pick one language" is
+                  the clean mental model. */}
               <div
                 className="inline-flex items-center"
                 style={{
@@ -1186,7 +1158,6 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
               >
                 {LANGUAGE_OPTIONS.map((opt) => {
                   const selected = language === opt.value
-                  const count = badgeCountFor(opt.value)
                   return (
                     <button
                       key={opt.value}
@@ -1205,23 +1176,6 @@ export function Header({ sets, exclusiveCounts }: HeaderProps) {
                       title={opt.description}
                     >
                       {opt.label}
-                      {count !== null && count > 0 && (
-                        <span
-                          className="inline-flex items-center justify-center text-[9px] font-bold leading-none"
-                          style={{
-                            minWidth: 14,
-                            height: 14,
-                            padding: '0 3px',
-                            borderRadius: 3,
-                            background: selected
-                              ? 'color-mix(in srgb, var(--bg) 25%, transparent)'
-                              : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                            color: selected ? 'var(--bg)' : 'var(--text-muted)',
-                          }}
-                        >
-                          {count}
-                        </span>
-                      )}
                     </button>
                   )
                 })}

@@ -105,6 +105,19 @@ export function CardTile({ card, priority = false }: CardTileProps) {
       <div className="card-tile__img">
         {!loaded && <div className="card-tile__skeleton" />}
 
+        {/* Tiles always route through the Next image optimizer because
+            ~65% of card image URLs are hot-linked from Bandai regional
+            CDNs that respond with `cross-origin-resource-policy:
+            same-site`. That header silently blocks any direct
+            cross-origin <img> load (we tried `unoptimized` and the wall
+            went black). Optimizer-proxied requests get the CORP header
+            stripped, so they actually render. First-hit pays a
+            fetch+transcode cost in dev; subsequent hits land in Next's
+            on-disk cache (24h TTL via next.config.js).
+
+            Long-term fix to eliminate the first-hit cost: mirror
+            JP/TC/TW/SC to R2 so URLs swap to our own edge — see
+            docs/data-pipeline.md §4.2. */}
         <Image
           src={card.imageSmall}
           alt={`${card.name} - ${card.code}`}
@@ -115,6 +128,12 @@ export function CardTile({ card, priority = false }: CardTileProps) {
           onLoad={() => setLoaded(true)}
           priority={priority}
           fetchPriority={priority ? 'high' : 'auto'}
+          // q=60 is visually indistinguishable from q=75 at thumbnail
+          // sizes (200–384 CSS px wide) but shaves ~25-35% off the
+          // WebP payload — a free win for the wall, which mounts
+          // dozens of tiles per scroll. Lightbox keeps the default 75
+          // because the user is actually looking at the full art.
+          quality={60}
         />
 
         {/* Cursor-following shine */}

@@ -23,58 +23,60 @@ export type CardLanguage =
   | 'JP'       // www.onepiece-cardgame.com          (Japan, primary master catalogue)
   | 'TC'       // asia-tc.onepiece-cardgame.com      (Hong Kong / Macau, Traditional Chinese)
   | 'TW'       // asia-tw.onepiece-cardgame.com      (Taiwan, Traditional Chinese)
+  | 'SC'       // onepiece-cardgame.cn (via onepieceserve.windoent.com JSON API)
+               // — Mainland China Simplified Chinese, added in Phase 8.
+               // Tracks the bulk paginated /cardlist/ endpoint plus the
+               // Premium-Bandai-style product pages where the SC-exclusive
+               // anniversary / serialized prints live.
 
 /**
- * High-level language buckets exposed in the UI's language picker.
+ * Three mutually-exclusive view modes for the gallery, picked from the
+ * header pill group:
  *
- * "CN" is a single user-facing bucket that pulls from both Traditional
- * Chinese catalogues (TC + TW). They publish virtually the same content
- * but on different release cadences -- treating them as one bucket means
- * a user picking "CN" sees the union of HK/TW prints. "Simplified
- * Chinese" (mainland) is not on Bandai's official site and is not in
- * scope for this phase.
+ *   - 'EN' — show only the EN catalogue (en + asia-en), EN art
+ *   - 'JP' — show only the JP catalogue, JP art
+ *   - 'CN' — show only the CN bucket (TC + TW + SC), CN art
+ *
+ * Why no "ALL" or "EXCLUSIVES" mode anymore: user feedback was that
+ * any mode that mixed buckets surfaced visual duplicates (the same
+ * Luffy art three times in EN/JP/TC), and "EXCLUSIVES" was confusing
+ * because most cards have one exclusive variant but otherwise ship
+ * globally — so EXCLUSIVES still surfaced familiar-looking cards.
+ * The simpler "one language per click" mental model wins by a
+ * landslide on signal-to-noise. Users who want to find a region-
+ * exclusive can drill in via the variant fan once they pick a
+ * language. Legacy 'ALL' and 'EXCLUSIVES' values are migrated to
+ * 'EN' in the Zustand persistence layer (see store.ts).
  */
-/**
- * Four mutually-exclusive view modes for the gallery, each picked from
- * the header pill group:
- *
- *   - 'EN'         — show only the EN catalogue (en + asia-en), EN art
- *   - 'JP'         — show only the JP catalogue, JP art
- *   - 'CN'         — show only the CN bucket (tc + tw), CN art
- *   - 'EXCLUSIVES' — pivot to a cross-region "what's only available in
- *                    one place" view: every print that ships in exactly
- *                    one of {EN, JP, CN} buckets, all three pooled
- *                    together. Each card stays on its native region's
- *                    artwork.
- *
- * The legacy 'ALL' value is migrated to 'EN' in the Zustand persistence
- * layer (see store.ts version-10 migration). Rationale: user feedback
- * was that 'All' surfaced visual duplicates across regions (same
- * Luffy art three times in EN/JP/TC); EN is the app's surface language
- * so an English-speaking first-time visitor lands on a wall they can
- * read. JP / CN are one click away.
- */
-export type LanguagePickerValue = 'EN' | 'JP' | 'CN' | 'EXCLUSIVES'
+export type LanguagePickerValue = 'EN' | 'JP' | 'CN'
 
 /**
- * Map a picker value to the set of source languages it covers. Used by
- * `applyLanguageFilter` to decide which prints to surface and which
- * image URL to render.
+ * Map a picker value to the ordered list of source languages it covers.
+ * `applyLanguageFilter` uses this both to decide which prints to
+ * surface AND to pick which localized image URL to render — the
+ * iteration order IS the preference order.
+ *
+ * The CN order — `TC > TW > SC` — is deliberate. SC (Mainland China,
+ * `source.windoent.com`) is the official Bandai feed but has known
+ * filename mislabeling: e.g. the "base" image for OP01-006 is served
+ * at `…1726626190407OP01-006_05.png` (the `_05` suffix suggests an
+ * alt art) and the "base" image for OP01-057 collides with what TC
+ * serves as the alt-art-1. If we resolved SC first, those mislabels
+ * would surface as visible duplicates ("two of the same Paradise
+ * Waterfall in CN mode") in the wall + lightbox. TC (`asia-tc`) has
+ * reliable URL labeling — `OP01-057.png` is the base, `_p1.png` is
+ * the first alt, etc. — so we resolve TC first and only fall back to
+ * SC for SC-exclusive prints (1st Anniversary box cards, mainland-only
+ * promos) where TC simply doesn't have an entry.
  */
-/**
- * Region buckets used by the three "single-language" picker values.
- * `EXCLUSIVES` is a pivot mode, not a region, so it has no entry here;
- * the filter walks `LANGUAGE_BUCKETS` itself to figure out which prints
- * are exclusive to each bucket.
- */
-export const LANGUAGE_GROUPS: Record<Exclude<LanguagePickerValue, 'EXCLUSIVES'>, CardLanguage[]> = {
+export const LANGUAGE_GROUPS: Record<LanguagePickerValue, CardLanguage[]> = {
   EN: ['EN', 'EN_ASIA'],
   JP: ['JP'],
-  CN: ['TC', 'TW'],
+  CN: ['TC', 'TW', 'SC'],
 }
 
 /** Stable iteration order for the three region buckets. */
-export const LANGUAGE_BUCKETS: ReadonlyArray<Exclude<LanguagePickerValue, 'EXCLUSIVES'>> = ['EN', 'JP', 'CN']
+export const LANGUAGE_BUCKETS: ReadonlyArray<LanguagePickerValue> = ['EN', 'JP', 'CN']
 
 /**
  * Where each variant's image was ultimately scraped from. `bandai` is
@@ -135,6 +137,14 @@ export type CardVariant = {
   limitless_artist?: string | null
   limitless_subtitle?: string | null
   limitless_url?: string | null
+  // Per-language Bandai print id. The canonical `id` is the single
+  // identifier downstream code uses, but each region's cardlist often
+  // catalogues the same print under a DIFFERENT `_pN` slot (e.g. the
+  // OP01 booster alt is `_p1` on EN, `_p2` on JP). The deduper records
+  // every region's actual id here so the lightbox / debug panel can
+  // show the user "this print = EN OP01-016_p1 = JP OP01-016_p2 = ...".
+  // Added in Phase 8 when we stopped collapsing collisions silently.
+  regionalIds?: Partial<Record<CardLanguage, string>>
 }
 
 export type Card = {
@@ -179,6 +189,9 @@ export type Card = {
   // Per-language image URLs for the base (non-variant) card. Same
   // shape as CardVariant.imagesByLanguage.
   imagesByLanguage?: Partial<Record<CardLanguage, string>>
+  // Per-language Bandai print id. Same semantics as CardVariant.regionalIds
+  // but for the base print. See CardVariant for the full rationale.
+  regionalIds?: Partial<Record<CardLanguage, string>>
   variants?: CardVariant[]
 }
 

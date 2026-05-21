@@ -13,6 +13,17 @@ const nextConfig = {
     imageSizes: [128, 200, 256, 384],
     // Cache optimized variants for a day on the edge before re-verifying.
     minimumCacheTTL: 60 * 60 * 24,
+    // Whitelisted `quality` values usable from `<Image quality={N}>`.
+    // Next.js 16 requires this allow-list and emits a per-image console
+    // error if a code-site passes a quality not declared here. We use
+    // q=60 for thumbnails in the wall (card-tile.tsx) — visually
+    // indistinguishable from q=75 at 200-384px wide but shaves a quick
+    // 25-35% off the WebP payload — and q=75 (the Next default) for
+    // the full-art lightbox. Without this list, every tile dumped a
+    // red "quality '60' is not configured" stack-trace into devtools
+    // which is both spammy and an actual perf hit during dev. (Hard
+    // requirement in Next 16, advisory in Next 15.)
+    qualities: [60, 75],
     remotePatterns: [
       {
         protocol: 'https',
@@ -51,6 +62,15 @@ const nextConfig = {
         // Traditional Chinese (Taiwan) cardlist.
         protocol: 'https',
         hostname: 'asia-tw.onepiece-cardgame.com',
+      },
+      {
+        // Simplified Chinese (Mainland) image CDN backing
+        // onepiece-cardgame.cn. Hosts every SC card image plus the
+        // promotional banners we scrape from the .cn product pages
+        // (1st / 2nd / 3rd / 4th Anniversary, Premium Card Collection
+        // SC editions, etc.). Added in Phase 8.
+        protocol: 'https',
+        hostname: 'source.windoent.com',
       },
       {
         // Limitless TCG image CDN. Used for off-catalog supplement

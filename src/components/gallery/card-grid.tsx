@@ -407,10 +407,14 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const virtualizer = useWindowVirtualizer({
     count: mounted ? rows.length : 0,
     estimateSize,
-    // Was 12 - that mounted ~72 extra CardTile components on each side of
-    // the viewport. Each tile costs subscriptions, animations, and an
-    // image request, so 4 is plenty (≈2 rows of preload).
-    overscan: 4,
+    // Was 12 → 4 → now 2. 65% of card images hit the Next image
+    // optimizer (Bandai CDNs hot-linked when no R2 mirror exists yet),
+    // so each off-screen tile we mount eagerly is one more
+    // optimizer hit that competes with the in-viewport row for
+    // bandwidth. Two rows of preload is enough headroom for smooth
+    // scrolling at desktop column counts (≤30) without flooding the
+    // network the moment the user lands on the page.
+    overscan: 2,
     scrollMargin: headerH,
   })
 

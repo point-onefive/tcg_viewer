@@ -8,6 +8,16 @@ import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 import { filterCards } from '@/lib/card-filter'
 
+// How many neighbouring variants on each side of the active one are
+// actually loaded as <Image>s. Cards in our dataset can have up to 11
+// variants (OP01-016, OP05-062, anniversary boxes…) and mounting every
+// one at 460px wide simultaneously fires up to 11 parallel optimizer
+// requests — most for cards that are off the rendered fan or barely
+// visible behind it. ±2 keeps the fan animation looking the same (we
+// already fade anything beyond ±3 to 0 opacity) while halving network
+// pressure on big-variant cards.
+const LIGHTBOX_LOAD_WINDOW = 2
+
 interface LightboxViewerProps { cards: Card[] }
 
 export function LightboxViewer({ cards }: LightboxViewerProps) {
@@ -66,11 +76,34 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     [filteredCards, lightboxCardId],
   )
 
-  // Full list of images: base first, then alternates
+  // Full list of images: base first, then alternates.
+  //
+  // We also carry per-print `distribution` (e.g. "Premium Card
+  // Collection · Promo") and `stamp` (winner / event / champion /
+  // pre-release / pack) so the bottom info bar can render a small
+  // print-specific subtitle when the user focuses a variant. This
+  // matters most for prints that LOOK identical to another at
+  // thumbnail size — the differentiator is often a holographic
+  // treatment or a Winner-stamp overlay rather than the artwork
+  // itself, and showing the distribution context tells the user
+  // "this isn't a duplicate of the base; it's the tournament-prize
+  // version with the same art."
   const images = useMemo(() => {
     if (!card) return []
-    const base = { id: card.id, src: card.imageLarge || card.imageSmall, label: 'base' }
-    const variants = (card.variants ?? []).map(v => ({ id: v.id, src: v.imageUrl, label: v.label }))
+    const base = {
+      id: card.id,
+      src: card.imageLarge || card.imageSmall,
+      label: 'base',
+      distribution: card.distribution,
+      stamp: null as string | null,
+    }
+    const variants = (card.variants ?? []).map((v) => ({
+      id: v.id,
+      src: v.imageUrl,
+      label: v.label,
+      distribution: v.distribution,
+      stamp: v.stamp ?? null,
+    }))
     return [base, ...variants]
   }, [card])
 
@@ -302,7 +335,15 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             <div className="lb-stage">
               {images.map((img, i) => {
                 const offset = i - safeFocused
+                const absOffset = Math.abs(offset)
                 const isActive = i === safeFocused
+                // Visibility band: cards beyond ±3 are fully faded out
+                // and non-interactive anyway. Loading band: we go one
+                // tighter (LIGHTBOX_LOAD_WINDOW = 2) so anything two
+                // steps from the focus is already cached the moment
+                // the user steps the fan, but distant variants don't
+                // race the active one for bandwidth.
+                const isInLoadWindow = absOffset <= LIGHTBOX_LOAD_WINDOW
                 return (
                   <motion.div
                     key={img.id}
@@ -310,27 +351,46 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                     onClick={() => setFocused(i)}
                     initial={{ opacity: 0, scale: 0.85, y: 30 }}
                     animate={{
-                      opacity: Math.abs(offset) > 3 ? 0 : 1 - Math.abs(offset) * 0.12,
-                      scale: isActive ? 1 : 0.82 - Math.abs(offset) * 0.05,
+                      opacity: absOffset > 3 ? 0 : 1 - absOffset * 0.12,
+                      scale: isActive ? 1 : 0.82 - absOffset * 0.05,
                       x: offset * 180,
                       rotate: offset * 4,
-                      zIndex: 20 - Math.abs(offset),
+                      zIndex: 20 - absOffset,
                     }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 26, mass: 0.8 }}
                     style={{
                       cursor: isActive ? 'default' : 'pointer',
-                      pointerEvents: Math.abs(offset) > 3 ? 'none' : 'auto',
+                      pointerEvents: absOffset > 3 ? 'none' : 'auto',
                     }}
                   >
-                    <Image
-                      src={img.src}
-                      alt={img.label}
-                      fill
-                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 55vw, 460px"
-                      className="object-cover rounded-xl"
-                      priority={isActive}
-                    />
+                    {isInLoadWindow ? (
+                      <Image
+                        src={img.src}
+                        alt={img.label}
+                        fill
+                        sizes="(max-width: 640px) 80vw, (max-width: 1024px) 55vw, 460px"
+                        className="object-cover rounded-xl"
+                        priority={isActive}
+                      />
+                    ) : (
+                      // Distant variants render only the rounded card-
+                      // shape placeholder so the fan keeps its visual
+                      // depth without triggering a network request.
+                      // The fan animation fades them to 0 opacity at
+                      // absOffset > 3 anyway, and step-navigation moves
+                      // them into the load window before they ever
+                      // become readable.
+                      <div
+                        className="absolute inset-0 rounded-xl"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                        }}
+                        aria-hidden
+                      />
+                    )}
                     {/* Variant label */}
                     {hasMultiple && (
                       <div className="lb-card__label">
@@ -374,6 +434,64 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                   {card.rarity && <><span style={{ opacity: 0.3 }}>·</span><span>{card.rarity}</span></>}
                   {card.cardType && <><span style={{ opacity: 0.3 }}>·</span><span>{card.cardType}</span></>}
                 </div>
+                {/* Print-level subtitle: shows the focused variant's
+                    distribution context (e.g. "Premium Card Collection",
+                    "Promo · Winner-stamped") so visually-similar prints
+                    aren't mistaken for duplicates. The pipeline already
+                    merges near-duplicate variants by image filename
+                    (see card-filter.ts `dedupeVariants`) and folds
+                    their distribution strings together with " · "
+                    separators, so a single surviving print can read
+                    "Premium Card Collection -Best Selection- · 2024
+                    Anniversary Promo". A stamp icon appears alongside
+                    for tournament-prize / event prints whose artwork
+                    is otherwise indistinguishable from the base. The
+                    row stays hidden for the base card when it has no
+                    distribution metadata of its own — empty space is
+                    better than empty padding. */}
+                {(() => {
+                  const img = images[safeFocused]
+                  if (!img) return null
+                  const hasMeta = Boolean(img.distribution) || Boolean(img.stamp)
+                  if (!hasMeta) return null
+                  const STAMP_LABEL: Record<string, string> = {
+                    winner: 'Winner',
+                    event: 'Event',
+                    champion: 'Champion',
+                    'pre-release': 'Pre-release',
+                    pack: 'Pack',
+                  }
+                  const stampLabel = img.stamp ? (STAMP_LABEL[img.stamp] ?? img.stamp) : null
+                  return (
+                    <div
+                      className="flex items-center gap-2 text-[11px] truncate"
+                      style={{
+                        color: 'var(--lb-fg-muted)',
+                        opacity: 0.85,
+                        maxWidth: 'min(70vw, 520px)',
+                      }}
+                    >
+                      {stampLabel && (
+                        <span
+                          className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                          style={{
+                            borderRadius: 3,
+                            background: 'color-mix(in srgb, #E85D2A 18%, transparent)',
+                            color: '#E85D2A',
+                            letterSpacing: '0.08em',
+                            flexShrink: 0,
+                          }}
+                          title={`${stampLabel} stamp print`}
+                        >
+                          {stampLabel}
+                        </span>
+                      )}
+                      {img.distribution && (
+                        <span className="truncate">{img.distribution}</span>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
 
               <button

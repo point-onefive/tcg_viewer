@@ -74,15 +74,12 @@ interface StoreState {
   //   - 'JP'         : Japanese cardlist only -- the master catalogue
   //                    with the earliest release dates and richest promo
   //                    coverage. Card text reads in Japanese.
-  //   - 'CN'         : Traditional Chinese bucket (HK/Macau + Taiwan).
-  //                    Card text reads in Traditional Chinese; "CN" is
-  //                    the user-facing label because TC + TW cover the
-  //                    entire Chinese-language Bandai catalogue.
-  //   - 'EXCLUSIVES' : pivot mode. Show only cards exclusive to ONE of
-  //                    the three buckets (EN-only, JP-only, or CN-only),
-  //                    all pooled together. Each card stays on its
-  //                    native region's artwork. This is the "what can I
-  //                    only get in one place?" view.
+  //   - 'CN'         : Chinese bucket (Simplified Mainland, Traditional
+  //                    HK/Macau, Traditional Taiwan). Phase 8 expanded
+  //                    this from TC+TW to include SC after integrating
+  //                    onepiece-cardgame.cn -- a single "CN" pill
+  //                    surfaces every Chinese-language print regardless
+  //                    of which Bandai regional catalogue it lives on.
   //
   // applyLanguageFilter (in card-filter.ts) handles the wall narrowing
   // + image-URL swapping. Persisted so the preference survives reloads.
@@ -247,7 +244,7 @@ export const useStore = create<StoreState>()(
         tierPool: state.tierPool,
         language: state.language,
       }),
-      version: 10,
+      version: 12,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -286,19 +283,44 @@ export const useStore = create<StoreState>()(
           delete legacy.jpOnly
         }
         if (fromVersion < 10) {
-          // v10 collapses the (language, onlyExclusives) pair into a
-          // single 4-way picker (EN | JP | CN | EXCLUSIVES). Mapping:
-          //   - onlyExclusives === true   -> 'EXCLUSIVES' (cross-region)
-          //   - language === 'ALL'        -> 'EN' (new default; ALL was
-          //                                   too noisy per user feedback)
-          //   - language === 'EN'|'JP'|'CN' -> keep
+          // v10 collapsed the (language, onlyExclusives) pair into a
+          // single picker. The 'EXCLUSIVES' value it introduced was
+          // later removed in v12 (see below). Pre-v10 mappings here
+          // still emit 'EXCLUSIVES' or 'ALL'; the v12 step normalises
+          // those legacy values to the surviving {EN, JP, CN} set.
           const legacy = s as { language?: string; onlyExclusives?: boolean }
           if (legacy.onlyExclusives === true) {
-            s.language = 'EXCLUSIVES'
+            // Stamp the now-removed sentinel; the v12 step below
+            // immediately rewrites it to 'EN'. Cast through unknown
+            // because 'EXCLUSIVES' is no longer in LanguagePickerValue.
+            ;(s as { language?: string }).language = 'EXCLUSIVES'
           } else if (legacy.language === 'ALL' || !legacy.language) {
             s.language = 'EN'
           }
           delete legacy.onlyExclusives
+        }
+        if (fromVersion < 11) {
+          // v11 is a no-op migration: the picker enum is unchanged,
+          // only the underlying CN bucket expanded from [TC, TW] to
+          // [SC, TC, TW] in src/lib/types.ts to surface Bandai's
+          // Simplified Chinese site (`onepiece-cardgame.cn`). No
+          // persisted shape changes; bumping the version forces a
+          // single rehydration so the new mapping takes effect.
+        }
+        if (fromVersion < 12) {
+          // v12 collapses the picker from {EN, JP, CN, EXCLUSIVES}
+          // back to {EN, JP, CN}. The cross-region "Exclusives" mode
+          // was surfacing too many cards that ALSO appeared in plain
+          // EN/JP/CN browse (loose semantics: a card was "exclusive"
+          // if any one of its variants was region-locked, but its
+          // base print still shipped globally) and the same
+          // characters showed up as visual duplicates between modes.
+          // Anyone persisted on EXCLUSIVES falls back to EN (the
+          // default) on rehydrate.
+          const legacy = s as { language?: string }
+          if (legacy.language === 'EXCLUSIVES') {
+            s.language = 'EN'
+          }
         }
         return s as StoreState
       },

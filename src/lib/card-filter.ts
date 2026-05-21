@@ -48,7 +48,7 @@ export function hasJpContent(card: Card): boolean {
  *
  * Backstops on the legacy `regions` array for pre-Phase-7 bundles.
  */
-export function hasExclusiveTo(card: Card, bucketKey: Exclude<LanguagePickerValue, 'EXCLUSIVES'>): boolean {
+export function hasExclusiveTo(card: Card, bucketKey: LanguagePickerValue): boolean {
   const bucket = LANGUAGE_GROUPS[bucketKey]
   const inBucket = (set?: string[] | CardLanguage[]) =>
     Array.isArray(set) && set.length > 0 && (set as string[]).every((s) => bucket.includes(s as CardLanguage))
@@ -64,12 +64,12 @@ export function hasExclusiveTo(card: Card, bucketKey: Exclude<LanguagePickerValu
  *
  * Returns `null` when the card has exclusive content in more than one
  * bucket (rare -- e.g. one EN-only alt + one JP-only alt) or in zero
- * buckets. Used by the `EXCLUSIVES` picker mode both as a "should
- * this card surface?" predicate AND as the renderer's hint for which
- * bucket's art to display.
+ * buckets. The dedicated EXCLUSIVES picker mode that consumed this
+ * was removed; kept exported because card-data scripts and downstream
+ * analytics still want a quick "is this card region-locked?" probe.
  */
-export function exclusiveBucketOf(card: Card): Exclude<LanguagePickerValue, 'EXCLUSIVES'> | null {
-  let hit: Exclude<LanguagePickerValue, 'EXCLUSIVES'> | null = null
+export function exclusiveBucketOf(card: Card): LanguagePickerValue | null {
+  let hit: LanguagePickerValue | null = null
   for (const bucketKey of LANGUAGE_BUCKETS) {
     if (hasExclusiveTo(card, bucketKey)) {
       if (hit) return null
@@ -82,7 +82,7 @@ export function exclusiveBucketOf(card: Card): Exclude<LanguagePickerValue, 'EXC
 /**
  * Apply the user's language picker selection to the raw card list.
  *
- * Behaviour matrix (the picker is a single-select, four-option group):
+ * Behaviour matrix (the picker is a single-select, three-option group):
  *
  *   - language === 'EN' | 'JP' | 'CN':
  *       Filter the wall to cards that ship in at least one region in
@@ -90,13 +90,8 @@ export function exclusiveBucketOf(card: Card): Exclude<LanguagePickerValue, 'EXC
  *       `imageLarge` swapped to the matching localized scan (falling
  *       back to the canonical render when the localized image is
  *       missing). Each variant carousel is filtered to prints that
- *       also ship in the selected bucket.
- *
- *   - language === 'EXCLUSIVES':
- *       Cross-region pivot. Show only cards exclusive to exactly ONE
- *       bucket (EN-only, JP-only, or CN-only), pooled together. Each
- *       card stays on its native bucket's artwork. This is the
- *       "what can I only get in one place?" view.
+ *       also ship in the selected bucket, and same-art duplicates are
+ *       collapsed (see `dedupeVariants`).
  *
  * Always runs BEFORE filterCards so the alt-art toggle / search /
  * facet pickers all see the same post-language view.
@@ -105,47 +100,6 @@ export function applyLanguageFilter(
   cards: Card[],
   language: LanguagePickerValue,
 ): Card[] {
-  if (language === 'EXCLUSIVES') {
-    const out: Card[] = []
-    for (const c of cards) {
-      const exclusive = exclusiveBucketOf(c)
-      if (!exclusive) continue
-      const bucket = LANGUAGE_GROUPS[exclusive]
-      const inBucket = (set?: string[] | CardLanguage[]) =>
-        Array.isArray(set) && set.length > 0 && (set as string[]).every((s) => bucket.includes(s as CardLanguage))
-
-      // Pick the SPECIFIC exclusive print whose art to surface as the
-      // tile. Preference: an exclusive variant beats the base, because
-      // exclusivity is the whole point of this view and a global base
-      // print is the most boring case. Falls back to the base render
-      // when nothing better exists (defensive; exclusiveBucketOf
-      // guarantees something is exclusive here).
-      const exclusiveVariant = c.variants?.find((v) => inBucket(v.exclusiveTo))
-      const tileImg = exclusiveVariant
-        ? (pickLocalizedImage(exclusiveVariant.imagesByLanguage, bucket) ?? exclusiveVariant.imageUrl)
-        : (pickLocalizedImage(c.imagesByLanguage, bucket) ?? c.imageSmall)
-
-      // Carousel keeps only prints that ship in the exclusive bucket
-      // (so a JP-exclusive Roronoa Zoro doesn't surface its EN base
-      // alongside the JP-only alt). Each surviving variant uses its
-      // matching localized scan.
-      const variants = c.variants
-        ?.filter((v) => isInBucket(v.languages, bucket))
-        .map((v) => ({
-          ...v,
-          imageUrl: pickLocalizedImage(v.imagesByLanguage, bucket) ?? v.imageUrl,
-        }))
-
-      out.push({
-        ...c,
-        imageSmall: tileImg,
-        imageLarge: tileImg,
-        variants: variants && variants.length > 0 ? variants : undefined,
-      })
-    }
-    return out
-  }
-
   const bucket = LANGUAGE_GROUPS[language]
 
   const out: Card[] = []
@@ -163,12 +117,20 @@ export function applyLanguageFilter(
 
     // Trim variants to those that ship in the chosen bucket, swap their
     // imageUrl, and forget regional images that don't apply.
-    const variants = c.variants
+    const localizedVariants = c.variants
       ?.filter((v) => isInBucket(v.languages, bucket))
       .map((v) => ({
         ...v,
         imageUrl: pickLocalizedImage(v.imagesByLanguage, bucket) ?? v.imageUrl,
       }))
+
+    // Collapse near-duplicate prints inside this card. Same Bandai
+    // print is sometimes catalogued under multiple internal IDs
+    // (region-local `_pN` collisions, SC mislabeling, etc.); if two
+    // surviving variants end up pointing at the same underlying image
+    // for THIS language, we keep one and merge the other's
+    // distinguishing metadata into it.
+    const variants = dedupeVariants(baseImg, localizedVariants)
 
     out.push({
       ...c,
@@ -178,6 +140,99 @@ export function applyLanguageFilter(
     })
   }
   return out
+}
+
+/**
+ * Within a single card's variant carousel, collapse prints that would
+ * render the same image in the active language.
+ *
+ * Two prints are considered the same render if any of:
+ *
+ *   - their resolved `imageUrl`s are byte-equal (e.g. our dedupe
+ *     already merged them but emitted two variant entries), OR
+ *   - their image URL **filenames** match after stripping the host
+ *     and any CDN-side timestamp prefix (e.g. SC URL
+ *     `…1669722042406OP01-057.png` and TC URL
+ *     `…/OP01-057.png` both reduce to `OP01-057.png`, even though
+ *     the full URLs differ).
+ *
+ * We ALSO drop variants whose image collapses to the base card's
+ * image — there's no value in offering "base" and "p1" as separate
+ * fan slots when they render the same art.
+ *
+ * Metadata of dropped duplicates is folded into the kept variant: the
+ * survivor's `distribution` becomes the union ("Promo · Premium Card
+ * Collection") and `stamp` is set if either had one. That way the
+ * lightbox can label near-dupes correctly when an extra print only
+ * differed by a Winner stamp / holo treatment / regional packaging.
+ */
+function dedupeVariants(
+  baseImg: string,
+  variants: CardVariant[] | undefined,
+): CardVariant[] | undefined {
+  if (!variants || variants.length === 0) return variants
+  const baseKey = filenameKey(baseImg)
+  const seen = new Map<string, CardVariant>()
+  for (const v of variants) {
+    const key = filenameKey(v.imageUrl)
+    if (!key) {
+      // Defensive: if the URL didn't parse to a basename, keep the
+      // variant as-is rather than collapse-all-mystery-prints.
+      seen.set(v.id, v)
+      continue
+    }
+    // Variant that would render identically to the base card art is
+    // pure noise in the fan; skip it entirely. (E.g. an SC-served
+    // "base" file that's actually the alt art our base already shows.)
+    if (key === baseKey) continue
+    const existing = seen.get(key)
+    if (!existing) {
+      seen.set(key, v)
+      continue
+    }
+    // Merge distinguishing metadata onto the print we already kept.
+    const mergedDistribution = mergeDistribution(existing.distribution, v.distribution)
+    seen.set(key, {
+      ...existing,
+      distribution: mergedDistribution,
+      stamp: existing.stamp ?? v.stamp ?? null,
+    })
+  }
+  return Array.from(seen.values())
+}
+
+/**
+ * Reduce an image URL to a comparable key — the bare filename without
+ * any host prefix or CDN-side timestamp. Returns `null` for URLs we
+ * can't parse (kept as a signal so callers can decide whether to drop
+ * or keep the entry).
+ */
+function filenameKey(url: string | null | undefined): string | null {
+  if (!url) return null
+  const last = url.split('/').pop()
+  if (!last) return null
+  const fn = last.split('?')[0]
+  // SC server prefixes filenames with a 10-13 digit upload timestamp
+  // (e.g. `1669722042406OP01-057.png`). Strip it so the key matches
+  // the same logical print served from TC / EN.
+  return fn.replace(/^\d{10,}/, '')
+}
+
+/**
+ * Combine two `distribution` strings into a single comma-separated
+ * label, deduplicating identical fragments. Used when collapsing
+ * near-duplicate variants so the surviving print remembers every
+ * release context the merged-away prints came from.
+ */
+function mergeDistribution(a?: string, b?: string): string | undefined {
+  const parts = new Set<string>()
+  for (const x of [a, b]) {
+    if (!x) continue
+    const trimmed = x.trim()
+    if (trimmed) parts.add(trimmed)
+  }
+  if (parts.size === 0) return undefined
+  return Array.from(parts).join(' · ')
 }
 
 function isInBucket(langs: string[] | CardLanguage[] | undefined, bucket: CardLanguage[]): boolean {

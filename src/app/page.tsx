@@ -8,7 +8,7 @@ import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
-import { applyLanguageFilter, hasExclusiveTo, exclusiveBucketOf } from '@/lib/card-filter'
+import { applyLanguageFilter } from '@/lib/card-filter'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
@@ -33,23 +33,6 @@ export default function Home() {
     const codesWithCards = new Set(cards.map((c) => c.setCode))
     return rawSets.filter((s) => codesWithCards.has(s.setCode))
   }, [rawSets, cards])
-  // How many distinct cards live in each bucket / surface in the
-  // EXCLUSIVES pivot. Drives the small count badge on the Exclusives
-  // pill so the user sees the magnitude before clicking. The
-  // EXCLUSIVES total uses `exclusiveBucketOf` (same predicate as the
-  // EXCLUSIVES filter mode) so the badge always equals the wall's
-  // tile count -- no off-by-N illusions when a card carries an
-  // exclusive print in multiple buckets.
-  const exclusiveCounts = useMemo(() => {
-    let EN = 0, JP = 0, CN = 0, EXCLUSIVES = 0
-    for (const c of rawCards) {
-      if (hasExclusiveTo(c, 'EN')) EN++
-      if (hasExclusiveTo(c, 'JP')) JP++
-      if (hasExclusiveTo(c, 'CN')) CN++
-      if (exclusiveBucketOf(c)) EXCLUSIVES++
-    }
-    return { EN, JP, CN, EXCLUSIVES }
-  }, [rawCards])
   const ready = hasData(activeCollection)
 
   // The old first-visit OnboardingTour was removed in favour of a
@@ -60,7 +43,7 @@ export default function Home() {
   // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
-      <Header sets={sets} exclusiveCounts={exclusiveCounts} />
+      <Header sets={sets} />
       {ready ? (
         <>
           <CardGrid cards={cards} sets={sets} />
