@@ -2,6 +2,12 @@ export type CardVariant = {
   id: string
   label: string        // e.g. "p1", "p2", "r1"
   imageUrl: string
+  // Raw "Card Set(s)" string from Bandai's getInfo div, e.g.
+  // "Premium Card Collection -FILM RED Edition-", "2025 NEW YEAR EVENT",
+  // "Tournament Pack Vol.3", "Super Pre-Release". Use for human-readable
+  // labels and substring-based filtering. Undefined for cards Bandai ships
+  // with no distribution metadata (rare).
+  distribution?: string
 }
 
 export type Card = {
@@ -22,6 +28,10 @@ export type Card = {
   types?: string[]
   effect?: string | null
   trigger?: string | null
+  // Where the base card came from -- same shape as CardVariant.distribution.
+  // For starter-set cards this typically echoes the set name, e.g.
+  // "-Straw Hat Crew-[ST-01]".
+  distribution?: string
   imageSmall: string
   imageLarge?: string
   variants?: CardVariant[]

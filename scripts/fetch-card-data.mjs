@@ -16,13 +16,26 @@
  * Usage: node scripts/fetch-card-data.mjs
  */
 
-import { writeFileSync, mkdirSync } from 'fs'
+import { writeFileSync, mkdirSync, readFileSync, existsSync, renameSync, copyFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const DATA_DIR = join(ROOT, 'data')
+const CARDS_PATH = join(DATA_DIR, 'cards.json')
+const CARDS_TMP_PATH = join(DATA_DIR, 'cards.json.tmp')
+const CARDS_BAK_PATH = join(DATA_DIR, 'cards.json.bak')
+const PACKS_PATH = join(DATA_DIR, 'packs.json')
+
+// Refuse to overwrite the existing cards.json if the new pull contains less
+// than this fraction of the previous card count. Catches the common silent-
+// failure modes: Bandai briefly returning empty pages, a regex change breaking
+// the parser, or a network blip dropping half the series mid-run.
+const MIN_RETENTION_RATIO = 0.8
+
+const ALLOW_PARTIAL = process.argv.includes('--allow-partial')
+const DRY_RUN = process.argv.includes('--dry-run')
 
 const SITE = 'https://en.onepiece-cardgame.com'
 const LIST_URL = `${SITE}/cardlist/`
@@ -54,10 +67,12 @@ function decodeHtml(s) {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&#0*39;/g, "'")
     .replace(/&nbsp;/g, ' ')
-    .replace(/&rsquo;|&#8217;/g, '\u2019')
-    .replace(/&lsquo;|&#8216;/g, '\u2018')
+    .replace(/&rsquo;|&#0*8217;/g, '\u2019')
+    .replace(/&lsquo;|&#0*8216;/g, '\u2018')
+    // Catch any remaining numeric refs (Bandai mixes &#039; and &#39; etc.)
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
 }
 
 /** Parse the cardlist landing page to extract all series options (the dropdown). */
@@ -175,6 +190,23 @@ function parseCardBlock(block, pack) {
   const triggerRaw = extractField(block, 'trigger')
   const trigger = triggerRaw ? htmlToText(triggerRaw).replace(/\n/g, '<br>') : null
 
+  // Bandai exposes "Card Set(s)" in a <div class="getInfo"> on every card,
+  // which is the human-readable distribution string: where this specific
+  // variant came from. Examples (drawn from real cards):
+  //   - "Premium Card Collection -FILM RED Edition-"
+  //   - "2025 NEW YEAR EVENT"
+  //   - "Tournament Pack Vol.3"
+  //   - "Super Pre-Release"
+  //   - "Pre-Release OP03"
+  //   - "-WINGS OF THE CAPTAIN-[OP06]"
+  // Capturing it lets us label variants ("p4 = 2025 NEW YEAR EVENT") and
+  // answer "is this a pre-release card?" by simple substring search, instead
+  // of needing a manual investigation per question.
+  const getInfoRaw = extractField(block, 'getInfo')
+  const distribution = getInfoRaw
+    ? htmlToText(getInfoRaw).replace(/\s+/g, ' ').trim()
+    : null
+
   return {
     id,
     name,
@@ -188,6 +220,7 @@ function parseCardBlock(block, pack) {
     types,
     effect,
     trigger,
+    distribution,
     img_full_url: imgFullUrl,
     img_path: `cards/${id}.png`,
     source_pack_id: pack.id,
@@ -207,6 +240,66 @@ function parseAllCards(html, pack) {
   return cards
 }
 
+/**
+ * Compare a fresh card pull against the previous on-disk copy and print a
+ * structured diff. Pure: returns the diff buckets, doesn't write anything.
+ *
+ * "metadata changed" is intentionally narrow -- we only compare a stable
+ * subset of fields so cosmetic upstream HTML reshuffling (e.g. attribute
+ * ordering) doesn't blow up the diff with noise.
+ */
+function diffCards(prevList, nextList) {
+  const prev = new Map(prevList.map((c) => [c.id, c]))
+  const next = new Map(nextList.map((c) => [c.id, c]))
+  const added = [...next.keys()].filter((id) => !prev.has(id))
+  const removed = [...prev.keys()].filter((id) => !next.has(id))
+  const COMPARE_FIELDS = ['name', 'rarity', 'category', 'cost', 'power', 'counter', 'effect', 'trigger', 'distribution']
+  const changed = []
+  for (const [id, nc] of next) {
+    const pc = prev.get(id)
+    if (!pc) continue
+    const fields = COMPARE_FIELDS.filter((f) => JSON.stringify(pc[f] ?? null) !== JSON.stringify(nc[f] ?? null))
+    if (fields.length) changed.push({ id, fields })
+  }
+  return { added, removed, changed }
+}
+
+function readPrevCards() {
+  if (!existsSync(CARDS_PATH)) return null
+  try {
+    return JSON.parse(readFileSync(CARDS_PATH, 'utf8'))
+  } catch (err) {
+    console.warn(`Previous cards.json unreadable (${err.message}); treating as first run.`)
+    return null
+  }
+}
+
+function printDiffReport(prev, next) {
+  if (!prev) {
+    console.log(`\nFirst run -- no previous cards.json to diff against.`)
+    return
+  }
+  const { added, removed, changed } = diffCards(prev, next)
+  console.log(`\nDiff vs previous cards.json:`)
+  console.log(`  +${added.length} added   -${removed.length} removed   ~${changed.length} metadata-changed`)
+  const SHOW = 20
+  if (added.length) {
+    console.log(`\n  Added (${added.length}):`)
+    added.slice(0, SHOW).forEach((id) => console.log(`    + ${id}`))
+    if (added.length > SHOW) console.log(`    ... and ${added.length - SHOW} more`)
+  }
+  if (removed.length) {
+    console.log(`\n  Removed (${removed.length}):`)
+    removed.slice(0, SHOW).forEach((id) => console.log(`    - ${id}`))
+    if (removed.length > SHOW) console.log(`    ... and ${removed.length - SHOW} more`)
+  }
+  if (changed.length) {
+    console.log(`\n  Metadata changed (${changed.length}):`)
+    changed.slice(0, SHOW).forEach((c) => console.log(`    ~ ${c.id} [${c.fields.join(', ')}]`))
+    if (changed.length > SHOW) console.log(`    ... and ${changed.length - SHOW} more`)
+  }
+}
+
 async function main() {
   mkdirSync(DATA_DIR, { recursive: true })
 
@@ -214,8 +307,6 @@ async function main() {
   const landingHtml = await fetchHTML(LIST_URL)
   const packs = parseSeriesOptions(landingHtml)
   console.log(`Found ${packs.length} series.`)
-
-  writeFileSync(join(DATA_DIR, 'packs.json'), JSON.stringify(packs, null, 2))
 
   const allCards = []
   const seen = new Set()
@@ -243,13 +334,52 @@ async function main() {
     if (i < packs.length - 1) await sleep(300)
   }
 
-  writeFileSync(join(DATA_DIR, 'cards.json'), JSON.stringify(allCards, null, 2))
-  console.log(`\nDone. ${allCards.length} unique cards written to data/cards.json`)
+  // ---- Safety rails ----
+  // Anything below here is "we have the data, now decide whether to publish
+  // it". This is the layer that catches silent corruption: a partial scrape,
+  // a parser regression, or a Bandai-side outage that drops half the catalog.
+
+  const prev = readPrevCards()
+  printDiffReport(prev, allCards)
 
   if (failed.length > 0) {
     console.warn(`\nFailed packs (${failed.length}):`)
-    failed.forEach((p) => console.warn(`  - ${p.title_parts.label ?? p.id}`))
+    failed.forEach((p) => console.warn(`  - ${p.title_parts.label ?? p.id} (id=${p.id})`))
+    if (!ALLOW_PARTIAL) {
+      console.error(
+        `\nRefusing to overwrite data/cards.json: ${failed.length} series failed to fetch. ` +
+        `Re-run when Bandai is healthy, or pass --allow-partial to overwrite anyway.`
+      )
+      process.exit(2)
+    }
+    console.warn(`--allow-partial set; writing anyway.`)
   }
+
+  if (prev && allCards.length < prev.length * MIN_RETENTION_RATIO) {
+    console.error(
+      `\nRefusing to overwrite data/cards.json: new pull has ${allCards.length} cards ` +
+      `vs previous ${prev.length} (below ${Math.round(MIN_RETENTION_RATIO * 100)}% retention threshold). ` +
+      `This usually means a parser regression or a Bandai outage. ` +
+      `Re-run, or pass --allow-partial if the drop is intentional.`
+    )
+    if (!ALLOW_PARTIAL) process.exit(3)
+    console.warn(`--allow-partial set; writing anyway.`)
+  }
+
+  if (DRY_RUN) {
+    console.log(`\n--dry-run set; not writing data/cards.json or data/packs.json.`)
+    return
+  }
+
+  // Atomic-ish write: stage to .tmp, rotate current to .bak, swap in .tmp.
+  // If anything throws between the writeFileSync and the rename, .tmp is left
+  // in place (easy to inspect) and the existing cards.json is untouched.
+  writeFileSync(CARDS_TMP_PATH, JSON.stringify(allCards, null, 2))
+  if (existsSync(CARDS_PATH)) copyFileSync(CARDS_PATH, CARDS_BAK_PATH)
+  renameSync(CARDS_TMP_PATH, CARDS_PATH)
+  writeFileSync(PACKS_PATH, JSON.stringify(packs, null, 2))
+
+  console.log(`\nWrote ${allCards.length} unique cards to data/cards.json (previous saved to data/cards.json.bak)`)
 }
 
 main().catch((err) => {

@@ -164,13 +164,18 @@ for (const [base, variants] of grouped) {
   const canonical = variants.find(v => v.id === base) ?? variants[0]
   const set = resolveSet(canonical)
 
-  // All non-base variants (alternate arts)
+  // All non-base variants (alternate arts). `distribution` (the raw "Card
+  // Set(s)" string from Bandai's getInfo div) is what lets the UI say
+  // "_p4 = 2025 NEW YEAR EVENT" instead of just "p4". We pass it through
+  // unparsed; downstream code can do substring matching on "Pre-Release",
+  // "Tournament Pack", etc. without us having to maintain a taxonomy here.
   const altVariants = variants
     .filter(v => v.id !== base)
     .map(v => ({
       id: v.id,
       label: variantLabel(v.id) ?? v.id,
       imageUrl: `${IMAGE_BASE}/${v.id}.png`,
+      distribution: v.distribution ?? undefined,
     }))
 
   cards.push({
@@ -191,6 +196,7 @@ for (const [base, variants] of grouped) {
     types: canonical.types ?? [],
     effect: canonical.effect ? canonical.effect.replace(/<br>/g, '\n') : null,
     trigger: canonical.trigger ? canonical.trigger.replace(/<br>/g, '\n') : null,
+    distribution: canonical.distribution ?? undefined,
     imageSmall: `${IMAGE_BASE}/${base}.png`,
     imageLarge: `${IMAGE_BASE}/${base}.png`,
     variants: altVariants.length > 0 ? altVariants : undefined,
