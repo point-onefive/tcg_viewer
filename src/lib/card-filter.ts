@@ -278,6 +278,34 @@ function pickLocalizedImage(
 }
 
 /**
+ * Mirror of `pickLocalizedImage` that returns the *bucket key* (e.g.
+ * 'JP', 'TC', 'TW', 'SC') for the language the tile is actually
+ * sourcing its image from. CardTile uses this to render a tiny
+ * language pill so the user can visually confirm that switching the
+ * picker actually changed the image — without it, JP and CN tiles
+ * look near-identical because Bandai reuses the same artwork across
+ * every region and only the (illegible at thumbnail size) card text
+ * is localized.
+ *
+ * Returns `null` when no per-language image is on file (the tile
+ * falls back to `imageSmall`, which is the EN canonical) so the pill
+ * stays hidden rather than mis-claiming a language.
+ */
+export function resolveTileLanguage(
+  card: Card,
+  picker: LanguagePickerValue,
+): CardLanguage | null {
+  const bucket = LANGUAGE_GROUPS[picker]
+  const images = card.imagesByLanguage
+  if (!images) return null
+  for (const lang of bucket) {
+    const key = lang.toLowerCase()
+    if (images[key as keyof typeof images]) return lang
+  }
+  return null
+}
+
+/**
  * Apply every active filter to a card list, returning a new array.
  *
  * Single source of truth for "what's currently visible on the wall."
