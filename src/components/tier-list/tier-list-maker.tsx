@@ -415,6 +415,25 @@ function SortableCard({
           // For uploaded `blob:` URLs the attribute is ignored
           // (same-origin), so unconditional is safe.
           crossOrigin="anonymous"
+          // Self-heal a stale browser cache. When the same URL
+          // exists in HTTP cache from a previous *no-CORS* load,
+          // some browsers revalidate via `If-Modified-Since`, get
+          // back a 304 without CORS headers, and refuse to use
+          // the cached entry -- the image just silently fails to
+          // load and the user sees a broken thumb. We catch the
+          // failure and retry with a cache-bust query string,
+          // which forces a fresh `200` complete with CORS
+          // headers. One retry per element, only for remote URLs
+          // (blob: uploads can't be cache-busted, and a failed
+          // upload shouldn't retry endlessly).
+          onError={(e) => {
+            const img = e.currentTarget
+            if (img.dataset.busted === '1') return
+            if (img.src.startsWith('blob:')) return
+            img.dataset.busted = '1'
+            const sep = img.src.includes('?') ? '&' : '?'
+            img.src = `${img.src}${sep}_cb=${Date.now()}`
+          }}
           // pointer-events:none forwards every press / drag motion
           // straight to the parent <button>, so the browser never has
           // a chance to initiate native image-drag against the <img>.
@@ -1968,6 +1987,14 @@ export function TierListMaker() {
                     // doesn't taint a downstream chart capture if
                     // the drag is interrupted mid-export.
                     crossOrigin="anonymous"
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      if (img.dataset.busted === '1') return
+                      if (img.src.startsWith('blob:')) return
+                      img.dataset.busted = '1'
+                      const sep = img.src.includes('?') ? '&' : '?'
+                      img.src = `${img.src}${sep}_cb=${Date.now()}`
+                    }}
                     style={{
                       width: '100%',
                       height: '100%',
