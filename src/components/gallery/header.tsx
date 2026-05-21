@@ -1176,18 +1176,32 @@ export function Header({ sets }: HeaderProps) {
             </>
           )}
 
-          {/* Search */}
+          {/* Search.
+              Width sized to fit the entire placeholder at rest.
+              "Name, code, or card text…" at text-xs (12px Inter) is
+              ~150px of glyph run; with pl-3 (12px) + pr-7 (28px for
+              the clear-button cap) the input needs ≥190px of outer
+              width or the placeholder truncates to "Name, code, or
+              card tex" — the bug screenshot that triggered this
+              fix. w-56 (224px) leaves ~34px of breathing room so
+              the ellipsis renders cleanly across Inter weight
+              variations. Focus still expands by ~64px so users
+              typing a longer query get more visible characters
+              without the placeholder ever appearing truncated at
+              rest. */}
           <div
-            className="relative w-44 transition-[width] duration-300 focus-within:w-64"
+            className="relative w-56 transition-[width] duration-300 focus-within:w-72"
             style={{ height: 30 }}
           >
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              /* Placeholder hints at the new card-text coverage so
-                 users discover they can search rules text ("when
-                 attacking", "blocker") instead of just names. */
+              /* Placeholder hints at the card-text coverage so users
+                 discover they can search rules text ("when attacking",
+                 "blocker") instead of just names. If you reword this,
+                 re-check the parent container's w-* class above —
+                 the width was sized to this exact string. */
               placeholder="Name, code, or card text…"
               className="w-full h-full pl-3 pr-7 text-xs outline-none"
               style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
