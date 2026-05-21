@@ -23,7 +23,11 @@
 
 const BRAND_ORANGE = '#E85D2A'
 const BRAND_ORANGE_BRIGHT = '#ffb480'
-const RING_THICKNESS = 6
+// Matches `.chart-frame-animated::before { inset: -3px }` in
+// globals.css. Anything thicker reads as a chunky wedge in the
+// GIF because the conic-gradient's bright peak spills further
+// into the corners; 3px keeps it as a thin moving outline.
+const RING_THICKNESS = 3
 const CHART_BORDER_RADIUS = 12
 
 function resolveBackground(): string {
@@ -80,15 +84,26 @@ export async function captureChartPng(node: HTMLElement): Promise<Blob> {
 }
 
 /**
- * Draw a single frame of the rotating brand-orange "sweep" border
- * around the perimeter of the canvas. `angleRad` is the start
- * angle for the conic gradient; iterate from `0` to `2π` to make
- * the bright band travel all the way around once.
+ * Draw a single frame of the brand-orange "sweep" border around
+ * the perimeter of the canvas. `angleRad` is the start angle for
+ * the conic gradient; iterate from `0` to `2π` to make the bright
+ * band travel all the way around once.
  *
- * Visually: a ~120° wedge of the perimeter is brand-orange (with a
- * brighter peach highlight at the centre), tapering to fully
- * transparent at both ends. The remaining 240° is invisible. As
- * the angle advances, that wedge sweeps around the chart frame.
+ * Implementation mirrors the on-screen CSS effect in globals.css:
+ * a `::before` pseudo-element sits one ring outside the chart and
+ * is painted with a conic-gradient. Here we build the same effect
+ * by clipping to a thin perimeter ring (outer rounded rect minus
+ * inner rounded rect, evenodd fill) and filling the whole canvas
+ * with the conic gradient -- only the 3px sliver inside the clip
+ * actually paints, giving "a moving highlight along the outline"
+ * instead of a thick stroked stripe.
+ *
+ * Why the previous stroke-based version looked chunky in GIFs:
+ * a wide stroke means the conic-gradient's bright peak (which
+ * radiates from the canvas centre) spills across many pixels of
+ * the corner regions; once the line was 6px thick it read as a
+ * fat orange wedge rather than an outline. Clip-and-fill at 3px
+ * keeps it subtle and matches the site exactly.
  */
 function drawSweepBorder(
   ctx: CanvasRenderingContext2D,
@@ -100,30 +115,35 @@ function drawSweepBorder(
   const cx = width / 2
   const cy = height / 2
 
+  ctx.save()
+
+  // Annulus clip: outer rounded rect minus inner rounded rect, with
+  // evenodd winding so only the ring between them paints. This is
+  // the canvas analogue of the CSS `::before` sitting at inset:-3px
+  // over an opaque chart background.
+  const outerR = CHART_BORDER_RADIUS
+  const innerR = Math.max(outerR - ring, 1)
+  ctx.beginPath()
+  ctx.roundRect(0, 0, width, height, outerR)
+  ctx.roundRect(ring, ring, width - 2 * ring, height - 2 * ring, innerR)
+  ctx.clip('evenodd')
+
   // `createConicGradient` starts at angle 0 = positive x-axis
   // (3-o'clock). Subtracting π/2 rotates the start to the top of
-  // the chart (12-o'clock), which feels more natural -- the sweep
-  // begins from the top-centre and goes clockwise.
+  // the chart (12-o'clock), which matches the CSS `from 0deg`
+  // convention where 0deg is the top and rotation is clockwise.
   const grad = ctx.createConicGradient(angleRad - Math.PI / 2, cx, cy)
+  // Stops mirror the CSS conic-gradient in globals.css line-for-line
+  // (18deg/36deg/75deg/120deg => 0.05/0.10/0.208/0.333 of full turn).
   grad.addColorStop(0.0, BRAND_ORANGE)
-  grad.addColorStop(0.06, BRAND_ORANGE_BRIGHT)
-  grad.addColorStop(0.12, BRAND_ORANGE)
-  grad.addColorStop(0.22, 'rgba(232, 93, 42, 0.35)')
-  grad.addColorStop(0.33, 'rgba(232, 93, 42, 0)')
+  grad.addColorStop(0.05, BRAND_ORANGE_BRIGHT)
+  grad.addColorStop(0.1, BRAND_ORANGE)
+  grad.addColorStop(0.208, 'rgba(232, 93, 42, 0.35)')
+  grad.addColorStop(0.333, 'rgba(232, 93, 42, 0)')
   grad.addColorStop(1.0, 'rgba(232, 93, 42, 0)')
 
-  ctx.save()
-  ctx.lineWidth = ring
-  ctx.strokeStyle = grad
-  ctx.lineJoin = 'round'
-
-  // Inset the stroke by half-thickness so it draws inside the
-  // canvas bounds instead of getting clipped at the edges.
-  const half = ring / 2
-  const radius = Math.max(CHART_BORDER_RADIUS - 1, 4)
-  ctx.beginPath()
-  ctx.roundRect(half, half, width - ring, height - ring, radius)
-  ctx.stroke()
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, width, height)
   ctx.restore()
 }
 
@@ -131,6 +151,12 @@ function drawSweepBorder(
  * Composite a single GIF frame onto `out`: draw the static chart
  * canvas first, then overlay the sweep border at the given angle.
  * Returns the raw RGBA byte buffer for the gif encoder.
+ *
+ * `imageSmoothingQuality = 'high'` is critical when the base canvas
+ * is larger than the GIF (e.g. retina capture downscaled to fit the
+ * file-size cap) -- the default bilinear filter produces visibly
+ * soft card art, whereas the 'high' setting (Lanczos-ish on most
+ * browsers) keeps edges crisp.
  */
 function renderGifFrame(
   out: HTMLCanvasElement,
@@ -139,6 +165,8 @@ function renderGifFrame(
 ): Uint8ClampedArray {
   const ctx = out.getContext('2d')
   if (!ctx) throw new Error('2D context unavailable')
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
   ctx.clearRect(0, 0, out.width, out.height)
   ctx.drawImage(baseCanvas, 0, 0, out.width, out.height)
   drawSweepBorder(ctx, out.width, out.height, angleRad)
@@ -159,9 +187,12 @@ export interface GifOptions {
   fps?: number
   /**
    * Maximum width of the output GIF, in pixels. The captured
-   * chart canvas is downscaled to fit. 900px keeps the file
-   * well under Twitter's 15MB GIF cap for a typical 6-tier
-   * board even at 30 frames.
+   * chart canvas is downscaled to fit. 1100px gives card art
+   * enough pixels to stay sharp after palette quantization
+   * while keeping a typical 6-tier board comfortably under
+   * Twitter's 15MB GIF cap (the trimmed-down 3px border helps
+   * the encoder too -- less orange noise means more palette
+   * budget for the actual card images).
    */
   maxWidth?: number
   /**
@@ -193,10 +224,16 @@ export async function captureChartGif(
 ): Promise<Blob> {
   const numFrames = options.numFrames ?? 24
   const fps = options.fps ?? 12
-  const maxWidth = options.maxWidth ?? 900
+  const maxWidth = options.maxWidth ?? 1100
   const withBorder = options.withBorder ?? true
 
-  const baseCanvas = await captureChartCanvas(node, 1.5)
+  // Capture at pixelRatio 2 to match the PNG path. The 1.5x
+  // sample we used before was a false economy -- it produced a
+  // base canvas that was already softer than the screen, then we
+  // downscaled it further to fit `maxWidth`, compounding the blur.
+  // At 2x we get a sharp super-sample that downscales cleanly via
+  // the 'high' smoothing quality set in `renderGifFrame`.
+  const baseCanvas = await captureChartCanvas(node, 2)
 
   // Downscale if the captured canvas is wider than the cap.
   const scale = Math.min(1, maxWidth / baseCanvas.width)
@@ -219,6 +256,8 @@ export async function captureChartGif(
     // get a still GIF instead of a surprise animation.
     const ctx = frameCanvas.getContext('2d')
     if (!ctx) throw new Error('2D context unavailable')
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
     ctx.clearRect(0, 0, w, h)
     ctx.drawImage(baseCanvas, 0, 0, w, h)
     const data = ctx.getImageData(0, 0, w, h).data
