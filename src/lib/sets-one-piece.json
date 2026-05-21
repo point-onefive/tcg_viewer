@@ -308,6 +308,13 @@
     "cardCount": 17
   },
   {
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardCount": 17
+  },
+  {
     "setCode": "EB01",
     "setName": "Extra - Memorial Collection",
     "releaseDate": "2024-01-26",
@@ -354,7 +361,7 @@
     "setName": "Promo Cards",
     "releaseDate": "",
     "releaseOrder": 98,
-    "cardCount": 95
+    "cardCount": 113
   },
   {
     "setCode": "EXCLUSIVES",
@@ -368,6 +375,6 @@
     "setName": "P",
     "releaseDate": "",
     "releaseOrder": 900,
-    "cardCount": 6
+    "cardCount": 7
   }
 ]

@@ -89172,6 +89172,729 @@
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST29-017.png"
   },
   {
+    "id": "ST30-001",
+    "code": "ST30-001",
+    "name": "ルフィ＆エース",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "LEADER",
+    "rarity": "L",
+    "colors": [
+      "赤",
+      "緑"
+    ],
+    "cost": 4,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "打/特"
+    ],
+    "types": [
+      "インペルダウン",
+      "白ひげ海賊団",
+      "麦わらの一味"
+    ],
+    "effect": "自分の元々のパワー7000以上のキャラがいる場合、このリーダーのパワー-2000。\n【相手のターン中】自分の「ポートガス・Ｄ・エース」と「モンキー・Ｄ・ルフィ」すべてを、パワー+3000。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-001.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-001.png",
+    "variants": [
+      {
+        "id": "ST30-001_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-001_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-002",
+    "code": "ST30-002",
+    "name": "イナズマ",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 1,
+    "power": 2000,
+    "counter": 1000,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "インペルダウン",
+      "革命軍"
+    ],
+    "effect": "【登場時】自分のデッキの上から5枚を見て、パワー6000のキャラカード1枚までを公開し、手札に加える。その後、残りを好きな順番でデッキの下に置く。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-002.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-002.png",
+    "variants": [
+      {
+        "id": "ST30-002_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-002_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-003",
+    "code": "ST30-003",
+    "name": "エドワード・ニューゲート",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 8,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "四皇",
+      "白ひげ海賊団"
+    ],
+    "effect": "【自分のターン中】自分の元々のパワー6000のキャラすべてを、パワー+1000。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-003.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-003.png",
+    "variants": [
+      {
+        "id": "ST30-003_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-003_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-004",
+    "code": "ST30-004",
+    "name": "エンポリオ・イワンコフ",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 1,
+    "power": 2000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "インペルダウン",
+      "革命軍"
+    ],
+    "effect": "【登場時】自分の手札からパワー6000のキャラカード2枚を公開できる：カード3枚を引き、自分の手札2枚を捨てる。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-004.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-004.png",
+    "variants": [
+      {
+        "id": "ST30-004_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-004_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-005",
+    "code": "ST30-005",
+    "name": "ジョズ",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": 2000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "白ひげ海賊団"
+    ],
+    "effect": "-",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-005.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-005.png",
+    "variants": [
+      {
+        "id": "ST30-005_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-005_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-006",
+    "code": "ST30-006",
+    "name": "ジンベエ",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "魚人族",
+      "インペルダウン",
+      "タイヨウの海賊団"
+    ],
+    "effect": "【登場時】自分の手札からパワー6000のキャラカード1枚を捨てることができる：カード2枚を引く。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-006.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-006.png",
+    "variants": [
+      {
+        "id": "ST30-006_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-006_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-007",
+    "code": "ST30-007",
+    "name": "ポートガス・Ｄ・エース",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "SR",
+    "colors": [
+      "赤"
+    ],
+    "cost": 4,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "白ひげ海賊団"
+    ],
+    "effect": "【登場時】自分のドン!!1枚をレストにできる：このキャラは、このターン中、【速攻】を得る。\n(このカードは登場したターンにアタックできる)\n【アタック時】相手のキャラ1枚までを、このターン中、パワー-1000。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-007.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-007.png",
+    "variants": [
+      {
+        "id": "ST30-007_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-007_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-008",
+    "code": "ST30-008",
+    "name": "マルコ",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "白ひげ海賊団"
+    ],
+    "effect": "【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる)\n【KO時】自分の手札からパワー6000のキャラカード1枚を捨てることができる：このキャラカードをトラッシュからレストで登場させる。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-008.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-008.png",
+    "variants": [
+      {
+        "id": "ST30-008_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-008_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-009",
+    "code": "ST30-009",
+    "name": "リトルオーズJr.",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 1,
+    "power": 2000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "巨人族",
+      "白ひげ海賊団傘下"
+    ],
+    "effect": "自分の元々のパワー6000のキャラが相手の効果で場を離れる場合、代わりにこのキャラをトラッシュに置き、カード1枚を引くことができる。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-009.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-009.png",
+    "variants": [
+      {
+        "id": "ST30-009_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-009_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-010",
+    "code": "ST30-010",
+    "name": "クロコダイル",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "緑"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "インペルダウン",
+      "元B・W"
+    ],
+    "effect": "【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる)\n【登場時】相手のレストのキャラ1枚までは、次の相手のリフレッシュフェイズでアクティブにならない。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-010.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-010.png",
+    "variants": [
+      {
+        "id": "ST30-010_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-010_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-011",
+    "code": "ST30-011",
+    "name": "バギー",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "緑"
+    ],
+    "cost": 2,
+    "power": 1000,
+    "counter": 1000,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "インペルダウン",
+      "バギー海賊団"
+    ],
+    "effect": "自分の元々のパワー6000のキャラが相手の効果で場を離れる場合、代わりにこのキャラをレストにできる。\n【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる)",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-011.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-011.png",
+    "variants": [
+      {
+        "id": "ST30-011_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-011_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-012",
+    "code": "ST30-012",
+    "name": "モンキー・D・ルフィ",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "SR",
+    "colors": [
+      "緑"
+    ],
+    "cost": 4,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "インペルダウン",
+      "麦わらの一味"
+    ],
+    "effect": "【登場時】自分のドン!!枚をレストにできる：このキャラは、このターン中、【速攻】を得る。\n(このカードは登場したターンにアタックできる)\n【アタック時】相手の【ブロッカー】を持つキャラ1枚までを、レストにする。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-012.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-012.png",
+    "variants": [
+      {
+        "id": "ST30-012_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-012_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-013",
+    "code": "ST30-013",
+    "name": "Mr.2・ボン・クレー(ベンサム)",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "緑"
+    ],
+    "cost": 4,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "インペルダウン",
+      "元B・W"
+    ],
+    "effect": "-",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-013.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-013.png",
+    "variants": [
+      {
+        "id": "ST30-013_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-013_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-014",
+    "code": "ST30-014",
+    "name": "Mr.3(ギャルディーノ)",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "CHARACTER",
+    "rarity": "C",
+    "colors": [
+      "緑"
+    ],
+    "cost": 2,
+    "power": 3000,
+    "counter": 2000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "インペルダウン",
+      "元B・W"
+    ],
+    "effect": "【起動メイン】このキャラをレストにできる：自分の元々のパワー6000のキャラ2枚までにレストのドン!!2枚ずつまでを、付与する。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-014.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-014.png",
+    "variants": [
+      {
+        "id": "ST30-014_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-014_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-015",
+    "code": "ST30-015",
+    "name": "この時代の名が!!!\"白ひげ\"だァ!!!",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "EVENT",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "白ひげ海賊団"
+    ],
+    "effect": "【カウンター】自分の元々のパワー6000のキャラが2枚以上いる場合、自分のリーダーかキャラ1枚までを、このバトル中、パワー+4000。",
+    "trigger": "【トリガー】相手のパワー6000以下のキャラ1枚までを、KOする。",
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-015.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-015.png",
+    "variants": [
+      {
+        "id": "ST30-015_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-015_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-016",
+    "code": "ST30-016",
+    "name": "戦えるかルフィ!!!勿論だ!!!",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "EVENT",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "白ひげ海賊団",
+      "麦わらの一味"
+    ],
+    "effect": "【カウンター】自分のリーダーかキャラ1枚までを、このバトル中、パワー+3000。その後、自分の元々のパワー6000のキャラの、「ポートガス・Ｄ・エース」と「モンキー・D・ルフィ」がいる場合、カード1枚を引く。",
+    "trigger": null,
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-016.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-016.png",
+    "variants": [
+      {
+        "id": "ST30-016_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-016_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ST30-017",
+    "code": "ST30-017",
+    "name": "無茶ばっかりしやがって!!!",
+    "setCode": "ST30",
+    "setName": "Starter Deck EX - Luffy & Ace",
+    "releaseDate": "2026-04-25",
+    "releaseOrder": 49,
+    "cardType": "EVENT",
+    "rarity": "C",
+    "colors": [
+      "赤"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "白ひげ海賊団"
+    ],
+    "effect": "【メイン】自分のデッキの上から5枚を見て、パワー6000のキャラカード1枚までを公開し、手札に加える。その後、残りを好きな順番でデッキの下に置く。",
+    "trigger": "【トリガー】このカードの【メイン】効果を発動する。",
+    "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-017.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-017.png",
+    "variants": [
+      {
+        "id": "ST30-017_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-017_p1.png",
+        "distribution": "スタートデッキEX ルフィ&エース【ST-30】",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
     "id": "EB01-001",
     "code": "EB01-001",
     "name": "Kouzuki Oden",
@@ -101178,6 +101901,38 @@
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-037.png"
   },
   {
+    "id": "P-038",
+    "code": "P-038",
+    "name": "トラファルガー・ロー",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "黒"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": 1000,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "ハートの海賊団",
+      "ドレスローザ"
+    ],
+    "effect": "【登場時】自分のリーダー1枚をレストにできる：相手のコスト1以下のキャラ1枚までを、KOする。",
+    "trigger": null,
+    "distribution": "Vジャンプ7月特大号付録（2023年5月19日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-038.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-038.png"
+  },
+  {
     "id": "P-039",
     "code": "P-039",
     "name": "Bellamy",
@@ -101208,6 +101963,38 @@
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-039.png",
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-039.png"
+  },
+  {
+    "id": "P-040",
+    "code": "P-040",
+    "name": "カイドウ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "紫"
+    ],
+    "cost": 8,
+    "power": 10000,
+    "counter": null,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "四皇",
+      "百獣海賊団"
+    ],
+    "effect": "相手の場にドン!!が10枚ある場合、このキャラはKOされない。",
+    "trigger": null,
+    "distribution": "「ONE PIECE CARD GAME 1st ANNIVERSARY COMPLETE GUIDE」限定特典カード",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-040.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-040.png"
   },
   {
     "id": "P-041",
@@ -102179,6 +102966,38 @@
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-062.png"
   },
   {
+    "id": "P-064",
+    "code": "P-064",
+    "name": "光月モモの助",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "黄"
+    ],
+    "cost": 6,
+    "power": 8000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "ワノ国",
+      "光月家"
+    ],
+    "effect": "-",
+    "trigger": null,
+    "distribution": "最強ジャンプ1月号付録（2023年12月4日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-064.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-064.png"
+  },
+  {
     "id": "P-065",
     "code": "P-065",
     "name": "Tony Tony.Chopper",
@@ -102230,6 +103049,81 @@
         ]
       }
     ]
+  },
+  {
+    "id": "P-066",
+    "code": "P-066",
+    "name": "ボア・ハンコック",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "青"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "王下七武海",
+      "九蛇海賊団"
+    ],
+    "effect": "【自分のターン中】自分の手札が5枚以下の場合、自分の特徴《九蛇海賊団》を持つキャラすべては、パワー+1000。",
+    "trigger": null,
+    "distribution": "最強ジャンプ4月号付録（2024年3月4日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-066.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-066.png",
+    "variants": [
+      {
+        "id": "P-066_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-066_p1.png",
+        "distribution": "プロモーションパックEX Vol.2",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "P-067",
+    "code": "P-067",
+    "name": "ユースタス・キッド",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "緑"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": null,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "超新星",
+      "キッド海賊団"
+    ],
+    "effect": "このキャラがレストの場合、相手はキャラの「ユースタス・キッド」以外にアタックできない。",
+    "trigger": null,
+    "distribution": "Vジャンプ4月特大号付録（2024年2月21日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-067.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-067.png"
   },
   {
     "id": "P-068",
@@ -102749,6 +103643,50 @@
     ]
   },
   {
+    "id": "P-080",
+    "code": "P-080",
+    "name": "モンキー・D・ルフィ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "赤"
+    ],
+    "cost": 7,
+    "power": 9000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "四皇",
+      "エッグヘッド",
+      "麦わらの一味"
+    ],
+    "effect": "-",
+    "trigger": null,
+    "distribution": "BANDAI CARD GAMES Fest 24-25 World Tour 来場記念品",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-080.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-080.png",
+    "variants": [
+      {
+        "id": "P-080_p1",
+        "label": "p1",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-080_p1.png",
+        "distribution": "モスバーガータイアップキャンペーン オリジナルカード",
+        "regions": [
+          "JP"
+        ]
+      }
+    ]
+  },
+  {
     "id": "P-081",
     "code": "P-081",
     "name": "Dracule Mihawk",
@@ -103022,6 +103960,69 @@
     ]
   },
   {
+    "id": "P-086",
+    "code": "P-086",
+    "name": "トラファルガー・ロー",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "LEADER",
+    "rarity": "P",
+    "colors": [
+      "赤",
+      "紫"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": null,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "ハートの海賊団"
+    ],
+    "effect": "【起動メイン】【ターン1回】ドン!!-3,自分のパワー3000以上のキャラ1枚を、デッキの下に置くことができる：自分の手札からコスト4以下の特徴《ハートの海賊団》を持つキャラカード1枚までを、登場させる。",
+    "trigger": null,
+    "distribution": "交流会 2024年9月開催記念品",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-086.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-086.png"
+  },
+  {
+    "id": "P-087",
+    "code": "P-087",
+    "name": "ニコ・ロビン",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "紫"
+    ],
+    "cost": 5,
+    "power": 7000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "麦わらの一味"
+    ],
+    "effect": "-",
+    "trigger": null,
+    "distribution": "交流会 2025年1月開催記念品",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-087.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-087.png"
+  },
+  {
     "id": "P-088",
     "code": "P-088",
     "name": "Trafalgar Law",
@@ -103254,6 +104255,68 @@
         ]
       }
     ]
+  },
+  {
+    "id": "P-094",
+    "code": "P-094",
+    "name": "ロロノア・ゾロ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "緑"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": 2000,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "麦わらの一味"
+    ],
+    "effect": "【登場時】相手のレストのコスト2以下のキャラ1枚までを、KOする。",
+    "trigger": null,
+    "distribution": "Vジャンプ7月特大号付録（2025年5月21日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-094.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-094.png"
+  },
+  {
+    "id": "P-095",
+    "code": "P-095",
+    "name": "サンジ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "青"
+    ],
+    "cost": 4,
+    "power": 4000,
+    "counter": 2000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "麦わらの一味"
+    ],
+    "effect": "【相手のアタック時】【ターン1回】自分の手札からイベント1枚を捨てることができる：自分のリーダーかキャラ1枚までを、このバトル中、パワー+2000。",
+    "trigger": null,
+    "distribution": "最強ジャンプ7月号付録（2025年6月4日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-095.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-095.png"
   },
   {
     "id": "P-096",
@@ -103799,6 +104862,69 @@
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-107.png"
   },
   {
+    "id": "P-108",
+    "code": "P-108",
+    "name": "モンキー・D・ルフィ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "緑"
+    ],
+    "cost": 3,
+    "power": 2000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "超新星",
+      "麦わらの一味"
+    ],
+    "effect": "【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる)\n【KO時】自分のドン‼2枚までを、アクティブにする。",
+    "trigger": null,
+    "distribution": "Vジャンプ10月特大号付録（2025年8月21日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-108.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-108.png"
+  },
+  {
+    "id": "P-109",
+    "code": "P-109",
+    "name": "ポートガス・D・エース",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "青"
+    ],
+    "cost": 5,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "特"
+    ],
+    "types": [
+      "白ひげ海賊団"
+    ],
+    "effect": "【ブロッカー】\n【登場時】自分のデッキの上から3枚を見て、好きな順番に並び替え、デッキの上か下に置く。その後、自分のリーダーかキャラ1枚にレストのドン‼1枚までを、付与する。",
+    "trigger": null,
+    "distribution": "最強ジャンプ10月号付録（2025年9月4日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-109.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-109.png"
+  },
+  {
     "id": "P-111",
     "code": "P-111",
     "name": "Nico Robin",
@@ -103928,6 +105054,38 @@
     ]
   },
   {
+    "id": "P-114",
+    "code": "P-114",
+    "name": "ロロノア・ゾロ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "緑"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": 1000,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "超新星",
+      "麦わらの一味"
+    ],
+    "effect": "【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる）\n【自分のターン終了時】自分のアクティブのドン‼がある場合、このキャラをアクティブにする。",
+    "trigger": null,
+    "distribution": "交流会 2025年11月開催記念品",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-114.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-114.png"
+  },
+  {
     "id": "P-115",
     "code": "P-115",
     "name": "Boa Hancock",
@@ -103972,6 +105130,38 @@
     ]
   },
   {
+    "id": "P-116",
+    "code": "P-116",
+    "name": "ニコ・ロビン",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "黒"
+    ],
+    "cost": 2,
+    "power": 1000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "麦わらの一味",
+      "元B・W"
+    ],
+    "effect": "【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる）\n【KO時】自分のトラッシュが7枚以上ある場合、カード1枚を引き、自分の手札1枚を捨てる。",
+    "trigger": null,
+    "distribution": "最強ジャンプ1月号付録（2025年12月4日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-116.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-116.png"
+  },
+  {
     "id": "P-117",
     "code": "P-117",
     "name": "Nami",
@@ -104004,6 +105194,38 @@
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-117.png"
   },
   {
+    "id": "P-118",
+    "code": "P-118",
+    "name": "リリス",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "黄"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": 1000,
+    "attributes": [
+      "知"
+    ],
+    "types": [
+      "エッグヘッド",
+      "科学者"
+    ],
+    "effect": "【登場時】自分のリーダーが特徴《エッグヘッド》を持つ場合、自分の手札からコスト5以下の、特徴《エッグヘッド》か【トリガー】を持つキャラカード1枚までを、登場させる。",
+    "trigger": null,
+    "distribution": "交流会 2026年1月開催記念品",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-118.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-118.png"
+  },
+  {
     "id": "P-119",
     "code": "P-119",
     "name": "Portgas.D.Ace",
@@ -104034,6 +105256,100 @@
     ],
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-119.png",
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-119.png"
+  },
+  {
+    "id": "P-120",
+    "code": "P-120",
+    "name": "サンジ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "黄"
+    ],
+    "cost": 6,
+    "power": 6000,
+    "counter": 2000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "空島",
+      "麦わらの一味"
+    ],
+    "effect": "手札のこのカードは、相手のライフが離れているターン中、コスト－2。",
+    "trigger": null,
+    "distribution": "Vジャンプ4月特大号付録（2026年2月20日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-120.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-120.png"
+  },
+  {
+    "id": "P-121",
+    "code": "P-121",
+    "name": "ブルック",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "R",
+    "colors": [
+      "黒"
+    ],
+    "cost": 4,
+    "power": 5000,
+    "counter": 1000,
+    "attributes": [
+      "斬"
+    ],
+    "types": [
+      "麦わらの一味"
+    ],
+    "effect": "【登場時】自分のデッキの上から3枚をトラッシュに置く。\n【KO時】相手は自身の手札2枚を捨てる。",
+    "trigger": null,
+    "distribution": "最強ジャンプ4月号付録（2026年3月4日売）",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-121.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-121.png"
+  },
+  {
+    "id": "P-135",
+    "code": "P-135",
+    "name": "モンキー・D・ルフィ",
+    "setCode": "PROMO",
+    "setName": "Promo Cards",
+    "releaseDate": "",
+    "releaseOrder": 98,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "緑"
+    ],
+    "cost": 5,
+    "power": 5000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "麦わらの一味"
+    ],
+    "effect": "【ブロッカー】(相手のアタックの後、このカードをレストにし、アタックの対象をこのカードにできる）\n【登場時】相手のコスト5以下のキャラ1枚までを、レストにする。",
+    "trigger": null,
+    "distribution": "交流会 2026年5月開催記念品",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-135.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-135.png"
   },
   {
     "id": "P-072",
@@ -104460,5 +105776,38 @@
         ]
       }
     ]
+  },
+  {
+    "id": "P-110",
+    "code": "P-110",
+    "name": "モンキー・D・ルフィ",
+    "setCode": "P",
+    "setName": "P",
+    "releaseDate": "",
+    "releaseOrder": 900,
+    "cardType": "CHARACTER",
+    "rarity": "P",
+    "colors": [
+      "青"
+    ],
+    "cost": 7,
+    "power": 9000,
+    "counter": 1000,
+    "attributes": [
+      "打"
+    ],
+    "types": [
+      "エルバフ",
+      "四皇",
+      "麦わらの一味"
+    ],
+    "effect": "-",
+    "trigger": null,
+    "distribution": "プレミアムカードコレクション-ONE PIECE DAY’25-",
+    "regions": [
+      "JP"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-110.png",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-110.png"
   }
 ]

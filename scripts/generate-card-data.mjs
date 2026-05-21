@@ -77,6 +77,10 @@ const SET_META = {
   'ST27': { name: 'Starter - Black Marshall.D.Teach', date: '2025-12-05', order: 46 },
   'ST28': { name: 'Starter - Green/Yellow Yamato', date: '2026-03-06', order: 47 },
   'ST29': { name: 'Starter - Egghead',         date: '2026-03-06', order: 48 },
+  // ST-30 is currently Japan-only (Bandai EN hasn't announced a release
+  // window yet). Cards from it land in the bundle tagged regions: ['JP']
+  // and are hidden behind the "JP" header toggle by default.
+  'ST30': { name: 'Starter Deck EX - Luffy & Ace', date: '2026-04-25', order: 49 },
   'EB01': { name: 'Extra - Memorial Collection',date: '2024-01-26', order: 50 },
   'EB02': { name: 'Extra - Anime 25th Collection',date: '2025-01-24', order: 51 },
   'EB03': { name: 'Extra - One Piece Heroines',date: '2025-09-12', order: 52 },
@@ -87,15 +91,21 @@ const SET_META = {
 
 // Pack-id based bucketing for cards that don't fit the standard {SET}-{NUM}
 // scheme. Keyed by source_pack_id from vegapull. These cover:
-//   569901 - Promotion Card (event / judge / tournament promos, all `P-xxx` ids)
-//   569801 - Other Product Card (Premium Bandai gift sets, Best Collection, 1st
-//            Anniversary Set, Memorial Collection, etc.)
+//   569901 - EN Promotion Card (event / judge / tournament promos, all `P-xxx`)
+//   569801 - EN Other Product Card (Premium Bandai gift sets, Best Collection,
+//            1st Anniversary Set, Memorial Collection, etc.)
+//   550901 - JP プロモーションカード (Japan-only magazine appendices like Vジャンプ
+//            Trafalgar Law, 最強ジャンプ Boa Hancock, 1st Anniversary Complete
+//            Guide promos, etc. -- routed to the same PROMO bucket as their EN
+//            counterparts so they all land in one navigable section instead of
+//            spawning a "P" pseudo-set).
 // Cards from these packs are grouped under a shared setCode so they appear as
 // a single "Promo" or "Bandai Exclusives" section rather than fragmenting into
 // one section per individual product.
 const PACK_ID_GROUPS = {
   '569901': { setCode: 'PROMO',      name: 'Promo Cards',            order: 98 },
   '569801': { setCode: 'EXCLUSIVES', name: 'Premium Bandai Exclusives', order: 99 },
+  '550901': { setCode: 'PROMO',      name: 'Promo Cards',            order: 98 },
 }
 
 const RARITY_MAP = {

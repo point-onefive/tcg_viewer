@@ -57,14 +57,6 @@ const EN_ONLY = process.argv.includes('--en-only')
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-// Strip variant suffix (`_p1`, `_p2`, `_r1`, etc.) from a card ID. Mirrors
-// the same regex used in scripts/generate-card-data.mjs so the "is the base
-// card present?" check in the JP merge stays consistent with how the
-// generator groups variants under a base card.
-function baseCardId(id) {
-  return id.replace(/_[a-z]\d+$/i, '')
-}
-
 async function fetchHTML(url, body = null) {
   const init = {
     headers: {
@@ -385,22 +377,26 @@ async function main() {
   const failed = [...en.failed.map((p) => ({ region: 'EN', pack: p }))]
 
   // ---- JP merge (additive only) ----
-  // For every card the JP site shows, we include it iff:
-  //   1. We don't have it from EN yet, AND
-  //   2. Its base ID (e.g. ST01-007 for ST01-007_p6) IS already in our EN set.
-  // The second guard is the "no leaks" policy: a brand-new JP-only card from
-  // an unreleased EN set wouldn't have its base ID in EN yet, so we skip it.
-  // What we DO pick up are JP-only alt-arts of characters already in EN --
-  // Family Deck Set variants, JP Storage Box variants, JP-only event promos
-  // -- which is exactly the gap that originally surfaced (Nami _p6/_p7/_r1).
+  // Every JP card the scrape returns gets admitted unless we already
+  // saw it on EN. Each new card is tagged `regions: ['JP']`; cards
+  // listed on both sites get `regions: ['EN', 'JP']`. This includes
+  // JP-only alt-art variants (Family Deck Set, Storage Box pulls,
+  // magazine promos) AND JP-only base cards (e.g. ST-30 Luffy & Ace,
+  // a Japan-only starter EN hasn't shipped yet; ~21 P-XXX magazine
+  // promos like the Vジャンプ Trafalgar Law).
+  //
+  // The application layer hides JP content by default behind the
+  // header "JP" toggle (see src/lib/card-filter.ts applyRegionFilter
+  // -- it strips both JP-only base cards and JP-only variants). So
+  // the ingestion is the "complete dataset" layer; the UI decides
+  // what to surface. Casual EN browsers never see JP cards unless
+  // they opt in.
   if (!EN_ONLY) {
-    const enBaseIds = new Set(allCards.map((c) => baseCardId(c.id)))
     const jp = await scrapeRegion('JP', JP_LIST_URL, JP_SITE)
     failed.push(...jp.failed.map((p) => ({ region: 'JP', pack: p })))
 
     let jpAdded = 0
     let jpAlreadyHave = 0
-    let jpSkippedNoBase = 0
     for (const c of jp.cards) {
       if (seen.has(c.id)) {
         // Card exists on both sites -- tag the existing record as multi-region.
@@ -409,19 +405,14 @@ async function main() {
         jpAlreadyHave++
         continue
       }
-      if (!enBaseIds.has(baseCardId(c.id))) {
-        jpSkippedNoBase++
-        continue
-      }
       seen.add(c.id)
       allCards.push({ ...c, regions: ['JP'] })
       jpAdded++
     }
 
     console.log(
-      `\n[JP] +${jpAdded} new variants of EN base cards, ` +
-      `${jpAlreadyHave} already in EN (tagged multi-region), ` +
-      `${jpSkippedNoBase} skipped (JP-only base ID, no EN counterpart yet).`
+      `\n[JP] +${jpAdded} new cards (variants + JP-only base cards), ` +
+      `${jpAlreadyHave} already in EN (tagged multi-region).`
     )
   } else {
     console.log(`\n[JP] Skipped (--en-only).`)
