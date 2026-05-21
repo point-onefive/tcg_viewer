@@ -30,16 +30,25 @@ import {
   Check,
   ClipboardList,
   Copy,
+  Film,
   GripVertical,
+  Image as ImageIcon,
   ImagePlus,
   Inbox,
   Layers,
+  Loader2,
   Plus,
   RotateCcw,
   Trash2,
   Trophy,
   Upload,
 } from 'lucide-react'
+import {
+  buildExportFilename,
+  captureChartGif,
+  captureChartPng,
+  downloadBlob,
+} from '@/lib/chart-export'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
 
 export type TierDef = {
@@ -1095,6 +1104,69 @@ export function TierListMaker() {
     })
   }, [])
 
+  // ─── Chart export ────────────────────────────────────────────────
+  // `chartFrameRef` points at the bordered chart container that the
+  // export pipeline snapshots. The CSS sweep border lives *behind*
+  // this node (a `::before` pseudo at z-index -1, inset -3px), so
+  // html-to-image captures the chart itself without the animated
+  // ring -- the GIF path then redraws the ring procedurally per
+  // frame to match the on-screen look. See src/lib/chart-export.ts.
+  const chartFrameRef = useRef<HTMLDivElement | null>(null)
+  const [exporting, setExporting] = useState<'png' | 'gif' | null>(null)
+  const [exportFlash, setExportFlash] = useState<string | null>(null)
+  const exportFlashTimerRef = useRef<number | null>(null)
+  useEffect(() => {
+    return () => {
+      if (exportFlashTimerRef.current !== null) {
+        window.clearTimeout(exportFlashTimerRef.current)
+      }
+    }
+  }, [])
+
+  const flashExport = useCallback((msg: string) => {
+    setExportFlash(msg)
+    if (exportFlashTimerRef.current !== null) {
+      window.clearTimeout(exportFlashTimerRef.current)
+    }
+    exportFlashTimerRef.current = window.setTimeout(() => setExportFlash(null), 2400)
+  }, [])
+
+  const handleSavePng = useCallback(async () => {
+    if (!chartFrameRef.current || exporting !== null) return
+    setExporting('png')
+    setExportFlash(null)
+    try {
+      const blob = await captureChartPng(chartFrameRef.current)
+      downloadBlob(blob, buildExportFilename(title, 'png'))
+      flashExport('Saved PNG')
+    } catch (err) {
+      console.error('PNG export failed', err)
+      flashExport('Export failed - try again')
+    } finally {
+      setExporting(null)
+    }
+  }, [exporting, title, flashExport])
+
+  const handleSaveGif = useCallback(async () => {
+    if (!chartFrameRef.current || exporting !== null) return
+    setExporting('gif')
+    setExportFlash(null)
+    try {
+      const blob = await captureChartGif(chartFrameRef.current, {
+        numFrames: 24,
+        fps: 12,
+        maxWidth: 900,
+      })
+      downloadBlob(blob, buildExportFilename(title, 'gif'))
+      flashExport('Saved animated GIF')
+    } catch (err) {
+      console.error('GIF export failed', err)
+      flashExport('Export failed - try again')
+    } finally {
+      setExporting(null)
+    }
+  }, [exporting, title, flashExport])
+
   const clearBankOnly = useCallback(() => {
     const removedFromStore: string[] = []
     setCards((prev) => {
@@ -1543,24 +1615,92 @@ export function TierListMaker() {
           <SectionLabel
             icon={Trophy}
             label="Chart"
-            right={
-              cards.some((c) => c.tierId !== null) ? (
-                <button
-                  type="button"
-                  onClick={clearChart}
-                  className="inline-flex items-center gap-1 px-3 text-xs font-medium"
-                  style={{ ...ctrlBase, height: 30 }}
-                  aria-label="Move every charted card back to the pool"
-                >
-                  <RotateCcw size={14} aria-hidden />
-                  Clear chart
-                </button>
-              ) : undefined
-            }
+            right={(() => {
+              const hasChartedCards = cards.some((c) => c.tierId !== null)
+              if (!hasChartedCards && !exportFlash) return undefined
+              return (
+                <div className="flex flex-wrap items-center gap-2">
+                  {exportFlash && (
+                    <span
+                      role="status"
+                      aria-live="polite"
+                      className="text-xs font-medium"
+                      style={{
+                        color: exportFlash.startsWith('Saved')
+                          ? '#1f7a3f'
+                          : 'var(--text-muted)',
+                      }}
+                    >
+                      {exportFlash}
+                    </span>
+                  )}
+                  {hasChartedCards && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleSavePng}
+                        disabled={exporting !== null}
+                        className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                        style={{
+                          ...ctrlBase,
+                          height: 30,
+                          opacity: exporting !== null && exporting !== 'png' ? 0.5 : 1,
+                        }}
+                        aria-label="Download chart as PNG"
+                      >
+                        {exporting === 'png' ? (
+                          <Loader2 size={14} className="animate-spin" aria-hidden />
+                        ) : (
+                          <ImageIcon size={14} aria-hidden />
+                        )}
+                        Save PNG
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveGif}
+                        disabled={exporting !== null}
+                        className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                        style={{
+                          ...ctrlBase,
+                          height: 30,
+                          opacity: exporting !== null && exporting !== 'gif' ? 0.5 : 1,
+                          // Tint the GIF button so it stands out as the
+                          // headline "share-ready" action vs the more
+                          // conventional PNG download next to it.
+                          borderColor: 'color-mix(in srgb, #E85D2A 45%, var(--border-subtle))',
+                          color: exporting === 'gif' ? 'var(--text-muted)' : '#E85D2A',
+                        }}
+                        aria-label="Download chart as animated GIF"
+                        title="Animated GIF with sweeping orange border - ready to tweet"
+                      >
+                        {exporting === 'gif' ? (
+                          <Loader2 size={14} className="animate-spin" aria-hidden />
+                        ) : (
+                          <Film size={14} aria-hidden />
+                        )}
+                        Save GIF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearChart}
+                        disabled={exporting !== null}
+                        className="inline-flex items-center gap-1 px-3 text-xs font-medium"
+                        style={{ ...ctrlBase, height: 30 }}
+                        aria-label="Move every charted card back to the pool"
+                      >
+                        <RotateCcw size={14} aria-hidden />
+                        Clear chart
+                      </button>
+                    </>
+                  )}
+                </div>
+              )
+            })()}
           />
 
           <div
-            className="relative overflow-hidden rounded-[12px] p-4 sm:p-5"
+            ref={chartFrameRef}
+            className="chart-frame-animated relative overflow-hidden rounded-[12px] p-4 sm:p-5"
             style={{
               border: '1px solid var(--border-subtle)',
               boxShadow: 'var(--shadow-card)',
