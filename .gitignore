@@ -26,6 +26,9 @@ wrangler.toml
 .DS_Store
 *.log
 
+# Exploratory market-API probe outputs (raw JSON snapshots, regenerable)
+scripts/market/probe-out/
+
 # TS incremental build
 tsconfig.tsbuildinfo
 .vercel

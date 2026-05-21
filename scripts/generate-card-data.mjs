@@ -126,15 +126,17 @@ const IMAGE_BASE = 'https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards'
 // scripts/download-images.mjs:
 //   cards/<printId>.png            -> EN (canonical, legacy flat layout)
 //   cards/<sub>/<printId>.png      -> every other language
-// We map each CardLanguage tag to its subdirectory slug. EN_ASIA, TC, TW
-// live under their own folders so the EN flat root keeps its existing
-// R2 keys (which the rest of the codebase already references).
+// We map each CardLanguage tag to its subdirectory slug. EN_ASIA, TC, TW,
+// and SC each live under their own folders so the EN flat root keeps
+// its existing R2 keys (which the rest of the codebase already
+// references).
 const IMAGE_LANG_SUBDIRS = {
   EN: null,            // flat root
   EN_ASIA: 'asia-en',
   JP: 'jp',
   TC: 'tc',
   TW: 'tw',
+  SC: 'sc',
 }
 
 // Build the R2 URL for a given (printId, language) pair.
@@ -143,12 +145,26 @@ function imageUrlFor(printId, language) {
   return sub ? `${IMAGE_BASE}/${sub}/${printId}.png` : `${IMAGE_BASE}/${printId}.png`
 }
 
-// Extract base card ID by stripping variant suffix: "OP01-006_p3" → "OP01-006"
+// Phase 8 canonical id formats and the regex that splits any of them
+// back into base + suffix:
+//
+//   OP01-006             -> base, no suffix
+//   OP01-006_p3          -> standard variant suffix (Bandai natural)
+//   OP01-006_p7_jp       -> cross-region collision suffix (when EN's _p7
+//                            and JP's _p7 mean two different prints, the
+//                            loser gets a language disambiguator)
+//   OP01-006_l1          -> Limitless-supplemented off-catalog print
+//
+// The split regex matches the OPTIONAL collision-language suffix as a
+// 2-3 letter trailing group so baseId() and variantLabel() both
+// understand the new namespace without touching the rest of the
+// generator.
+const VARIANT_SUFFIX_RE = /_([a-z]\d+(?:_[a-z]{2,4}\d*)?)$/i
+
 function baseId(id) {
-  return id.replace(/_[a-z]\d+$/i, '')
+  return id.replace(VARIANT_SUFFIX_RE, '')
 }
 
-// Extract setCode prefix: "OP01-006" → "OP01"
 function setCodeFromId(id) {
   return id.split('-')[0]
 }
@@ -174,9 +190,10 @@ function resolveSet(card) {
   return { setCode: code, name: code, date: '', order: 900 }
 }
 
-// Extract variant label: "OP01-006_p3" → "p3", "OP01-006" → null
+// Extract variant label: "OP01-006_p3" → "p3", "OP01-006_p7_jp" → "p7_jp",
+// "OP01-006_l1" → "l1", "OP01-006" → null
 function variantLabel(id) {
-  const m = id.match(/_([a-z]\d+)$/i)
+  const m = id.match(VARIANT_SUFFIX_RE)
   return m ? m[1] : null
 }
 
@@ -216,13 +233,26 @@ for (const [base, variants] of grouped) {
   // R2 edge. The fix is a one-shot `node scripts/download-images.mjs
   // --cdn --language=all` + the existing upload-to-r2 sweep; after
   // that runs, regenerating the bundle flips URLs to R2 automatically.
+  // True when this print id was produced by the Phase 8 collision
+  // resolver (e.g. `OP01-016_p7_jp`) rather than being a clean Bandai
+  // _pN id. We never uploaded these to R2 — they're region-specific
+  // alts that share a natural suffix with another region's print —
+  // so EN images for them have to come from Bandai's CDN directly,
+  // not the R2 mirror.
+  function isCollisionSuffix(id) {
+    const m = id.match(/_([a-z]\d+)(?:_([a-z]{2,4}\d*))?$/i)
+    return !!(m && m[2])
+  }
+
   function imageMapFor(row) {
     const out = {}
     const raw = row.imagesByLanguage ?? {}
+    const collisionId = isCollisionSuffix(row.id)
     for (const lang of Object.keys(raw)) {
       const code = lang.toUpperCase()
       if (code === 'EN') {
-        out.en = imageUrlFor(row.id, 'EN')
+        // Collision-suffixed ids have no R2 mirror; serve Bandai source.
+        out.en = collisionId ? raw[lang] : imageUrlFor(row.id, 'EN')
         continue
       }
       if (code === 'LIMITLESS') {
@@ -256,22 +286,34 @@ for (const [base, variants] of grouped) {
   // tagging used by the multi-language picker.
   const altVariants = variants
     .filter(v => v.id !== base)
-    .map(v => ({
-      id: v.id,
-      label: variantLabel(v.id) ?? v.id,
-      imageUrl: `${IMAGE_BASE}/${v.id}.png`,
-      distribution: v.distribution ?? undefined,
-      regions: v.regions ?? undefined,
-      languages: v.languages ?? undefined,
-      exclusiveTo: v.exclusiveTo?.length ? v.exclusiveTo : undefined,
-      imagesByLanguage: imageMapFor(v),
-      source: v.source ?? undefined,
-      stamp: v.stamp ?? undefined,
-      limitless_product: v.limitless_product ?? undefined,
-      limitless_artist: v.limitless_artist ?? undefined,
-      limitless_subtitle: v.limitless_subtitle ?? undefined,
-      limitless_url: v.limitless_url ?? undefined,
-    }))
+    .map(v => {
+      const imgMap = imageMapFor(v)
+      // Primary imageUrl: prefer R2 for clean ids; for collision-
+      // suffixed (cross-region split) and Limitless (_lN) ids there's
+      // no R2 mirror, so fall back to the first available image from
+      // the language map.
+      const isClean = !isCollisionSuffix(v.id) && !/_l\d+$/i.test(v.id)
+      const imageUrl = isClean
+        ? `${IMAGE_BASE}/${v.id}.png`
+        : (imgMap?.en ?? imgMap?.jp ?? imgMap?.tc ?? imgMap?.tw ?? imgMap?.sc ?? imgMap?.limitless ?? `${IMAGE_BASE}/${v.id}.png`)
+      return {
+        id: v.id,
+        label: variantLabel(v.id) ?? v.id,
+        imageUrl,
+        distribution: v.distribution ?? undefined,
+        regions: v.regions ?? undefined,
+        languages: v.languages ?? undefined,
+        exclusiveTo: v.exclusiveTo?.length ? v.exclusiveTo : undefined,
+        imagesByLanguage: imgMap,
+        regionalIds: v.regionalIds && Object.keys(v.regionalIds).length ? v.regionalIds : undefined,
+        source: v.source ?? undefined,
+        stamp: v.stamp ?? undefined,
+        limitless_product: v.limitless_product ?? undefined,
+        limitless_artist: v.limitless_artist ?? undefined,
+        limitless_subtitle: v.limitless_subtitle ?? undefined,
+        limitless_url: v.limitless_url ?? undefined,
+      }
+    })
 
   cards.push({
     id: base,
@@ -304,6 +346,7 @@ for (const [base, variants] of grouped) {
     imageSmall: `${IMAGE_BASE}/${base}.png`,
     imageLarge: `${IMAGE_BASE}/${base}.png`,
     imagesByLanguage: imageMapFor(canonical),
+    regionalIds: canonical.regionalIds && Object.keys(canonical.regionalIds).length ? canonical.regionalIds : undefined,
     variants: altVariants.length > 0 ? altVariants : undefined,
   })
 }
