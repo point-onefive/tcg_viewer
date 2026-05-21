@@ -65,6 +65,14 @@ interface StoreState {
   // is "show me cards that have alt art", not "show me cards with N+".
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
+  // When true, surface Japan-exclusive variants (and JP-only base
+  // cards) in the gallery / lightbox / alt-art counts. Default false
+  // so the casual EN browser sees the same catalogue they always have;
+  // collectors who want the JP Family Deck Set Nami, Storage Box Set
+  // alt-arts, JP magazine promos, etc. flip the toggle. Persisted so
+  // the preference survives reloads.
+  showJpVariants: boolean
+  setShowJpVariants: (v: boolean) => void
   zoom: number
   setZoom: (z: number) => void
   lightboxCardId: string | null
@@ -131,6 +139,8 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
+      showJpVariants: false,
+      setShowJpVariants: (showJpVariants) => set({ showJpVariants }),
       zoom: 5,
       setZoom: (zoom) => set({ zoom }),
       lightboxCardId: null,
@@ -216,8 +226,9 @@ export const useStore = create<StoreState>()(
         activeCollection: state.activeCollection,
         pinned: state.pinned,
         tierPool: state.tierPool,
+        showJpVariants: state.showJpVariants,
       }),
-      version: 6,
+      version: 7,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -233,6 +244,12 @@ export const useStore = create<StoreState>()(
           s.tierPool = Array.isArray((s as { tierPool?: unknown }).tierPool)
             ? ((s as { tierPool?: TierPoolItem[] }).tierPool ?? [])
             : []
+        }
+        if (fromVersion < 7) {
+          // showJpVariants introduced in v7. Default false so the gallery
+          // looks identical to before the JP merge landed; users who want
+          // JP alt arts flip the toggle in the header.
+          s.showJpVariants = false
         }
         return s as StoreState
       },

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { getCards, getSets, hasData } from '@/lib/data'
 import { useStore } from '@/lib/store'
 import { Header } from '@/components/gallery/header'
@@ -7,10 +8,17 @@ import { CardGrid } from '@/components/gallery/card-grid'
 import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
+import { applyRegionFilter } from '@/lib/card-filter'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
-  const cards = getCards(activeCollection)
+  const showJpVariants = useStore((s) => s.showJpVariants)
+  const rawCards = getCards(activeCollection)
+  // applyRegionFilter is the single chokepoint for the JP toggle. Every
+  // surface that lists cards (grid, lightbox, board, alt-art counts)
+  // gets the same filtered view because they all receive these `cards`
+  // -- there's no second-pass filter that could disagree with itself.
+  const cards = useMemo(() => applyRegionFilter(rawCards, showJpVariants), [rawCards, showJpVariants])
   const sets = getSets(activeCollection)
   const ready = hasData(activeCollection)
 

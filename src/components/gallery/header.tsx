@@ -317,6 +317,7 @@ export function Header({ sets }: HeaderProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
+    showJpVariants, setShowJpVariants,
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
@@ -818,6 +819,16 @@ export function Header({ sets }: HeaderProps) {
           >
             Alt art
           </button>
+          <button
+            type="button"
+            onClick={() => setShowJpVariants(!showJpVariants)}
+            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+            style={{ ...(showJpVariants ? ctrlActive : ctrl), height: 30 }}
+            aria-pressed={showJpVariants}
+            aria-label={showJpVariants ? 'Showing Japanese-exclusive variants' : 'Hiding Japanese-exclusive variants'}
+          >
+            JP
+          </button>
         </div>
       )}
 
@@ -1062,6 +1073,29 @@ export function Header({ sets }: HeaderProps) {
                 title="Show only cards with alt art"
               >
                 Alt art
+              </button>
+              {/* JP toggle · sits next to "Alt art" so the two
+                  variant-related controls cluster together. Off by
+                  default so the gallery looks identical to before the
+                  JP merge landed; flip on to reveal Japan-exclusive
+                  alt arts (Family Deck Set, Storage Box variants,
+                  magazine promos, ST-30, etc.). Same active-state
+                  styling as Alt art so the two pills read as
+                  siblings. */}
+              <button
+                type="button"
+                onClick={() => setShowJpVariants(!showJpVariants)}
+                className="inline-flex items-center px-3 text-xs font-medium outline-none"
+                style={{ ...(showJpVariants ? ctrlActive : ctrl), height: 30 }}
+                aria-pressed={showJpVariants}
+                aria-label={showJpVariants ? 'Showing Japanese-exclusive variants' : 'Hiding Japanese-exclusive variants'}
+                title={
+                  showJpVariants
+                    ? 'Hide Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos)'
+                    : 'Show Japan-exclusive alt arts (Family Deck Set, Storage Box, JP magazine promos)'
+                }
+              >
+                JP
               </button>
             </>
           )}

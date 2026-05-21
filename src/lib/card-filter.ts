@@ -16,6 +16,53 @@ export interface CardFilterState {
 }
 
 /**
+ * Hide Japan-exclusive content based on the user's region preference.
+ *
+ * The Phase 3 ingestion put both EN cards and JP-only alt-art variants
+ * into the same JSON bundle. By default the gallery should feel
+ * EN-only (because that's what most users came for); this helper is
+ * the single point that strips JP-only content out of the pipeline
+ * when `showJpVariants` is false.
+ *
+ * What gets stripped:
+ *   - JP-only base cards (rare today - see "regions: ['JP']" at the
+ *     top level - but possible once we admit the 55 JP-exclusive base
+ *     cards in Phase 5).
+ *   - JP-only variants inside each card's `variants` array (the common
+ *     case: e.g. the JP Family Deck Set Nami ST01-007_r1).
+ *
+ * What stays untouched:
+ *   - EN-only cards.
+ *   - Cards listed on both EN and JP (`regions: ['EN', 'JP']`), since
+ *     they're the same Bandai card ID with the same image; the "EN"
+ *     tag is enough to show them.
+ *
+ * Runs BEFORE filterCards so the alt-art toggle counts only visible
+ * variants (otherwise a card whose only "alt art" is a hidden JP
+ * variant would falsely appear in "Alt art" results with an empty
+ * carousel).
+ */
+export function applyRegionFilter(cards: Card[], showJpVariants: boolean): Card[] {
+  if (showJpVariants) return cards
+  const isJpOnly = (regions?: string[]) =>
+    Array.isArray(regions) && regions.length === 1 && regions[0] === 'JP'
+  const out: Card[] = []
+  for (const c of cards) {
+    if (isJpOnly(c.regions)) continue
+    const variants = c.variants?.filter((v) => !isJpOnly(v.regions))
+    if (variants === c.variants) {
+      out.push(c)
+    } else {
+      // New variants array (possibly empty -> store `undefined` so
+      // downstream `c.variants?.length` checks behave the same as a
+      // card that never had variants in the first place).
+      out.push({ ...c, variants: variants && variants.length > 0 ? variants : undefined })
+    }
+  }
+  return out
+}
+
+/**
  * Apply every active filter to a card list, returning a new array.
  *
  * Single source of truth for "what's currently visible on the wall."
