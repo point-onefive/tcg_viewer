@@ -21,14 +21,17 @@
  * the first export click, not on every tier-list page load.
  */
 
-const BRAND_ORANGE = '#E85D2A'
-const BRAND_ORANGE_BRIGHT = '#ffb480'
-// Matches `.chart-frame-animated::before { inset: -3px }` in
-// globals.css. Anything thicker reads as a chunky wedge in the
-// GIF because the conic-gradient's bright peak spills further
-// into the corners; 3px keeps it as a thin moving outline.
-const RING_THICKNESS = 3
+// Matches `.chart-frame-animated::before { background: #E85D2A }`
+// in globals.css. Keeping the colours and ring thickness in sync
+// with the CSS is what makes the exported GIF look identical to
+// what the user sees on the page.
+const BRAND_ORANGE = '232, 93, 42'
+const RING_THICKNESS = 2
 const CHART_BORDER_RADIUS = 12
+// Pulse range matches the `chart-strobe` keyframe in globals.css
+// (opacity 0.4 -> 1 -> 0.4 over one loop).
+const STROBE_MIN_OPACITY = 0.4
+const STROBE_MAX_OPACITY = 1.0
 
 function resolveBackground(): string {
   if (typeof document === 'undefined') return '#111'
@@ -84,43 +87,54 @@ export async function captureChartPng(node: HTMLElement): Promise<Blob> {
 }
 
 /**
- * Draw a single frame of the brand-orange "sweep" border around
- * the perimeter of the canvas. `angleRad` is the start angle for
- * the conic gradient; iterate from `0` to `2π` to make the bright
- * band travel all the way around once.
+ * Compute the strobe opacity at a given loop progress (0..1).
+ * Smooth in/out sine wave between `STROBE_MIN_OPACITY` and
+ * `STROBE_MAX_OPACITY`. One full pulse per loop, matching the
+ * `chart-strobe` keyframe in globals.css.
+ */
+function strobeOpacity(progress: number): number {
+  // sin shifted so progress=0 starts at min, progress=0.5 hits max,
+  // progress=1 returns to min. Same shape as the CSS keyframe.
+  const wave = (1 - Math.cos(progress * Math.PI * 2)) / 2 // 0..1..0
+  return STROBE_MIN_OPACITY + (STROBE_MAX_OPACITY - STROBE_MIN_OPACITY) * wave
+}
+
+/**
+ * Draw a single frame of the brand-orange strobing outline around
+ * the perimeter of the canvas. `progress` is the position in the
+ * loop (0..1); the outline stays put and only its opacity pulses
+ * per the strobe wave.
  *
  * Implementation mirrors the on-screen CSS effect in globals.css:
- * a `::before` pseudo-element sits one ring outside the chart and
- * is painted with a conic-gradient. Here we build the same effect
+ * the chart's `::before` pseudo-element is a flat orange box
+ * positioned one ring outside the chart, with its opacity animated
+ * by the `chart-strobe` keyframe. Here we build the same effect
  * by clipping to a thin perimeter ring (outer rounded rect minus
- * inner rounded rect, evenodd fill) and filling the whole canvas
- * with the conic gradient -- only the 3px sliver inside the clip
- * actually paints, giving "a moving highlight along the outline"
- * instead of a thick stroked stripe.
+ * inner rounded rect, evenodd fill) and filling that ring with
+ * flat orange at the strobe's current opacity.
  *
- * Why the previous stroke-based version looked chunky in GIFs:
- * a wide stroke means the conic-gradient's bright peak (which
- * radiates from the canvas centre) spills across many pixels of
- * the corner regions; once the line was 6px thick it read as a
- * fat orange wedge rather than an outline. Clip-and-fill at 3px
- * keeps it subtle and matches the site exactly.
+ * Why we don't sweep / rotate: a rotating highlight needs the
+ * gradient origin to live somewhere (canvas centre is the only
+ * sensible choice), but a conic-gradient with a thick highlight
+ * lobe inevitably reads as a fat moving wedge in the GIF -- it
+ * was the chunky-rotation look you saw before. A pulsing flat
+ * outline doesn't have that geometry, and it matches the site.
  */
 function drawSweepBorder(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  angleRad: number,
+  progress: number,
 ) {
   const ring = RING_THICKNESS
-  const cx = width / 2
-  const cy = height / 2
+  const opacity = strobeOpacity(progress)
 
   ctx.save()
 
   // Annulus clip: outer rounded rect minus inner rounded rect, with
-  // evenodd winding so only the ring between them paints. This is
-  // the canvas analogue of the CSS `::before` sitting at inset:-3px
-  // over an opaque chart background.
+  // evenodd winding so only the thin ring between them paints. This
+  // is the canvas analogue of the CSS `::before` sitting at
+  // `inset: -2px` over an opaque chart background.
   const outerR = CHART_BORDER_RADIUS
   const innerR = Math.max(outerR - ring, 1)
   ctx.beginPath()
@@ -128,29 +142,15 @@ function drawSweepBorder(
   ctx.roundRect(ring, ring, width - 2 * ring, height - 2 * ring, innerR)
   ctx.clip('evenodd')
 
-  // `createConicGradient` starts at angle 0 = positive x-axis
-  // (3-o'clock). Subtracting π/2 rotates the start to the top of
-  // the chart (12-o'clock), which matches the CSS `from 0deg`
-  // convention where 0deg is the top and rotation is clockwise.
-  const grad = ctx.createConicGradient(angleRad - Math.PI / 2, cx, cy)
-  // Stops mirror the CSS conic-gradient in globals.css line-for-line
-  // (18deg/36deg/75deg/120deg => 0.05/0.10/0.208/0.333 of full turn).
-  grad.addColorStop(0.0, BRAND_ORANGE)
-  grad.addColorStop(0.05, BRAND_ORANGE_BRIGHT)
-  grad.addColorStop(0.1, BRAND_ORANGE)
-  grad.addColorStop(0.208, 'rgba(232, 93, 42, 0.35)')
-  grad.addColorStop(0.333, 'rgba(232, 93, 42, 0)')
-  grad.addColorStop(1.0, 'rgba(232, 93, 42, 0)')
-
-  ctx.fillStyle = grad
+  ctx.fillStyle = `rgba(${BRAND_ORANGE}, ${opacity.toFixed(3)})`
   ctx.fillRect(0, 0, width, height)
   ctx.restore()
 }
 
 /**
  * Composite a single GIF frame onto `out`: draw the static chart
- * canvas first, then overlay the sweep border at the given angle.
- * Returns the raw RGBA byte buffer for the gif encoder.
+ * canvas first, then overlay the strobing outline at the given
+ * loop progress. Returns the raw RGBA byte buffer for the encoder.
  *
  * `imageSmoothingQuality = 'high'` is critical when the base canvas
  * is larger than the GIF (e.g. retina capture downscaled to fit the
@@ -161,7 +161,7 @@ function drawSweepBorder(
 function renderGifFrame(
   out: HTMLCanvasElement,
   baseCanvas: HTMLCanvasElement,
-  angleRad: number,
+  progress: number,
 ): Uint8ClampedArray {
   const ctx = out.getContext('2d')
   if (!ctx) throw new Error('2D context unavailable')
@@ -169,20 +169,22 @@ function renderGifFrame(
   ctx.imageSmoothingQuality = 'high'
   ctx.clearRect(0, 0, out.width, out.height)
   ctx.drawImage(baseCanvas, 0, 0, out.width, out.height)
-  drawSweepBorder(ctx, out.width, out.height, angleRad)
+  drawSweepBorder(ctx, out.width, out.height, progress)
   return ctx.getImageData(0, 0, out.width, out.height).data
 }
 
 export interface GifOptions {
   /**
-   * Number of frames in the loop. More frames = smoother sweep
-   * but larger file. 24 frames at 12 fps gives a 2-second loop
-   * that's smooth enough for the eye.
+   * Number of frames in the loop. The strobe is a smooth pulse
+   * (not a sweep), so we don't need as many frames as a rotation
+   * would. 18 frames at 10 fps gives a 1.8s loop that matches the
+   * `chart-strobe 1.8s` animation in globals.css exactly.
    */
   numFrames?: number
   /**
-   * Frames per second. 12-15 fps reads as smooth for a slow
-   * sweep without inflating the file unnecessarily.
+   * Frames per second. 10 fps with 18 frames gives a 1.8s loop.
+   * Browsers clamp GIF delays to a 10ms minimum, so don't push
+   * fps too high or the player will silently slow down.
    */
   fps?: number
   /**
@@ -190,13 +192,13 @@ export interface GifOptions {
    * chart canvas is downscaled to fit. 1100px gives card art
    * enough pixels to stay sharp after palette quantization
    * while keeping a typical 6-tier board comfortably under
-   * Twitter's 15MB GIF cap (the trimmed-down 3px border helps
+   * Twitter's 15MB GIF cap (the trimmed-down 2px outline helps
    * the encoder too -- less orange noise means more palette
    * budget for the actual card images).
    */
   maxWidth?: number
   /**
-   * Draw the animated sweep border on top of each frame.
+   * Draw the animated strobing outline on top of each frame.
    * When `false`, the encoder emits a single static frame --
    * useful when the on-screen border toggle is off and the
    * user wants the export to match what they're previewing.
@@ -206,24 +208,25 @@ export interface GifOptions {
 }
 
 /**
- * Encode the chart as an animated GIF with a sweep border that
- * loops forever. Pipeline:
+ * Encode the chart as an animated GIF with a strobing outline
+ * that pulses on a loop. Pipeline:
  *
  *  1. Capture the chart DOM node to a canvas once (html-to-image).
  *  2. Downscale to `maxWidth` for a reasonable file size.
  *  3. For each frame, composite the downscaled chart + the
- *     sweep border at this frame's angle onto a working canvas.
- *  4. Quantize the first frame to a 256-colour palette and reuse
- *     it for every frame -- avoids palette flicker between frames
- *     and lets the encoder elide redundant palette tables.
+ *     strobing outline at this frame's pulse opacity onto a
+ *     working canvas.
+ *  4. Quantize once from a representative frame and reuse the
+ *     palette for every frame -- avoids palette flicker between
+ *     frames and lets the encoder elide redundant palette tables.
  *  5. Encode all frames into a single GIF blob via `gifenc`.
  */
 export async function captureChartGif(
   node: HTMLElement,
   options: GifOptions = {},
 ): Promise<Blob> {
-  const numFrames = options.numFrames ?? 24
-  const fps = options.fps ?? 12
+  const numFrames = options.numFrames ?? 18
+  const fps = options.fps ?? 10
   const maxWidth = options.maxWidth ?? 1100
   const withBorder = options.withBorder ?? true
 
@@ -269,16 +272,18 @@ export async function captureChartGif(
     return new Blob([outStatic.buffer], { type: 'image/gif' })
   }
 
-  // Use a frame with the border in the middle of its sweep to
-  // derive the palette. Quantizing the all-static-no-border
-  // version would miss the orange highlight colours and the
-  // sweep would render as muddy beige.
-  const representative = renderGifFrame(frameCanvas, baseCanvas, Math.PI)
+  // Derive the palette from the strobe at peak brightness
+  // (progress=0.5, opacity=1) so the brightest orange has a
+  // dedicated palette entry. Quantizing a dim frame instead
+  // would clip the highlight to muddy beige.
+  const representative = renderGifFrame(frameCanvas, baseCanvas, 0.5)
   const palette = quantize(representative, 256)
 
   for (let i = 0; i < numFrames; i++) {
-    const angleRad = (i / numFrames) * Math.PI * 2
-    const frame = renderGifFrame(frameCanvas, baseCanvas, angleRad)
+    // Loop progress 0..1, evenly spaced. The strobe wave makes
+    // this cycle pulse min -> max -> min in one full loop.
+    const progress = i / numFrames
+    const frame = renderGifFrame(frameCanvas, baseCanvas, progress)
     const indexed = applyPalette(frame, palette)
     encoder.writeFrame(indexed, w, h, { palette, delay })
   }

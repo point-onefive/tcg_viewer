@@ -357,35 +357,29 @@ html.lenis, html.lenis body {
   }
 }
 
-/* ─── Tier list chart "sweep border" ────────────────────────────────
-   A brand-orange highlight that sweeps around the chart frame's
-   perimeter on a loop. Goal: catch the eye in a fast-scrolling
-   social timeline once the chart is exported to GIF (the GIF
-   path draws its own border procedurally to match this look;
-   see src/lib/chart-export.ts).
+/* ─── Tier-list chart strobing border ──────────────────────────────
+   A thin brand-orange outline around the chart frame that pulses
+   in opacity to catch the eye in a busy social-timeline scroll.
+   Plays purely on the page (CSS-only); the export pipeline
+   re-creates it frame-by-frame for the GIF download so the saved
+   file matches what users see (see src/lib/chart-export.ts).
 
-   Implementation: a `::before` pseudo-element sits one extra
-   pixel ring outside the chart, painted with a conic-gradient
-   whose start angle is animated via a custom property. The
-   gradient is mostly transparent with a ~120° wedge of brand
-   orange that rotates around. The chart's own opaque background
-   covers everything except that thin ring, so visually you only
-   see the sweep along the perimeter.
+   Implementation: a `::before` pseudo-element sits one ring
+   outside the chart frame, filled with flat brand orange. The
+   chart's opaque background covers everything except a 2px sliver
+   around the perimeter, so visually we see a single thin outline.
+   A keyframe animation cycles its opacity from 0.4 -> 1 -> 0.4
+   every 1.8s, producing the subtle strobe.
 
-   `@property --chart-sweep-angle` is what makes the angle
-   animatable -- without it browsers treat custom properties as
-   raw strings and won't interpolate between keyframe values.
-   Supported in Chrome 85+, Safari 16.4+, Firefox 128+. On older
-   browsers the border becomes a static orange ring (graceful
-   fall-through). */
-@property --chart-sweep-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes chart-sweep {
-  to { --chart-sweep-angle: 360deg; }
+   Previous version used a rotating conic-gradient sweep which
+   read as a fat moving wedge in the GIF export (because a thick
+   stroke styled with a conic gradient spills its bright peak into
+   the corner pixels). Strobing a flat outline avoids that
+   geometry entirely and looks identical on-screen and in the
+   exported GIF. */
+@keyframes chart-strobe {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
 }
 
 .chart-frame-animated {
@@ -396,36 +390,26 @@ html.lenis, html.lenis body {
 .chart-frame-animated::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  /* 2px ring outside the chart on every side. Combined with the
+     chart's opaque background on top of it, only this 2px sliver
+     of orange peeks out -- the thin outline we want. */
+  inset: -2px;
   z-index: -1;
-  border-radius: 14px;
+  border-radius: 13px;
   pointer-events: none;
-  background: conic-gradient(
-    from var(--chart-sweep-angle, 0deg),
-    #E85D2A 0deg,
-    #ffb480 18deg,
-    #E85D2A 36deg,
-    color-mix(in srgb, #E85D2A 35%, transparent) 75deg,
-    transparent 120deg,
-    transparent 360deg
-  );
-  animation: chart-sweep 4s linear infinite;
-  filter: blur(0.6px);
-  /* A faint constant orange aura so the chart still looks
-     branded when the bright wedge is on the far side of the
-     perimeter. Reads as "always-on" presence + "passing
-     highlight" together. */
-  box-shadow: 0 0 18px -4px color-mix(in srgb, #E85D2A 35%, transparent);
+  background: #E85D2A;
+  animation: chart-strobe 1.8s ease-in-out infinite;
+  /* Soft outer glow so the strobe has a faint halo as it pulses,
+     similar to how an LED outline bleeds slightly into the bezel. */
+  box-shadow: 0 0 14px -3px color-mix(in srgb, #E85D2A 55%, transparent);
 }
 
-/* Reduced-motion users get a static orange ring instead of the
-   sweep -- still on-brand, but no rotation. */
+/* Reduced-motion users get a static orange ring at the strobe's
+   midpoint brightness -- on-brand without the pulse. */
 @media (prefers-reduced-motion: reduce) {
   .chart-frame-animated::before {
     animation: none;
-    background:
-      linear-gradient(#000 0 0) content-box,
-      color-mix(in srgb, #E85D2A 75%, transparent);
+    opacity: 0.7;
   }
 }
 
