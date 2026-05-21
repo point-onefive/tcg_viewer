@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { LanguagePickerValue } from './types'
 
 type Theme = 'light' | 'dark'
 
@@ -65,21 +66,36 @@ interface StoreState {
   // is "show me cards that have alt art", not "show me cards with N+".
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
-  // When true, narrow the wall to ONLY cards that have Japan-exclusive
-  // content (a JP-only variant such as the Family Deck Set Nami, or a
-  // JP-only base card such as ST-30). Mirrors `onlyAltArt` -- it's a
-  // narrowing filter, not a hide/show toggle. Default false:
-  //   - off : regular EN-focused catalogue. JP-only base cards are
-  //           hidden from the wall, JP-only variants are stripped from
-  //           carousels. Same UX as before the JP merge landed.
-  //   - on  : wall shrinks to ~350 JP-eligible cards. Inside each
-  //           surfaced card the JP variants are now visible too, so
-  //           the carousel for e.g. Nami ST01-007 jumps from 6 dots
-  //           to 9 (the Family Deck Set, Storage Box, etc. variants
-  //           the user came here to see).
-  // Persisted so the preference survives reloads.
-  jpOnly: boolean
-  setJpOnly: (v: boolean) => void
+  // High-level language picker that swaps the gallery between Bandai's
+  // five regional catalogues. Values:
+  //   - 'ALL' : show every print Bandai publishes anywhere (default).
+  //             Each card uses its highest-priority image (EN → JP → CN)
+  //             but the carousel surfaces every regional alt and stamped
+  //             prize the catalogues list.
+  //   - 'EN'  : EN + Asia-EN cardlists. Card text reads in English.
+  //   - 'JP'  : Japanese cardlist only -- the master catalogue with the
+  //             earliest release dates and richest promo coverage.
+  //   - 'CN'  : Traditional Chinese (HK/Macau + Taiwan). Card text reads
+  //             in Traditional Chinese; "CN" is the user-facing label
+  //             because TC + TW cover the entire Chinese-language
+  //             Bandai catalogue (Simplified Chinese has no official
+  //             Bandai cardlist site).
+  // When a specific language is selected, applyLanguageFilter (in
+  // card-filter.ts) hides cards that ship in NO matching region and
+  // swaps each visible print's render URL to the matching localized
+  // scan. Persisted so the preference survives reloads.
+  language: LanguagePickerValue
+  setLanguage: (v: LanguagePickerValue) => void
+  // Sibling narrowing filter: when true, show only cards whose base
+  // print is exclusive to the currently-selected language (i.e. no
+  // other Bandai region publishes it). With `language='JP'` this is
+  // every Japan-only base card -- ST-30, magazine promos, JP-only
+  // Family Deck Set / Storage Box reprints. With `language='ALL'`
+  // (the default) the toggle has no effect because no language is
+  // selected to be "exclusive to". Mirrors the Alt-art toggle's
+  // semantics. Persisted.
+  onlyExclusives: boolean
+  setOnlyExclusives: (v: boolean) => void
   zoom: number
   setZoom: (z: number) => void
   lightboxCardId: string | null
@@ -131,6 +147,7 @@ export const useStore = create<StoreState>()(
           activeColor: null,
           activeCardType: null,
           onlyAltArt: false,
+          onlyExclusives: false,
           searchQuery: '',
           lightboxCardId: null,
         }),
@@ -146,8 +163,10 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
-      jpOnly: false,
-      setJpOnly: (jpOnly) => set({ jpOnly }),
+      language: 'ALL',
+      setLanguage: (language) => set({ language }),
+      onlyExclusives: false,
+      setOnlyExclusives: (onlyExclusives) => set({ onlyExclusives }),
       zoom: 5,
       setZoom: (zoom) => set({ zoom }),
       lightboxCardId: null,
@@ -233,9 +252,10 @@ export const useStore = create<StoreState>()(
         activeCollection: state.activeCollection,
         pinned: state.pinned,
         tierPool: state.tierPool,
-        jpOnly: state.jpOnly,
+        language: state.language,
+        onlyExclusives: state.onlyExclusives,
       }),
-      version: 8,
+      version: 9,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -253,20 +273,27 @@ export const useStore = create<StoreState>()(
             : []
         }
         if (fromVersion < 7) {
-          // Introduced (and later removed) `showJpVariants` in v7. The v8
-          // bump replaces it with `jpOnly` which has different semantics
-          // (narrowing filter, not hide/show), so we just drop the old
-          // field and let `jpOnly` start at its v8 default.
+          // Introduced (and later removed) `showJpVariants` in v7.
           delete (s as { showJpVariants?: boolean }).showJpVariants
         }
         if (fromVersion < 8) {
-          // jpOnly introduced in v8. Default false so the gallery looks
-          // identical to the regular EN-focused catalogue; clicking the
-          // "JP" pill in the header narrows the wall to only cards with
-          // Japan-exclusive content (mirrors how "Alt art" narrows to
-          // cards that have variants).
+          // jpOnly (boolean) replaced showJpVariants in v8.
           delete (s as { showJpVariants?: boolean }).showJpVariants
-          s.jpOnly = false
+        }
+        if (fromVersion < 9) {
+          // v9 replaces the jpOnly boolean with a 4-way language picker
+          // ('ALL' | 'EN' | 'JP' | 'CN') and an onlyExclusives narrowing
+          // toggle. Map: jpOnly === true  -> language='JP' + exclusives;
+          //              jpOnly === false -> default 'ALL'.
+          const legacy = s as { jpOnly?: boolean }
+          if (legacy.jpOnly === true) {
+            s.language = 'JP'
+            s.onlyExclusives = true
+          } else {
+            s.language = 'ALL'
+            s.onlyExclusives = false
+          }
+          delete legacy.jpOnly
         }
         return s as StoreState
       },

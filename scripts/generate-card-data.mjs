@@ -122,6 +122,27 @@ const RARITY_MAP = {
 
 const IMAGE_BASE = 'https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards'
 
+// Per-language image URLs follow the layout decided in
+// scripts/download-images.mjs:
+//   cards/<printId>.png            -> EN (canonical, legacy flat layout)
+//   cards/<sub>/<printId>.png      -> every other language
+// We map each CardLanguage tag to its subdirectory slug. EN_ASIA, TC, TW
+// live under their own folders so the EN flat root keeps its existing
+// R2 keys (which the rest of the codebase already references).
+const IMAGE_LANG_SUBDIRS = {
+  EN: null,            // flat root
+  EN_ASIA: 'asia-en',
+  JP: 'jp',
+  TC: 'tc',
+  TW: 'tw',
+}
+
+// Build the R2 URL for a given (printId, language) pair.
+function imageUrlFor(printId, language) {
+  const sub = IMAGE_LANG_SUBDIRS[language]
+  return sub ? `${IMAGE_BASE}/${sub}/${printId}.png` : `${IMAGE_BASE}/${printId}.png`
+}
+
 // Extract base card ID by stripping variant suffix: "OP01-006_p3" → "OP01-006"
 function baseId(id) {
   return id.replace(/_[a-z]\d+$/i, '')
@@ -174,13 +195,65 @@ for (const [base, variants] of grouped) {
   const canonical = variants.find(v => v.id === base) ?? variants[0]
   const set = resolveSet(canonical)
 
+  // Per-print imagesByLanguage from the unified row's map.
+  //
+  // URL policy:
+  //   - EN -> always our R2 mirror (cards/<printId>.png). This is what
+  //          every existing surface already references; we keep that
+  //          stable so nothing breaks during the migration.
+  //   - JP / EN_ASIA / TC / TW -> use the raw Bandai region CDN URL
+  //          until we've actually downloaded + uploaded those images
+  //          to R2. Once the inventory shows R2 coverage, we'll swap
+  //          to imageUrlFor() (R2 mirror) automatically. Until then,
+  //          serving Bandai's CDN directly keeps the gallery RENDER-
+  //          correct under the language picker -- a JP user sees the
+  //          actual JP art, just from Bandai's edge.
+  //   - limitless -> keep the Limitless CDN URL (no R2 mirror by
+  //          design; those images are off-catalog supplements).
+  //
+  // Trade-off: hot-linking Bandai's CDN means each language switch
+  // costs the user a round-trip to en/jp/asia-tc/etc. instead of our
+  // R2 edge. The fix is a one-shot `node scripts/download-images.mjs
+  // --cdn --language=all` + the existing upload-to-r2 sweep; after
+  // that runs, regenerating the bundle flips URLs to R2 automatically.
+  function imageMapFor(row) {
+    const out = {}
+    const raw = row.imagesByLanguage ?? {}
+    for (const lang of Object.keys(raw)) {
+      const code = lang.toUpperCase()
+      if (code === 'EN') {
+        out.en = imageUrlFor(row.id, 'EN')
+        continue
+      }
+      if (code === 'LIMITLESS') {
+        out.limitless = raw[lang]
+        continue
+      }
+      // Non-EN regions: use Bandai source until R2 mirror exists.
+      out[lang] = raw[lang]
+    }
+    return Object.keys(out).length ? out : undefined
+  }
+
+  // Union the language set across base + every variant so the card-level
+  // `languages` reflects what the user can find in any print of the card.
+  function unionLanguages(rows) {
+    const out = []
+    for (const r of rows) {
+      for (const lang of r.languages ?? []) if (!out.includes(lang)) out.push(lang)
+    }
+    return out.length ? out : undefined
+  }
+
   // All non-base variants (alternate arts). `distribution` (the raw "Card
   // Set(s)" string from Bandai's getInfo div) is what lets the UI say
   // "_p4 = 2025 NEW YEAR EVENT" instead of just "p4". We pass it through
   // unparsed; downstream code can do substring matching on "Pre-Release",
   // "Tournament Pack", etc. without us having to maintain a taxonomy here.
-  // `regions` records where Bandai lists this variant (EN, JP, or both) so
-  // the UI can show a small "JP" pip on JP-exclusive promos if desired.
+  // `regions` records where Bandai lists this variant (EN, JP, or both)
+  // so the UI can show a small "JP" pip on JP-exclusive promos; the
+  // newer `languages` array adds EN_ASIA / TC / TW for finer regional
+  // tagging used by the multi-language picker.
   const altVariants = variants
     .filter(v => v.id !== base)
     .map(v => ({
@@ -189,12 +262,22 @@ for (const [base, variants] of grouped) {
       imageUrl: `${IMAGE_BASE}/${v.id}.png`,
       distribution: v.distribution ?? undefined,
       regions: v.regions ?? undefined,
+      languages: v.languages ?? undefined,
+      exclusiveTo: v.exclusiveTo?.length ? v.exclusiveTo : undefined,
+      imagesByLanguage: imageMapFor(v),
+      source: v.source ?? undefined,
+      stamp: v.stamp ?? undefined,
+      limitless_product: v.limitless_product ?? undefined,
+      limitless_artist: v.limitless_artist ?? undefined,
+      limitless_subtitle: v.limitless_subtitle ?? undefined,
+      limitless_url: v.limitless_url ?? undefined,
     }))
 
   cards.push({
     id: base,
     code: base,
     name: canonical.name,
+    namesByLanguage: canonical.namesByLanguage ?? undefined,
     setCode: set.setCode,
     setName: set.name,
     releaseDate: set.date,
@@ -211,8 +294,16 @@ for (const [base, variants] of grouped) {
     trigger: canonical.trigger ? canonical.trigger.replace(/<br>/g, '\n') : null,
     distribution: canonical.distribution ?? undefined,
     regions: canonical.regions ?? undefined,
+    // Languages on the BASE card are the union across base + variants so
+    // the language picker has a single field to filter on. exclusiveTo
+    // is mirrored from the base row (a card is "exclusive to X" when its
+    // base print is only on X; variants in other regions don't change
+    // that classification, since the user typically thinks of the base).
+    languages: unionLanguages(variants),
+    exclusiveTo: canonical.exclusiveTo?.length ? canonical.exclusiveTo : undefined,
     imageSmall: `${IMAGE_BASE}/${base}.png`,
     imageLarge: `${IMAGE_BASE}/${base}.png`,
+    imagesByLanguage: imageMapFor(canonical),
     variants: altVariants.length > 0 ? altVariants : undefined,
   })
 }

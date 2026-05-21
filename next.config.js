@@ -31,6 +31,34 @@ const nextConfig = {
         hostname: 'en.onepiece-cardgame.com',
       },
       {
+        // Master Japan cardlist. Hot-linked from imagesByLanguage.jp
+        // until we mirror JP images onto R2 (see generator's URL
+        // policy comment for the swap-over plan).
+        protocol: 'https',
+        hostname: 'www.onepiece-cardgame.com',
+      },
+      {
+        // Asia-English cardlist (separate Bandai catalogue from en.).
+        protocol: 'https',
+        hostname: 'asia-en.onepiece-cardgame.com',
+      },
+      {
+        // Traditional Chinese (Hong Kong / Macau) cardlist.
+        protocol: 'https',
+        hostname: 'asia-tc.onepiece-cardgame.com',
+      },
+      {
+        // Traditional Chinese (Taiwan) cardlist.
+        protocol: 'https',
+        hostname: 'asia-tw.onepiece-cardgame.com',
+      },
+      {
+        // Limitless TCG image CDN. Used for off-catalog supplement
+        // prints (Phase 6 alt arts + tournament prize stamps).
+        protocol: 'https',
+        hostname: 'limitlesstcg.nyc3.cdn.digitaloceanspaces.com',
+      },
+      {
         protocol: 'https',
         hostname: 'www.gundam-gcg.com',
       },

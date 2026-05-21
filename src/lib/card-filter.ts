@@ -1,4 +1,5 @@
-import type { Card } from './types'
+import type { Card, CardLanguage, CardVariant, LanguagePickerValue } from './types'
+import { LANGUAGE_GROUPS } from './types'
 
 /**
  * The active filter state read off the Zustand store. Kept as a plain
@@ -21,63 +22,151 @@ const isJpOnly = (regions?: string[]) =>
 /**
  * Does this card surface any Japan-exclusive content? True when the
  * base card itself is JP-only (e.g. ST-30, JP P-XXX promos) OR when
- * at least one of its variants is JP-only (e.g. the Family Deck Set
- * Nami ST01-007_r1). Used both to decide eligibility for the "JP"
- * narrowing filter and to compute the count shown on the pill.
+ * at least one of its variants is JP-only.
+ *
+ * Kept around for callers that haven't migrated to the new
+ * `hasExclusiveTo` helper yet; under the hood it just delegates to it.
  */
 export function hasJpContent(card: Card): boolean {
-  if (isJpOnly(card.regions)) return true
-  return card.variants?.some((v) => isJpOnly(v.regions)) ?? false
+  return hasExclusiveTo(card, 'JP')
 }
 
 /**
- * Apply the user's region preference to the raw card list.
+ * Does the card carry at least one print exclusive to the given picker
+ * bucket? "Exclusive" here means "ships only on the regions the picker
+ * groups together" -- so for `picker === 'CN'` we look for prints
+ * tagged `exclusiveTo: ['TC']`, `['TW']`, or `['TC','TW']` and nothing
+ * else.
  *
- * The Phase 3 ingestion put both EN cards and JP-only alt-art variants
- * into the same JSON bundle. Two modes:
+ * Backstops on the legacy `regions` array for cards generated before
+ * Phase 7 so the helper works against stale bundles too.
+ */
+export function hasExclusiveTo(card: Card, picker: Exclude<LanguagePickerValue, 'ALL'>): boolean {
+  const bucket = LANGUAGE_GROUPS[picker]
+  const inBucket = (set?: string[] | CardLanguage[]) =>
+    Array.isArray(set) && set.length > 0 && (set as string[]).every((s) => bucket.includes(s as CardLanguage))
+  if (inBucket(card.exclusiveTo)) return true
+  // Legacy fallback: JP-only via 2-region regions tag.
+  if (picker === 'JP' && isJpOnly(card.regions as string[])) return true
+  if (card.variants?.some((v) => inBucket(v.exclusiveTo)) ?? false) return true
+  if (picker === 'JP' && (card.variants?.some((v) => isJpOnly(v.regions as string[])) ?? false)) return true
+  return false
+}
+
+/**
+ * Apply the user's language preference to the raw card list.
  *
- *   - jpOnly: false (DEFAULT)
- *       Regular EN-focused catalogue. Strip JP-only base cards from
- *       the wall and JP-only variants from each card's carousel, so
- *       the gallery looks identical to before the JP merge landed.
- *       This is the "no noise" mode.
+ * Behaviour matrix:
  *
- *   - jpOnly: true
- *       Narrow the wall to ONLY cards that have JP-exclusive content
- *       (JP-only base cards + cards with at least one JP-only variant).
- *       Inside each surfaced card, leave every variant intact so the
- *       JP Family Deck Set, Storage Box, magazine promos, etc. are
- *       visible alongside the EN art for comparison.
+ *   - language === 'ALL', onlyExclusives === false (default):
+ *       Show every card. No URL swapping. Carousel shows every
+ *       variant Bandai or Limitless tracks. Identical to the
+ *       pre-Phase-7 default catalogue (plus the new regional alts
+ *       picked up from asia-en / asia-tc / asia-tw).
  *
- * Mirrors how `onlyAltArt` works: clicking it narrows the wall to the
- * subset the user is currently interested in, rather than silently
- * adding/removing content they may never scroll to.
+ *   - language === 'EN' | 'JP' | 'CN', onlyExclusives === false:
+ *       Filter the wall to cards that ship in at least one matching
+ *       region. Each surviving card has its `imageSmall` / `imageLarge`
+ *       swapped to the matching localized scan (falling back to the
+ *       canonical EN render when the localized image is missing). Each
+ *       variant carousel is filtered to prints that also ship in the
+ *       selected region.
  *
- * Runs BEFORE filterCards so the alt-art toggle counts only visible
- * variants (otherwise a card whose only "alt art" is a hidden JP
- * variant would falsely appear in "Alt art" results with an empty
- * carousel).
+ *   - language === 'EN' | 'JP' | 'CN', onlyExclusives === true:
+ *       Same as above, but additionally narrows the wall to cards
+ *       whose BASE print is exclusive to that region. Wires up the
+ *       header pill "EN-only N / JP-only N / CN-only N".
+ *
+ *   - onlyExclusives without a language is a no-op (defensive default).
+ *
+ * Always runs BEFORE filterCards so the alt-art toggle / search /
+ * facet pickers all see the same post-language view.
+ */
+export function applyLanguageFilter(
+  cards: Card[],
+  language: LanguagePickerValue,
+  onlyExclusives: boolean,
+): Card[] {
+  if (language === 'ALL') {
+    if (!onlyExclusives) return cards
+    // "Exclusives" without a chosen language is meaningless; treat as no-op.
+    return cards
+  }
+
+  const bucket = LANGUAGE_GROUPS[language]
+  const inBucket = (langs?: string[] | CardLanguage[]) =>
+    Array.isArray(langs) && (langs as string[]).some((l) => bucket.includes(l as CardLanguage))
+
+  const out: Card[] = []
+  for (const c of cards) {
+    // Skip the card entirely if NEITHER the base print nor any variant
+    // is published in the chosen region. (A purely-Limitless card with
+    // no Bandai-region tag will fall through here; that's fine -- they
+    // still appear under 'ALL'.)
+    const baseInRegion = inBucket(c.languages) || inBucket(c.variants?.flatMap((v) => v.languages ?? []))
+    if (!baseInRegion) continue
+
+    if (onlyExclusives && !hasExclusiveTo(c, language)) continue
+
+    // Swap base image to the matching localized scan (first available
+    // language in the picker's bucket). Falls back to the existing
+    // imageSmall when no per-language map is present (older bundles).
+    const baseImg = pickLocalizedImage(c.imagesByLanguage, bucket) ?? c.imageSmall
+
+    // Trim variants to those that ship in the chosen region, swap their
+    // imageUrl, and forget regional images that don't apply.
+    const variants = c.variants
+      ?.filter((v) => inBucket(v.languages))
+      .map((v) => ({
+        ...v,
+        imageUrl: pickLocalizedImage(v.imagesByLanguage, bucket) ?? v.imageUrl,
+      }))
+
+    out.push({
+      ...c,
+      imageSmall: baseImg,
+      imageLarge: baseImg,
+      variants: variants && variants.length > 0 ? variants : undefined,
+    })
+  }
+  return out
+}
+
+/**
+ * Backwards-compat shim that mirrors the old jpOnly behaviour:
+ *   - jpOnly === true  -> narrow to JP-content cards (no image swap).
+ *   - jpOnly === false -> strip JP-only base cards + JP-only variants.
+ *
+ * Kept so any caller that hasn't migrated to `applyLanguageFilter`
+ * doesn't break in the meantime.
  */
 export function applyRegionFilter(cards: Card[], jpOnly: boolean): Card[] {
   if (jpOnly) {
-    // JP-only mode: keep cards with JP content, leave variants intact.
     return cards.filter(hasJpContent)
   }
-  // Default mode: strip JP-only base cards + JP-only variants.
   const out: Card[] = []
   for (const c of cards) {
-    if (isJpOnly(c.regions)) continue
-    const variants = c.variants?.filter((v) => !isJpOnly(v.regions))
+    if (isJpOnly(c.regions as string[])) continue
+    const variants = c.variants?.filter((v) => !isJpOnly(v.regions as string[]))
     if (variants === c.variants) {
       out.push(c)
     } else {
-      // New variants array (possibly empty -> store `undefined` so
-      // downstream `c.variants?.length` checks behave the same as a
-      // card that never had variants in the first place).
       out.push({ ...c, variants: variants && variants.length > 0 ? variants : undefined })
     }
   }
   return out
+}
+
+function pickLocalizedImage(
+  imagesByLanguage: Partial<Record<string, string>> | undefined,
+  bucket: CardLanguage[],
+): string | null {
+  if (!imagesByLanguage) return null
+  for (const lang of bucket) {
+    const key = lang.toLowerCase()
+    if (imagesByLanguage[key]) return imagesByLanguage[key]!
+  }
+  return null
 }
 
 /**
@@ -87,13 +176,6 @@ export function applyRegionFilter(cards: Card[], jpOnly: boolean): Card[] {
  * Both CardGrid (renders the wall) and LightboxViewer (navigates the
  * wall via arrow keys / next-prev) call this with the same inputs so
  * their definitions of "the next card" stay in sync.
- *
- * Without this shared helper, the lightbox used to navigate through
- * the *unfiltered* population - if you filtered to "Leader" cards and
- * opened the first leader, pressing ArrowRight would jump to whatever
- * non-leader card happened to be next in the JSON bundle. That was
- * confusing because the visible wall behind the lightbox showed only
- * leaders, but navigation silently ignored the filter.
  *
  * Filter order matches the previous inline implementation in
  * card-grid.tsx (set -> rarity -> color -> card type -> alt-art ->
@@ -112,15 +194,13 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   if (f.activeCardType) result = result.filter((c) => c.cardType === f.activeCardType)
   if (f.onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
   if (f.searchQuery.trim()) {
-    // Search covers card rules text (effect / trigger) and tag-like
-    // metadata (types, attributes), not just the name / code / set.
-    // Matching is a single literal substring against the lowercased
-    // haystack - so "when attacking" works as a phrase, and "reduce"
-    // surfaces the cards that mention damage reduction even if
-    // "reduce" isn't in their name. No whitespace-split + AND yet:
-    // that would be more powerful but breaks naive phrase searches,
-    // and the single-substring path matches what every other "search
-    // a card pile" UI does.
+    // Search covers card rules text (effect / trigger), tag-like
+    // metadata (types, attributes), AND per-language localized names
+    // (so a query in Chinese matches the TC name of a card whose EN
+    // name doesn't contain the term). Matching is a single literal
+    // substring against the lowercased haystack -- "when attacking"
+    // works as a phrase, and a single-substring path matches what
+    // every other "search a card pile" UI does.
     const q = f.searchQuery.toLowerCase().trim()
     result = result.filter((c) => {
       if (c.name.toLowerCase().includes(q)) return true
@@ -130,6 +210,11 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
       if ((c.trigger || '').toLowerCase().includes(q)) return true
       if (c.types?.some((t) => t.toLowerCase().includes(q))) return true
       if (c.attributes?.some((a) => a.toLowerCase().includes(q))) return true
+      if (c.namesByLanguage) {
+        for (const v of Object.values(c.namesByLanguage)) {
+          if (v && v.toLowerCase().includes(q)) return true
+        }
+      }
       return false
     })
   }

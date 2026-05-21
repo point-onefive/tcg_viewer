@@ -1,19 +1,31 @@
 /**
- * Fetches all One Piece TCG card data DIRECTLY from Bandai's official site:
- * https://en.onepiece-cardgame.com/cardlist/
+ * Fetches One Piece TCG card data directly from Bandai's official cardlist
+ * for one (or all) language regions.
  *
- * Why direct: the previous vegapull-records mirror lags by months. Going to the
- * source guarantees newest sets (OP-13, OP-14, OP-15, EB-03, PRB-02, ST-22+)
- * the moment Bandai adds them.
+ * Supported regions (`--language=` flag):
+ *   en        - en.onepiece-cardgame.com           (NA / EU English; default for back-compat)
+ *   jp        - www.onepiece-cardgame.com          (Japan, the master catalogue)
+ *   asia-en   - asia-en.onepiece-cardgame.com      (Asia English)
+ *   asia-tc   - asia-tc.onepiece-cardgame.com      (Hong Kong / Macau, Traditional Chinese)
+ *   asia-tw   - asia-tw.onepiece-cardgame.com      (Taiwan, Traditional Chinese)
+ *   all       - sweep every region above, one after the other
+ *   legacy    - special compat mode that reproduces the pre-Phase-7 behaviour:
+ *               EN + JP merged into a single `data/cards.json` with a `regions`
+ *               tag per card. Kept so the existing generator + UI keep working
+ *               while the new multi-language pipeline lands.
  *
- * Output: data/cards.json - normalized array compatible with the existing
- *         generate-card-data.mjs (id, name, category, rarity, colors, cost,
- *         power, counter, attributes, types, effect, trigger, img_full_url,
- *         source_pack_id/prefix/label)
+ * Per-language outputs live in `data/by-language/<lang>.json` and mirror the
+ * raw vegapull schema (id, name, rarity, category, colors, cost, power,
+ * counter, attributes, types, effect, trigger, distribution, img_full_url,
+ * source_pack_id / prefix / label). The downstream cross-language deduper
+ * (`scripts/dedupe-cross-language.mjs`) unifies them into a single
+ * `data/cards.json` with `imagesByLanguage` and `languages` on every print.
  *
- *         data/packs.json - pack metadata derived from the dropdown
- *
- * Usage: node scripts/fetch-card-data.mjs
+ * Examples:
+ *   node scripts/fetch-card-data.mjs                 # legacy mode (EN + JP merged)
+ *   node scripts/fetch-card-data.mjs --language=tc   # write data/by-language/tc.json
+ *   node scripts/fetch-card-data.mjs --language=all  # sweep every region
+ *   node scripts/fetch-card-data.mjs --language=jp --dry-run
  */
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync, renameSync, copyFileSync } from 'fs'
@@ -23,6 +35,7 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const DATA_DIR = join(ROOT, 'data')
+const BY_LANG_DIR = join(DATA_DIR, 'by-language')
 const CARDS_PATH = join(DATA_DIR, 'cards.json')
 const CARDS_TMP_PATH = join(DATA_DIR, 'cards.json.tmp')
 const CARDS_BAK_PATH = join(DATA_DIR, 'cards.json.bak')
@@ -37,27 +50,58 @@ const MIN_RETENTION_RATIO = 0.8
 const ALLOW_PARTIAL = process.argv.includes('--allow-partial')
 const DRY_RUN = process.argv.includes('--dry-run')
 
-const EN_SITE = 'https://en.onepiece-cardgame.com'
-const EN_LIST_URL = `${EN_SITE}/cardlist/`
-const JP_SITE = 'https://www.onepiece-cardgame.com'
-const JP_LIST_URL = `${JP_SITE}/cardlist/`
-// Backwards-compat alias: existing parseCardBlock builds the image URL from
-// `SITE`, which used to be the EN host. Kept here so the EN parse path is
-// unchanged; JP cards are parsed against JP_SITE separately below.
-const SITE = EN_SITE
+const argLanguage = process.argv.find((a) => a.startsWith('--language='))?.split('=')[1] ?? 'legacy'
+
+/**
+ * Catalogue of every region we know how to scrape. Each entry maps a short
+ * CLI flag value to:
+ *
+ *   id         - the language tag used in `data/by-language/<id>.json` and
+ *                in the eventual `imagesByLanguage` map (lowercase short code).
+ *   bundle     - the CardLanguage enum value the deduper / generator should
+ *                tag every harvested print with.
+ *   site       - the origin (https://...) used both to fetch the cardlist HTML
+ *                and to resolve relative image paths.
+ *   listUrl    - convenience: <site>/cardlist/, the form POST target.
+ *   label      - short display label used in console output.
+ *
+ * `legacy` is omitted -- it's not a real region, just the back-compat
+ * EN + JP merge mode.
+ */
+const REGIONS = {
+  en:        { id: 'en',      bundle: 'EN',      site: 'https://en.onepiece-cardgame.com',      label: 'EN'      },
+  jp:        { id: 'jp',      bundle: 'JP',      site: 'https://www.onepiece-cardgame.com',     label: 'JP'      },
+  'asia-en': { id: 'asia-en', bundle: 'EN_ASIA', site: 'https://asia-en.onepiece-cardgame.com', label: 'ASIA-EN' },
+  'asia-tc': { id: 'asia-tc', bundle: 'TC',      site: 'https://asia-tc.onepiece-cardgame.com', label: 'TC'      },
+  'asia-tw': { id: 'asia-tw', bundle: 'TW',      site: 'https://asia-tw.onepiece-cardgame.com', label: 'TW'      },
+}
+
+const ALL_REGION_KEYS = Object.keys(REGIONS)
+
+if (argLanguage !== 'legacy' && argLanguage !== 'all' && !REGIONS[argLanguage]) {
+  console.error(
+    `Unknown --language=${argLanguage}. Allowed: ${[...ALL_REGION_KEYS, 'all', 'legacy'].join(', ')}`
+  )
+  process.exit(1)
+}
+
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
-// Opt-out: by default we union the EN scrape with the JP scrape's variants
-// of any EN base card we already know about (e.g. the JP-only Family Deck
-// Set Nami `ST01-007_r1`, the JP-only Storage Box Nami `_p6`/`_p7`, and
-// every comparable promo across the catalogue). JP-only base cards (i.e.
-// JP cards whose base ID we've never seen on EN) are skipped to avoid
-// surfacing unreleased EN content; we can revisit that policy later.
+// --en-only is a legacy-mode flag retained from before --language existed.
+// It only matters when `--language=legacy` is in effect (the back-compat
+// EN + JP merge); for the new per-language mode the flag is meaningless
+// since each invocation already targets one region.
 const EN_ONLY = process.argv.includes('--en-only')
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-async function fetchHTML(url, body = null) {
+async function fetchHTML(url, query = null) {
+  // Series-filter requests originally went out as form-encoded POSTs to
+  // `/cardlist/`. That works for EN, JP, asia-en, and asia-tc, but
+  // asia-tw silently ignores the POST body and returns the OP-15 default
+  // every time -- producing a giant pile of duplicated rows. GET with
+  // a query string works on every region, so we standardise on it.
+  const fullUrl = query ? `${url}?${query}` : url
   const init = {
     headers: {
       'User-Agent': UA,
@@ -65,13 +109,8 @@ async function fetchHTML(url, body = null) {
       'Accept-Language': 'en-US,en;q=0.9',
     },
   }
-  if (body) {
-    init.method = 'POST'
-    init.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-    init.body = body
-  }
-  const res = await fetch(url, init)
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`)
+  const res = await fetch(fullUrl, init)
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${fullUrl}`)
   return res.text()
 }
 
@@ -96,7 +135,6 @@ function decodeHtml(s) {
     .replace(/&nbsp;/g, ' ')
     .replace(/&rsquo;|&#0*8217;/g, '\u2019')
     .replace(/&lsquo;|&#0*8216;/g, '\u2018')
-    // Catch any remaining numeric refs (Bandai mixes &#039; and &#39; etc.)
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
 }
 
@@ -180,7 +218,7 @@ function parseNumber(text) {
   return isNaN(n) ? null : n
 }
 
-function parseCardBlock(block, pack, hostOrigin = SITE) {
+function parseCardBlock(block, pack, hostOrigin) {
   const idMatch = block.match(/<dl\s+class="modalCol"\s+id="([^"]+)"/)
   if (!idMatch) return null
   const id = idMatch[1]
@@ -213,18 +251,6 @@ function parseCardBlock(block, pack, hostOrigin = SITE) {
   const triggerRaw = extractField(block, 'trigger')
   const trigger = triggerRaw ? htmlToText(triggerRaw).replace(/\n/g, '<br>') : null
 
-  // Bandai exposes "Card Set(s)" in a <div class="getInfo"> on every card,
-  // which is the human-readable distribution string: where this specific
-  // variant came from. Examples (drawn from real cards):
-  //   - "Premium Card Collection -FILM RED Edition-"
-  //   - "2025 NEW YEAR EVENT"
-  //   - "Tournament Pack Vol.3"
-  //   - "Super Pre-Release"
-  //   - "Pre-Release OP03"
-  //   - "-WINGS OF THE CAPTAIN-[OP06]"
-  // Capturing it lets us label variants ("p4 = 2025 NEW YEAR EVENT") and
-  // answer "is this a pre-release card?" by simple substring search, instead
-  // of needing a manual investigation per question.
   const getInfoRaw = extractField(block, 'getInfo')
   const distribution = getInfoRaw
     ? htmlToText(getInfoRaw).replace(/\s+/g, ' ').trim()
@@ -252,7 +278,7 @@ function parseCardBlock(block, pack, hostOrigin = SITE) {
   }
 }
 
-function parseAllCards(html, pack, hostOrigin = SITE) {
+function parseAllCards(html, pack, hostOrigin) {
   const cards = []
   const re = /<dl\s+class="modalCol"[\s\S]*?<\/dl>/g
   let m
@@ -263,14 +289,6 @@ function parseAllCards(html, pack, hostOrigin = SITE) {
   return cards
 }
 
-/**
- * Compare a fresh card pull against the previous on-disk copy and print a
- * structured diff. Pure: returns the diff buckets, doesn't write anything.
- *
- * "metadata changed" is intentionally narrow -- we only compare a stable
- * subset of fields so cosmetic upstream HTML reshuffling (e.g. attribute
- * ordering) doesn't blow up the diff with noise.
- */
 function diffCards(prevList, nextList) {
   const prev = new Map(prevList.map((c) => [c.id, c]))
   const next = new Map(nextList.map((c) => [c.id, c]))
@@ -287,23 +305,23 @@ function diffCards(prevList, nextList) {
   return { added, removed, changed }
 }
 
-function readPrevCards() {
-  if (!existsSync(CARDS_PATH)) return null
+function readJsonOrNull(path) {
+  if (!existsSync(path)) return null
   try {
-    return JSON.parse(readFileSync(CARDS_PATH, 'utf8'))
+    return JSON.parse(readFileSync(path, 'utf8'))
   } catch (err) {
-    console.warn(`Previous cards.json unreadable (${err.message}); treating as first run.`)
+    console.warn(`Unreadable JSON at ${path} (${err.message}); treating as first run.`)
     return null
   }
 }
 
 function printDiffReport(prev, next) {
   if (!prev) {
-    console.log(`\nFirst run -- no previous cards.json to diff against.`)
+    console.log(`\nFirst run -- no previous file to diff against.`)
     return
   }
   const { added, removed, changed } = diffCards(prev, next)
-  console.log(`\nDiff vs previous cards.json:`)
+  console.log(`\nDiff vs previous:`)
   console.log(`  +${added.length} added   -${removed.length} removed   ~${changed.length} metadata-changed`)
   const SHOW = 20
   if (added.length) {
@@ -324,15 +342,16 @@ function printDiffReport(prev, next) {
 }
 
 /**
- * Scrape every series on a Bandai cardlist site (EN or JP) and return the
- * unique card list. Returns the new cards (no dedup across `seen`) plus the
- * list of packs that failed so the caller can fail loud or filter.
+ * Scrape every series on a Bandai cardlist site (EN, JP, TC, TW, Asia-EN).
+ * Returns the packs metadata, the unique card list, and the failure list
+ * so the caller can decide whether to abort.
  */
-async function scrapeRegion(label, listUrl, hostOrigin) {
-  console.log(`\n[${label}] Fetching pack list from ${hostOrigin}...`)
+async function scrapeRegion(region) {
+  const listUrl = `${region.site}/cardlist/`
+  console.log(`\n[${region.label}] Fetching pack list from ${region.site}...`)
   const landingHtml = await fetchHTML(listUrl)
   const packs = parseSeriesOptions(landingHtml)
-  console.log(`[${label}] Found ${packs.length} series.`)
+  console.log(`[${region.label}] Found ${packs.length} series.`)
 
   const cards = []
   const failed = []
@@ -340,10 +359,10 @@ async function scrapeRegion(label, listUrl, hostOrigin) {
   for (let i = 0; i < packs.length; i++) {
     const pack = packs[i]
     const tag = pack.title_parts.label ?? pack.title_parts.title ?? pack.id
-    process.stdout.write(`[${label} ${i + 1}/${packs.length}] ${tag} (${pack.id})... `)
+    process.stdout.write(`[${region.label} ${i + 1}/${packs.length}] ${tag} (${pack.id})... `)
     try {
       const html = await fetchHTML(listUrl, `series=${pack.id}`)
-      const found = parseAllCards(html, pack, hostOrigin)
+      const found = parseAllCards(html, pack, region.site)
       console.log(`${found.length} cards`)
       cards.push(...found)
     } catch (err) {
@@ -353,17 +372,41 @@ async function scrapeRegion(label, listUrl, hostOrigin) {
     if (i < packs.length - 1) await sleep(300)
   }
 
+  // Tag each row with its source language so the deduper doesn't have
+  // to look it up from filename context.
+  for (const c of cards) c.language = region.bundle
+
   return { packs, cards, failed }
 }
 
-async function main() {
+/**
+ * Write a per-language raw file to `data/by-language/<id>.json`. Returns
+ * the path written and the card count so the caller can log it.
+ */
+function writePerLanguageOutput(region, cards) {
+  mkdirSync(BY_LANG_DIR, { recursive: true })
+  const out = join(BY_LANG_DIR, `${region.id}.json`)
+  if (DRY_RUN) {
+    console.log(`  --dry-run: would write ${cards.length} cards to ${out}`)
+    return out
+  }
+  const prev = readJsonOrNull(out)
+  printDiffReport(prev, cards)
+  writeFileSync(out + '.tmp', JSON.stringify(cards, null, 2))
+  if (existsSync(out)) copyFileSync(out, out + '.bak')
+  renameSync(out + '.tmp', out)
+  return out
+}
+
+/**
+ * Legacy back-compat mode: do the EN + JP merge into `data/cards.json`
+ * exactly the way the pre-Phase-7 pipeline did. Used to keep the existing
+ * generator + UI functional until the new per-language deduper takes over.
+ */
+async function runLegacyMode() {
   mkdirSync(DATA_DIR, { recursive: true })
 
-  // ---- EN scrape (canonical) ----
-  // EN data is the source of truth. Card metadata, set membership, ordering
-  // -- all of it comes from EN. JP is consulted only to fill in variants
-  // EN hasn't listed yet (and is opt-out via --en-only).
-  const en = await scrapeRegion('EN', EN_LIST_URL, EN_SITE)
+  const en = await scrapeRegion(REGIONS.en)
 
   const allCards = []
   const seen = new Set()
@@ -376,30 +419,14 @@ async function main() {
 
   const failed = [...en.failed.map((p) => ({ region: 'EN', pack: p }))]
 
-  // ---- JP merge (additive only) ----
-  // Every JP card the scrape returns gets admitted unless we already
-  // saw it on EN. Each new card is tagged `regions: ['JP']`; cards
-  // listed on both sites get `regions: ['EN', 'JP']`. This includes
-  // JP-only alt-art variants (Family Deck Set, Storage Box pulls,
-  // magazine promos) AND JP-only base cards (e.g. ST-30 Luffy & Ace,
-  // a Japan-only starter EN hasn't shipped yet; ~21 P-XXX magazine
-  // promos like the Vジャンプ Trafalgar Law).
-  //
-  // The application layer hides JP content by default behind the
-  // header "JP" toggle (see src/lib/card-filter.ts applyRegionFilter
-  // -- it strips both JP-only base cards and JP-only variants). So
-  // the ingestion is the "complete dataset" layer; the UI decides
-  // what to surface. Casual EN browsers never see JP cards unless
-  // they opt in.
   if (!EN_ONLY) {
-    const jp = await scrapeRegion('JP', JP_LIST_URL, JP_SITE)
+    const jp = await scrapeRegion(REGIONS.jp)
     failed.push(...jp.failed.map((p) => ({ region: 'JP', pack: p })))
 
     let jpAdded = 0
     let jpAlreadyHave = 0
     for (const c of jp.cards) {
       if (seen.has(c.id)) {
-        // Card exists on both sites -- tag the existing record as multi-region.
         const existing = allCards.find((x) => x.id === c.id)
         if (existing && !existing.regions.includes('JP')) existing.regions.push('JP')
         jpAlreadyHave++
@@ -418,12 +445,7 @@ async function main() {
     console.log(`\n[JP] Skipped (--en-only).`)
   }
 
-  // ---- Safety rails ----
-  // Anything below here is "we have the data, now decide whether to publish
-  // it". This is the layer that catches silent corruption: a partial scrape,
-  // a parser regression, or a Bandai-side outage that drops half the catalog.
-
-  const prev = readPrevCards()
+  const prev = readJsonOrNull(CARDS_PATH)
   printDiffReport(prev, allCards)
 
   if (failed.length > 0) {
@@ -455,15 +477,9 @@ async function main() {
     return
   }
 
-  // Atomic-ish write: stage to .tmp, rotate current to .bak, swap in .tmp.
-  // If anything throws between the writeFileSync and the rename, .tmp is left
-  // in place (easy to inspect) and the existing cards.json is untouched.
   writeFileSync(CARDS_TMP_PATH, JSON.stringify(allCards, null, 2))
   if (existsSync(CARDS_PATH)) copyFileSync(CARDS_PATH, CARDS_BAK_PATH)
   renameSync(CARDS_TMP_PATH, CARDS_PATH)
-  // packs.json is EN-only on purpose. The downstream generator uses it for
-  // pack-id-based bucketing (PROMO / Premium Bandai Exclusives), and those
-  // bucket IDs are EN site IDs. JP scrape contributes cards, not packs.
   writeFileSync(PACKS_PATH, JSON.stringify(en.packs, null, 2))
 
   const jpCount = allCards.filter((c) => c.regions.includes('JP') && !c.regions.includes('EN')).length
@@ -474,6 +490,50 @@ async function main() {
     `dual-region: ${dualCount}, ` +
     `JP-only: ${jpCount}). Previous saved to data/cards.json.bak.`
   )
+}
+
+/**
+ * New per-language mode: scrape a single region and write
+ * `data/by-language/<id>.json` (plus `data/packs.json` for EN so the
+ * existing generator's pack bucketing still has a packs map to read).
+ */
+async function runPerLanguageMode(region) {
+  mkdirSync(DATA_DIR, { recursive: true })
+  const { packs, cards, failed } = await scrapeRegion(region)
+
+  if (failed.length > 0) {
+    console.warn(`\n[${region.label}] Failed packs (${failed.length}):`)
+    failed.forEach((p) => console.warn(`  - ${p.title_parts.label ?? p.id} (id=${p.id})`))
+    if (!ALLOW_PARTIAL) {
+      console.error(`\nRefusing to write ${region.id}.json: ${failed.length} series failed. ` +
+        `Pass --allow-partial to write anyway.`)
+      process.exit(2)
+    }
+  }
+
+  const out = writePerLanguageOutput(region, cards)
+  console.log(`\n[${region.label}] Wrote ${cards.length} card rows to ${out}.`)
+
+  // Only EN drives packs.json (the generator uses pack ids that are EN-site
+  // ids). Re-scraping packs from non-EN regions would overwrite that with
+  // ids the generator can't match.
+  if (region.id === 'en' && !DRY_RUN) {
+    writeFileSync(PACKS_PATH, JSON.stringify(packs, null, 2))
+    console.log(`[EN] Wrote ${packs.length} packs to ${PACKS_PATH}.`)
+  }
+}
+
+async function main() {
+  if (argLanguage === 'legacy') {
+    return runLegacyMode()
+  }
+  if (argLanguage === 'all') {
+    for (const key of ALL_REGION_KEYS) {
+      await runPerLanguageMode(REGIONS[key])
+    }
+    return
+  }
+  return runPerLanguageMode(REGIONS[argLanguage])
 }
 
 main().catch((err) => {

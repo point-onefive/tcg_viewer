@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Bookmark, HelpCircle, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
-import { CardSet } from '@/lib/types'
+import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
 
 /**
@@ -51,16 +51,30 @@ const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
 
 interface HeaderProps {
   sets: CardSet[]
-  // Number of cards the JP-only narrowing filter would surface if the
-  // user clicks the pill right now (i.e. cards that have at least one
-  // JP-exclusive variant, OR are JP-only base cards themselves). Shown
-  // as a small count on the JP pill so the user sees the magnitude of
-  // the upcoming change BEFORE clicking -- same idea as a search engine
-  // showing "1.2k results" next to a query. Collections without any
-  // JP content (everything except One Piece today) pass 0 and the badge
-  // stays hidden.
-  jpEligibleCount?: number
+  // Per-language exclusive-print counts. Renders inside the Exclusives
+  // pill as "EN-only 253 / JP-only 39 / CN-only 0" depending on the
+  // currently picked language. Collections without any multi-language
+  // content (everything except One Piece today) pass zeros and the
+  // badge stays hidden.
+  exclusiveCounts?: Record<Exclude<LanguagePickerValue, 'ALL'>, number>
 }
+
+/**
+ * Language picker labels, kept here so the row of pills + the active-
+ * pill style logic share the same source of truth. `description` is
+ * the title tooltip so hovering reveals the actual Bandai sources
+ * (e.g. "Japan only" / "Hong Kong + Taiwan / Traditional Chinese").
+ */
+const LANGUAGE_OPTIONS: ReadonlyArray<{
+  value: LanguagePickerValue
+  label: string
+  description: string
+}> = [
+  { value: 'ALL', label: 'All', description: 'Every region\u2014English, Japanese, and Chinese.' },
+  { value: 'EN',  label: 'EN',  description: 'English (Bandai EN + Asia-EN cardlists)' },
+  { value: 'JP',  label: 'JP',  description: 'Japanese (Bandai Japan cardlist; richest promo coverage)' },
+  { value: 'CN',  label: 'CN',  description: 'Chinese (Bandai Hong Kong / Macau / Taiwan; Traditional Chinese)' },
+]
 
 type FacetOption = { value: string; label: string; swatch?: string }
 
@@ -319,19 +333,28 @@ function FacetOptionRow({
   )
 }
 
-export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
+export function Header({ sets, exclusiveCounts }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
-    jpOnly, setJpOnly,
+    language, setLanguage,
+    onlyExclusives, setOnlyExclusives,
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
     tierPool,
   } = useStore()
+
+  // Count shown on the Exclusives pill -- depends on whichever
+  // language is currently picked. With language === 'ALL' the badge
+  // shows the sum of all three buckets so the user gets a sense of
+  // the size of the "language-exclusive" universe before drilling in.
+  const exclusiveBadgeCount = language === 'ALL'
+    ? ((exclusiveCounts?.EN ?? 0) + (exclusiveCounts?.JP ?? 0) + (exclusiveCounts?.CN ?? 0))
+    : (exclusiveCounts?.[language] ?? 0)
 
   // One Piece is the only collection with curated filter facets right
   // now (see ONE_PIECE_CARD_TYPES / ONE_PIECE_COLORS above). Gate the
@@ -384,9 +407,16 @@ export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
   }
 
   // Accent for controls holding an active filter value.
+  //
+  // We override `border` as a full shorthand here (instead of just
+  // `borderColor`) so React's reconciler stays happy. The previous
+  // borderColor-only override produced "Removing a style property
+  // during rerender (borderColor) when a conflicting property is set
+  // (border) can lead to styling bugs" because toggling back to
+  // `ctrl` would drop `borderColor` while keeping `border`.
   const ctrlActive: React.CSSProperties = {
     ...ctrl,
-    borderColor: 'color-mix(in srgb, #E85D2A 55%, transparent)',
+    border: '1px solid color-mix(in srgb, #E85D2A 55%, transparent)',
     boxShadow: '0 0 0 1px color-mix(in srgb, #E85D2A 22%, transparent) inset',
   }
 
@@ -828,24 +858,77 @@ export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
           >
             Alt art
           </button>
+          {/* Language picker - mobile. Single-select pill group instead
+              of a dropdown so the four options (All / EN / JP / CN)
+              are always visible -- this is the most important filter
+              in the multi-language pipeline and we want it surfaced. */}
+          <div
+            className="inline-flex items-center"
+            style={{
+              ...ctrl,
+              height: 30,
+              padding: 2,
+              overflow: 'hidden',
+            }}
+            role="radiogroup"
+            aria-label="Language"
+          >
+            {LANGUAGE_OPTIONS.map((opt) => {
+              const selected = language === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setLanguage(opt.value)}
+                  className="inline-flex items-center justify-center px-2 text-[11px] font-semibold outline-none"
+                  style={{
+                    height: 24,
+                    borderRadius: 4,
+                    background: selected ? 'var(--text-primary)' : 'transparent',
+                    color: selected ? 'var(--bg)' : 'var(--text-primary)',
+                    transition: 'background 0.18s ease, color 0.18s ease',
+                  }}
+                  title={opt.description}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+          {/* Exclusives toggle - mobile. Narrows the wall to cards
+              that ONLY ship in the picked language. The count badge
+              ("EN-only 253" / "JP-only 39" / "CN-only 0") tells the
+              user the magnitude before clicking. With language='ALL'
+              the badge sums the three buckets. */}
           <button
             type="button"
-            onClick={() => setJpOnly(!jpOnly)}
+            onClick={() => setOnlyExclusives(!onlyExclusives)}
+            disabled={language === 'ALL'}
             className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
-            style={{ ...(jpOnly ? ctrlActive : ctrl), height: 30 }}
-            aria-pressed={jpOnly}
+            style={{
+              ...(onlyExclusives && language !== 'ALL' ? ctrlActive : ctrl),
+              height: 30,
+              opacity: language === 'ALL' ? 0.55 : 1,
+              cursor: language === 'ALL' ? 'not-allowed' : 'pointer',
+            }}
+            aria-pressed={onlyExclusives}
             aria-label={
-              jpEligibleCount > 0
-                ? jpOnly
-                  ? `Showing only ${jpEligibleCount} cards with Japan-exclusive content. Click to clear.`
-                  : `Show only the ${jpEligibleCount} cards with Japan-exclusive content`
-                : jpOnly
-                  ? 'Showing only cards with Japan-exclusive content'
-                  : 'Show only cards with Japan-exclusive content'
+              language === 'ALL'
+                ? 'Pick a language to enable exclusives filter'
+                : onlyExclusives
+                  ? `Showing only ${language}-exclusive cards. Click to clear.`
+                  : `Show only cards exclusive to ${language}`
+            }
+            title={
+              language === 'ALL'
+                ? 'Pick a language above to drill into its exclusives.'
+                : `Narrow to cards Bandai publishes ONLY on the ${language} cardlist.`
             }
           >
-            JP
-            {jpEligibleCount > 0 && (
+            Exclusives
+            {exclusiveBadgeCount > 0 && (
               <span
                 className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
                 style={{
@@ -853,15 +936,15 @@ export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
                   height: 16,
                   padding: '0 4px',
                   borderRadius: 4,
-                  background: jpOnly
+                  background: onlyExclusives && language !== 'ALL'
                     ? 'var(--bg)'
                     : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                  color: jpOnly
+                  color: onlyExclusives && language !== 'ALL'
                     ? 'var(--text-primary)'
                     : 'var(--text-muted)',
                 }}
               >
-                {jpEligibleCount}
+                {exclusiveBadgeCount}
               </span>
             )}
           </button>
@@ -1110,48 +1193,91 @@ export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
               >
                 Alt art
               </button>
-              {/* JP narrowing filter · mirrors the "Alt art" pill
-                  next to it. Off by default so the gallery looks
-                  identical to a regular EN catalogue (JP-only base
-                  cards and JP-only variants are stripped). Click to
-                  narrow the wall to ONLY cards that have Japan-
-                  exclusive content -- a JP-only base card (ST-30,
-                  JP P-XXX promos) or at least one JP-only variant
-                  (Family Deck Set Nami ST01-007_r1, etc.). Inside
-                  those surfaced cards, the JP variants are revealed
-                  in the carousel so they sit alongside the EN art
-                  for comparison.
+              {/* Language picker (desktop). Pills group instead of a
+                  dropdown so the four options are always one click
+                  away -- the language is THE primary lens on the
+                  multi-language pipeline and we want to surface it.
+                  Selecting one (EN, JP, CN) does two things in one
+                  motion: (1) trims the wall to cards Bandai publishes
+                  in that region, (2) swaps every image URL to the
+                  matching localized scan so the gallery actually
+                  RENDERS in that language. 'All' is the default and
+                  matches the pre-Phase-7 behaviour (every regional
+                  print visible, EN art preferred). */}
+              <div
+                className="inline-flex items-center"
+                style={{
+                  ...ctrl,
+                  height: 30,
+                  padding: 2,
+                  overflow: 'hidden',
+                }}
+                role="radiogroup"
+                aria-label="Language"
+              >
+                {LANGUAGE_OPTIONS.map((opt) => {
+                  const selected = language === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setLanguage(opt.value)}
+                      className="inline-flex items-center justify-center px-2.5 text-[11px] font-semibold outline-none"
+                      style={{
+                        height: 24,
+                        borderRadius: 4,
+                        background: selected ? 'var(--text-primary)' : 'transparent',
+                        color: selected ? 'var(--bg)' : 'var(--text-primary)',
+                        transition: 'background 0.18s ease, color 0.18s ease',
+                      }}
+                      title={opt.description}
+                    >
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+              {/* Exclusives narrowing filter (desktop). Reads the
+                  currently picked language and narrows to "cards
+                  Bandai ONLY publishes there." Disabled when
+                  language === 'ALL' (no region to be exclusive to);
+                  the count badge in that state is the sum of all
+                  three buckets so the user sees the scale of the
+                  region-exclusive universe before drilling in.
 
-                  The count badge ("JP 353") is the size of the
-                  post-filter wall, so the user sees the magnitude
-                  of the upcoming change before clicking. Without
-                  this preview, an earlier toggle-style design felt
-                  broken because clicking it from the top of the
-                  wall produced no visible change -- the affected
-                  cards were all the way down in ST-30 / promos. */}
+                  The label "Exclusives" + per-language count badge
+                  replaces the older confusing "JP 358" pill: it
+                  reads clearly without the user needing to know
+                  what region the active filter targets. */}
               <button
                 type="button"
-                onClick={() => setJpOnly(!jpOnly)}
+                onClick={() => setOnlyExclusives(!onlyExclusives)}
+                disabled={language === 'ALL'}
                 className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none"
-                style={{ ...(jpOnly ? ctrlActive : ctrl), height: 30 }}
-                aria-pressed={jpOnly}
+                style={{
+                  ...(onlyExclusives && language !== 'ALL' ? ctrlActive : ctrl),
+                  height: 30,
+                  opacity: language === 'ALL' ? 0.55 : 1,
+                  cursor: language === 'ALL' ? 'not-allowed' : 'pointer',
+                }}
+                aria-pressed={onlyExclusives}
                 aria-label={
-                  jpEligibleCount > 0
-                    ? jpOnly
-                      ? `Showing only ${jpEligibleCount} cards with Japan-exclusive content. Click to clear.`
-                      : `Show only the ${jpEligibleCount} cards with Japan-exclusive content`
-                    : jpOnly
-                      ? 'Showing only cards with Japan-exclusive content'
-                      : 'Show only cards with Japan-exclusive content'
+                  language === 'ALL'
+                    ? 'Pick a language to enable exclusives filter'
+                    : onlyExclusives
+                      ? `Showing only ${language}-exclusive cards. Click to clear.`
+                      : `Show only cards exclusive to ${language}`
                 }
                 title={
-                  jpOnly
-                    ? 'Showing only cards with JP-exclusive content (Family Deck Set, Storage Box, JP magazine promos, ST-30). Click to clear.'
-                    : `Narrow the wall to ${jpEligibleCount} cards with JP-exclusive content (Family Deck Set, Storage Box, JP magazine promos, ST-30)`
+                  language === 'ALL'
+                    ? 'Pick a language above to drill into its exclusives.'
+                    : `Narrow to cards Bandai publishes ONLY on the ${language} cardlist (no other region carries them).`
                 }
               >
-                JP
-                {jpEligibleCount > 0 && (
+                Exclusives
+                {exclusiveBadgeCount > 0 && (
                   <span
                     className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
                     style={{
@@ -1159,15 +1285,15 @@ export function Header({ sets, jpEligibleCount = 0 }: HeaderProps) {
                       height: 16,
                       padding: '0 4px',
                       borderRadius: 4,
-                      background: jpOnly
+                      background: onlyExclusives && language !== 'ALL'
                         ? 'var(--bg)'
                         : 'color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                      color: jpOnly
+                      color: onlyExclusives && language !== 'ALL'
                         ? 'var(--text-primary)'
                         : 'var(--text-muted)',
                     }}
                   >
-                    {jpEligibleCount}
+                    {exclusiveBadgeCount}
                   </span>
                 )}
               </button>

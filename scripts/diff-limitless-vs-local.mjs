@@ -18,7 +18,7 @@
  * for the same image (parallel art reissues). We accept either match.
  */
 
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -26,9 +26,28 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 const urls = JSON.parse(readFileSync(join(ROOT, 'data/limitless/card-urls.json'), 'utf8'))
-const cards = JSON.parse(readFileSync(join(ROOT, 'data/cards.json'), 'utf8'))
 
-const localIds = new Set(cards.map((c) => c.id))
+// Local catalogue: union every per-language scrape we have plus the
+// merged data/cards.json (the post-dedupe output). This way "missing"
+// means missing from EVERY Bandai region, not just EN. A print that's
+// on JP-only Bandai but not Limitless still counts as known and we
+// won't re-ingest it from the Limitless CDN.
+const localIds = new Set()
+function ingest(path) {
+  if (!existsSync(path)) return
+  for (const c of JSON.parse(readFileSync(path, 'utf8'))) {
+    if (c?.id) localIds.add(c.id)
+  }
+}
+ingest(join(ROOT, 'data/cards.json'))
+const byLangDir = join(ROOT, 'data/by-language')
+if (existsSync(byLangDir)) {
+  for (const f of readdirSync(byLangDir)) {
+    if (f.endsWith('.json') && !f.endsWith('.bak')) ingest(join(byLangDir, f))
+  }
+}
+const cards = [...localIds].map((id) => ({ id }))
+
 // Treat `_p1` <-> `_r1` as equivalents: Bandai sometimes ships the
 // same art under both suffixes (the EN side prints as `_p1`, the
 // JP side as `_r1`, etc.). Build an alias set keyed off the

@@ -73,6 +73,24 @@ function distributionLine(d) {
   return d.artist ? `${product} (${d.artist})` : product
 }
 
+// Classify the print into one of the PrintStamp enum buckets so the UI
+// can show a small badge ("Winner / Champion / Pre-release / etc.") on
+// stamped tournament prizes. Same heuristic as dedupe-cross-language so
+// both ingestion paths produce identical stamp tags.
+function classifyStamp(d) {
+  const cat = (d.firstSeenIn || '').toLowerCase()
+  const sub = (d.subtitle || '').toLowerCase()
+  const prod = (d.productName || '').toLowerCase()
+  const blob = `${cat} ${sub} ${prod}`
+  if (/winner/.test(blob)) return 'winner'
+  if (/champion(ship)?/.test(blob)) return 'champion'
+  if (/pre-release|prerelease|pre release/.test(blob)) return 'pre-release'
+  if (/prize-cards|prize cards|top \d+|top player/.test(blob)) return 'event'
+  if (/tournament|regional|event-pack|treasure[- ]cup/.test(blob)) return 'event'
+  if (/dash[- ]pack|illustration[- ]box|family[- ]deck|storage[- ]box/.test(blob)) return 'pack'
+  return null
+}
+
 let added = 0
 let skipped = 0
 let bareBase = 0
@@ -117,6 +135,7 @@ for (const [ourId, d] of Object.entries(detailed)) {
     source_pack_label: d.category || d.firstSeenIn,
     regions: regionsFromImage(d.imageUrl),
     source: 'limitless',
+    stamp: classifyStamp(d),
     limitless_product: d.productName ?? null,
     limitless_artist: d.artist ?? null,
     limitless_subtitle: d.subtitle ?? null,
