@@ -458,7 +458,13 @@ function SortableCard({
           e.stopPropagation()
           onRemove()
         }}
-        className="absolute -right-1 -top-1 flex items-center justify-center rounded-full opacity-0 shadow-md transition group-hover:opacity-100"
+        // Tucked *inside* the top-right corner because the parent
+        // `.tier-list-thumb` uses `overflow: hidden` to clip the card
+        // image to the rounded corners -- anything positioned outside
+        // the tile (negative offsets) would be cut off mid-button.
+        // `z-10` keeps the chip painted above the image on every
+        // browser, regardless of stacking contexts further up.
+        className="absolute right-1 top-1 z-10 flex items-center justify-center rounded-full opacity-0 shadow-md transition group-hover:opacity-100"
         style={{
           width: 22,
           height: 22,
