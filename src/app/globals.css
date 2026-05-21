@@ -394,14 +394,23 @@ html.lenis, html.lenis body {
 .chart-frame-animated::before {
   content: '';
   position: absolute;
-  /* 2px ring outside the chart on every side. Combined with the
-     chart's opaque background sitting on top, only this 2px
-     sliver of orange peeks out -- the thin outline we want. */
-  inset: -2px;
+  /* `inset: 0` matches the chart's padding box exactly. The 2px
+     orange `border` then paints in the outermost 2px of that box,
+     producing a thin line at the chart's edge -- not a filled
+     orange band across the whole padding area like a `background`
+     would have. The chart's `overflow: hidden` clips at the
+     padding box, so positioning anything outside it (negative
+     inset) just gets clipped away; staying at inset:0 with a
+     border is the only way to get a sharp 2px line inside the
+     overflow-hidden frame. */
+  inset: 0;
   z-index: -1;
-  border-radius: 13px;
+  /* Chart's CSS border-radius is 12px; subtract 1 so the orange
+     ring's outer curve sits cleanly just inside the chart's own
+     1px border without a visible corner-radius mismatch. */
+  border-radius: 11px;
   pointer-events: none;
-  background: #E85D2A;
+  border: 2px solid #E85D2A;
   animation: chart-blip 2.5s ease-in-out infinite;
 }
 

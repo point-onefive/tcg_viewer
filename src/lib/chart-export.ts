@@ -162,17 +162,22 @@ function drawBlipOutline(
   ctx.save()
   ctx.strokeStyle = `rgba(${BRAND_ORANGE_RGB}, ${opacity.toFixed(3)})`
   ctx.lineWidth = BLIP_LINE_WIDTH
-  // Inset the stroke by half its thickness so it draws inside the
-  // canvas bounds instead of being clipped at the edges. Inner
-  // radius is shrunk by the same amount so the stroke's outer
-  // edge still matches the captured chart's rounded corners.
-  const inset = BLIP_LINE_WIDTH / 2
+  // Inset the path by one full line-width (rather than half)
+  // so the stroke sits *just inside* the chart's captured 1px
+  // gray border instead of overpainting it. Centerline of the
+  // stroke ends up at `BLIP_LINE_WIDTH` from the canvas edge, so
+  // the stroke itself covers pixels [BLIP_LINE_WIDTH/2,
+  // 3*BLIP_LINE_WIDTH/2] -- entirely inside the chart's own
+  // border. Matches where the CSS `::before` border draws on
+  // the page (inset:0 with border:2px -> outer 2px of the
+  // padding box).
+  const inset = BLIP_LINE_WIDTH
   ctx.beginPath()
   ctx.roundRect(
     inset,
     inset,
-    width - BLIP_LINE_WIDTH,
-    height - BLIP_LINE_WIDTH,
+    width - 2 * inset,
+    height - 2 * inset,
     Math.max(borderRadius - inset, 1),
   )
   ctx.stroke()
