@@ -109,6 +109,16 @@ export function applyLanguageFilter(
   // migration having run already.
   const bucket = LANGUAGE_GROUPS[language] ?? LANGUAGE_GROUPS.EN
 
+  // Bundles without any per-language metadata (Pokémon, Digimon, DBS,
+  // Gundam — single-region pipelines) are language-agnostic. The
+  // picker only acts on One Piece (the multi-language bundle); for
+  // every other collection we pass the list through unchanged so the
+  // wall isn't empty just because the cards have no `languages` key.
+  const anyTagged = cards.some(
+    (c) => Array.isArray(c.languages) || c.variants?.some((v) => Array.isArray(v.languages)),
+  )
+  if (!anyTagged) return cards
+
   const out: Card[] = []
   for (const c of cards) {
     // Skip the card entirely if NEITHER the base print nor any variant
