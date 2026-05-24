@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Bookmark, Layers } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
-import { filterCards } from '@/lib/card-filter'
+import { filterAndBuildWall } from '@/lib/card-filter'
 
 // How many neighbouring variants on each side of the active one are
 // actually loaded as <Image>s. Cards in our dataset can have up to 11
@@ -34,7 +34,10 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     activeColor,
     activeCardType,
     onlyAltArt,
+    flattenWall,
     searchQuery,
+    lightboxPrintId,
+    language,
   } = useStore()
   const [focused, setFocused] = useState(0)
 
@@ -43,17 +46,19 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // entire JSON bundle - opening the first "Leader" then hitting
   // ArrowRight jumped to a non-Leader, which read as a bug because
   // the wall behind the lightbox only showed leaders.
-  const filteredCards = useMemo(
+  const { filtered: filteredCards, entries: wallEntries } = useMemo(
     () =>
-      filterCards(cards, {
+      filterAndBuildWall(cards, {
         activeSet,
         activeRarity,
         activeColor,
         activeCardType,
         onlyAltArt,
         searchQuery,
+        flatten: flattenWall,
+        language,
       }),
-    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery, flattenWall, language],
   )
 
   // Card lookup uses the *unfiltered* pool on purpose: if the user
@@ -61,20 +66,26 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // (e.g. opens Luffy, then switches Card type to "Event"), we want
   // the lightbox to keep rendering Luffy rather than vanishing
   // mid-view. Navigation will still operate on the filtered list -
-  // see `currentIndex` below.
+  // see `navIndex` below.
   const card = useMemo(
     () => cards.find((c) => c.id === lightboxCardId) ?? null,
     [cards, lightboxCardId],
   )
 
-  // Position inside the filtered list. -1 means the open card is
-  // currently outside the filter scope - in that case next/prev
-  // become no-ops (counter shows "— / N") rather than teleporting
-  // the user to an unrelated card.
-  const currentIndex = useMemo(
+  const cardNavIndex = useMemo(
     () => filteredCards.findIndex((c) => c.id === lightboxCardId),
     [filteredCards, lightboxCardId],
   )
+
+  const wallNavIndex = useMemo(() => {
+    if (!lightboxCardId || !lightboxPrintId) return -1
+    return wallEntries.findIndex(
+      (e) => e.card.id === lightboxCardId && e.printId === lightboxPrintId,
+    )
+  }, [wallEntries, lightboxCardId, lightboxPrintId])
+
+  const navIndex = flattenWall ? wallNavIndex : cardNavIndex
+  const navTotal = flattenWall ? wallEntries.length : filteredCards.length
 
   // Full list of images: base first, then alternates.
   //
@@ -119,10 +130,21 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // unguarded `images[focused].id` access below crashed the whole
   // page. See https://react.dev/learn/you-might-not-need-an-effect
   // ("Adjusting state when a prop changes").
-  const [prevLightboxCardId, setPrevLightboxCardId] = useState(lightboxCardId)
-  if (prevLightboxCardId !== lightboxCardId) {
-    setPrevLightboxCardId(lightboxCardId)
-    setFocused(0)
+  const [prevLightboxOpen, setPrevLightboxOpen] = useState({
+    cardId: lightboxCardId,
+    printId: lightboxPrintId,
+  })
+  if (
+    prevLightboxOpen.cardId !== lightboxCardId ||
+    prevLightboxOpen.printId !== lightboxPrintId
+  ) {
+    setPrevLightboxOpen({ cardId: lightboxCardId, printId: lightboxPrintId })
+    if (lightboxPrintId && card) {
+      const idx = images.findIndex((img) => img.id === lightboxPrintId)
+      setFocused(idx >= 0 ? idx : 0)
+    } else {
+      setFocused(0)
+    }
   }
 
   // Belt-and-suspenders clamp. The during-render reset above already
@@ -191,16 +213,28 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   }
 
   const goNext = useCallback(() => {
-    if (currentIndex < 0) return // open card is outside current filter scope
-    if (currentIndex < filteredCards.length - 1) {
-      openLightbox(filteredCards[currentIndex + 1].id)
+    if (navIndex < 0) return
+    if (flattenWall) {
+      if (navIndex < wallEntries.length - 1) {
+        const next = wallEntries[navIndex + 1]
+        openLightbox(next.card.id, next.printId)
+      }
+      return
     }
-  }, [currentIndex, filteredCards, openLightbox])
+    if (navIndex < filteredCards.length - 1) {
+      openLightbox(filteredCards[navIndex + 1].id)
+    }
+  }, [navIndex, flattenWall, wallEntries, filteredCards, openLightbox])
 
   const goPrev = useCallback(() => {
-    if (currentIndex <= 0) return // -1 = out of scope, 0 = already first
-    openLightbox(filteredCards[currentIndex - 1].id)
-  }, [currentIndex, filteredCards, openLightbox])
+    if (navIndex <= 0) return
+    if (flattenWall) {
+      const prev = wallEntries[navIndex - 1]
+      openLightbox(prev.card.id, prev.printId)
+      return
+    }
+    openLightbox(filteredCards[navIndex - 1].id)
+  }, [navIndex, flattenWall, wallEntries, filteredCards, openLightbox])
 
   useEffect(() => {
     if (!lightboxCardId) return
@@ -267,8 +301,8 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 letterSpacing: '0.08em',
               }}
             >
-              {currentIndex >= 0 ? currentIndex + 1 : '—'}{' '}
-              <span style={{ opacity: 0.4 }}>/</span> {filteredCards.length}
+              {navIndex >= 0 ? navIndex + 1 : '—'}{' '}
+              <span style={{ opacity: 0.4 }}>/</span> {navTotal}
             </div>
 
             {/* Pin + Tier + Close group · rounded-rect matching nav language */}
@@ -414,7 +448,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               <button
                 className="lb-arrow"
                 onClick={(e) => { e.stopPropagation(); goPrev() }}
-                disabled={currentIndex <= 0}
+                disabled={navIndex <= 0}
                 aria-label="Previous card"
               >
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -497,7 +531,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               <button
                 className="lb-arrow"
                 onClick={(e) => { e.stopPropagation(); goNext() }}
-                disabled={currentIndex < 0 || currentIndex >= filteredCards.length - 1}
+                disabled={navIndex < 0 || navIndex >= navTotal - 1}
                 aria-label="Next card"
               >
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

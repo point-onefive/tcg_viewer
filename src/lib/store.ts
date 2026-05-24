@@ -62,10 +62,14 @@ interface StoreState {
   activeCardType: string | null
   setActiveCardType: (t: string | null) => void
   // When true, only show cards with at least one variant (alt art).
-  // Boolean rather than a count threshold - the user's mental model
-  // is "show me cards that have alt art", not "show me cards with N+".
+  // In stacked mode: hide cards with zero variants. In flatten mode:
+  // hide base prints and show variant tiles only (see buildWallEntries).
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
+  // When true, each variant gets its own tile on the wall instead of
+  // living inside the stacked-card lightbox fan only.
+  flattenWall: boolean
+  setFlattenWall: (v: boolean) => void
   // Single-select view mode for the gallery:
   //
   //   - 'EN'         : EN + Asia-EN cardlists. Card text reads in English.
@@ -85,7 +89,9 @@ interface StoreState {
   zoom: number
   setZoom: (z: number) => void
   lightboxCardId: string | null
-  openLightbox: (id: string) => void
+  /** Which print to focus in the lightbox fan (card.id for base). */
+  lightboxPrintId: string | null
+  openLightbox: (cardId: string, printId?: string) => void
   closeLightbox: () => void
   pinned: Pin[]
   togglePin: (p: PinInput) => void
@@ -148,6 +154,8 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
+      flattenWall: false,
+      setFlattenWall: (flattenWall) => set({ flattenWall }),
       // Default to EN: the app's surface language is English, so an
       // English-speaking user starting fresh sees a wall they can read.
       // JP is one click away for users who want the master catalogue.
@@ -156,8 +164,13 @@ export const useStore = create<StoreState>()(
       zoom: 5,
       setZoom: (zoom) => set({ zoom }),
       lightboxCardId: null,
-      openLightbox: (id) => set({ lightboxCardId: id }),
-      closeLightbox: () => set({ lightboxCardId: null }),
+      lightboxPrintId: null,
+      openLightbox: (cardId, printId) =>
+        set({
+          lightboxCardId: cardId,
+          lightboxPrintId: printId ?? cardId,
+        }),
+      closeLightbox: () => set({ lightboxCardId: null, lightboxPrintId: null }),
       pinned: [],
       isPinned: (p) => {
         const { pinned, activeCollection } = get()
@@ -239,8 +252,9 @@ export const useStore = create<StoreState>()(
         pinned: state.pinned,
         tierPool: state.tierPool,
         language: state.language,
+        flattenWall: state.flattenWall,
       }),
-      version: 13,
+      version: 14,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -332,6 +346,10 @@ export const useStore = create<StoreState>()(
           if (legacy.language === 'CN') {
             s.language = 'EN'
           }
+        }
+        if (fromVersion < 14) {
+          // v14 adds flattenWall (default off).
+          s.flattenWall = false
         }
         return s as StoreState
       },

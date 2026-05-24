@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import Image from 'next/image'
-import { Card } from '@/lib/types'
+import type { WallEntry } from '@/lib/card-filter'
 import { useStore } from '@/lib/store'
 
 const COLOR_MAP: Record<string, string> = {
@@ -27,35 +27,47 @@ const COLOR_MAP: Record<string, string> = {
 }
 
 interface CardTileProps {
-  card: Card
+  entry: WallEntry
   /**
    * Mark the topmost row of the first visible set as priority so Next's
    * image optimizer eager-loads and the LCP element isn't deferred.
    */
   priority?: boolean
+  /** Stacked-card hint behind the tile (default view only). */
+  showStack?: boolean
 }
 
-export function CardTile({ card, priority = false }: CardTileProps) {
+export function CardTile({ entry, priority = false, showStack = false }: CardTileProps) {
   const [loaded, setLoaded] = useState(false)
-  // Pin / tier-pool actions were intentionally moved off the tile and
-  // into the lightbox. The tile is now a single-purpose target: click
-  // to drill in, see the big art + every alt print, and choose
-  // pin / queue from there (per-variant, not just the base art). This
-  // keeps the wall feeling like a museum vs. a control surface, and
-  // means the hover hit area doesn't reveal floating circular buttons
-  // that competed with the card art at small zoom levels.
+  const [srcIndex, setSrcIndex] = useState(0)
   const openLightbox = useStore((s) => s.openLightbox)
   const cardRef = useRef<HTMLDivElement>(null)
+  const { card } = entry
+
+  const imageSources = useMemo(
+    () => [entry.imageSmall, ...(entry.imageFallbacks ?? [])],
+    [entry.imageSmall, entry.imageFallbacks],
+  )
+  const imageSrc = imageSources[srcIndex] ?? entry.imageSmall
+
+  useEffect(() => {
+    setSrcIndex(0)
+    setLoaded(false)
+  }, [entry.wallKey, entry.imageSmall])
+
+  const handleImageError = useCallback(() => {
+    setSrcIndex((i) => {
+      if (i + 1 < imageSources.length) {
+        setLoaded(false)
+        return i + 1
+      }
+      return i
+    })
+  }, [imageSources.length])
 
   const primaryColor = card.colors?.[0] ? (COLOR_MAP[card.colors[0]] ?? 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.15)'
-  const variantCount = card.variants?.length ?? 0
-  const hasVariants = variantCount > 0
+  const showVariantLabel = entry.kind === 'variant'
 
-  // Cursor-tracking shine. We throttle to one update per animation frame
-  // because mousemove fires at 60–120Hz and each callback both touches the
-  // DOM (getBoundingClientRect forces style recalc) AND writes CSS custom
-  // properties that trigger a paint on the .card-tile__shine gradient.
-  // Coalescing to rAF caps the work at one paint per frame.
   const rafPending = useRef(false)
   const lastEvent = useRef<{ clientX: number; clientY: number } | null>(null)
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -75,27 +87,32 @@ export function CardTile({ card, priority = false }: CardTileProps) {
     })
   }, [])
 
-  const tierClass = hasVariants ? ' card-tile--has-variants' : ''
+  const tierClass = showStack ? ' card-tile--has-variants' : ''
+  const ariaName =
+    entry.kind === 'variant'
+      ? `${card.name} - ${card.code} (${entry.printLabel})`
+      : `${card.name} - ${card.code}`
+
+  const open = () => openLightbox(card.id, entry.printId)
 
   return (
     <div
       ref={cardRef}
       className={`card-tile${tierClass}`}
       style={{ '--card-color': primaryColor } as React.CSSProperties}
-      onClick={() => openLightbox(card.id)}
+      onClick={open}
       onMouseMove={handleMouseMove}
       role="button"
       tabIndex={0}
-      aria-label={`${card.name} - ${card.code}`}
+      aria-label={ariaName}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          openLightbox(card.id)
+          open()
         }
       }}
     >
-      {/* Stacked card hint - sits behind the main tile when variants exist */}
-      {hasVariants && (
+      {showStack && (
         <>
           <div className="card-tile__stack card-tile__stack--2" aria-hidden />
           <div className="card-tile__stack card-tile__stack--1" aria-hidden />
@@ -105,44 +122,29 @@ export function CardTile({ card, priority = false }: CardTileProps) {
       <div className="card-tile__img">
         {!loaded && <div className="card-tile__skeleton" />}
 
-        {/* Tiles always route through the Next image optimizer because
-            ~65% of card image URLs are hot-linked from Bandai regional
-            CDNs that respond with `cross-origin-resource-policy:
-            same-site`. That header silently blocks any direct
-            cross-origin <img> load (we tried `unoptimized` and the wall
-            went black). Optimizer-proxied requests get the CORP header
-            stripped, so they actually render. First-hit pays a
-            fetch+transcode cost in dev; subsequent hits land in Next's
-            on-disk cache (24h TTL via next.config.js).
-
-            Long-term fix to eliminate the first-hit cost: mirror
-            JP/TC/TW/SC to R2 so URLs swap to our own edge — see
-            docs/data-pipeline.md §4.2. */}
         <Image
-          src={card.imageSmall}
-          alt={`${card.name} - ${card.code}`}
+          src={imageSrc}
+          alt={ariaName}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 200px"
           className="card-tile__image"
           style={{ opacity: loaded ? 1 : 0 }}
           onLoad={() => setLoaded(true)}
+          onError={handleImageError}
           priority={priority}
           fetchPriority={priority ? 'high' : 'auto'}
-          // q=60 is visually indistinguishable from q=75 at thumbnail
-          // sizes (200–384 CSS px wide) but shaves ~25-35% off the
-          // WebP payload — a free win for the wall, which mounts
-          // dozens of tiles per scroll. Lightbox keeps the default 75
-          // because the user is actually looking at the full art.
           quality={60}
         />
 
-        {/* Cursor-following shine */}
         <div className="card-tile__shine" />
-
-        {/* Color accent bar - bottom edge on hover */}
         <div className="card-tile__colorbar" />
+
+        {showVariantLabel && (
+          <span className="card-tile__print-pill" aria-hidden>
+            {entry.printLabel}
+          </span>
+        )}
       </div>
     </div>
   )
 }
-

@@ -338,6 +338,7 @@ export function Header({ sets }: HeaderProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
+    flattenWall, setFlattenWall,
     language, setLanguage,
     activeCollection, setActiveCollection,
     zoom, setZoom,
@@ -350,6 +351,10 @@ export function Header({ sets }: HeaderProps) {
   // new controls on this flag instead of repeating the comparison in
   // each render slot.
   const showOnePieceFacets = activeCollection === 'one-piece'
+  const altArtTitle = flattenWall
+    ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
+    : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
+  const altArtAria = altArtTitle
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collectionOpen, setCollectionOpen] = useState(false)
   const collectionRef = useRef<HTMLDivElement>(null)
@@ -843,9 +848,21 @@ export function Header({ sets }: HeaderProps) {
             className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
             style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
             aria-pressed={onlyAltArt}
-            aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
+            aria-label={altArtAria}
+            title={altArtTitle}
           >
             Alt art
+          </button>
+          <button
+            type="button"
+            onClick={() => setFlattenWall(!flattenWall)}
+            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+            style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
+            aria-pressed={flattenWall}
+            aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
+            title={flattenWall ? 'Each print is its own tile on the wall' : 'Break out every alt art as its own tile'}
+          >
+            Flatten
           </button>
           {/* Language picker - mobile. Single-select pill group with
               two options (EN | JP). Each swaps the gallery to that
@@ -1113,22 +1130,24 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                /* outline-none mirrors the sibling selects so this
-                   button doesn't show Chromium's after-click focus
-                   ring (which slipped through as a bright white box
-                   while the selects suppressed it). Keyboard focus
-                   is still indicated via the globals.css :focus-visible
-                   rule, which targets inputs/selects/textareas; for
-                   buttons we rely on hover/pressed state instead, in
-                   line with the existing focus-styling comment in
-                   globals.css. */
                 className="inline-flex items-center px-3 text-xs font-medium outline-none"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={onlyAltArt}
-                aria-label={onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art'}
-                title="Show only cards with alt art"
+                aria-label={altArtAria}
+                title={altArtTitle}
               >
                 Alt art
+              </button>
+              <button
+                type="button"
+                onClick={() => setFlattenWall(!flattenWall)}
+                className="inline-flex items-center px-3 text-xs font-medium outline-none"
+                style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
+                aria-pressed={flattenWall}
+                aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
+                title={flattenWall ? 'Each print is its own tile on the wall' : 'Break out every alt art as its own tile'}
+              >
+                Flatten
               </button>
               {/* Language picker (desktop). Single-select pill group
                   with two options. EN | JP do two things in one

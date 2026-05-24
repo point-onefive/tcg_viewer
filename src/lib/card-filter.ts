@@ -120,7 +120,8 @@ export function applyLanguageFilter(
     // Swap base image to the matching localized scan (first available
     // language in the picker's bucket). Falls back to the existing
     // imageSmall when no per-language map is present (older bundles).
-    const baseImg = pickLocalizedImage(c.imagesByLanguage, bucket) ?? c.imageSmall
+    const baseImg =
+      pickLocalizedImage(c.imagesByLanguage, bucket, c.regionalIds) ?? c.imageSmall
 
     // Trim variants to those that ship in the chosen bucket, swap their
     // imageUrl, and forget regional images that don't apply.
@@ -128,7 +129,8 @@ export function applyLanguageFilter(
       ?.filter((v) => isInBucket(v.languages, bucket))
       .map((v) => ({
         ...v,
-        imageUrl: pickLocalizedImage(v.imagesByLanguage, bucket) ?? v.imageUrl,
+        imageUrl:
+          pickLocalizedImage(v.imagesByLanguage, bucket, v.regionalIds) ?? v.imageUrl,
       }))
 
     // Collapse near-duplicate prints inside this card. Same Bandai
@@ -272,16 +274,56 @@ export function applyRegionFilter(cards: Card[], jpOnly: boolean): Card[] {
   return out
 }
 
+const BANDAI_EN_CARD = 'https://en.onepiece-cardgame.com/images/cardlist/card'
+
+/**
+ * Ordered image URL candidates for the active language bucket.
+ * Bandai's EN CDN often hosts promos under `_rN` basenames while our
+ * bundle's `regionalIds.EN` and R2 mirror use `_pN`; R2 also 404s for
+ * ~70 variant prints. The wall tries each candidate in order (see
+ * CardTile onError) until one loads.
+ */
+export function resolveImageCandidates(
+  imagesByLanguage: Partial<Record<string, string>> | undefined,
+  bucket: CardLanguage[],
+  regionalIds?: Partial<Record<CardLanguage, string>>,
+  fallback?: string,
+): string[] {
+  const out: string[] = []
+  const add = (u?: string | null) => {
+    if (u && !out.includes(u)) out.push(u)
+  }
+
+  for (const lang of bucket) {
+    const key = lang.toLowerCase()
+    if (key === 'en') {
+      const rid = regionalIds?.EN
+      if (rid) {
+        add(`${BANDAI_EN_CARD}/${rid}.png`)
+        const rSwap = rid.replace(/_p(\d+)$/, '_r$1')
+        if (rSwap !== rid) add(`${BANDAI_EN_CARD}/${rSwap}.png`)
+      }
+      const enAsia = imagesByLanguage?.en_asia
+      if (enAsia) {
+        add(enAsia.replace(/^https:\/\/asia-en\.onepiece-cardgame\.com/, BANDAI_EN_CARD))
+        add(enAsia)
+      }
+      add(imagesByLanguage?.en)
+    } else {
+      add(imagesByLanguage?.[key])
+    }
+  }
+
+  add(fallback)
+  return out
+}
+
 function pickLocalizedImage(
   imagesByLanguage: Partial<Record<string, string>> | undefined,
   bucket: CardLanguage[],
+  regionalIds?: Partial<Record<CardLanguage, string>>,
 ): string | null {
-  if (!imagesByLanguage) return null
-  for (const lang of bucket) {
-    const key = lang.toLowerCase()
-    if (imagesByLanguage[key]) return imagesByLanguage[key]!
-  }
-  return null
+  return resolveImageCandidates(imagesByLanguage, bucket, regionalIds)[0] ?? null
 }
 
 /**
@@ -334,4 +376,111 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
     })
   }
   return result
+}
+
+/**
+ * One tile on the gallery wall. In the default (stacked) view each
+ * card becomes a single `base` entry. With flatten enabled, every
+ * variant becomes its own entry alongside (or instead of) the base.
+ */
+export interface WallEntry {
+  /** Stable React key + lightbox wall-navigation id. */
+  wallKey: string
+  kind: 'base' | 'variant'
+  card: Card
+  /** Base uses `card.id`; variants use `variant.id`. */
+  printId: string
+  imageSmall: string
+  /** Alternate URLs when the primary CDN 404s (Bandai `_pN`/`_rN` drift). */
+  imageFallbacks?: string[]
+  /** Short label for badges / aria (e.g. "Base", "p1"). */
+  printLabel: string
+}
+
+/**
+ * Expand filtered cards into the flat list of wall tiles.
+ *
+ *   stacked + !onlyAltArt  → one base tile per card (variants in lightbox)
+ *   stacked + onlyAltArt   → one stacked tile per card that has variants
+ *   flatten + !onlyAltArt  → base tile + one tile per variant
+ *   flatten + onlyAltArt   → variant tiles only (no base prints)
+ */
+function wallImageSources(
+  card: Card,
+  variant: CardVariant | null,
+  bucket: CardLanguage[],
+): { primary: string; fallbacks: string[] } {
+  const ibl = variant?.imagesByLanguage ?? card.imagesByLanguage
+  const regionalIds = variant?.regionalIds ?? card.regionalIds
+  const fallback = variant?.imageUrl ?? card.imageSmall
+  const cands = resolveImageCandidates(ibl, bucket, regionalIds, fallback)
+  const primary = variant?.imageUrl ?? card.imageSmall
+  const idx = cands.indexOf(primary)
+  const rest = idx >= 0 ? cands.filter((_, i) => i !== idx) : cands.slice(1)
+  return { primary, fallbacks: rest }
+}
+
+export function buildWallEntries(
+  cards: Card[],
+  opts: { flatten: boolean; onlyAltArt: boolean; language: LanguagePickerValue },
+): WallEntry[] {
+  const bucket = LANGUAGE_GROUPS[opts.language] ?? LANGUAGE_GROUPS.EN
+  const out: WallEntry[] = []
+  for (const card of cards) {
+    const variants = card.variants ?? []
+    if (opts.flatten) {
+      if (opts.onlyAltArt && variants.length === 0) continue
+      if (!opts.onlyAltArt) {
+        const { primary, fallbacks } = wallImageSources(card, null, bucket)
+        out.push({
+          wallKey: card.id,
+          kind: 'base',
+          card,
+          printId: card.id,
+          imageSmall: primary,
+          imageFallbacks: fallbacks.length > 0 ? fallbacks : undefined,
+          printLabel: 'Base',
+        })
+      }
+      for (const v of variants) {
+        const { primary, fallbacks } = wallImageSources(card, v, bucket)
+        out.push({
+          wallKey: v.id,
+          kind: 'variant',
+          card,
+          printId: v.id,
+          imageSmall: primary,
+          imageFallbacks: fallbacks.length > 0 ? fallbacks : undefined,
+          printLabel: v.label || v.id,
+        })
+      }
+      continue
+    }
+    if (opts.onlyAltArt && variants.length === 0) continue
+    const { primary, fallbacks } = wallImageSources(card, null, bucket)
+    out.push({
+      wallKey: card.id,
+      kind: 'base',
+      card,
+      printId: card.id,
+      imageSmall: primary,
+      imageFallbacks: fallbacks.length > 0 ? fallbacks : undefined,
+      printLabel: card.name,
+    })
+  }
+  return out
+}
+
+/** Filter cards then expand into wall tiles (shared by grid + lightbox). */
+export function filterAndBuildWall(
+  cards: Card[],
+  f: CardFilterState & { flatten: boolean; language: LanguagePickerValue },
+): { filtered: Card[]; entries: WallEntry[] } {
+  const filtered = filterCards(cards, f)
+  const entries = buildWallEntries(filtered, {
+    flatten: f.flatten,
+    onlyAltArt: f.onlyAltArt,
+    language: f.language,
+  })
+  return { filtered, entries }
 }

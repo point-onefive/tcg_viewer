@@ -101,8 +101,13 @@ export function HelpPage() {
               filter row).
             </li>
             <li>
-              Narrow with <Kbd>Set</Kbd>, <Kbd>Card type</Kbd>, <Kbd>Color</Kbd>, or{' '}
-              <Kbd>Alt art</Kbd>. They compose - turn on as many as you want.
+              Choose <Kbd>EN</Kbd> or <Kbd>JP</Kbd> to swap catalogues and artwork.
+              Each mode shows only prints published in that region.
+            </li>
+            <li>
+              Narrow with <Kbd>Set</Kbd>, <Kbd>Card type</Kbd>, <Kbd>Color</Kbd>,{' '}
+              <Kbd>Alt art</Kbd>, or <Kbd>Flatten</Kbd>. They compose - turn on as
+              many as you want.
             </li>
             <li>Click any card to open the lightbox and flip through alt arts.</li>
             <li>
@@ -116,7 +121,8 @@ export function HelpPage() {
           <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
             The second header row holds every narrowing control. Combine freely;
             removing a chip in the strip above the first card clears just that
-            facet.
+            facet. Search alone auto-expands every set so hits aren&rsquo;t buried
+            under collapsed headers.
           </p>
           <DefList
             items={[
@@ -126,18 +132,56 @@ export function HelpPage() {
               },
               {
                 term: 'Set',
-                desc: 'Narrows to a single set. The set header in the wall shows release date and card count.',
+                desc: 'Narrows to a single set. The set header in the wall shows release date and a tile count.',
               },
               {
-                term: 'Card type / Color / Alt art',
+                term: 'Card type / Color',
                 desc: 'One Piece for now. Other TCGs will get their own facets as we sit down to pick the right values for each.',
+              },
+              {
+                term: 'Alt art',
+                desc: (
+                  <>
+                    Default: hide cards with no alt prints. With{' '}
+                    <Kbd>Flatten</Kbd> off, matching cards keep a stacked-tile
+                    hint on the wall. With <Kbd>Flatten</Kbd> on, the same toggle
+                    hides base prints and shows variant tiles only.
+                  </>
+                ),
+              },
+              {
+                term: 'Flatten',
+                desc: (
+                  <>
+                    Breaks every alt print out as its own wall tile instead of
+                    tucking variants inside the lightbox only. Combine with{' '}
+                    <Kbd>Alt art</Kbd> to browse promos and parallels as a mosaic.
+                    Each variant tile gets a small print label (e.g.{' '}
+                    <Kbd>p1</Kbd>).
+                  </>
+                ),
+              },
+              {
+                term: 'Language',
+                desc: (
+                  <>
+                    <Kbd>EN</Kbd> shows the English catalogue (Bandai EN +
+                    Asia-EN). <Kbd>JP</Kbd> shows the Japanese catalogue with
+                    the richest promo coverage. There is no separate CN/TC picker
+                    — Bandai&rsquo;s TC/TW files are byte-identical to JP for
+                    almost every card, so a third option would have duplicated
+                    the same art.
+                  </>
+                ),
               },
               {
                 term: 'Search',
                 desc: (
                   <>
-                    Fuzzy match on card name and code. Try{' '}
-                    <Kbd>OP01-001</Kbd> or just <Kbd>luffy</Kbd>.
+                    Substring match on name, code, set name, card text (effect /
+                    trigger), types, attributes, and localized names. Try{' '}
+                    <Kbd>OP01-001</Kbd>, <Kbd>luffy</Kbd>, or{' '}
+                    <Kbd>when attacking</Kbd>.
                   </>
                 ),
               },
@@ -154,7 +198,12 @@ export function HelpPage() {
             </li>
             <li>
               Set headers collapse with the chevron beside the set code. The{' '}
-              <em>Collapse all</em> link hides every set at once.
+              <em>Collapse all</em> link hides every set at once. Facet toggles
+              (Alt art, Flatten, color, type) respect your collapse choices.
+            </li>
+            <li>
+              In flattened mode the header counts <em>prints</em> (each alt tile)
+              instead of unique cards.
             </li>
             <li>
               Active filters appear as removable chips above the first card. The
@@ -171,7 +220,8 @@ export function HelpPage() {
                 (variant) as thumbnails on the right.
               </li>
               <li>
-                <Kbd>←</Kbd> / <Kbd>→</Kbd> flips through variants.{' '}
+                <Kbd>←</Kbd> / <Kbd>→</Kbd> steps through variants inside the
+                card, or through wall tiles when <Kbd>Flatten</Kbd> is on.{' '}
                 <Kbd>Esc</Kbd> closes.
               </li>
               <li>
@@ -228,8 +278,8 @@ export function HelpPage() {
         <Section title="Privacy">
           <p className="text-sm leading-relaxed">
             No accounts, no signup, no tracking. Pins, the tier-list queue,
-            theme, and zoom all live in your browser&rsquo;s local storage.
-            Clearing site data clears all of it.
+            theme, zoom, language, and flatten preference all live in your
+            browser&rsquo;s local storage. Clearing site data clears all of it.
           </p>
         </Section>
 

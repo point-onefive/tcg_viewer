@@ -5,7 +5,7 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ChevronRight, X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
-import { filterCards } from '@/lib/card-filter'
+import { filterAndBuildWall, type WallEntry } from '@/lib/card-filter'
 import { CardTile } from './card-tile'
 
 // Base gap (px) at normal zoom. We tighten this at high column
@@ -110,6 +110,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
+    flattenWall, setFlattenWall,
+    language,
     activeCollection,
     zoom,
   } = useStore()
@@ -319,58 +321,55 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // Leader, arrow advances to the next Leader, not the next card in
   // the JSON bundle"). Keep the dep list aligned with the keys we
   // pass into filterCards or memoisation will silently drift.
-  const filtered = useMemo(
+  const { entries: wallEntries } = useMemo(
     () =>
-      filterCards(cards, {
+      filterAndBuildWall(cards, {
         activeSet,
         activeRarity,
         activeColor,
         activeCardType,
         onlyAltArt,
         searchQuery,
+        flatten: flattenWall,
+        language,
       }),
-    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery, flattenWall, language],
   )
 
-  // Card counts per set (from filtered results) - shown in collapsed headers.
+  // Tile counts per set (from wall entries) - shown in collapsed headers.
   const setCounts = useMemo(() => {
     const counts = new Map<string, number>()
-    for (const c of filtered) counts.set(c.setCode, (counts.get(c.setCode) ?? 0) + 1)
+    for (const e of wallEntries) counts.set(e.card.setCode, (counts.get(e.card.setCode) ?? 0) + 1)
     return counts
-  }, [filtered])
+  }, [wallEntries])
 
   const visibleSetCodes = useMemo(() => Array.from(setCounts.keys()), [setCounts])
   const allCollapsed =
     visibleSetCodes.length > 0 && visibleSetCodes.every((s) => collapsedSets.has(s))
 
-  // While the user is actively filtering, ignore the per-set collapse
-  // state and render everything expanded. Otherwise sets that happened
-  // to be collapsed-by-default still contributed their header row to
-  // the layout when they had matches - producing a stack of 44px
-  // header strips between the matches the user actually wanted to
-  // see (e.g. searching "nami" with most sets collapsed yielded ~250px
-  // of "OP02 · 1 cards" / "OP03 · 1 cards" headers between the OP01
-  // and OP04 hits). The underlying `collapsedSets` state is left
-  // untouched so the user's normal collapse layout snaps back the
-  // instant they clear filters.
-  const hasActiveFilter =
-    !!activeSet ||
-    !!activeRarity ||
-    !!activeColor ||
-    !!activeCardType ||
-    onlyAltArt ||
-    searchQuery.trim().length > 0
+  // While the user is searching, ignore per-set collapse and render
+  // everything expanded. Otherwise a query like "nami" with most sets
+  // collapsed yields a stack of 44px header strips ("OP02 · 1 cards",
+  // "OP03 · 1 cards", …) between the actual hits the user wanted to
+  // see. The underlying `collapsedSets` state is left untouched so the
+  // layout snaps back the instant they clear the query.
+  //
+  // Facet toggles (alt art, color, type, rarity) do NOT force-expand.
+  // Those filters often leave many cards per set and users expect to
+  // collapse everything except the sets they're browsing — toggling
+  // "Alt art" should not undo a deliberate "Collapse all" gesture.
+  const hasActiveFilter = searchQuery.trim().length > 0
 
   const { rows, rowMeta, firstCardRowIndex } = useMemo(() => {
-    const rows: (Card[] | CardSet)[] = []
+    const rows: (WallEntry[] | CardSet)[] = []
     const rowMeta: ('cards' | 'header')[] = []
     let currentSet = ''
     let currentCollapsed = false
     let firstCardRowIndex = -1
 
-    for (const card of filtered) {
-      if (card.setCode !== currentSet) {
-        currentSet = card.setCode
+    for (const entry of wallEntries) {
+      if (entry.card.setCode !== currentSet) {
+        currentSet = entry.card.setCode
         currentCollapsed = hasActiveFilter ? false : collapsedSets.has(currentSet)
         const set = sets.find((s) => s.setCode === currentSet)
         if (set) {
@@ -381,16 +380,16 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       if (currentCollapsed) continue
       const lastRow = rows[rows.length - 1]
       if (rowMeta[rowMeta.length - 1] === 'cards' && Array.isArray(lastRow) && lastRow.length < columns) {
-        lastRow.push(card)
+        lastRow.push(entry)
       } else {
-        rows.push([card])
+        rows.push([entry])
         rowMeta.push('cards')
         if (firstCardRowIndex === -1) firstCardRowIndex = rows.length - 1
       }
     }
 
     return { rows, rowMeta, firstCardRowIndex }
-  }, [filtered, columns, sets, collapsedSets, hasActiveFilter])
+  }, [wallEntries, columns, sets, collapsedSets, hasActiveFilter])
 
   const estimateSize = useCallback(
     (index: number) => {
@@ -422,7 +421,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     return <div style={{ minHeight: '100vh' }} />
   }
 
-  if (filtered.length === 0) {
+  if (wallEntries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <p className="text-sm tracking-wide uppercase" style={{ color: 'var(--text-muted)' }}>
@@ -492,7 +491,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             className="text-[11px] tracking-[0.16em] uppercase"
             style={{ color: 'var(--text-muted)' }}
           >
-            {filtered.length.toLocaleString()} cards
+            {wallEntries.length.toLocaleString()} {flattenWall ? 'prints' : 'cards'}
             {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
           </span>
           {visibleSetCodes.length > 1 && (
@@ -520,7 +519,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
           )}
         </div>
         {/* Active filter chips - visible only when at least one filter is on */}
-        {(activeSet || activeRarity || activeColor || activeCardType || onlyAltArt || searchQuery.trim()) && (
+        {(activeSet || activeRarity || activeColor || activeCardType || onlyAltArt || flattenWall || searchQuery.trim()) && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <span
               className="text-[10px] tracking-[0.18em] uppercase mr-1"
@@ -544,7 +543,13 @@ export function CardGrid({ cards, sets }: CardGridProps) {
               <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />
             )}
             {onlyAltArt && (
-              <FilterChip label="Has alt art" onClear={() => setOnlyAltArt(false)} />
+              <FilterChip
+                label={flattenWall ? 'Alt prints only' : 'Has alt art'}
+                onClear={() => setOnlyAltArt(false)}
+              />
+            )}
+            {flattenWall && (
+              <FilterChip label="Flattened" onClear={() => setFlattenWall(false)} />
             )}
             {searchQuery.trim() && (
               <FilterChip
@@ -560,6 +565,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setActiveColor(null)
                 setActiveCardType(null)
                 setOnlyAltArt(false)
+                setFlattenWall(false)
                 setSearchQuery('')
               }}
               className="text-[10px] tracking-[0.14em] uppercase underline underline-offset-2 ml-1"
@@ -579,7 +585,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
           if (type === 'header') {
             const set = row as CardSet
-            // During filtering we force-expand every set (see the
+            // During search we force-expand every set (see the
             // `hasActiveFilter` block in the rows useMemo), so the
             // chevron should show "expanded" too - otherwise the
             // arrow would point right while the cards underneath
@@ -599,7 +605,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             )
           }
 
-          const cardRow = row as Card[]
+          const entryRow = row as WallEntry[]
           // Only the very first card row gets eager image loading; this
           // resolves the LCP warning without flooding the network on load.
           const isFirstCardRow = virtualRow.index === firstCardRowIndex
@@ -613,8 +619,13 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 className="grid"
                 style={{ gridTemplateColumns: "repeat(" + columns + ", 1fr)", gap: gapForColumns(columns) }}
               >
-                {cardRow.map((card) => (
-                  <CardTile key={card.id} card={card} priority={isFirstCardRow} />
+                {entryRow.map((entry) => (
+                  <CardTile
+                    key={entry.wallKey}
+                    entry={entry}
+                    priority={isFirstCardRow}
+                    showStack={!flattenWall && (entry.card.variants?.length ?? 0) > 0 && entry.kind === 'base'}
+                  />
                 ))}
               </div>
             </div>
