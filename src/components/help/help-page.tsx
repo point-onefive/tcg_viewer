@@ -105,9 +105,9 @@ export function HelpPage() {
               Each mode shows only prints published in that region.
             </li>
             <li>
-              Narrow with <Kbd>Set</Kbd>, <Kbd>Card type</Kbd>, <Kbd>Color</Kbd>,{' '}
-              <Kbd>Alt art</Kbd>, or <Kbd>Flatten</Kbd>. They compose - turn on as
-              many as you want.
+              Narrow with <Kbd>Set</Kbd>, <Kbd>Card type</Kbd>, <Kbd>Rarity</Kbd>,{' '}
+              <Kbd>Color</Kbd>, <Kbd>Alt art</Kbd>, or <Kbd>Flatten</Kbd>. They
+              compose - turn on as many as you want.
             </li>
             <li>Click any card to open the lightbox and flip through alt arts.</li>
             <li>
@@ -135,8 +135,8 @@ export function HelpPage() {
                 desc: 'Narrows to a single set. The set header in the wall shows release date and a tile count.',
               },
               {
-                term: 'Card type / Color',
-                desc: 'One Piece for now. Other TCGs will get their own facets as we sit down to pick the right values for each.',
+                term: 'Card type / Rarity / Color',
+                desc: 'One Piece for now. Rarity covers Leader, Secret Rare, Super Rare, Rare, Uncommon, Common, and Promo. Other TCGs will get their own facets as we sit down to pick the right values for each.',
               },
               {
                 term: 'Alt art',

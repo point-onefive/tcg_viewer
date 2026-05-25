@@ -35,6 +35,20 @@ const ONE_PIECE_COLORS = [
   'Yellow',
 ] as const
 
+// Rarities in catalog tier order (Leader/Secret/Super Rare → Common,
+// then Promo as a non-tiered bucket at the end). Labels expand the
+// catalog's two/three-letter codes for the popover; the underlying
+// value still matches `card.rarity` in the bundle.
+const ONE_PIECE_RARITIES = [
+  { value: 'L',   label: 'L · Leader' },
+  { value: 'SEC', label: 'SEC · Secret Rare' },
+  { value: 'SR',  label: 'SR · Super Rare' },
+  { value: 'R',   label: 'R · Rare' },
+  { value: 'UC',  label: 'UC · Uncommon' },
+  { value: 'C',   label: 'C · Common' },
+  { value: 'P',   label: 'P · Promo' },
+] as const
+
 // Swatch palette for the Color facet popover. Mirrors card-tile.tsx's
 // COLOR_MAP so the chip beside each option matches the colour accent
 // the card itself wears in the grid. Kept here (not imported from
@@ -335,6 +349,7 @@ export function Header({ sets }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
+    activeRarity, setActiveRarity,
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
@@ -821,6 +836,28 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
           <select
+            value={activeRarity || ''}
+            onChange={(e) => setActiveRarity(e.target.value || null)}
+            className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+            style={{
+              ...(activeRarity ? ctrlActive : ctrl),
+              height: 30,
+              paddingRight: 22,
+              backgroundImage:
+                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 6px center',
+            }}
+            aria-label="Filter by rarity"
+          >
+            <option value="">All rarities</option>
+            {ONE_PIECE_RARITIES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+          <select
             value={activeColor || ''}
             onChange={(e) => setActiveColor(e.target.value || null)}
             className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
@@ -1112,6 +1149,16 @@ export function Header({ sets }: HeaderProps) {
                 ctrl={ctrl}
                 ctrlActive={ctrlActive}
                 menuMinWidth={140}
+              />
+              <FacetPopover
+                placeholder="All rarities"
+                ariaLabel="Filter by rarity"
+                value={activeRarity}
+                onChange={setActiveRarity}
+                options={ONE_PIECE_RARITIES.map((r) => ({ value: r.value, label: r.label }))}
+                ctrl={ctrl}
+                ctrlActive={ctrlActive}
+                menuMinWidth={170}
               />
               <FacetPopover
                 placeholder="All colors"
