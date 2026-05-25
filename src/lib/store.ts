@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LanguagePickerValue } from './types'
+import { defaultTiers, type TierCard, type TierDef } from './tier-list-types'
 
 type Theme = 'light' | 'dark'
 
@@ -114,6 +115,42 @@ interface StoreState {
   toggleTierPool: (item: TierPoolItem) => void
   isInTierPool: (id: string) => boolean
   clearTierPool: () => void
+
+  /**
+   * The persisted state of the Tier List Maker board. Lifted out of
+   * the page's local React state so it survives the user navigating
+   * to the gallery and back -- previously the entire chart (custom
+   * tier rows, card-to-tier assignments, board title) was wiped the
+   * moment the component unmounted, which made the tier-list page
+   * feel hostile after even one round-trip to grab another card.
+   *
+   * Persistence policy:
+   *   - `tierBoardTiers`: persisted (the user's custom S+/D/etc).
+   *   - `tierBoardTitle`: persisted (free-form chart title).
+   *   - `tierBoardCards`: persisted, BUT we drop upload-kind cards on
+   *     the way out (their `blob:` URLs die on page reload, so we'd
+   *     restore broken thumbs). Gallery-kind cards are stable URLs
+   *     and round-trip fine.
+   *
+   * `setTierBoardTiers` / `setTierBoardCards` accept either a new
+   * value or a `(prev) => next` updater so call sites can keep using
+   * the React-style functional update pattern they had with useState.
+   */
+  tierBoardTiers: TierDef[]
+  setTierBoardTiers: (next: TierDef[] | ((prev: TierDef[]) => TierDef[])) => void
+  tierBoardCards: TierCard[]
+  setTierBoardCards: (next: TierCard[] | ((prev: TierCard[]) => TierCard[])) => void
+  tierBoardTitle: string
+  setTierBoardTitle: (next: string) => void
+  /**
+   * Wipe the board back to a clean slate: default tier rows, no
+   * cards, empty title. Does NOT touch the gallery's tier-pool queue
+   * (`tierPool`) - that lives on the main wall side and clearing it
+   * separately is a different intent ("forget every card I queued
+   * for ranking" vs. "I want to start ranking from scratch but keep
+   * my queued cards").
+   */
+  resetTierBoard: () => void
 }
 
 /** Fire-and-forget telemetry. Anonymous, no user id, no cookies. */
@@ -253,6 +290,27 @@ export const useStore = create<StoreState>()(
         }
       },
       clearTierPool: () => set({ tierPool: [] }),
+
+      tierBoardTiers: defaultTiers(),
+      setTierBoardTiers: (next) =>
+        set((s) => ({
+          tierBoardTiers:
+            typeof next === 'function' ? (next as (prev: TierDef[]) => TierDef[])(s.tierBoardTiers) : next,
+        })),
+      tierBoardCards: [],
+      setTierBoardCards: (next) =>
+        set((s) => ({
+          tierBoardCards:
+            typeof next === 'function' ? (next as (prev: TierCard[]) => TierCard[])(s.tierBoardCards) : next,
+        })),
+      tierBoardTitle: '',
+      setTierBoardTitle: (tierBoardTitle) => set({ tierBoardTitle }),
+      resetTierBoard: () =>
+        set({
+          tierBoardTiers: defaultTiers(),
+          tierBoardCards: [],
+          tierBoardTitle: '',
+        }),
     }),
     {
       name: 'tcg-viewer-prefs',
@@ -264,8 +322,16 @@ export const useStore = create<StoreState>()(
         tierPool: state.tierPool,
         language: state.language,
         flattenWall: state.flattenWall,
+        tierBoardTiers: state.tierBoardTiers,
+        tierBoardTitle: state.tierBoardTitle,
+        // Drop upload-kind cards from the persisted slice: their
+        // `blob:` URLs are tied to the current document lifetime, so
+        // restoring them after a reload would just render broken
+        // thumbs. Gallery cards round-trip fine — they're stable
+        // R2/CDN URLs that the page can re-fetch on rehydrate.
+        tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 14,
+      version: 15,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -361,6 +427,17 @@ export const useStore = create<StoreState>()(
         if (fromVersion < 14) {
           // v14 adds flattenWall (default off).
           s.flattenWall = false
+        }
+        if (fromVersion < 15) {
+          // v15 persists the Tier List Maker board (tiers + cards +
+          // title) so it survives navigation away to the gallery
+          // and back. Older snapshots have none of these fields;
+          // the default-initialised values from the create() call
+          // above (defaultTiers(), [], '') are what we want on a
+          // first-rehydrate-after-upgrade.
+          s.tierBoardTiers = defaultTiers()
+          s.tierBoardCards = []
+          s.tierBoardTitle = ''
         }
         return s as StoreState
       },

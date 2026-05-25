@@ -26,6 +26,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
+import { defaultTiers, type TierCard, type TierCardKind, type TierDef } from '@/lib/tier-list-types'
 import {
   Check,
   ClipboardList,
@@ -50,53 +51,11 @@ import {
 } from '@/lib/chart-export'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
 
-export type TierDef = {
-  id: string
-  label: string
-  color: string
-}
-
-/**
- * Where a tier card image came from. Drives the rendered aspect ratio:
- *
- * - `gallery` - added via the "Add to tier list pool" button on a card
- *   in the main wall. Rendered portrait at the standard TCG card
- *   aspect (5:7) with `object-contain` so the full card art + frame
- *   is always visible (no cropping of the card title, cost, etc.).
- *
- * - `upload` - uploaded from disk or pasted from the clipboard. We
- *   render these at their NATURAL aspect ratio with `object-contain`
- *   so nothing the user pasted is cropped. Height is locked to
- *   `THUMB_H_PORTRAIT` (matching gallery rows so the tier strip
- *   stays vertically aligned) and width floats according to the
- *   intrinsic image dimensions — wide screenshots get wide tiles,
- *   portrait phone pics get narrow tiles, squares stay square.
- */
-export type TierCardKind = 'gallery' | 'upload'
-
-export type TierCard = {
-  id: string
-  src: string
-  tierId: string | null
-  kind: TierCardKind
-  /**
-   * Human-readable label for gallery cards (e.g. `"Roronoa Zoro"` or
-   * `"Roronoa Zoro · p1"` for alt-art). Populated from the matching
-   * `TierPoolItem` when the card is added from the main gallery.
-   * Uploaded images don't have one - the Roster section will fall
-   * back to `"Uploaded image"` for those.
-   */
-  label?: string
-  /**
-   * Intrinsic image aspect ratio (width / height) for `upload`
-   * cards. Captured asynchronously when the file is decoded so the
-   * tile renders at the pasted image's natural shape instead of
-   * being cropped to a square. Undefined until the decode resolves
-   * (and always undefined for `gallery` cards — those use the
-   * canonical 5:7 TCG ratio).
-   */
-  aspectRatio?: number
-}
+// `TierDef`, `TierCard`, `TierCardKind`, and `defaultTiers()` now
+// live in `@/lib/tier-list-types` so the Zustand store can reference
+// them (the page persists this state across navigation). Re-exported
+// for any caller still importing from this module.
+export type { TierDef, TierCard, TierCardKind } from '@/lib/tier-list-types'
 
 /**
  * Row height shared by every tier tile. Derived from the standard
@@ -176,13 +135,6 @@ function toCorsSafeImageSrc(src: string): string {
   }
   return `/_next/image?url=${encodeURIComponent(src)}&w=384&q=75`
 }
-
-const DEFAULT_TIERS: TierDef[] = [
-  { id: 't-s', label: 'S', color: '#ff5a5f' },
-  { id: 't-a', label: 'A', color: '#f6b352' },
-  { id: 't-b', label: 'B', color: '#f6e58d' },
-  { id: 't-c', label: 'C', color: '#9adf7f' },
-]
 
 const ctrlBase: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -1060,14 +1012,21 @@ export function TierListMaker() {
   const tierPool = useStore((s) => s.tierPool)
   const removeFromTierPool = useStore((s) => s.removeFromTierPool)
 
-  const [tiers, setTiers] = useState<TierDef[]>(() => DEFAULT_TIERS.map((t) => ({ ...t })))
-  const [cards, setCards] = useState<TierCard[]>([])
-  // Free-form chart title. Lives in component state to match the
-  // tiers/cards persistence model (in-memory only) - when we add
-  // chart persistence we'll lift all three together so they round-
-  // trip as one object. Capped well below typical screen widths to
-  // keep the heading from wrapping into a paragraph block.
-  const [title, setTitle] = useState('')
+  // Tiers / cards / title all live in the Zustand store now (see
+  // `tierBoard*` in lib/store.ts) so the whole working board
+  // survives navigating away to the gallery to queue more cards
+  // and back. Previously this state was local React state that
+  // got wiped every unmount -- after even one round trip the user
+  // would find their custom tier rows (S+, D, etc.), their tier
+  // assignments, AND their chart title all silently reset, which
+  // was the user complaint that motivated this refactor.
+  const tiers = useStore((s) => s.tierBoardTiers)
+  const setTiers = useStore((s) => s.setTierBoardTiers)
+  const cards = useStore((s) => s.tierBoardCards)
+  const setCards = useStore((s) => s.setTierBoardCards)
+  const title = useStore((s) => s.tierBoardTitle)
+  const setTitle = useStore((s) => s.setTierBoardTitle)
+  const resetBoard = useStore((s) => s.resetTierBoard)
   const [activeId, setActiveId] = useState<string | null>(null)
   // Tier-row drag state. Kept in its own pair (instead of widening
   // `activeId`) because the two DndContexts are independent and we
@@ -1180,20 +1139,16 @@ export function TierListMaker() {
     return () => window.removeEventListener('paste', onPaste)
   }, [addImageFiles])
 
-  // Revoke locally-created blob: URLs on unmount. We must not revoke
-  // every card on each render (that breaks live previews) and we must
-  // never call revoke on a normal http(s) URL pulled in from the store.
-  const cardsRef = useRef<TierCard[]>([])
-  useEffect(() => {
-    cardsRef.current = cards
-  }, [cards])
-  useEffect(() => {
-    return () => {
-      for (const c of cardsRef.current) {
-        if (c.src.startsWith('blob:')) URL.revokeObjectURL(c.src)
-      }
-    }
-  }, [])
+  // NOTE: we deliberately do NOT revoke blob: URLs on unmount any
+  // more. `cards` now lives in the Zustand store, so when the user
+  // navigates away from this page the upload tiles need their blob
+  // URLs to STAY ALIVE so the images still render when they come
+  // back. Per-item revoke still happens at the explicit removal
+  // sites (`removeCard`, `clearBankOnly`) which is when we actually
+  // know the URL is no longer needed. The small downside is that an
+  // upload that's never explicitly removed leaks its blob until the
+  // tab closes -- acceptable tradeoff for "the gallery round-trip
+  // doesn't nuke my board".
 
   // Merge in any items queued from the main gallery (store.tierPool) as
   // pool cards. Runs on mount and whenever the queue changes - so adding
@@ -2093,6 +2048,35 @@ export function TierListMaker() {
             tier-list page: uploaded images never leave the device. */}
         <p className="mt-8 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
           Your images stay on your device. Nothing is uploaded to any server.
+        </p>
+        <p className="mt-2 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+          Your tier rows, card placements, and chart title are saved on
+          this device — they'll be here when you come back.{' '}
+          <button
+            type="button"
+            onClick={() => {
+              if (cards.length === 0 && tiers.length === defaultTiers().length && !title) {
+                // Nothing meaningful to wipe yet; skip the confirm so
+                // we don't bait users into a yes/no on an empty board.
+                return
+              }
+              const ok = window.confirm(
+                'Reset the board? This clears every card, restores the default S/A/B/C tier rows, and wipes the chart title. Your queued tier-list pool on the gallery side is left untouched.',
+              )
+              if (!ok) return
+              // Revoke any upload blob URLs we created before we let
+              // the store drop them on the floor -- the store doesn't
+              // know about blob: semantics, so the UI handles cleanup.
+              for (const c of cards) {
+                if (c.src.startsWith('blob:')) URL.revokeObjectURL(c.src)
+              }
+              resetBoard()
+            }}
+            className="underline underline-offset-2"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Reset board
+          </button>
         </p>
       </div>
     </div>
