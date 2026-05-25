@@ -136,7 +136,7 @@ export function HelpPage() {
               },
               {
                 term: 'Card type / Rarity / Color',
-                desc: 'One Piece for now. Rarity covers Leader, Secret Rare, Super Rare, Rare, Uncommon, Common, and Promo. Other TCGs will get their own facets as we sit down to pick the right values for each.',
+                desc: 'Every TCG has its own curated vocabulary - Pokémon shows energy types and modern rarity tiers; Digimon and Gundam show their native colour wheels; One Piece keeps Leader / Character / Event / Stage. Switching collection resets these so you don\u2019t carry over irrelevant ones.',
               },
               {
                 term: 'Alt art',

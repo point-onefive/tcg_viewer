@@ -6,6 +6,7 @@ import { ChevronRight, X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
 import { filterAndBuildWall, type WallEntry } from '@/lib/card-filter'
+import { COLLECTION_FACETS, facetLabel } from '@/lib/collection-facets'
 import { CardTile } from './card-tile'
 
 // Base gap (px) at normal zoom. We tighten this at high column
@@ -532,12 +533,15 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             )}
             {activeCardType && (
               <FilterChip
-                label={formatCardType(activeCardType)}
+                label={facetLabel(COLLECTION_FACETS[activeCollection].cardTypes, activeCardType) || formatCardType(activeCardType)}
                 onClear={() => setActiveCardType(null)}
               />
             )}
             {activeRarity && (
-              <FilterChip label={activeRarity} onClear={() => setActiveRarity(null)} />
+              <FilterChip
+                label={facetLabel(COLLECTION_FACETS[activeCollection].rarities, activeRarity) || activeRarity}
+                onClear={() => setActiveRarity(null)}
+              />
             )}
             {activeColor && (
               <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />

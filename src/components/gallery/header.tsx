@@ -8,60 +8,14 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
+import { COLLECTION_FACETS } from '@/lib/collection-facets'
 
-/**
- * One Piece-only filter facets. Card types and the canonical colour
- * wheel are concepts every TCG has, but the *values* differ per game
- * (Pokémon uses energy types, Digimon uses 6 different colours, etc).
- * Until we sit down and pick the right values for each TCG, these
- * controls are gated on `activeCollection === 'one-piece'`.
- *
- * `value` is the raw string the bundle stores (uppercase for cardType,
- * Title-case for colour), `label` is what we show in the option.
- */
-const ONE_PIECE_CARD_TYPES = [
-  { value: 'LEADER', label: 'Leader' },
-  { value: 'CHARACTER', label: 'Character' },
-  { value: 'EVENT', label: 'Event' },
-  { value: 'STAGE', label: 'Stage' },
-] as const
-
-const ONE_PIECE_COLORS = [
-  'Red',
-  'Green',
-  'Blue',
-  'Purple',
-  'Black',
-  'Yellow',
-] as const
-
-// Rarities in catalog tier order (Leader/Secret/Super Rare → Common,
-// then Promo as a non-tiered bucket at the end). Labels expand the
-// catalog's two/three-letter codes for the popover; the underlying
-// value still matches `card.rarity` in the bundle.
-const ONE_PIECE_RARITIES = [
-  { value: 'L',   label: 'L · Leader' },
-  { value: 'SEC', label: 'SEC · Secret Rare' },
-  { value: 'SR',  label: 'SR · Super Rare' },
-  { value: 'R',   label: 'R · Rare' },
-  { value: 'UC',  label: 'UC · Uncommon' },
-  { value: 'C',   label: 'C · Common' },
-  { value: 'P',   label: 'P · Promo' },
-] as const
-
-// Swatch palette for the Color facet popover. Mirrors card-tile.tsx's
-// COLOR_MAP so the chip beside each option matches the colour accent
-// the card itself wears in the grid. Kept here (not imported from
-// card-tile) so this component has no inverse dependency on a tile
-// rendering concern.
-const ONE_PIECE_COLOR_SWATCHES: Record<string, string> = {
-  Red: '#ef4444',
-  Blue: '#3b82f6',
-  Green: '#22c55e',
-  Purple: '#a855f7',
-  Black: '#9ca3af',
-  Yellow: '#eab308',
-}
+// Per-collection facet config lives in `@/lib/collection-facets`.
+// Card type / Rarity / Color values vary by TCG; this header just
+// reads `COLLECTION_FACETS[activeCollection]` and renders generic
+// popovers + selects on top. Alt art / Flatten / Language are still
+// One-Piece-only — those map to data that only the OP pipeline
+// ingests (variant fans + per-language scans).
 
 interface HeaderProps {
   sets: CardSet[]
@@ -361,11 +315,12 @@ export function Header({ sets }: HeaderProps) {
     tierPool,
   } = useStore()
 
-  // One Piece is the only collection with curated filter facets right
-  // now (see ONE_PIECE_CARD_TYPES / ONE_PIECE_COLORS above). Gate the
-  // new controls on this flag instead of repeating the comparison in
-  // each render slot.
-  const showOnePieceFacets = activeCollection === 'one-piece'
+  // Every TCG gets Card type / Rarity / Color facets, populated from
+  // the per-collection config table. Alt art, Flatten, and the
+  // Language picker are still One-Piece-only because they only have
+  // meaning for the multi-language + alt-print OP pipeline.
+  const facets = COLLECTION_FACETS[activeCollection]
+  const isOnePiece = activeCollection === 'one-piece'
   const altArtTitle = flattenWall
     ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
     : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
@@ -798,149 +753,152 @@ export function Header({ sets }: HeaderProps) {
         </select>
       </div>
 
-      {/* ── Mobile row-3 · One Piece facets ──────────────────────────
-          Card type / Color / Alt art used to live behind the hamburger
-          too. Promoted here so every filter on the page is one tap
-          away. Only rendered for One Piece because no other TCG has
-          these facets wired up yet (Pokemon's energies / Digimon's
-          colors will eventually slot in the same row). Compact pill
-          language matches desktop row-2. */}
-      {showOnePieceFacets && (
-        <div
-          className="lg:hidden flex items-center gap-2 px-4"
+      {/* ── Mobile row-3 · per-collection facets ─────────────────────
+          Card type / Rarity / Color used to live behind the hamburger.
+          Promoted here so every filter on the page is one tap away.
+          Options come from `COLLECTION_FACETS[activeCollection]` so
+          each TCG sees its own curated vocabulary (Pokémon's energy
+          types, Digimon's seven colours, etc). Alt art / Flatten /
+          Language only render for One Piece — those map to data that
+          the OP-only multi-language + alt-print pipeline ingests. */}
+      <div
+        className="lg:hidden flex items-center gap-2 px-4 overflow-x-auto"
+        style={{
+          height: 40,
+          borderTop: '1px solid var(--border-subtle)',
+        }}
+      >
+        <select
+          value={activeCardType || ''}
+          onChange={(e) => setActiveCardType(e.target.value || null)}
+          className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
           style={{
-            height: 40,
-            borderTop: '1px solid var(--border-subtle)',
+            ...(activeCardType ? ctrlActive : ctrl),
+            height: 30,
+            paddingRight: 22,
+            backgroundImage:
+              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 6px center',
           }}
+          aria-label="Filter by card type"
         >
-          <select
-            value={activeCardType || ''}
-            onChange={(e) => setActiveCardType(e.target.value || null)}
-            className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
-            style={{
-              ...(activeCardType ? ctrlActive : ctrl),
-              height: 30,
-              paddingRight: 22,
-              backgroundImage:
-                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 6px center',
-            }}
-            aria-label="Filter by card type"
-          >
-            <option value="">All types</option>
-            {ONE_PIECE_CARD_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={activeRarity || ''}
-            onChange={(e) => setActiveRarity(e.target.value || null)}
-            className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
-            style={{
-              ...(activeRarity ? ctrlActive : ctrl),
-              height: 30,
-              paddingRight: 22,
-              backgroundImage:
-                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 6px center',
-            }}
-            aria-label="Filter by rarity"
-          >
-            <option value="">All rarities</option>
-            {ONE_PIECE_RARITIES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={activeColor || ''}
-            onChange={(e) => setActiveColor(e.target.value || null)}
-            className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
-            style={{
-              ...(activeColor ? ctrlActive : ctrl),
-              height: 30,
-              paddingRight: 22,
-              backgroundImage:
-                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 6px center',
-            }}
-            aria-label="Filter by color"
-          >
-            <option value="">All colors</option>
-            {ONE_PIECE_COLORS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => setOnlyAltArt(!onlyAltArt)}
-            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
-            style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
-            aria-pressed={onlyAltArt}
-            aria-label={altArtAria}
-            title={altArtTitle}
-          >
-            Alt art
-          </button>
-          <button
-            type="button"
-            onClick={() => setFlattenWall(!flattenWall)}
-            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
-            style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
-            aria-pressed={flattenWall}
-            aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
-            title={flattenWall ? 'Each print is its own tile on the wall' : 'Break out every alt art as its own tile'}
-          >
-            Flatten
-          </button>
-          {/* Language picker - mobile. Single-select pill group with
-              two options (EN | JP). Each swaps the gallery to that
-              region's catalogue and artwork. */}
-          <div
-            className="inline-flex items-center"
-            style={{
-              ...ctrl,
-              height: 30,
-              padding: 2,
-              overflow: 'hidden',
-            }}
-            role="radiogroup"
-            aria-label="Language"
-          >
-            {LANGUAGE_OPTIONS.map((opt) => {
-              const selected = language === opt.value
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setLanguage(opt.value)}
-                  className="inline-flex items-center justify-center gap-1 px-2 text-[11px] font-semibold outline-none"
-                  style={{
-                    height: 24,
-                    borderRadius: 4,
-                    background: selected ? 'var(--text-primary)' : 'transparent',
-                    color: selected ? 'var(--bg)' : 'var(--text-primary)',
-                    transition: 'background 0.18s ease, color 0.18s ease',
-                  }}
-                  title={opt.description}
-                >
-                  {opt.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
+          <option value="">All types</option>
+          {facets.cardTypes.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={activeRarity || ''}
+          onChange={(e) => setActiveRarity(e.target.value || null)}
+          className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+          style={{
+            ...(activeRarity ? ctrlActive : ctrl),
+            height: 30,
+            paddingRight: 22,
+            backgroundImage:
+              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 6px center',
+          }}
+          aria-label="Filter by rarity"
+        >
+          <option value="">All rarities</option>
+          {facets.rarities.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={activeColor || ''}
+          onChange={(e) => setActiveColor(e.target.value || null)}
+          className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+          style={{
+            ...(activeColor ? ctrlActive : ctrl),
+            height: 30,
+            paddingRight: 22,
+            backgroundImage:
+              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 6px center',
+          }}
+          aria-label="Filter by color"
+        >
+          <option value="">All colors</option>
+          {facets.colors.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        {isOnePiece && (
+          <>
+            <button
+              type="button"
+              onClick={() => setOnlyAltArt(!onlyAltArt)}
+              className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+              style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
+              aria-pressed={onlyAltArt}
+              aria-label={altArtAria}
+              title={altArtTitle}
+            >
+              Alt art
+            </button>
+            <button
+              type="button"
+              onClick={() => setFlattenWall(!flattenWall)}
+              className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+              style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
+              aria-pressed={flattenWall}
+              aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
+              title={flattenWall ? 'Each print is its own tile on the wall' : 'Break out every alt art as its own tile'}
+            >
+              Flatten
+            </button>
+            {/* Language picker - mobile. Single-select pill group with
+                two options (EN | JP). Each swaps the gallery to that
+                region's catalogue and artwork. */}
+            <div
+              className="inline-flex items-center"
+              style={{
+                ...ctrl,
+                height: 30,
+                padding: 2,
+                overflow: 'hidden',
+              }}
+              role="radiogroup"
+              aria-label="Language"
+            >
+              {LANGUAGE_OPTIONS.map((opt) => {
+                const selected = language === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setLanguage(opt.value)}
+                    className="inline-flex items-center justify-center gap-1 px-2 text-[11px] font-semibold outline-none"
+                    style={{
+                      height: 24,
+                      borderRadius: 4,
+                      background: selected ? 'var(--text-primary)' : 'transparent',
+                      color: selected ? 'var(--bg)' : 'var(--text-primary)',
+                      transition: 'background 0.18s ease, color 0.18s ease',
+                    }}
+                    title={opt.description}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* ── Mobile row-4 · Zoom slider ───────────────────────────────
           Zoom was the last hamburger-only control. Promoted here so
@@ -1127,53 +1085,47 @@ export function Header({ sets }: HeaderProps) {
             triggerMaxWidth={180}
           />
 
-          {/* One Piece-only facet filters · live inline alongside the
-              other narrowing controls so the user sees every available
-              dimension at a glance instead of opening a popover. Each
-              spreads `ctrlActive` when holding a value so the active
-              state is visible without scanning the chip strip below. */}
-          {showOnePieceFacets && (
+          {/* Per-collection facet filters · Card type / Rarity / Color
+              come from `COLLECTION_FACETS[activeCollection]` so each
+              TCG sees its own curated vocabulary. Custom popovers
+              (not native <select>) keep menus inside site styling —
+              macOS Chrome's native dropdown overlay paints an opaque
+              white panel that ignores dark mode and feels foreign next
+              to the rest of the header. Mobile keeps native selects
+              because the OS picker is better tuned for touch. */}
+          <FacetPopover
+            placeholder="All types"
+            ariaLabel="Filter by card type"
+            value={activeCardType}
+            onChange={setActiveCardType}
+            options={facets.cardTypes}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            menuMinWidth={150}
+          />
+          <FacetPopover
+            placeholder="All rarities"
+            ariaLabel="Filter by rarity"
+            value={activeRarity}
+            onChange={setActiveRarity}
+            options={facets.rarities}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            menuMinWidth={180}
+            menuMaxHeight={320}
+          />
+          <FacetPopover
+            placeholder="All colors"
+            ariaLabel="Filter by color"
+            value={activeColor}
+            onChange={setActiveColor}
+            options={facets.colors}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            menuMinWidth={150}
+          />
+          {isOnePiece && (
             <>
-              {/* Custom popovers (not native <select>) so the menu
-                  inherits site styling. The native dropdown overlay
-                  on macOS Chrome paints an opaque white panel that
-                  ignores dark mode and feels foreign next to the
-                  rest of the header. Mobile keeps native selects - those bring up the OS picker which is genuinely
-                  better tuned for touch. */}
-              <FacetPopover
-                placeholder="All types"
-                ariaLabel="Filter by card type"
-                value={activeCardType}
-                onChange={setActiveCardType}
-                options={ONE_PIECE_CARD_TYPES}
-                ctrl={ctrl}
-                ctrlActive={ctrlActive}
-                menuMinWidth={140}
-              />
-              <FacetPopover
-                placeholder="All rarities"
-                ariaLabel="Filter by rarity"
-                value={activeRarity}
-                onChange={setActiveRarity}
-                options={ONE_PIECE_RARITIES.map((r) => ({ value: r.value, label: r.label }))}
-                ctrl={ctrl}
-                ctrlActive={ctrlActive}
-                menuMinWidth={170}
-              />
-              <FacetPopover
-                placeholder="All colors"
-                ariaLabel="Filter by color"
-                value={activeColor}
-                onChange={setActiveColor}
-                options={ONE_PIECE_COLORS.map((c) => ({
-                  value: c,
-                  label: c,
-                  swatch: ONE_PIECE_COLOR_SWATCHES[c],
-                }))}
-                ctrl={ctrl}
-                ctrlActive={ctrlActive}
-                menuMinWidth={140}
-              />
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
