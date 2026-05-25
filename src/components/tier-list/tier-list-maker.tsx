@@ -124,6 +124,59 @@ function thumbDimensions(kind: TierCardKind, aspectRatio?: number) {
   return { width, height: THUMB_H_PORTRAIT, fit: 'contain' as const }
 }
 
+/**
+ * Cloudflare R2 bucket that hosts the mirrored card images. R2 is
+ * configured to send `Access-Control-Allow-Origin: *`, so anything
+ * coming from this host can be rendered with `crossOrigin="anonymous"`
+ * and drawn into a canvas without tainting it (which is what powers
+ * the PNG export below).
+ */
+const R2_HOSTNAME = 'pub-6d5072ccd26a467db70791436c203abb.r2.dev'
+
+/**
+ * Rewrite a remote card image URL so the tier-list page can render
+ * it (and html-to-image can capture it) regardless of whether the
+ * upstream host serves CORS headers.
+ *
+ * Background: the tile `<img>` below sets `crossOrigin="anonymous"`
+ * so a chart export's canvas isn't tainted. That works for R2
+ * mirrors (R2 returns `Access-Control-Allow-Origin: *`) and for
+ * `blob:` / `data:` URLs (same-origin by definition), but it
+ * breaks for any other host -- the browser refuses to render the
+ * image, and the user sees a broken-thumb icon in the pool.
+ *
+ * That's exactly what happens for off-R2 alt arts and promo cards
+ * that point at `www.onepiece-cardgame.com`, `asia-tc.onepiece-cardgame.com`,
+ * `source.windoent.com`, etc. None of those hosts send ACAO, so
+ * the moment they hit the tier list maker they fail to load.
+ *
+ * Fix: for any URL that isn't already CORS-safe, route it through
+ * Next's image optimizer (`/_next/image?url=…&w=384&q=75`). That
+ * endpoint:
+ *   - lives on the same origin as the page (no CORS at all)
+ *   - is allow-listed for every card-image host in `next.config.js`
+ *   - normalises everything to optimised WebP at a thumbnail-sized
+ *     resolution that's plenty for both the 78×109 pool tile and
+ *     the 2× pixelRatio chart export
+ *
+ * The width (384) and quality (75) are intentionally picked from the
+ * `imageSizes` / `qualities` allow-lists already declared in
+ * `next.config.js` so the optimizer doesn't reject the request.
+ */
+function toCorsSafeImageSrc(src: string): string {
+  if (!src) return src
+  if (src.startsWith('blob:') || src.startsWith('data:')) return src
+  if (src.startsWith('/_next/image')) return src
+  if (!src.startsWith('http://') && !src.startsWith('https://')) return src
+  try {
+    const u = new URL(src)
+    if (u.hostname === R2_HOSTNAME) return src
+  } catch {
+    return src
+  }
+  return `/_next/image?url=${encodeURIComponent(src)}&w=384&q=75`
+}
+
 const DEFAULT_TIERS: TierDef[] = [
   { id: 't-s', label: 'S', color: '#ff5a5f' },
   { id: 't-a', label: 'A', color: '#f6b352' },
@@ -369,6 +422,7 @@ function SortableCard({
   })
 
   const { width, height, fit } = thumbDimensions(kind, aspectRatio)
+  const renderedSrc = toCorsSafeImageSrc(src)
 
   return (
     <div
@@ -424,7 +478,7 @@ function SortableCard({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={src}
+          src={renderedSrc}
           alt=""
           draggable={false}
           // `crossOrigin="anonymous"` forces the browser to load the
@@ -1996,7 +2050,7 @@ export function TierListMaker() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={activeCard.src}
+                    src={toCorsSafeImageSrc(activeCard.src)}
                     alt=""
                     draggable={false}
                     // See SortableCard above for why this matters --
