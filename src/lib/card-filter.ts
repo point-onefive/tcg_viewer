@@ -1,5 +1,6 @@
 import type { Card, CardLanguage, CardVariant, LanguagePickerValue } from './types'
 import { LANGUAGE_GROUPS, LANGUAGE_BUCKETS } from './types'
+import { ONE_PIECE_ERRATA_CODES } from './cards-one-piece-errata'
 
 /**
  * The active filter state read off the Zustand store. Kept as a plain
@@ -13,6 +14,13 @@ export interface CardFilterState {
   activeColor: string | null
   activeCardType: string | null
   onlyAltArt: boolean
+  // When true, restrict the wall to the curated list of One Piece
+  // cards that have received an official errata. List lives in
+  // `cards-one-piece-errata.ts`. Collections other than One Piece
+  // don't surface the toggle, so this is effectively a no-op for
+  // those (the filter still runs but their bundles never contain
+  // any of the OP errata codes).
+  onlyErrata: boolean
   searchQuery: string
 }
 
@@ -373,6 +381,7 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   }
   if (f.activeCardType) result = result.filter((c) => c.cardType === f.activeCardType)
   if (f.onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
+  if (f.onlyErrata) result = result.filter((c) => ONE_PIECE_ERRATA_CODES.has(c.code))
   if (f.searchQuery.trim()) {
     // Search covers card rules text (effect / trigger), tag-like
     // metadata (types, attributes), AND per-language localized names

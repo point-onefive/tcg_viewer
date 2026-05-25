@@ -307,6 +307,7 @@ export function Header({ sets }: HeaderProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
+    onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
     language, setLanguage,
     activeCollection, setActiveCollection,
@@ -867,6 +868,23 @@ export function Header({ sets }: HeaderProps) {
           </>
         )}
         {isOnePiece && (
+          <button
+            type="button"
+            onClick={() => setOnlyErrata(!onlyErrata)}
+            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
+            style={{ ...(onlyErrata ? ctrlActive : ctrl), height: 30 }}
+            aria-pressed={onlyErrata}
+            aria-label={onlyErrata ? 'Showing only cards with an official errata' : 'Show only cards with an official errata'}
+            title={
+              onlyErrata
+                ? 'Showing only cards whose text has been officially corrected by Bandai'
+                : 'Show only cards whose text has been officially corrected by Bandai (errata)'
+            }
+          >
+            Errata
+          </button>
+        )}
+        {isOnePiece && (
           <>
             {/* Language picker - mobile. Single-select pill group with
                 two options (EN | JP). Each swaps the gallery to that
@@ -1159,6 +1177,23 @@ export function Header({ sets }: HeaderProps) {
                 Flatten
               </button>
             </>
+          )}
+          {isOnePiece && (
+            <button
+              type="button"
+              onClick={() => setOnlyErrata(!onlyErrata)}
+              className="inline-flex items-center px-3 text-xs font-medium outline-none"
+              style={{ ...(onlyErrata ? ctrlActive : ctrl), height: 30 }}
+              aria-pressed={onlyErrata}
+              aria-label={onlyErrata ? 'Showing only cards with an official errata' : 'Show only cards with an official errata'}
+              title={
+                onlyErrata
+                  ? 'Showing only cards whose text has been officially corrected by Bandai'
+                  : 'Show only cards whose text has been officially corrected by Bandai (errata)'
+              }
+            >
+              Errata
+            </button>
           )}
           {isOnePiece && (
             <>

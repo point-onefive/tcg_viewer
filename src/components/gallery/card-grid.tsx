@@ -111,6 +111,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     onlyAltArt, setOnlyAltArt,
+    onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
     language,
     activeCollection,
@@ -330,11 +331,12 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         activeColor,
         activeCardType,
         onlyAltArt,
+        onlyErrata,
         searchQuery,
         flatten: flattenWall,
         language,
       }),
-    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, searchQuery, flattenWall, language],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, onlyErrata, searchQuery, flattenWall, language],
   )
 
   // Tile counts per set (from wall entries) - shown in collapsed headers.
@@ -520,7 +522,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
           )}
         </div>
         {/* Active filter chips - visible only when at least one filter is on */}
-        {(activeSet || activeRarity || activeColor || activeCardType || onlyAltArt || flattenWall || searchQuery.trim()) && (
+        {(activeSet || activeRarity || activeColor || activeCardType || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <span
               className="text-[10px] tracking-[0.18em] uppercase mr-1"
@@ -552,6 +554,9 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 onClear={() => setOnlyAltArt(false)}
               />
             )}
+            {onlyErrata && (
+              <FilterChip label="Errata only" onClear={() => setOnlyErrata(false)} />
+            )}
             {flattenWall && (
               <FilterChip label="Flattened" onClear={() => setFlattenWall(false)} />
             )}
@@ -569,6 +574,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setActiveColor(null)
                 setActiveCardType(null)
                 setOnlyAltArt(false)
+                setOnlyErrata(false)
                 setFlattenWall(false)
                 setSearchQuery('')
               }}

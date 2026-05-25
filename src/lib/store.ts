@@ -66,6 +66,13 @@ interface StoreState {
   // hide base prints and show variant tiles only (see buildWallEntries).
   onlyAltArt: boolean
   setOnlyAltArt: (v: boolean) => void
+  // When true (One Piece only), narrow the wall to the curated set of
+  // cards that have received an official errata (text change) from
+  // Bandai. List lives in `cards-one-piece-errata.ts` and is sourced
+  // from https://en.onepiece-cardgame.com/rules/errata_card/. Not
+  // persisted - users opt into the filter per session.
+  onlyErrata: boolean
+  setOnlyErrata: (v: boolean) => void
   // When true, each variant gets its own tile on the wall instead of
   // living inside the stacked-card lightbox fan only.
   flattenWall: boolean
@@ -139,6 +146,7 @@ export const useStore = create<StoreState>()(
           activeColor: null,
           activeCardType: null,
           onlyAltArt: false,
+          onlyErrata: false,
           flattenWall: false,
           searchQuery: '',
           lightboxCardId: null,
@@ -155,6 +163,8 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
+      onlyErrata: false,
+      setOnlyErrata: (onlyErrata) => set({ onlyErrata }),
       flattenWall: false,
       setFlattenWall: (flattenWall) => set({ flattenWall }),
       // Default to EN: the app's surface language is English, so an
