@@ -285,21 +285,26 @@ export function applyRegionFilter(cards: Card[], jpOnly: boolean): Card[] {
 }
 
 const BANDAI_EN_CARD = 'https://en.onepiece-cardgame.com/images/cardlist/card'
-const BANDAI_ASIA_EN_CARD = 'https://asia-en.onepiece-cardgame.com/images/cardlist/card'
 
 /**
  * Ordered image URL candidates for the active language bucket.
  *
  * Bandai's EN CDN often hosts promos under `_rN` basenames while our
  * bundle's `regionalIds.EN` and R2 mirror use `_pN`; R2 also 404s for
- * ~70 variant prints. A second class of recent promos (P-136 → P-149
- * "Live Action Edition" set) lives ONLY on the asia-en CDN — neither
- * R2 nor en.onepiece-cardgame.com has them — and the bundle for these
- * has no `en_asia` key, so we synthesise the asia-en URL from
- * `regionalIds.EN` as a tail fallback.
+ * ~70 variant prints. The wall tries each candidate in order (see
+ * CardTile onError) until one loads.
  *
- * The wall tries each candidate in order (see CardTile onError) until
- * one loads.
+ * IMPORTANT: do NOT speculatively try asia-en for cards whose bundle
+ * entry has no `en_asia` key. Asia-en's CDN happily returns the
+ * Japanese-text SAMPLE scan for prints Bandai hasn't localized to
+ * English yet (e.g. the Live Action Edition P-136..P-149 promos),
+ * which would silently leak JP-text cards into the EN view. When a
+ * card legitimately has an EN-language version on asia-en, the
+ * bundle generator captures that URL in `en_asia` and the chain
+ * uses it. The absence of an `en_asia` key is our signal that the
+ * card has no real EN scan, in which case the bundle should not be
+ * advertising it under `languages: ['EN']` at all (we patch those
+ * data bugs directly in cards-one-piece.json).
  */
 export function resolveImageCandidates(
   imagesByLanguage: Partial<Record<string, string>> | undefined,
@@ -316,10 +321,10 @@ export function resolveImageCandidates(
     const key = lang.toLowerCase()
     if (key === 'en') {
       const rid = regionalIds?.EN
-      const rSwap = rid?.replace(/_p(\d+)$/, '_r$1')
       if (rid) {
         add(`${BANDAI_EN_CARD}/${rid}.png`)
-        if (rSwap && rSwap !== rid) add(`${BANDAI_EN_CARD}/${rSwap}.png`)
+        const rSwap = rid.replace(/_p(\d+)$/, '_r$1')
+        if (rSwap !== rid) add(`${BANDAI_EN_CARD}/${rSwap}.png`)
       }
       const enAsia = imagesByLanguage?.en_asia
       if (enAsia) {
@@ -327,13 +332,6 @@ export function resolveImageCandidates(
         add(enAsia)
       }
       add(imagesByLanguage?.en)
-      // Tail fallback: try the asia-en CDN directly with the
-      // regional id (covers P-136 → P-149 and similar asia-en-only
-      // promos that ship without an `en_asia` key in the bundle).
-      if (rid) {
-        add(`${BANDAI_ASIA_EN_CARD}/${rid}.png`)
-        if (rSwap && rSwap !== rid) add(`${BANDAI_ASIA_EN_CARD}/${rSwap}.png`)
-      }
     } else {
       add(imagesByLanguage?.[key])
     }
