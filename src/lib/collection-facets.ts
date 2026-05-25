@@ -34,6 +34,13 @@ export type CollectionFacets = {
   cardTypes: ReadonlyArray<FacetOption>
   rarities: ReadonlyArray<FacetOption>
   colors: ReadonlyArray<FacetOption>
+  /**
+   * Does this collection's bundle ship alt-art / parallel `variants`?
+   * Gates the Alt art and Flatten toggles in the header — Pokémon
+   * treats each parallel as its own card (no nested variants), so
+   * exposing those toggles for Pokémon would be a dead-action UX.
+   */
+  hasVariants: boolean
 }
 
 // Swatch palette shared with card-tile.tsx::COLOR_MAP. Kept in this
@@ -83,6 +90,7 @@ const ONE_PIECE: CollectionFacets = {
     { value: 'P',   label: 'P · Promo' },
   ],
   colors: ['Red', 'Green', 'Blue', 'Purple', 'Black', 'Yellow'].map(colorOpt),
+  hasVariants: true,
 }
 
 const POKEMON: CollectionFacets = {
@@ -113,6 +121,10 @@ const POKEMON: CollectionFacets = {
     'Grass', 'Fire', 'Water', 'Lightning', 'Psychic',
     'Fighting', 'Darkness', 'Metal', 'Dragon', 'Fairy', 'Colorless',
   ].map(colorOpt),
+  // Pokémon parallels ship as separate cards (own id, own name), not
+  // as nested `variants` on a base card. Audited bundle: 0 cards with
+  // variants out of 20.5k. Toggle would be a dead action.
+  hasVariants: false,
 }
 
 const DIGIMON: CollectionFacets = {
@@ -132,6 +144,7 @@ const DIGIMON: CollectionFacets = {
     { value: 'UR',  label: 'UR · Ultra Rare' },
   ],
   colors: ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'Purple', 'White'].map(colorOpt),
+  hasVariants: true,
 }
 
 const DBS: CollectionFacets = {
@@ -151,6 +164,7 @@ const DBS: CollectionFacets = {
     { value: 'PR',  label: 'PR · Promo' },
   ],
   colors: ['Red', 'Blue', 'Green', 'Yellow', 'Black'].map(colorOpt),
+  hasVariants: true,
 }
 
 const GUNDAM: CollectionFacets = {
@@ -167,6 +181,7 @@ const GUNDAM: CollectionFacets = {
     { value: 'C',  label: 'C · Common' },
   ],
   colors: ['Red', 'Blue', 'Green', 'Purple', 'White'].map(colorOpt),
+  hasVariants: true,
 }
 
 export const COLLECTION_FACETS: Record<Collection, CollectionFacets> = {

@@ -316,11 +316,17 @@ export function Header({ sets }: HeaderProps) {
   } = useStore()
 
   // Every TCG gets Card type / Rarity / Color facets, populated from
-  // the per-collection config table. Alt art, Flatten, and the
-  // Language picker are still One-Piece-only because they only have
-  // meaning for the multi-language + alt-print OP pipeline.
+  // the per-collection config table. Alt art + Flatten ride a
+  // per-collection `hasVariants` flag — Digimon, DBS, Gundam, and One
+  // Piece all bundle parallel/alt prints as nested variants on a base
+  // card, so the stacked-tile hint and the flatten-the-wall mode all
+  // apply identically. Pokémon parallels ship as separate cards (no
+  // nested variants), so those toggles stay hidden there. Language is
+  // still One-Piece-only because only the OP pipeline ingests
+  // per-region scans.
   const facets = COLLECTION_FACETS[activeCollection]
   const isOnePiece = activeCollection === 'one-piece'
+  const showVariantToggles = facets.hasVariants
   const altArtTitle = flattenWall
     ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
     : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
@@ -834,7 +840,7 @@ export function Header({ sets }: HeaderProps) {
             </option>
           ))}
         </select>
-        {isOnePiece && (
+        {showVariantToggles && (
           <>
             <button
               type="button"
@@ -858,6 +864,10 @@ export function Header({ sets }: HeaderProps) {
             >
               Flatten
             </button>
+          </>
+        )}
+        {isOnePiece && (
+          <>
             {/* Language picker - mobile. Single-select pill group with
                 two options (EN | JP). Each swaps the gallery to that
                 region's catalogue and artwork. */}
@@ -1124,7 +1134,7 @@ export function Header({ sets }: HeaderProps) {
             ctrlActive={ctrlActive}
             menuMinWidth={150}
           />
-          {isOnePiece && (
+          {showVariantToggles && (
             <>
               <button
                 type="button"
@@ -1148,6 +1158,10 @@ export function Header({ sets }: HeaderProps) {
               >
                 Flatten
               </button>
+            </>
+          )}
+          {isOnePiece && (
+            <>
               {/* Language picker (desktop). Single-select pill group
                   with two options. EN | JP do two things in one
                   motion: (1) trim the wall to cards Bandai publishes

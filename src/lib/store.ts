@@ -139,6 +139,7 @@ export const useStore = create<StoreState>()(
           activeColor: null,
           activeCardType: null,
           onlyAltArt: false,
+          flattenWall: false,
           searchQuery: '',
           lightboxCardId: null,
         }),

@@ -145,7 +145,9 @@ export function HelpPage() {
                     Default: hide cards with no alt prints. With{' '}
                     <Kbd>Flatten</Kbd> off, matching cards keep a stacked-tile
                     hint on the wall. With <Kbd>Flatten</Kbd> on, the same toggle
-                    hides base prints and shows variant tiles only.
+                    hides base prints and shows variant tiles only. Available for
+                    One Piece, Digimon, Dragon Ball, and Gundam (Pokémon ships
+                    parallels as separate cards, so no toggle there).
                   </>
                 ),
               },
