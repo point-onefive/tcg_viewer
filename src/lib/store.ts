@@ -151,6 +151,12 @@ interface StoreState {
    * my queued cards").
    */
   resetTierBoard: () => void
+  /**
+   * Restore the default S/A/B/C tier rows (names, colors, count,
+   * order) and move every charted card back to the pool. Keeps cards
+   * on the board and leaves the chart title untouched.
+   */
+  resetTierChart: () => void
 }
 
 /** Fire-and-forget telemetry. Anonymous, no user id, no cookies. */
@@ -311,6 +317,13 @@ export const useStore = create<StoreState>()(
           tierBoardCards: [],
           tierBoardTitle: '',
         }),
+      resetTierChart: () =>
+        set((s) => ({
+          tierBoardTiers: defaultTiers(),
+          tierBoardCards: s.tierBoardCards.map((c) =>
+            c.tierId === null ? c : { ...c, tierId: null },
+          ),
+        })),
     }),
     {
       name: 'tcg-viewer-prefs',

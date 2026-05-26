@@ -37,11 +37,9 @@ export type TierCard = {
   tierId: string | null
   kind: TierCardKind
   /**
-   * Human-readable label for gallery cards (e.g. `"Roronoa Zoro"` or
-   * `"Roronoa Zoro · p1"` for alt-art). Populated from the matching
-   * `TierPoolItem` when the card is added from the main gallery.
-   * Uploaded images don't have one - the Roster section will fall
-   * back to `"Uploaded image"` for those.
+   * Human-readable label shown in the roster (and copied as plain
+   * text). Pre-populated when a card is added from the gallery or
+   * pasted/uploaded; users can edit it inline in the roster section.
    */
   label?: string
   /**
@@ -70,4 +68,15 @@ export function defaultTiers(): TierDef[] {
     { id: 't-b', label: 'B', color: '#f6e58d' },
     { id: 't-c', label: 'C', color: '#9adf7f' },
   ]
+}
+
+export function tiersMatchDefault(tiers: TierDef[]): boolean {
+  const defaults = defaultTiers()
+  if (tiers.length !== defaults.length) return false
+  return tiers.every(
+    (tier, idx) =>
+      tier.id === defaults[idx].id &&
+      tier.label === defaults[idx].label &&
+      tier.color === defaults[idx].color,
+  )
 }

@@ -26,7 +26,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/store'
-import { defaultTiers, type TierCard, type TierCardKind, type TierDef } from '@/lib/tier-list-types'
+import { defaultTiers, tiersMatchDefault, type TierCard, type TierCardKind, type TierDef } from '@/lib/tier-list-types'
 import {
   Check,
   ClipboardList,
@@ -774,23 +774,14 @@ function SortableTierRow({
 
 /**
  * Pull a `{ name, code }` pair out of a `TierCard` for the Roster
- * section. Three shapes need to be handled:
- *
- *  - Gallery base card  - id `OP01-001`, label `"Roronoa Zoro"`
- *  - Gallery variant     - id `OP01-001_p1`, label `"Roronoa Zoro · p1"`
- *  - Uploaded image      - id is a UUID, no label
- *
- * For gallery items the card *code* is just the part of the id
- * before the underscore (so `OP01-001_p1` → `OP01-001`). The label
- * already carries the variant suffix (` · p1`) so we display it
- * as-is and use the bare code in parens. Uploads degrade to
- * `"Uploaded image"` with no code - users won't be copying these
- * anywhere meaningful, but we still account for them so totals
- * line up.
+ * section. Gallery cards expose the card code in parens; uploads
+ * have no code. The display name comes from `card.label` when set,
+ * otherwise a sensible default (`Pasted image` for uploads, card
+ * code for gallery).
  */
 function rosterEntryFor(card: TierCard): { name: string; code: string | null } {
   if (card.kind === 'upload') {
-    return { name: 'Uploaded image', code: null }
+    return { name: card.label?.trim() || 'Pasted image', code: null }
   }
   const code = card.id.includes('_') ? card.id.slice(0, card.id.indexOf('_')) : card.id
   const name = card.label?.trim() || code
@@ -826,8 +817,58 @@ function rosterToPlainText(
 }
 
 /**
- * Read-only summary of every charted card, grouped by tier, with
- * a single Copy button that drops the same data on the clipboard
+ * Single roster row with an inline-editable name. Gallery cards still
+ * show the card code in muted mono text beside the name field.
+ */
+function RosterEntryRow({
+  card,
+  onUpdateLabel,
+}: {
+  card: TierCard
+  onUpdateLabel: (id: string, label: string) => void
+}) {
+  const { name, code } = rosterEntryFor(card)
+  const editValue = card.label ?? name
+
+  return (
+    <li className="flex items-center gap-2 leading-snug">
+      <input
+        type="text"
+        value={editValue}
+        onChange={(e) => onUpdateLabel(card.id, e.target.value)}
+        className="min-w-0 flex-1 px-1.5 py-0.5 text-sm font-medium outline-none"
+        style={{
+          ...ctrlBase,
+          borderRadius: 4,
+          background: 'transparent',
+          border: '1px solid transparent',
+          color: 'var(--text-primary)',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = 'var(--border-subtle)'
+          e.currentTarget.style.background = 'var(--bg)'
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = 'transparent'
+          e.currentTarget.style.background = 'transparent'
+        }}
+        aria-label={code ? `Roster name for ${code}` : 'Roster name for pasted image'}
+      />
+      {code && (
+        <span
+          className="shrink-0 font-mono text-xs"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          {code}
+        </span>
+      )}
+    </li>
+  )
+}
+
+/**
+ * Summary of every charted card, grouped by tier, with inline-editable
+ * names and a Copy button that drops the same data on the clipboard
  * as plain text. Lives below the visual chart so it serves as the
  * quick-reference / shareable version of the tier list - you can
  * paste the output straight into a tweet, DM, or notes file
@@ -841,10 +882,12 @@ function RosterSection({
   tiers,
   cards,
   title,
+  onUpdateLabel,
 }: {
   tiers: TierDef[]
   cards: TierCard[]
   title: string
+  onUpdateLabel: (id: string, label: string) => void
 }) {
   const [copied, setCopied] = useState(false)
   const copyTimerRef = useRef<number | null>(null)
@@ -972,25 +1015,9 @@ function RosterSection({
               className="flex flex-1 flex-col gap-1 px-3 py-2.5 text-sm"
               style={{ color: 'var(--text-primary)' }}
             >
-              {tierCards.map((c) => {
-                const { name, code } = rosterEntryFor(c)
-                return (
-                  <li
-                    key={c.id}
-                    className="flex items-baseline gap-2 leading-snug"
-                  >
-                    <span className="font-medium">{name}</span>
-                    {code && (
-                      <span
-                        className="font-mono text-xs"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        {code}
-                      </span>
-                    )}
-                  </li>
-                )
-              })}
+              {tierCards.map((c) => (
+                <RosterEntryRow key={c.id} card={c} onUpdateLabel={onUpdateLabel} />
+              ))}
             </ul>
           </div>
         ))}
@@ -1000,7 +1027,7 @@ function RosterSection({
         className="mt-2 text-xs"
         style={{ color: 'var(--text-muted)' }}
       >
-        One-tap copy drops a tweet-ready version of this list on your clipboard.
+        One-tap copy drops a tweet-ready version of this list on your clipboard. Tap any name to edit it first.
       </p>
     </section>
   )
@@ -1027,6 +1054,7 @@ export function TierListMaker() {
   const title = useStore((s) => s.tierBoardTitle)
   const setTitle = useStore((s) => s.setTierBoardTitle)
   const resetBoard = useStore((s) => s.resetTierBoard)
+  const resetTierChart = useStore((s) => s.resetTierChart)
   const [activeId, setActiveId] = useState<string | null>(null)
   // Tier-row drag state. Kept in its own pair (instead of widening
   // `activeId`) because the two DndContexts are independent and we
@@ -1074,6 +1102,7 @@ export function TierListMaker() {
         src: URL.createObjectURL(file),
         tierId: null,
         kind: 'upload',
+        label: 'Pasted image',
       })
     }
     if (!next.length) return
@@ -1177,6 +1206,13 @@ export function TierListMaker() {
     })
   }, [tierPool])
 
+  const updateCardLabel = useCallback(
+    (id: string, label: string) => {
+      setCards((prev) => prev.map((c) => (c.id === id ? { ...c, label } : c)))
+    },
+    [setCards],
+  )
+
   const removeCard = useCallback(
     (id: string) => {
       setCards((prev) => {
@@ -1200,6 +1236,18 @@ export function TierListMaker() {
       return prev.map((c) => (c.tierId === null ? c : { ...c, tierId: null }))
     })
   }, [])
+
+  const handleResetTierChart = useCallback(() => {
+    const hasCustomTiers = !tiersMatchDefault(tiers)
+    const hasAssignments = cards.some((c) => c.tierId !== null)
+    if (!hasCustomTiers && !hasAssignments) return
+
+    const ok = window.confirm(
+      'Reset tier rows to S, A, B, C? Extra tiers are removed, row names and colors are restored, and every charted card moves back to the pool. Your cards and chart title stay as they are.',
+    )
+    if (!ok) return
+    resetTierChart()
+  }, [tiers, cards, resetTierChart])
 
   // ─── Chart export ────────────────────────────────────────────────
   // `chartFrameRef` points at the bordered chart container that the
@@ -1584,15 +1632,25 @@ export function TierListMaker() {
               icon={Layers}
               label="Tier rows"
               right={
-                <button
-                  type="button"
-                  onClick={addTier}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
-                  style={{ ...ctrlBase, height: 28 }}
-                >
-                  <Plus size={14} aria-hidden />
-                  Add tier
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetTierChart}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                    style={{ ...ctrlBase, height: 28 }}
+                  >
+                    Reset to S/A/B/C
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addTier}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                    style={{ ...ctrlBase, height: 28 }}
+                  >
+                    <Plus size={14} aria-hidden />
+                    Add tier
+                  </button>
+                </div>
               }
             />
             {/* Tier-row reorder lives in its own DndContext, isolated
@@ -1635,7 +1693,7 @@ export function TierListMaker() {
               </DragOverlay>
             </DndContext>
             <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-              Drag the grip handle to reorder rows. Rename tiers (S+, S-, etc.) and drag images between rows.
+              Drag the grip handle to reorder rows. Rename tiers (S+, S-, etc.) and drag images between rows. Use Reset to S/A/B/C to restore the default four rows and move charted cards back to the pool.
             </p>
           </section>
         )}
@@ -2036,11 +2094,16 @@ export function TierListMaker() {
         </DndContext>
 
         {/* Plain-text roster of every charted card, grouped by
-            tier, with a Copy button for quick share. Lives outside
-            the DndContext above on purpose - it's read-only and
-            doesn't need any of the drag wiring. Self-hides when
+            tier, with editable names and a Copy button for quick
+            share. Lives outside the DndContext above on purpose -
+            it doesn't need any of the drag wiring. Self-hides when
             nothing is charted yet. */}
-        <RosterSection tiers={tiers} cards={cards} title={title} />
+        <RosterSection
+          tiers={tiers}
+          cards={cards}
+          title={title}
+          onUpdateLabel={updateCardLabel}
+        />
 
         {/* Footer note. The "always free / no signup / runs in
             browser" trio already lives in the lede above, so down
