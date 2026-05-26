@@ -1241,11 +1241,6 @@ export function TierListMaker() {
     const hasCustomTiers = !tiersMatchDefault(tiers)
     const hasAssignments = cards.some((c) => c.tierId !== null)
     if (!hasCustomTiers && !hasAssignments) return
-
-    const ok = window.confirm(
-      'Reset tier rows to S, A, B, C? Extra tiers are removed, row names and colors are restored, and every charted card moves back to the pool. Your cards and chart title stay as they are.',
-    )
-    if (!ok) return
     resetTierChart()
   }, [tiers, cards, resetTierChart])
 
@@ -1638,6 +1633,7 @@ export function TierListMaker() {
                     onClick={handleResetTierChart}
                     className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
                     style={{ ...ctrlBase, height: 28 }}
+                    title="Restore default S, A, B, C rows and move charted cards back to the pool. Cards and chart title stay as they are."
                   >
                     Reset
                   </button>
