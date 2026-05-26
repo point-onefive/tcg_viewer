@@ -24,7 +24,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center justify-center cursor-pointer"
+      className="footer-btn flex items-center justify-center cursor-pointer"
       style={{
         background: 'var(--bg-surface)',
         color: 'var(--text-secondary)',

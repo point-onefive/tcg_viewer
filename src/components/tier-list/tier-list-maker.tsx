@@ -959,7 +959,7 @@ function RosterSection({
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
             style={{
               ...ctrlBase,
               height: 30,
@@ -1514,12 +1514,12 @@ export function TierListMaker() {
             <button
               type="button"
               onClick={() => setEditorOpen((v) => !v)}
-              className="inline-flex items-center px-3 text-xs font-medium"
+              className="footer-btn inline-flex items-center px-3 text-xs font-medium"
               style={{ ...ctrlBase, height: 30 }}
             >
               {editorOpen ? 'Hide tier editor' : 'Edit tiers'}
             </button>
-            <label htmlFor={`${formId}-file`} style={uploadChip}>
+            <label htmlFor={`${formId}-file`} className="footer-btn" style={uploadChip}>
               <Upload size={14} aria-hidden />
               Upload images
               <input
@@ -1640,7 +1640,7 @@ export function TierListMaker() {
                   <button
                     type="button"
                     onClick={addTier}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                    className="footer-btn inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
                     style={{ ...ctrlBase, height: 28 }}
                   >
                     <Plus size={14} aria-hidden />
@@ -1714,8 +1714,8 @@ export function TierListMaker() {
                     <button
                       type="button"
                       onClick={clearBankOnly}
-                      className="text-xs underline-offset-2 hover:underline"
-                      style={{ color: 'var(--text-muted)' }}
+                      className="footer-btn inline-flex items-center px-2 py-1 text-xs font-semibold"
+                      style={{ ...ctrlBase, height: 28 }}
                     >
                       Clear pool
                     </button>
@@ -1843,7 +1843,7 @@ export function TierListMaker() {
                     type="button"
                     onClick={() => setBorderAnimated((v) => !v)}
                     aria-pressed={borderAnimated}
-                    className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
                     style={{
                       ...ctrlBase,
                       height: 30,
@@ -1864,7 +1864,7 @@ export function TierListMaker() {
                     type="button"
                     onClick={handleCopyPng}
                     disabled={exporting !== null || exportDisabled}
-                    className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
                     style={{
                       ...ctrlBase,
                       height: 30,
@@ -1884,7 +1884,7 @@ export function TierListMaker() {
                     type="button"
                     onClick={handleSavePng}
                     disabled={exporting !== null || exportDisabled}
-                    className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
                     style={{
                       ...ctrlBase,
                       height: 30,
@@ -1905,7 +1905,7 @@ export function TierListMaker() {
                       type="button"
                       onClick={clearChart}
                       disabled={exporting !== null}
-                      className="inline-flex items-center gap-1 px-3 text-xs font-medium"
+                      className="footer-btn inline-flex items-center gap-1 px-3 text-xs font-medium"
                       style={{ ...ctrlBase, height: 30 }}
                       aria-label="Move every charted card back to the pool"
                     >
