@@ -1631,7 +1631,7 @@ export function TierListMaker() {
                   <button
                     type="button"
                     onClick={handleResetTierChart}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                    className="footer-btn inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
                     style={{ ...ctrlBase, height: 28 }}
                     title="Restore default S, A, B, C rows and move charted cards back to the pool. Cards and chart title stay as they are."
                   >
