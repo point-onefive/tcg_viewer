@@ -440,7 +440,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             setOnlyAltArt(false)
             setSearchQuery('')
           }}
-          className="px-3 py-1.5 text-xs font-medium"
+          className="footer-btn px-3 py-1.5 text-xs font-medium"
           style={{
             background: 'color-mix(in srgb, #E85D2A 14%, transparent)',
             color: '#E85D2A',
@@ -507,7 +507,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setUserToggledSets(new Set(visibleSetCodes))
                 setCollapsedSets(allCollapsed ? new Set() : new Set(visibleSetCodes))
               }}
-              className="text-[10px] tracking-[0.16em] uppercase ml-auto inline-flex items-center gap-1 px-2 py-1"
+              className="footer-btn text-[10px] tracking-[0.16em] uppercase ml-auto inline-flex items-center gap-1 px-2 py-1"
               style={{
                 color: 'var(--text-primary)',
                 background: 'var(--bg)',
@@ -578,8 +578,14 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setFlattenWall(false)
                 setSearchQuery('')
               }}
-              className="text-[10px] tracking-[0.14em] uppercase underline underline-offset-2 ml-1"
-              style={{ color: 'var(--text-muted)' }}
+              className="footer-btn text-[10px] tracking-[0.14em] uppercase px-2 py-1 ml-1"
+              style={{
+                color: 'var(--text-muted)',
+                background: 'var(--bg)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 6,
+                lineHeight: 1,
+              }}
             >
               Clear all
             </button>

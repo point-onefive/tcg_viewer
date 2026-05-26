@@ -631,7 +631,7 @@ html.lenis, html.lenis body {
   cursor: pointer;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 180ms ease, box-shadow 260ms ease;
   white-space: nowrap;
 }
 
@@ -639,6 +639,11 @@ html.lenis, html.lenis body {
   background: var(--lb-surface-hover);
   color: var(--lb-fg);
   border-color: var(--lb-border-hover);
+  transform: translateY(-1px);
+}
+
+.lb-hud-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .lb-hud-btn--active {
@@ -756,12 +761,17 @@ html.lenis, html.lenis body {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 180ms ease;
 }
 
 .board-panel__close:hover {
   background: var(--bg-surface);
   color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.board-panel__close:active {
+  transform: translateY(0) scale(0.96);
 }
 
 /* Right-aligned action cluster: clear all + close. Gap keeps the
@@ -788,12 +798,17 @@ html.lenis, html.lenis body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 180ms ease;
 }
 
 .board-panel__clear:hover {
   background: var(--bg-surface);
   color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.board-panel__clear:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* Armed state: first click flips the label to "Confirm?" and tints
@@ -1039,12 +1054,18 @@ html.lenis, html.lenis body {
   }
 }
 
-/* ─── Footer button hover glow ──────────────────────────────── */
-.footer-btn {
+/* ─── Toolbar press affordance (site-wide) ────────────────────
+   Hover lift + active press for pill-shaped controls. Used on
+   header filters, tier-list actions, footer links, board panel,
+   and anywhere else a ctrl-style button appears. `.press-btn` is
+   an alias of `.footer-btn` (kept for backwards compat). */
+.footer-btn,
+.press-btn {
   position: relative;
   transition: background 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 260ms ease, transform 180ms ease;
 }
-.footer-btn:hover {
+.footer-btn:hover:not(:disabled),
+.press-btn:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--text-primary) 30%, transparent);
   background: color-mix(in srgb, var(--text-primary) 4%, var(--bg-surface));
   box-shadow:
@@ -1053,8 +1074,13 @@ html.lenis, html.lenis body {
     0 8px 20px -6px rgba(0, 0, 0, 0.18);
   transform: translateY(-1px);
 }
-.footer-btn:active {
-  transform: translateY(0);
+.footer-btn:active:not(:disabled),
+.press-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
-
+.footer-btn:disabled:hover,
+.press-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
 

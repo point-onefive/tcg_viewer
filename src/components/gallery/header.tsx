@@ -128,7 +128,7 @@ function FacetPopover({
            visible focus ring via the global :focus-visible rule
            (selects/inputs) - buttons here use hover/active styling
            instead, matching the header's existing button language. */
-        className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+        className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
         style={{
           ...(isActive ? ctrlActive : ctrl),
           height: 30,
@@ -365,7 +365,7 @@ function MobileMoreFiltersMenu({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+        className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
         style={{ ...(isActive ? ctrlActive : ctrl), height: 30 }}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -743,7 +743,7 @@ export function Header({ sets }: HeaderProps) {
               replaced the deprecated first-visit guided tour. */}
           <Link
             href="/help"
-            className="inline-flex items-center justify-center"
+            className="footer-btn inline-flex items-center justify-center"
             style={{ ...ctrl, width: 30, height: 30 }}
             aria-label="How it works"
             title="How it works"
@@ -756,7 +756,7 @@ export function Header({ sets }: HeaderProps) {
             href="https://x.com/point_onefive"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center"
+            className="footer-btn inline-flex items-center justify-center"
             style={{ ...ctrl, width: 30, height: 30 }}
             aria-label="Feedback on X (@point_onefive)"
             title="Feedback & suggestions"
@@ -770,7 +770,7 @@ export function Header({ sets }: HeaderProps) {
 
           <Link
             href="/tier-list"
-            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
             style={{
               ...ctrl,
               height: 30,
@@ -797,7 +797,7 @@ export function Header({ sets }: HeaderProps) {
               width count badge grows away from siblings, never into
               them. */}
           <button
-            className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
             style={{
               ...ctrl,
               height: 30,
@@ -826,7 +826,7 @@ export function Header({ sets }: HeaderProps) {
           {/* Board icon - only if pins exist */}
           {pinnedCount > 0 && (
             <button
-              className="relative inline-flex items-center justify-center"
+              className="footer-btn relative inline-flex items-center justify-center"
               style={{ ...ctrl, width: 32, height: 32 }}
               onClick={() => setBoardOpen(true)}
               aria-label={`Board (${pinnedCount} pinned)`}
@@ -845,7 +845,7 @@ export function Header({ sets }: HeaderProps) {
 
           <Link
             href="/tier-list"
-            className="relative inline-flex items-center justify-center"
+            className="footer-btn relative inline-flex items-center justify-center"
             style={{ ...ctrl, width: 32, height: 32 }}
             aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
             title="Tier list maker"
@@ -863,7 +863,7 @@ export function Header({ sets }: HeaderProps) {
 
           {/* Hamburger */}
           <button
-            className="inline-flex items-center justify-center"
+            className="footer-btn inline-flex items-center justify-center"
             style={{ ...ctrl, width: 32, height: 32 }}
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
@@ -1112,7 +1112,7 @@ export function Header({ sets }: HeaderProps) {
             <button
               type="button"
               onClick={() => setCollectionOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
               style={{ ...ctrl, height: 30 }}
               aria-haspopup="listbox"
               aria-expanded={collectionOpen}
@@ -1279,7 +1279,7 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="inline-flex items-center px-3 text-xs font-medium outline-none"
+                className="footer-btn inline-flex items-center px-3 text-xs font-medium outline-none"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={onlyAltArt}
                 aria-label={altArtAria}
@@ -1290,7 +1290,7 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setFlattenWall(!flattenWall)}
-                className="inline-flex items-center px-3 text-xs font-medium outline-none"
+                className="footer-btn inline-flex items-center px-3 text-xs font-medium outline-none"
                 style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={flattenWall}
                 aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
@@ -1304,7 +1304,7 @@ export function Header({ sets }: HeaderProps) {
             <button
               type="button"
               onClick={() => setOnlyErrata(!onlyErrata)}
-              className="inline-flex items-center px-3 text-xs font-medium outline-none"
+              className="footer-btn inline-flex items-center px-3 text-xs font-medium outline-none"
               style={{ ...(onlyErrata ? ctrlActive : ctrl), height: 30 }}
               aria-pressed={onlyErrata}
               aria-label={onlyErrata ? 'Showing only cards with an official errata' : 'Show only cards with an official errata'}
@@ -1488,7 +1488,7 @@ export function Header({ sets }: HeaderProps) {
           <Link
             href="/tier-list"
             onClick={() => setMobileOpen(false)}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
             style={{ ...ctrl }}
             aria-label={tierPoolCount > 0 ? `Open tier list maker (${tierPoolCount} queued)` : 'Open tier list maker'}
           >
@@ -1510,7 +1510,7 @@ export function Header({ sets }: HeaderProps) {
           <Link
             href="/help"
             onClick={() => setMobileOpen(false)}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
             style={{ ...ctrl }}
             aria-label="How it works"
           >
@@ -1524,7 +1524,7 @@ export function Header({ sets }: HeaderProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setMobileOpen(false)}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
             style={{ ...ctrl }}
             aria-label="Feedback on X (@point_onefive)"
           >

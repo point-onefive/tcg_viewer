@@ -56,7 +56,7 @@ export function HelpPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/"
-              className="group inline-flex items-center gap-1.5 text-xs font-medium"
+              className="footer-btn group inline-flex items-center gap-1.5 text-xs font-medium"
               style={{
                 color: 'var(--text-muted)',
                 background: 'var(--bg-surface)',
