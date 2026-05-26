@@ -299,6 +299,202 @@ function FacetOptionRow({
   )
 }
 
+/**
+ * Mobile-only overflow menu for secondary filters (Alt art, Flatten,
+ * Errata, Language). Keeps the primary facet row to three dropdowns
+ * plus one "More" pill so the strip fits narrow viewports without a
+ * horizontal scrollbar. The trigger shows a count badge when any
+ * toggle filter is active.
+ */
+function MobileMoreFiltersMenu({
+  showVariantToggles,
+  isOnePiece,
+  onlyAltArt,
+  setOnlyAltArt,
+  flattenWall,
+  setFlattenWall,
+  onlyErrata,
+  setOnlyErrata,
+  language,
+  setLanguage,
+  ctrl,
+  ctrlActive,
+}: {
+  showVariantToggles: boolean
+  isOnePiece: boolean
+  onlyAltArt: boolean
+  setOnlyAltArt: (v: boolean) => void
+  flattenWall: boolean
+  setFlattenWall: (v: boolean) => void
+  onlyErrata: boolean
+  setOnlyErrata: (v: boolean) => void
+  language: LanguagePickerValue
+  setLanguage: (v: LanguagePickerValue) => void
+  ctrl: React.CSSProperties
+  ctrlActive: React.CSSProperties
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  if (!showVariantToggles && !isOnePiece) return null
+
+  const activeCount =
+    (onlyAltArt ? 1 : 0) +
+    (flattenWall ? 1 : 0) +
+    (onlyErrata ? 1 : 0)
+  const isActive = activeCount > 0
+
+  return (
+    <div ref={wrapperRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+        style={{ ...(isActive ? ctrlActive : ctrl), height: 30 }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={activeCount > 0 ? `More filters (${activeCount} active)` : 'More filters'}
+      >
+        More
+        {activeCount > 0 && (
+          <span
+            className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+            style={{
+              minWidth: 16,
+              height: 16,
+              padding: '0 4px',
+              borderRadius: 999,
+              background: 'var(--text-primary)',
+              color: 'var(--bg)',
+            }}
+          >
+            {activeCount}
+          </span>
+        )}
+        <ChevronDown
+          size={12}
+          strokeWidth={2.25}
+          style={{
+            transition: 'transform 180ms ease',
+            transform: open ? 'rotate(180deg)' : 'rotate(0)',
+            color: 'var(--text-muted)',
+          }}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="menu"
+            aria-label="More filters"
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute right-0 top-full mt-1.5"
+            style={{
+              transformOrigin: 'top right',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              boxShadow: 'var(--shadow-card)',
+              zIndex: 60,
+              padding: 4,
+              minWidth: 168,
+            }}
+          >
+            {showVariantToggles && (
+              <>
+                <FacetOptionRow
+                  label="Alt art"
+                  selected={onlyAltArt}
+                  onClick={() => setOnlyAltArt(!onlyAltArt)}
+                />
+                <FacetOptionRow
+                  label="Flatten"
+                  selected={flattenWall}
+                  onClick={() => setFlattenWall(!flattenWall)}
+                />
+              </>
+            )}
+            {isOnePiece && (
+              <FacetOptionRow
+                label="Errata"
+                selected={onlyErrata}
+                onClick={() => setOnlyErrata(!onlyErrata)}
+              />
+            )}
+            {isOnePiece && (
+              <div
+                className="px-2.5 py-2"
+                style={{ borderTop: '1px solid var(--border-subtle)' }}
+              >
+                <div
+                  className="text-[10px] font-semibold uppercase tracking-wide mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Language
+                </div>
+                <div
+                  className="inline-flex items-center w-full"
+                  style={{
+                    ...ctrl,
+                    height: 30,
+                    padding: 2,
+                    overflow: 'hidden',
+                  }}
+                  role="radiogroup"
+                  aria-label="Language"
+                >
+                  {LANGUAGE_OPTIONS.map((opt) => {
+                    const selected = language === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setLanguage(opt.value)}
+                        className="inline-flex flex-1 items-center justify-center text-[11px] font-semibold outline-none"
+                        style={{
+                          height: 24,
+                          borderRadius: 4,
+                          background: selected ? 'var(--text-primary)' : 'transparent',
+                          color: selected ? 'var(--bg)' : 'var(--text-primary)',
+                          transition: 'background 0.18s ease, color 0.18s ease',
+                        }}
+                        title={opt.description}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export function Header({ sets }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
@@ -760,16 +956,13 @@ export function Header({ sets }: HeaderProps) {
         </select>
       </div>
 
-      {/* ── Mobile row-3 · per-collection facets ─────────────────────
-          Card type / Rarity / Color used to live behind the hamburger.
-          Promoted here so every filter on the page is one tap away.
-          Options come from `COLLECTION_FACETS[activeCollection]` so
-          each TCG sees its own curated vocabulary (Pokémon's energy
-          types, Digimon's seven colours, etc). Alt art / Flatten /
-          Language only render for One Piece — those map to data that
-          the OP-only multi-language + alt-print pipeline ingests. */}
+      {/* ── Mobile row-3 · primary facets + More menu ──────────────────
+          Card type / Rarity / Color stay visible as the three highest-
+          frequency filters. Secondary toggles (Alt art, Flatten, Errata,
+          Language) live behind a single "More" pill so the row fits
+          narrow viewports without a horizontal scrollbar. */}
       <div
-        className="lg:hidden flex items-center gap-2 px-4 overflow-x-auto"
+        className="lg:hidden flex items-center gap-2 px-4 min-w-0"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -778,7 +971,7 @@ export function Header({ sets }: HeaderProps) {
         <select
           value={activeCardType || ''}
           onChange={(e) => setActiveCardType(e.target.value || null)}
-          className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+          className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
           style={{
             ...(activeCardType ? ctrlActive : ctrl),
             height: 30,
@@ -800,7 +993,7 @@ export function Header({ sets }: HeaderProps) {
         <select
           value={activeRarity || ''}
           onChange={(e) => setActiveRarity(e.target.value || null)}
-          className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+          className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
           style={{
             ...(activeRarity ? ctrlActive : ctrl),
             height: 30,
@@ -822,7 +1015,7 @@ export function Header({ sets }: HeaderProps) {
         <select
           value={activeColor || ''}
           onChange={(e) => setActiveColor(e.target.value || null)}
-          className="flex-1 px-2 text-xs outline-none cursor-pointer appearance-none"
+          className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
           style={{
             ...(activeColor ? ctrlActive : ctrl),
             height: 30,
@@ -841,91 +1034,20 @@ export function Header({ sets }: HeaderProps) {
             </option>
           ))}
         </select>
-        {showVariantToggles && (
-          <>
-            <button
-              type="button"
-              onClick={() => setOnlyAltArt(!onlyAltArt)}
-              className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
-              style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
-              aria-pressed={onlyAltArt}
-              aria-label={altArtAria}
-              title={altArtTitle}
-            >
-              Alt art
-            </button>
-            <button
-              type="button"
-              onClick={() => setFlattenWall(!flattenWall)}
-              className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
-              style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
-              aria-pressed={flattenWall}
-              aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
-              title={flattenWall ? 'Each print is its own tile on the wall' : 'Break out every alt art as its own tile'}
-            >
-              Flatten
-            </button>
-          </>
-        )}
-        {isOnePiece && (
-          <button
-            type="button"
-            onClick={() => setOnlyErrata(!onlyErrata)}
-            className="inline-flex items-center px-3 text-xs font-medium outline-none whitespace-nowrap"
-            style={{ ...(onlyErrata ? ctrlActive : ctrl), height: 30 }}
-            aria-pressed={onlyErrata}
-            aria-label={onlyErrata ? 'Showing only cards with an official errata' : 'Show only cards with an official errata'}
-            title={
-              onlyErrata
-                ? 'Showing only cards whose text has been officially corrected by Bandai'
-                : 'Show only cards whose text has been officially corrected by Bandai (errata)'
-            }
-          >
-            Errata
-          </button>
-        )}
-        {isOnePiece && (
-          <>
-            {/* Language picker - mobile. Single-select pill group with
-                two options (EN | JP). Each swaps the gallery to that
-                region's catalogue and artwork. */}
-            <div
-              className="inline-flex items-center"
-              style={{
-                ...ctrl,
-                height: 30,
-                padding: 2,
-                overflow: 'hidden',
-              }}
-              role="radiogroup"
-              aria-label="Language"
-            >
-              {LANGUAGE_OPTIONS.map((opt) => {
-                const selected = language === opt.value
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setLanguage(opt.value)}
-                    className="inline-flex items-center justify-center gap-1 px-2 text-[11px] font-semibold outline-none"
-                    style={{
-                      height: 24,
-                      borderRadius: 4,
-                      background: selected ? 'var(--text-primary)' : 'transparent',
-                      color: selected ? 'var(--bg)' : 'var(--text-primary)',
-                      transition: 'background 0.18s ease, color 0.18s ease',
-                    }}
-                    title={opt.description}
-                  >
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
-          </>
-        )}
+        <MobileMoreFiltersMenu
+          showVariantToggles={showVariantToggles}
+          isOnePiece={isOnePiece}
+          onlyAltArt={onlyAltArt}
+          setOnlyAltArt={setOnlyAltArt}
+          flattenWall={flattenWall}
+          setFlattenWall={setFlattenWall}
+          onlyErrata={onlyErrata}
+          setOnlyErrata={setOnlyErrata}
+          language={language}
+          setLanguage={setLanguage}
+          ctrl={ctrl}
+          ctrlActive={ctrlActive}
+        />
       </div>
 
       {/* ── Mobile row-4 · Zoom slider ───────────────────────────────
@@ -1356,7 +1478,7 @@ export function Header({ sets }: HeaderProps) {
               filter on the page. We've since promoted them all to
               persistent rows directly under the brand row:
                 row-2: Search + Set
-                row-3: Card type + Color + Alt art (One Piece only)
+                row-3: Card type + Rarity + Color + More
                 row-4: Zoom slider
               So this sheet now only holds Collection (above) and the
               meta nav links (below). The trade-off is a taller fixed
