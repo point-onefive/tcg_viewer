@@ -1639,7 +1639,7 @@ export function TierListMaker() {
                     className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
                     style={{ ...ctrlBase, height: 28 }}
                   >
-                    Reset to S/A/B/C
+                    Reset
                   </button>
                   <button
                     type="button"
@@ -1693,7 +1693,7 @@ export function TierListMaker() {
               </DragOverlay>
             </DndContext>
             <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-              Drag the grip handle to reorder rows. Rename tiers (S+, S-, etc.) and drag images between rows. Use Reset to S/A/B/C to restore the default four rows and move charted cards back to the pool.
+              Drag the grip handle to reorder rows. Rename tiers (S+, S-, etc.) and drag images between rows. Reset restores the default four rows and moves charted cards back to the pool.
             </p>
           </section>
         )}
