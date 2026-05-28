@@ -8,8 +8,9 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Package, TrendingUp, Trophy } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import {
   BoxPricing,
   formatRelative,
@@ -53,33 +54,114 @@ export function SealedDashboard() {
   const lastSync = meta?.lastSuccessful?.tcgtracking_full
 
   return (
-    <main className="sb-root">
-      <header className="sb-header">
-        <Link href="/" className="sb-back" aria-label="Back to the card wall">
-          <ArrowLeft size={14} strokeWidth={2.25} />
-          <span>Card Wall</span>
-        </Link>
-        <h1 className="sb-title">Booster boxes</h1>
-        <p className="sb-subtitle">
-          Daily TCGPlayer market price across every One Piece booster box
-          we track. {lastSync ? `Refreshed ${formatRelative(lastSync)}.` : ''}
-        </p>
-
-        <div className="sb-stat-row">
-          <div className="sb-stat">
-            <span className="sb-stat-label">Boxes</span>
-            <span className="sb-stat-value">{stats.count}</span>
+    <div
+      className="relative min-h-screen pb-24"
+      style={{
+        background: 'var(--bg)',
+        color: 'var(--text-primary)',
+        fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
+      }}
+    >
+      {/* Sticky glass header mirrors the help page / brand lockup
+          pattern so the /sealed route reads as part of the same site,
+          not a stray microsite. */}
+      <header
+        className="sticky top-0 z-20 px-4 py-3"
+        style={{
+          background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
+          backdropFilter: 'blur(18px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/"
+              className="footer-btn group inline-flex items-center gap-1.5 text-xs font-medium"
+              style={{
+                color: 'var(--text-muted)',
+                background: 'var(--bg-surface)',
+                border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
+                borderRadius: 6,
+                height: 30,
+                padding: '0 10px',
+              }}
+              aria-label="Back to The Card Wall"
+            >
+              <ArrowLeft size={14} aria-hidden />
+              <span>Back to the wall</span>
+            </Link>
+            <div
+              aria-hidden
+              className="hidden sm:block"
+              style={{ width: 1, height: 22, background: 'var(--text-muted)', opacity: 0.4 }}
+            />
+            <div className="flex items-center gap-2">
+              <Package size={18} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
+              <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">
+                Booster boxes
+              </h1>
+            </div>
           </div>
-          <div className="sb-stat">
-            <span className="sb-stat-label">Avg market</span>
-            <span className="sb-stat-value">{formatUsd(stats.avg)}</span>
-          </div>
-          <div className="sb-stat">
-            <span className="sb-stat-label">Top box</span>
-            <span className="sb-stat-value">{formatUsd(stats.max)}</span>
-          </div>
+          <ThemeToggle />
         </div>
       </header>
+
+      <main className="mx-auto max-w-6xl px-4 pt-8 sm:pt-10">
+        {/* Page intro + freshness line. Kept compact so the stat strip
+            below it owns the visual weight. */}
+        <p
+          className="sb-lede"
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 16,
+            lineHeight: 1.55,
+            color: 'var(--text-secondary)',
+            letterSpacing: '-0.005em',
+            maxWidth: '60ch',
+          }}
+        >
+          Daily TCGPlayer market price across every One Piece booster
+          box we track.
+          {lastSync ? (
+            <>
+              {' '}
+              <span style={{ color: 'var(--text-muted)' }}>
+                Refreshed {formatRelative(lastSync)}.
+              </span>
+            </>
+          ) : null}
+        </p>
+
+        {/* Hero stat strip - three themed cards with the brand-orange
+            accent treatment. Mobile-first: stacks vertically below 480px,
+            two-up on tablet, three-up on desktop. Numbers are
+            display-font and oversized so they read at a glance. */}
+        <section
+          className="sb-statstrip"
+          aria-label="Booster box headline metrics"
+        >
+          <StatCard
+            icon={<Package size={16} strokeWidth={2.25} />}
+            label="Boxes tracked"
+            value={String(stats.count)}
+            hint="All printed sets currently sold on TCGPlayer"
+          />
+          <StatCard
+            icon={<TrendingUp size={16} strokeWidth={2.25} />}
+            label="Average market"
+            value={formatUsd(stats.avg)}
+            hint="Mean TCGPlayer market across every tracked box"
+          />
+          <StatCard
+            icon={<Trophy size={16} strokeWidth={2.25} />}
+            label="Top box"
+            value={formatUsd(stats.max)}
+            hint="Highest TCGPlayer market across every tracked box"
+            featured
+          />
+        </section>
 
       {boxes.length === 0 ? (
         <div className="sb-empty">
@@ -107,7 +189,42 @@ export function SealedDashboard() {
       )}
 
       {activeId && <BoxDetail boxId={activeId} onClose={() => setActiveId(null)} />}
-    </main>
+      </main>
+    </div>
+  )
+}
+
+/**
+ * Brand-themed stat card for the booster-box hero strip. Three of these
+ * render side-by-side at desktop sizes and stack vertically on phones.
+ * The optional `featured` flag tints the card with the brand-orange
+ * accent so a single "headline" metric (e.g. Top box) can pop without
+ * unbalancing the others.
+ */
+function StatCard({
+  icon,
+  label,
+  value,
+  hint,
+  featured = false,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  hint: string
+  featured?: boolean
+}) {
+  return (
+    <div
+      className={`sb-statcard${featured ? ' sb-statcard--featured' : ''}`}
+      title={hint}
+    >
+      <div className="sb-statcard__head">
+        <span className="sb-statcard__icon" aria-hidden>{icon}</span>
+        <span className="sb-statcard__label">{label}</span>
+      </div>
+      <div className="sb-statcard__value">{value}</div>
+    </div>
   )
 }
 
