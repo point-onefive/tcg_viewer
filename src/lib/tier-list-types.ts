@@ -26,7 +26,7 @@ export type TierDef = {
  *   so nothing the user pasted is cropped. Height is locked to
  *   `THUMB_H_PORTRAIT` (matching gallery rows so the tier strip
  *   stays vertically aligned) and width floats according to the
- *   intrinsic image dimensions — wide screenshots get wide tiles,
+ *   intrinsic image dimensions - wide screenshots get wide tiles,
  *   portrait phone pics get narrow tiles, squares stay square.
  */
 export type TierCardKind = 'gallery' | 'upload'
@@ -47,7 +47,7 @@ export type TierCard = {
    * cards. Captured asynchronously when the file is decoded so the
    * tile renders at the pasted image's natural shape instead of
    * being cropped to a square. Undefined until the decode resolves
-   * (and always undefined for `gallery` cards — those use the
+   * (and always undefined for `gallery` cards - those use the
    * canonical 5:7 TCG ratio).
    */
   aspectRatio?: number

@@ -118,7 +118,7 @@ export function applyLanguageFilter(
   const bucket = LANGUAGE_GROUPS[language] ?? LANGUAGE_GROUPS.EN
 
   // Bundles without any per-language metadata (Pokémon, Digimon, DBS,
-  // Gundam — single-region pipelines) are language-agnostic. The
+  // Gundam - single-region pipelines) are language-agnostic. The
   // picker only acts on One Piece (the multi-language bundle); for
   // every other collection we pass the list through unchanged so the
   // wall isn't empty just because the cards have no `languages` key.
@@ -184,7 +184,7 @@ export function applyLanguageFilter(
  *     the full URLs differ).
  *
  * We ALSO drop variants whose image collapses to the base card's
- * image — there's no value in offering "base" and "p1" as separate
+ * image - there's no value in offering "base" and "p1" as separate
  * fan slots when they render the same art.
  *
  * Metadata of dropped duplicates is folded into the kept variant: the
@@ -229,7 +229,7 @@ function dedupeVariants(
 }
 
 /**
- * Reduce an image URL to a comparable key — the bare filename without
+ * Reduce an image URL to a comparable key - the bare filename without
  * any host prefix or CDN-side timestamp. Returns `null` for URLs we
  * can't parse (kept as a signal so callers can decide whether to drop
  * or keep the entry).

@@ -3,18 +3,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, HelpCircle, Layers, Menu, X, Check, ChevronDown } from 'lucide-react'
+import { Bookmark, HelpCircle, Layers, Menu, X, Check, ChevronDown, Package } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useStore } from '@/lib/store'
+import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
 import { COLLECTION_FACETS } from '@/lib/collection-facets'
-
 // Per-collection facet config lives in `@/lib/collection-facets`.
 // Card type / Rarity / Color values vary by TCG; this header just
 // reads `COLLECTION_FACETS[activeCollection]` and renders generic
 // popovers + selects on top. Alt art / Flatten / Language are still
-// One-Piece-only — those map to data that only the OP pipeline
+// One-Piece-only - those map to data that only the OP pipeline
 // ingests (variant fans + per-language scans).
 
 interface HeaderProps {
@@ -119,7 +118,7 @@ function FacetPopover({
   const isActive = Boolean(value)
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={wrapperRef} className="relative shrink-0">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -300,11 +299,19 @@ function FacetOptionRow({
 }
 
 /**
- * Mobile-only overflow menu for secondary filters (Alt art, Flatten,
- * Errata, Language). Keeps the primary facet row to three dropdowns
- * plus one "More" pill so the strip fits narrow viewports without a
- * horizontal scrollbar. The trigger shows a count badge when any
- * toggle filter is active.
+ * Mobile-only overflow menu for secondary filters (Collection,
+ * Alt art, Flatten, Errata, Prices, Language). Keeps the primary
+ * facet row to three dropdowns plus one "More" pill so the strip
+ * fits narrow viewports without a horizontal scrollbar. The trigger
+ * shows a count badge when any toggle filter is active.
+ *
+ * Collection picker is duplicated here (it also lives in the
+ * hamburger sheet) because below the `nav` breakpoint the desktop
+ * row that normally hosts the inline Collection picker is gone, and
+ * we don't want users to have to open a second overlay (the burger)
+ * to switch TCG. Same pattern as Language - that one isn't a "toggle
+ * filter" either, but it lives in More so it's reachable one tap
+ * deep instead of two.
  */
 function MobileMoreFiltersMenu({
   showVariantToggles,
@@ -315,8 +322,12 @@ function MobileMoreFiltersMenu({
   setFlattenWall,
   onlyErrata,
   setOnlyErrata,
+  showTilePrices,
+  setShowTilePrices,
   language,
   setLanguage,
+  activeCollection,
+  setActiveCollection,
   ctrl,
   ctrlActive,
 }: {
@@ -328,8 +339,12 @@ function MobileMoreFiltersMenu({
   setFlattenWall: (v: boolean) => void
   onlyErrata: boolean
   setOnlyErrata: (v: boolean) => void
+  showTilePrices: boolean
+  setShowTilePrices: (v: boolean) => void
   language: LanguagePickerValue
   setLanguage: (v: LanguagePickerValue) => void
+  activeCollection: Collection
+  setActiveCollection: (c: Collection) => void
   ctrl: React.CSSProperties
   ctrlActive: React.CSSProperties
 }) {
@@ -352,12 +367,14 @@ function MobileMoreFiltersMenu({
     }
   }, [open])
 
-  if (!showVariantToggles && !isOnePiece) return null
-
+  // Always render: even when a collection has no toggle filters
+  // (e.g. Pokémon, no variants), the More menu still hosts the
+  // Collection picker so it's reachable without opening the burger.
   const activeCount =
     (onlyAltArt ? 1 : 0) +
     (flattenWall ? 1 : 0) +
-    (onlyErrata ? 1 : 0)
+    (onlyErrata ? 1 : 0) +
+    (showTilePrices ? 1 : 0)
   const isActive = activeCount > 0
 
   return (
@@ -416,9 +433,71 @@ function MobileMoreFiltersMenu({
               boxShadow: 'var(--shadow-card)',
               zIndex: 60,
               padding: 4,
-              minWidth: 168,
+              minWidth: 180,
             }}
           >
+            {/* Collection picker · sits at the top so the highest-
+                level filter (which TCG?) reads first. Below the
+                `nav` breakpoint the desktop bar that normally hosts
+                this picker is hidden, so this section is the
+                primary entry point for switching collections (the
+                hamburger sheet keeps a copy too for users who open
+                it for the meta links). Disabled collections render
+                a "soon" tag and stay non-interactive. */}
+            <div
+              className="px-2.5 py-1.5"
+              style={{ borderBottom: '1px solid var(--border-subtle)' }}
+            >
+              <div
+                className="text-[10px] font-semibold uppercase tracking-wide mb-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Collection
+              </div>
+              {COLLECTIONS.map((c) => {
+                const selected = c.id === activeCollection
+                const disabled = !c.available
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    disabled={disabled}
+                    onClick={() => {
+                      if (disabled) return
+                      setActiveCollection(c.id)
+                      setOpen(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-1 text-xs font-medium text-left transition-colors whitespace-nowrap"
+                    style={{
+                      height: 28,
+                      borderRadius: 4,
+                      background: selected ? 'var(--text-primary)' : 'transparent',
+                      color: selected
+                        ? 'var(--bg)'
+                        : disabled
+                        ? 'var(--text-muted)'
+                        : 'var(--text-primary)',
+                      cursor: disabled ? 'not-allowed' : 'pointer',
+                      opacity: disabled ? 0.55 : 1,
+                    }}
+                  >
+                    <Check
+                      size={11}
+                      strokeWidth={2.5}
+                      style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
+                    />
+                    <span className="flex-1">{c.name}</span>
+                    {disabled && (
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                        soon
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
             {showVariantToggles && (
               <>
                 <FacetOptionRow
@@ -438,6 +517,13 @@ function MobileMoreFiltersMenu({
                 label="Errata"
                 selected={onlyErrata}
                 onClick={() => setOnlyErrata(!onlyErrata)}
+              />
+            )}
+            {isOnePiece && (
+              <FacetOptionRow
+                label="Prices"
+                selected={showTilePrices}
+                onClick={() => setShowTilePrices(!showTilePrices)}
               />
             )}
             {isOnePiece && (
@@ -505,6 +591,7 @@ export function Header({ sets }: HeaderProps) {
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
+    showTilePrices, setShowTilePrices,
     language, setLanguage,
     activeCollection, setActiveCollection,
     zoom, setZoom,
@@ -514,7 +601,7 @@ export function Header({ sets }: HeaderProps) {
 
   // Every TCG gets Card type / Rarity / Color facets, populated from
   // the per-collection config table. Alt art + Flatten ride a
-  // per-collection `hasVariants` flag — Digimon, DBS, Gundam, and One
+  // per-collection `hasVariants` flag - Digimon, DBS, Gundam, and One
   // Piece all bundle parallel/alt prints as nested variants on a base
   // card, so the stacked-tile hint and the flatten-the-wall mode all
   // apply identically. Pokémon parallels ship as separate cards (no
@@ -738,7 +825,7 @@ export function Header({ sets }: HeaderProps) {
             the primary actions on the right. Filters live in row 2
             below; this row stays reserved for site-level actions
             only. */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden nav:flex items-center gap-2">
           {/* How-it-works · compact ? icon pointing to /help, which
               replaced the deprecated first-visit guided tour. */}
           <Link
@@ -793,6 +880,25 @@ export function Header({ sets }: HeaderProps) {
             )}
           </Link>
 
+          {/* Sealed boxes dashboard. Sits next to Tiers as a sibling
+              destination; both are "secondary surfaces" that operate
+              on the same underlying TCG data. */}
+          <Link
+            href="/sealed"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            style={{
+              ...ctrl,
+              height: 30,
+              background: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
+            }}
+            aria-label="Booster box price dashboard"
+            title="Booster box prices"
+          >
+            <Package size={12} strokeWidth={2.25} aria-hidden />
+            Sealed
+          </Link>
+
           {/* Board trigger · last in the cluster so its variable-
               width count badge grows away from siblings, never into
               them. */}
@@ -822,7 +928,7 @@ export function Header({ sets }: HeaderProps) {
         </div>
 
         {/* ── Mobile right cluster ── */}
-        <div className="flex lg:hidden items-center gap-2">
+        <div className="flex nav:hidden items-center gap-2">
           {/* Board icon - only if pins exist */}
           {pinnedCount > 0 && (
             <button
@@ -861,6 +967,16 @@ export function Header({ sets }: HeaderProps) {
             )}
           </Link>
 
+          <Link
+            href="/sealed"
+            className="footer-btn relative inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 32, height: 32 }}
+            aria-label="Booster box dashboard"
+            title="Booster box prices"
+          >
+            <Package size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
+
           {/* Hamburger */}
           <button
             className="footer-btn inline-flex items-center justify-center"
@@ -883,7 +999,7 @@ export function Header({ sets }: HeaderProps) {
           The 40px row height matches desktop row-2 and rows 3/4 so
           virtualized scroll math in card-grid stays clean. */}
       <div
-        className="lg:hidden flex items-center gap-2 px-4"
+        className="nav:hidden flex items-center gap-2 px-4"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -962,7 +1078,7 @@ export function Header({ sets }: HeaderProps) {
           Language) live behind a single "More" pill so the row fits
           narrow viewports without a horizontal scrollbar. */}
       <div
-        className="lg:hidden flex items-center gap-2 px-4 min-w-0"
+        className="nav:hidden flex items-center gap-2 px-4 min-w-0"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -1043,8 +1159,12 @@ export function Header({ sets }: HeaderProps) {
           setFlattenWall={setFlattenWall}
           onlyErrata={onlyErrata}
           setOnlyErrata={setOnlyErrata}
+          showTilePrices={showTilePrices}
+          setShowTilePrices={setShowTilePrices}
           language={language}
           setLanguage={setLanguage}
+          activeCollection={activeCollection}
+          setActiveCollection={setActiveCollection}
           ctrl={ctrl}
           ctrlActive={ctrlActive}
         />
@@ -1057,7 +1177,7 @@ export function Header({ sets }: HeaderProps) {
           users get the same "as tiny as it gets" zoom-out. The
           surrounding rect-grid icons mirror the desktop language. */}
       <div
-        className="lg:hidden flex items-center gap-2 px-4"
+        className="nav:hidden flex items-center gap-2 px-4"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -1094,13 +1214,25 @@ export function Header({ sets }: HeaderProps) {
         </div>
       </div>
 
-      {/* ── Desktop row-2 filter cluster · lg+ only ───────────────
+      {/* ── Desktop row-2 filter cluster · nav+ only ───────────────
           All the gallery-narrowing controls live here so the brand
           row stays uncluttered. Subtle top border separates it from
           row 1 as a visual sub-toolbar without adding background
-          weight. */}
+          weight.
+
+          Gated on the custom `nav` breakpoint (1440px) rather than
+          Tailwind's `lg`/`xl` defaults because the full inline row
+          (Collection + Set + 3 facets + 4 toggles + language +
+          search + zoom) needs ~1300-1400px of fixed-width content
+          (the upper bound includes the worst-case set name "ST24 ·
+          Starter - Green Jewelry Bonney" which clamps the Set
+          trigger to its 180px cap), and gets clipped or has its
+          shrinkable items (language pill, search) crushed at
+          anything narrower. Below 1440 the same controls live in
+          three persistent mobile rows below. See --breakpoint-nav
+          in globals.css for the rationale. */}
       <div
-        className="hidden lg:block"
+        className="hidden nav:block"
         style={{ borderTop: '1px solid var(--border-subtle)' }}
       >
         <div
@@ -1108,17 +1240,17 @@ export function Header({ sets }: HeaderProps) {
           style={{ maxWidth: 1800, height: 40 }}
         >
           {/* Collection Filter (custom popover so menu stays inside the site) */}
-          <div ref={collectionRef} className="relative">
+          <div ref={collectionRef} className="relative shrink-0">
             <button
               type="button"
               onClick={() => setCollectionOpen((o) => !o)}
-              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+              className="footer-btn inline-flex items-center gap-1.5 whitespace-nowrap px-3 text-xs font-medium"
               style={{ ...ctrl, height: 30 }}
               aria-haspopup="listbox"
               aria-expanded={collectionOpen}
               aria-label="Collection"
             >
-              <span>{activeCollectionName}</span>
+              <span className="whitespace-nowrap">{activeCollectionName}</span>
               <ChevronDown
                 size={12}
                 strokeWidth={2.25}
@@ -1238,7 +1370,7 @@ export function Header({ sets }: HeaderProps) {
           {/* Per-collection facet filters · Card type / Rarity / Color
               come from `COLLECTION_FACETS[activeCollection]` so each
               TCG sees its own curated vocabulary. Custom popovers
-              (not native <select>) keep menus inside site styling —
+              (not native <select>) keep menus inside site styling -
               macOS Chrome's native dropdown overlay paints an opaque
               white panel that ignores dark mode and feels foreign next
               to the rest of the header. Mobile keeps native selects
@@ -1279,7 +1411,7 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="footer-btn inline-flex items-center px-3 text-xs font-medium outline-none"
+                className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
                 style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={onlyAltArt}
                 aria-label={altArtAria}
@@ -1290,7 +1422,7 @@ export function Header({ sets }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setFlattenWall(!flattenWall)}
-                className="footer-btn inline-flex items-center px-3 text-xs font-medium outline-none"
+                className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
                 style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
                 aria-pressed={flattenWall}
                 aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
@@ -1304,7 +1436,7 @@ export function Header({ sets }: HeaderProps) {
             <button
               type="button"
               onClick={() => setOnlyErrata(!onlyErrata)}
-              className="footer-btn inline-flex items-center px-3 text-xs font-medium outline-none"
+              className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
               style={{ ...(onlyErrata ? ctrlActive : ctrl), height: 30 }}
               aria-pressed={onlyErrata}
               aria-label={onlyErrata ? 'Showing only cards with an official errata' : 'Show only cards with an official errata'}
@@ -1318,12 +1450,29 @@ export function Header({ sets }: HeaderProps) {
             </button>
           )}
           {isOnePiece && (
+            <button
+              type="button"
+              onClick={() => setShowTilePrices(!showTilePrices)}
+              className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
+              style={{ ...(showTilePrices ? ctrlActive : ctrl), height: 30 }}
+              aria-pressed={showTilePrices}
+              aria-label={showTilePrices ? 'Hide market prices on tiles' : 'Show market prices on tiles'}
+              title={
+                showTilePrices
+                  ? 'Hide TCGPlayer market prices on tile thumbnails'
+                  : 'Overlay TCGPlayer market price on each tile thumbnail'
+              }
+            >
+              Prices
+            </button>
+          )}
+          {isOnePiece && (
             <>
               {/* Language picker (desktop). Single-select pill group
                   with two options. EN | JP do two things in one
                   motion: (1) trim the wall to cards Bandai publishes
                   in that region, (2) swap every image URL to the
-                  matching localized scan. CN was removed in v13 —
+                  matching localized scan. CN was removed in v13 -
                   Bandai's TC/TW CDNs hot-link the JP file so the CN
                   pill shipped duplicate JP scans. See
                   samples/jp-cn-compare/. */}
@@ -1371,7 +1520,7 @@ export function Header({ sets }: HeaderProps) {
               ~150px of glyph run; with pl-3 (12px) + pr-7 (28px for
               the clear-button cap) the input needs ≥190px of outer
               width or the placeholder truncates to "Name, code, or
-              card tex" — the bug screenshot that triggered this
+              card tex" - the bug screenshot that triggered this
               fix. w-56 (224px) leaves ~34px of breathing room so
               the ellipsis renders cleanly across Inter weight
               variations. Focus still expands by ~64px so users
@@ -1389,7 +1538,7 @@ export function Header({ sets }: HeaderProps) {
               /* Placeholder hints at the card-text coverage so users
                  discover they can search rules text ("when attacking",
                  "blocker") instead of just names. If you reword this,
-                 re-check the parent container's w-* class above —
+                 re-check the parent container's w-* class above -
                  the width was sized to this exact string. */
               placeholder="Name, code, or card text…"
               className="w-full h-full pl-3 pr-7 text-xs outline-none"
@@ -1457,7 +1606,7 @@ export function Header({ sets }: HeaderProps) {
       {/* ── Mobile filter sheet ── */}
       {mobileOpen && (
         <div
-          className="lg:hidden px-4 pb-4 pt-2 flex flex-col gap-3"
+          className="nav:hidden px-4 pb-4 pt-2 flex flex-col gap-3"
           style={{ borderTop: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
         >
           <select
@@ -1502,6 +1651,17 @@ export function Header({ sets }: HeaderProps) {
                 {tierPoolCount}
               </span>
             )}
+          </Link>
+
+          <Link
+            href="/sealed"
+            onClick={() => setMobileOpen(false)}
+            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            style={{ ...ctrl }}
+            aria-label="Booster box dashboard"
+          >
+            <Package size={16} strokeWidth={2.25} aria-hidden />
+            <span>Booster boxes</span>
           </Link>
 
           {/* How-it-works link · groups with Feedback so the two

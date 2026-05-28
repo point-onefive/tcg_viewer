@@ -61,13 +61,13 @@ export type { TierDef, TierCard, TierCardKind } from '@/lib/tier-list-types'
  * Row height shared by every tier tile. Derived from the standard
  * TCG card ratio (5:7) so portrait gallery cards land at ~78×109 with
  * no cropping. Upload tiles pin the same height and let their width
- * float by aspect ratio — squares become 109×109, 16:9 screenshots
+ * float by aspect ratio - squares become 109×109, 16:9 screenshots
  * become ~194×109, etc.
  *
  * `THUMB_W_DEFAULT` is the fallback width for an upload that hasn't
  * decoded yet (we don't know its intrinsic dimensions until the
  * browser parses the file). Sized to match the gallery card so a
- * just-pasted tile doesn't shove the row layout twice — once at
+ * just-pasted tile doesn't shove the row layout twice - once at
  * paste time and again when the natural dimensions arrive.
  */
 const THUMB_W_DEFAULT = 78
@@ -1114,7 +1114,7 @@ export function TierListMaker() {
     // tile renders at the THUMB_W_DEFAULT × THUMB_H_PORTRAIT
     // fallback; once it lands the tile snaps to the pasted image's
     // natural shape (squares stay square, wide screenshots get wide
-    // tiles, phone portraits get narrow tiles) — and `object-contain`
+    // tiles, phone portraits get narrow tiles) - and `object-contain`
     // guarantees nothing is cropped during either phase. We measure
     // off-DOM with `new Image()` so the layout-affecting tier-row
     // <img> doesn't need its own onLoad handler / state.
@@ -1131,7 +1131,7 @@ export function TierListMaker() {
       }
       probe.onerror = () => {
         // Image failed to decode (corrupt paste, unsupported format).
-        // Leave aspectRatio undefined — the tile stays at the square
+        // Leave aspectRatio undefined - the tile stays at the square
         // fallback rather than crashing the row layout.
       }
       probe.src = tile.src
@@ -2110,7 +2110,7 @@ export function TierListMaker() {
         </p>
         <p className="mt-2 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
           Your tier rows, card placements, and chart title are saved on
-          this device — they'll be here when you come back.{' '}
+          this device - they'll be here when you come back.{' '}
           <button
             type="button"
             onClick={() => {

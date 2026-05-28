@@ -78,6 +78,14 @@ interface StoreState {
   // living inside the stacked-card lightbox fan only.
   flattenWall: boolean
   setFlattenWall: (v: boolean) => void
+  // When true, render the small market-price badge on each tile. Off
+  // by default because the wall is designed to read as a clean image
+  // grid first; pricing is a power-user opt-in that surfaces the
+  // resolved TCGPlayer market price (Foil > Holo > Normal) in the
+  // top-right of every tile. Persisted so the preference survives
+  // reloads.
+  showTilePrices: boolean
+  setShowTilePrices: (v: boolean) => void
   // Single-select view mode for the gallery:
   //
   //   - 'EN'         : EN + Asia-EN cardlists. Card text reads in English.
@@ -210,6 +218,8 @@ export const useStore = create<StoreState>()(
       setOnlyErrata: (onlyErrata) => set({ onlyErrata }),
       flattenWall: false,
       setFlattenWall: (flattenWall) => set({ flattenWall }),
+      showTilePrices: false,
+      setShowTilePrices: (showTilePrices) => set({ showTilePrices }),
       // Default to EN: the app's surface language is English, so an
       // English-speaking user starting fresh sees a wall they can read.
       // JP is one click away for users who want the master catalogue.
@@ -335,16 +345,17 @@ export const useStore = create<StoreState>()(
         tierPool: state.tierPool,
         language: state.language,
         flattenWall: state.flattenWall,
+        showTilePrices: state.showTilePrices,
         tierBoardTiers: state.tierBoardTiers,
         tierBoardTitle: state.tierBoardTitle,
         // Drop upload-kind cards from the persisted slice: their
         // `blob:` URLs are tied to the current document lifetime, so
         // restoring them after a reload would just render broken
-        // thumbs. Gallery cards round-trip fine — they're stable
+        // thumbs. Gallery cards round-trip fine - they're stable
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 15,
+      version: 16,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -451,6 +462,12 @@ export const useStore = create<StoreState>()(
           s.tierBoardTiers = defaultTiers()
           s.tierBoardCards = []
           s.tierBoardTitle = ''
+        }
+        if (fromVersion < 16) {
+          // v16 adds the per-tile pricing badge as an opt-in toggle.
+          // Default off keeps the wall reading as a clean image grid
+          // for users who don't care about prices.
+          s.showTilePrices = false
         }
         return s as StoreState
       },

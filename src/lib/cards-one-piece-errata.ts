@@ -12,7 +12,7 @@
  * Maintenance: re-scrape the page above whenever Bandai publishes a
  * new errata bulletin and append the new codes here (kept manual on
  * purpose so a CI break never silently desyncs the gallery filter
- * from the official list — every change here is a code-reviewable
+ * from the official list - every change here is a code-reviewable
  * commit).
  *
  * Last reviewed: 2026-05-25 (105 cards across OP01-OP09 + ST01-ST04 + ST14).

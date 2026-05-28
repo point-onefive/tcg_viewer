@@ -170,7 +170,7 @@ export function HelpPage() {
                     <Kbd>EN</Kbd> shows the English catalogue (Bandai EN +
                     Asia-EN). <Kbd>JP</Kbd> shows the Japanese catalogue with
                     the richest promo coverage. There is no separate CN/TC picker
-                    — Bandai&rsquo;s TC/TW files are byte-identical to JP for
+                    - Bandai&rsquo;s TC/TW files are byte-identical to JP for
                     almost every card, so a third option would have duplicated
                     the same art.
                   </>
@@ -218,8 +218,8 @@ export function HelpPage() {
           <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
             <ul className="space-y-2 text-sm leading-relaxed">
               <li>
-                Click a card to open. Big art on the left, every alt print
-                (variant) as thumbnails on the right.
+                Click a card to open. The active print fills the center; every
+                other variant fans out around it.
               </li>
               <li>
                 <Kbd>←</Kbd> / <Kbd>→</Kbd> steps through variants inside the
@@ -228,12 +228,90 @@ export function HelpPage() {
               </li>
               <li>
                 Each variant can be pinned or queued for the tier-list maker
-                individually - so you can pin <em>just</em> the leader alt
+                individually, so you can pin <em>just</em> the leader alt
                 without its base art.
+              </li>
+              <li>
+                Below the fan you&rsquo;ll find the set name, the navigation
+                arrows, and (for One Piece) the live pricing strip.
               </li>
             </ul>
             <AltArtStack />
           </div>
+        </Section>
+
+        <Section title="Pricing (One Piece)">
+          <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            One Piece cards in the lightbox carry a live two-cell pricing
+            strip. It refreshes once a day from a free TCGPlayer market-data
+            feed and the daily snapshot is appended to a per-card history so
+            the trend chart fills in as time goes on.
+          </p>
+          <DefList
+            items={[
+              {
+                term: 'TCGPlayer market',
+                desc: 'The active subtype (Foil / Normal / Holofoil) market price the way TCGPlayer publishes it, with NM listing count when available and a relative freshness stamp.',
+              },
+              {
+                term: 'Trend',
+                desc: 'Sparkline of recent daily market snapshots for the same card. Each daily sync adds one point. Brand-new cards show "Builds with each daily sync" until enough days have accumulated.',
+              },
+              {
+                term: 'Phantom market',
+                desc: 'When the listed market is far above any recent sale comp the headline price renders struck through with a small warning. Treat the number as aspirational, not actionable.',
+              },
+              {
+                term: 'Low-confidence match',
+                desc: (
+                  <>
+                    A small banner above the strip when we can&rsquo;t cleanly
+                    pair the wall variant to a single TCGPlayer product (e.g.
+                    promos with multiple printings of the same card code).
+                    The price is still shown but treat it as a rough signal,
+                    not the truth.
+                  </>
+                ),
+              },
+              {
+                term: 'No graded matrix',
+                desc: (
+                  <>
+                    PSA / BGS / CGC / SGC pricing was removed. The third-party
+                    feed we relied on was too stale (often 30+ days behind on
+                    chase cards) and excluded PSA Vault auctions, which is
+                    where most modern PSA 10 sales now happen. Until we wire
+                    in an eBay sold-listings source directly, only raw market
+                    data is shown.
+                  </>
+                ),
+              },
+              {
+                term: 'Errata cards',
+                desc: (
+                  <>
+                    Cards with the <Kbd>Errata</Kbd> pill have two distinct
+                    printings (pre-errata and post-errata) that trade as
+                    separate markets. Listing data doesn&rsquo;t cleanly
+                    separate them, so the price you see is a blended signal.
+                    Click the pill for details and always verify the printing
+                    before transacting.
+                  </>
+                ),
+              },
+            ]}
+          />
+        </Section>
+
+        <Section title="Booster boxes">
+          <p className="text-sm leading-relaxed">
+            The <Kbd>Sealed</Kbd> link in the header opens a dedicated
+            booster-box dashboard. Same daily TCGPlayer feed as singles, but
+            rolled up at the box level with a per-box price history chart.
+            New One Piece sets (and their booster boxes) are picked up
+            automatically the first sync after Bandai publishes them, so the
+            dashboard stays current without manual edits.
+          </p>
         </Section>
 
         <Section title="Pin board">

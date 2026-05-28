@@ -2,8 +2,22 @@
 
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import type { WallEntry } from '@/lib/card-filter'
 import { useStore } from '@/lib/store'
+
+// Tile price badge - gated behind the "Prices" toggle and lazy-loaded so
+// the price-badge module (which transitively imports the pricing helpers
+// in @/lib/pricing) is NOT in the home-route chunk. Users who never flip
+// the toggle pay zero KB for the badge code AND zero KB for the pricing
+// JSON bundle that the badge would otherwise pull in. ssr:false because
+// `showTilePrices` is a persisted client-only store value - the server
+// can't know which tiles to badge anyway, so SSRing a placeholder just
+// burns bytes.
+const PriceBadge = dynamic(
+  () => import('./price-badge').then((m) => m.PriceBadge),
+  { ssr: false },
+)
 
 const COLOR_MAP: Record<string, string> = {
   Red:       '#ef4444',
@@ -41,6 +55,14 @@ export function CardTile({ entry, priority = false, showStack = false }: CardTil
   const [loaded, setLoaded] = useState(false)
   const [srcIndex, setSrcIndex] = useState(0)
   const openLightbox = useStore((s) => s.openLightbox)
+  // Hoisted from inside PriceBadge so the badge component is only
+  // *mounted* when prices are visible. With the badge mounted on every
+  // tile, even an early-return null cost 2500 component instances +
+  // 2500 Zustand subscriptions on the wall. Reading the flag at this
+  // tile level keeps the subscription count identical (CardTile already
+  // subscribes to the store for openLightbox) but skips the badge tree
+  // entirely on the default off-path.
+  const showTilePrices = useStore((s) => s.showTilePrices)
   const cardRef = useRef<HTMLDivElement>(null)
   const { card } = entry
 
@@ -144,6 +166,8 @@ export function CardTile({ entry, priority = false, showStack = false }: CardTil
             {entry.printLabel}
           </span>
         )}
+
+        {showTilePrices && <PriceBadge printId={entry.printId} />}
       </div>
     </div>
   )

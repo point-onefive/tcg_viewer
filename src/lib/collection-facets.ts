@@ -2,7 +2,7 @@
  * Per-collection filter facet config.
  *
  * Each TCG ships its own bundle with its own card-type, rarity, and
- * colour vocabulary — Pokémon's "Rare Holo VMAX" has nothing in common
+ * colour vocabulary - Pokémon's "Rare Holo VMAX" has nothing in common
  * with One Piece's "SR", and Digimon's seven colours overlap only
  * partially with the One Piece six-colour wheel.
  *
@@ -36,7 +36,7 @@ export type CollectionFacets = {
   colors: ReadonlyArray<FacetOption>
   /**
    * Does this collection's bundle ship alt-art / parallel `variants`?
-   * Gates the Alt art and Flatten toggles in the header — Pokémon
+   * Gates the Alt art and Flatten toggles in the header - Pokémon
    * treats each parallel as its own card (no nested variants), so
    * exposing those toggles for Pokémon would be a dead-action UX.
    */

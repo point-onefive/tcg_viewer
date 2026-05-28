@@ -3,6 +3,32 @@
 @theme {
   --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+
+  /* Custom breakpoint for the gallery header's inline filter row.
+     Default `lg` (1024) and `xl` (1280) are both too narrow - the
+     full One Piece toolbar (Collection + Set + Card type + Rarity +
+     Color + Alt art + Flatten + Errata + Prices + Language + 224px
+     search + zoom) measures ~1300px at rest, ~1400px with the
+     longest set name selected ("ST24 · Starter - Green Jewelry
+     Bonney" clamps to the 180px set-trigger cap), and an extra
+     ~30px while the search input is focused (it expands from w-56
+     to w-72). At anything below ~1400 the language pill collapses
+     to ~16px and the search input gets squished to a few dozen
+     pixels - the bug this breakpoint exists to prevent.
+
+     1440 picked as the cutoff to leave ~40px of breathing room
+     above the "longest set selected" worst case, so neither the
+     language pill nor the search input ever has to flex-shrink.
+
+     This extra breakpoint exists primarily for the very common
+     "single-screen multitasker" case: a user with a 1440-2560px
+     monitor running the browser at half-width or two-thirds-width
+     alongside Slack/VS Code/Discord. Those window sizes are well
+     above Tailwind's `lg` but still below what the inline header
+     needs, so without this stop they get the desktop bar painted
+     over their controls. Gated through `nav:` (e.g. `nav:flex`,
+     `nav:hidden`) in components/gallery/header.tsx. */
+  --breakpoint-nav: 1440px;
 }
 
 :root {
@@ -29,8 +55,6 @@
   --lb-active-bg: #1a1a1a;
   --lb-active-fg: #f5f3f0;
   --lb-card-shadow: 0 40px 80px -20px rgba(0,0,0,0.28), 0 20px 40px -10px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
-  --lb-label-bg: rgba(255,255,255,0.78);
-  --lb-label-fg: #1a1a1a;
 }
 
 [data-theme="dark"] {
@@ -56,8 +80,6 @@
   --lb-active-bg: rgba(255, 255, 255, 0.95);
   --lb-active-fg: #000;
   --lb-card-shadow: 0 40px 80px -20px rgba(0,0,0,0.8), 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
-  --lb-label-bg: rgba(0,0,0,0.55);
-  --lb-label-fg: rgba(255,255,255,0.9);
   --overlay: rgba(10, 10, 10, 0.94);
 }
 
@@ -241,6 +263,729 @@ html.lenis, html.lenis body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Tile market-price badge. Top-right corner so it never collides with
+   the variant pill (which lives bottom-center). Uses tabular-nums so
+   the digits don't jitter between cards when the wall re-renders. */
+.card-tile__price-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    rgba(232, 93, 42, 0.95),
+    rgba(168, 54, 12, 0.95)
+  );
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  user-select: none;
+  max-width: calc(100% - 12px);
+  white-space: nowrap;
+}
+
+/* =============================================================== */
+/* Lightbox pricing strip - one horizontal bar below the variant     */
+/* dots. Three cells (hero / trend / graded) on viewports >= 720px;  */
+/* stacks vertically below that with dividers running between cells. */
+/* No separate desktop/mobile components: same DOM, responsive grid. */
+/* =============================================================== */
+.lbp {
+  width: min(560px, calc(100vw - 28px));
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1.4fr);
+  gap: 14px;
+  padding: 12px 16px;
+  /* The parent flex column uses gap-2 (8px) between every row. We add
+     4px on top so the dots→pricing transition totals 12px - enough
+     to read as a distinct "shelf" below the metadata but not so much
+     that the bottom bar starts to feel like two separate panels. */
+  margin-top: 4px;
+  background: color-mix(in srgb, var(--lb-surface) 70%, transparent);
+  border: 1px solid var(--lb-border);
+  border-radius: 12px;
+  backdrop-filter: blur(14px) saturate(110%);
+  -webkit-backdrop-filter: blur(14px) saturate(110%);
+  color: var(--lb-fg);
+  box-shadow: 0 8px 28px -16px rgba(0, 0, 0, 0.55);
+}
+
+.lbp-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.lbp-cell + .lbp-cell {
+  padding-left: 14px;
+  border-left: 1px solid color-mix(in srgb, var(--lb-fg) 10%, transparent);
+}
+
+.lbp-cell--hero {
+  justify-content: center;
+  gap: 4px;
+}
+.lbp-price {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.8vw, 28px);
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--lb-fg);
+}
+.lbp-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 5px;
+  font-size: 10.5px;
+  color: var(--lb-fg-faint);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+.lbp-hero-label {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  color: var(--lb-fg-muted);
+}
+.lbp-hero-dot {
+  opacity: 0.5;
+}
+
+.lbp-cell-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lb-fg-muted);
+  margin-bottom: 6px;
+}
+.lbp-cell-aside {
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--lb-fg-faint);
+}
+.lbp-empty {
+  font-size: 11px;
+  color: var(--lb-fg-faint);
+  opacity: 0.7;
+  font-style: italic;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+
+.lbp-cell--trend {
+  min-height: 0;
+}
+.lbp-chart {
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lb-surface) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lb-fg) 6%, transparent);
+  padding: 2px;
+}
+.lbp-chart > * {
+  flex: 1;
+  min-width: 0;
+}
+.lbp-spark-skel {
+  flex: 1;
+  min-height: 56px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lb-surface) 55%, transparent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Hero phantom-market state - when the export pipeline flagged the
+   raw TCGPlayer market as unsupported by any recent sale comp, we
+   dim the headline price and show a small warning chip beneath. */
+.lbp-cell--hero[data-phantom="true"] .lbp-price {
+  color: color-mix(in srgb, var(--lb-fg) 55%, var(--lb-fg-muted) 45%);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, #E85D2A 60%, transparent);
+  text-decoration-thickness: 1.5px;
+}
+.lbp-warning {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  background: color-mix(in srgb, #E85D2A 14%, transparent);
+  color: color-mix(in srgb, #E85D2A 90%, var(--lb-fg) 10%);
+  border: 1px solid color-mix(in srgb, #E85D2A 30%, transparent);
+  max-width: 260px;
+}
+.lbp-warning > span:first-child {
+  width: 13px;
+  height: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, #E85D2A 90%, transparent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Pricing shell - wraps the strip (and the errata tabs on errata cards)
+   in one column so the whole thing reads as a single block under the
+   variant dots. */
+.lbp-shell {
+  width: min(820px, calc(100vw - 28px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Reserve enough vertical space for the WORST-case content (errata
+     tabs row + strip), even when the card is non-errata and only
+     renders the strip alone. This keeps the bottom info bar's total
+     height constant regardless of variant, so the card above
+     (absolute-positioned with bottom: 0 inside the stage) doesn't
+     shift up/down as the user cycles between an errata and a
+     non-errata variant. The tab row is ~30px including the gap; we
+     budget 36px to be safe. */
+  min-height: calc(var(--lbp-strip-min-h, 110px) + 36px);
+}
+
+/* Low-confidence match warning - rendered above the strip when the
+   matcher had to cross-set fallback (no TCGPlayer product in the set
+   the bundle declared, so the displayed price almost certainly belongs
+   to a different printing of the same card code). Uses the same warm
+   amber accent as the errata pill so it reads as "data-quality nag"
+   rather than "broken UI". */
+.lbp-match-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #E85D2A 14%, transparent);
+  color: color-mix(in srgb, #E85D2A 92%, var(--lb-fg) 8%);
+  border: 1px solid color-mix(in srgb, #E85D2A 32%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.lbp-match-warning > span:first-child {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, #E85D2A 92%, transparent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.lbp-shell .lbp {
+  width: 100%;
+  margin-top: 0;
+}
+
+.lbp-empty--hero {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+.lbp-hero-fine {
+  opacity: 0.78;
+}
+
+/* Errata pill - small inline tag rendered next to the existing
+   "Winner / Event / Champion" stamp tags in the lightbox bottom
+   info bar so the errata status is visible even when the pricing
+   strip is collapsed (e.g. data not yet available). */
+.lb-errata-anchor {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.lb-errata-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  height: 16px;
+  border: none;
+  border-radius: 3px;
+  background: color-mix(in srgb, #D89B2A 22%, transparent);
+  color: color-mix(in srgb, #D89B2A 92%, var(--lb-fg) 8%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lb-errata-pill:hover,
+.lb-errata-pill[aria-expanded="true"] {
+  background: color-mix(in srgb, #D89B2A 34%, transparent);
+  color: color-mix(in srgb, #D89B2A 100%, var(--lb-fg) 0%);
+}
+
+/* Popover that explains the errata caveat in plain language. Anchored
+   to the pill (relative parent) and pinned bottom-up so it floats over
+   the pricing strip rather than pushing layout. */
+.lb-errata-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, 86vw);
+  padding: 12px 14px 14px;
+  border-radius: 8px;
+  background: var(--lb-surface);
+  color: var(--lb-fg);
+  border: 1px solid color-mix(in srgb, #D89B2A 45%, transparent);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.4),
+    0 6px 14px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  z-index: 40;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  white-space: normal;
+}
+.lb-errata-popover__title {
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+  color: color-mix(in srgb, #D89B2A 92%, var(--lb-fg) 8%);
+  padding-right: 18px;
+}
+.lb-errata-popover p {
+  margin: 6px 0;
+  color: var(--lb-fg-muted);
+}
+.lb-errata-popover a {
+  display: inline-block;
+  margin-top: 8px;
+  font-weight: 600;
+  color: #E85D2A;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.lb-errata-popover a:hover {
+  color: color-mix(in srgb, #E85D2A 80%, var(--lb-fg) 20%);
+}
+.lb-errata-popover__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--lb-fg-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.lb-errata-popover__close:hover {
+  background: color-mix(in srgb, var(--lb-fg) 8%, transparent);
+  color: var(--lb-fg);
+}
+
+/* Stacked layout: vertical cells with horizontal dividers between
+   them. Triggers below 720px, which covers every phone + many narrow
+   tablet portrait viewports. */
+@media (max-width: 720px) {
+  .lbp {
+    width: calc(100vw - 24px);
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px 14px;
+  }
+  .lbp-cell + .lbp-cell {
+    padding-left: 0;
+    padding-top: 10px;
+    border-left: none;
+    border-top: 1px solid color-mix(in srgb, var(--lb-fg) 10%, transparent);
+  }
+  .lbp-cell--hero {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .lbp-price {
+    font-size: clamp(20px, 6vw, 24px);
+  }
+  .lbp-chart {
+    min-height: 64px;
+  }
+}
+
+/* =============================================================== */
+/* /sealed - booster box dashboard                                  */
+/* =============================================================== */
+.sb-root {
+  min-height: 100vh;
+  padding: 64px 24px 96px;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--text-primary);
+}
+@media (max-width: 640px) {
+  .sb-root {
+    padding: 40px 14px 80px;
+  }
+}
+
+.sb-header {
+  margin-bottom: 32px;
+}
+.sb-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  margin-bottom: 18px;
+}
+.sb-back:hover {
+  color: var(--text-primary);
+}
+.sb-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+.sb-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.sb-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+.sb-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 90px;
+}
+.sb-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sb-stat-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.sb-empty {
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 12px;
+}
+.sb-empty code {
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.sb-tile {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.sb-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-muted);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+.sb-tile--active {
+  border-color: #E85D2A;
+}
+
+.sb-tile__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.4 / 1;
+  background: color-mix(in srgb, var(--bg-surface) 60%, #000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.sb-tile__image-fallback {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.sb-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px 14px;
+}
+.sb-tile__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sb-tile__set {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sb-tile__trend {
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sb-tile__trend--up {
+  color: #22c55e;
+}
+.sb-tile__trend--down {
+  color: #ef4444;
+}
+.sb-tile__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin-top: 2px;
+  /* Clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sb-tile__price {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+.sb-tile__meta {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.sb-tile__spark {
+  height: 40px;
+  margin-top: 6px;
+}
+.sb-sparkline-skeleton {
+  height: 40px;
+  background: var(--bg-surface);
+  border-radius: 4px;
+}
+
+/* Detail modal ------------------------------------------------------ */
+.sb-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.sb-detail {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  padding: 22px;
+}
+.sb-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.sb-detail__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.sb-detail__set {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sb-detail__name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.sb-detail__close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+.sb-detail__close:hover {
+  color: var(--text-primary);
+}
+
+.sb-detail__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (min-width: 640px) {
+  .sb-detail__body {
+    grid-template-columns: 220px 1fr;
+  }
+}
+.sb-detail__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-surface);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+.sb-detail__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sb-detail__price {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.sb-detail__pricesub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.sb-detail__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+.sb-detail__row span:first-child {
+  color: var(--text-muted);
+}
+.sb-detail__row span:last-child {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sb-detail__chart {
+  height: 240px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+.sb-detail-chart-skeleton {
+  height: 240px;
+  background: var(--bg-surface);
+  border-radius: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* Tier list maker thumbnails · same rounded rect + lift language as card tiles */
@@ -570,15 +1315,43 @@ html.lenis, html.lenis body {
   overflow: visible;
 }
 
+/* Bottom info bar - reserves the WORST-case height regardless of
+   what the focused variant renders (errata tabs, multi-print dots,
+   low-confidence match warning). The stage above it computes flex: 1
+   off this fixed footprint, so the absolute-positioned card always
+   sits at the same y-coordinate as the user navigates between
+   variants. The blank space below the strip is invisible (parent bg
+   color) and absorbs the difference between minimum (just a set-context
+   line + strip) and maximum (set-context + dots + warning + tabbed
+   strip) variants. The graded matrix was retired and the variant dots
+   were removed (the fan itself surfaces which variants exist), so the
+   strip is now just caption + hero + trend. Empirical worst-case ~180px
+   desktop / 240px mobile; we add ~30px headroom for the low-confidence
+   warning banner. */
+.lb-bottom-bar {
+  min-height: 210px;
+}
+@media (max-width: 640px) {
+  .lb-bottom-bar {
+    min-height: 270px;
+  }
+}
+
 .lb-card {
   position: absolute;
-  /* Width is the primary constraint, height derives from 5:7 aspect.
-     But on short viewports we cap by height instead so the name bar
-     below never gets crushed. 60px top HUD + ~110px bottom bar = 170px
-     reserved; use 72vh as an extra safety ceiling. */
-  width: min(440px, 70vw, calc((100vh - 180px) * 5 / 7));
+  /* Vertical-space reservation derived from the fixed bottom bar
+     footprint:
+        -  60px  top HUD
+        - 210px  bottom info bar (min-height - reserves worst case so
+                  the stage above it is constant regardless of variant)
+        - ~16px  stage padding-bottom + breathing gap to caption
+        ≈ 286px reserved on desktop
+     The card's height is constrained by aspect-ratio 5:7 off whichever
+     width term is smallest. max-height clamps to the actual stage
+     allotment so short viewports don't overflow. */
+  width: min(480px, 74vw, calc((100vh - 286px) * 5 / 7));
   aspect-ratio: 5 / 7;
-  max-height: 72vh;
+  max-height: calc(100vh - 286px);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--lb-card-shadow);
@@ -588,26 +1361,11 @@ html.lenis, html.lenis body {
 
 @media (max-width: 640px) {
   .lb-card {
-    width: min(76vw, calc((100vh - 170px) * 5 / 7));
+    /* Mobile strip stacks vertically (2-cell -> 2-row); worst-case
+       bottom bar is 270 vs 210. */
+    width: min(84vw, calc((100vh - 346px) * 5 / 7));
+    max-height: calc(100vh - 346px);
   }
-}
-
-.lb-card__label {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--lb-label-fg);
-  background: var(--lb-label-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 4px 10px;
-  border-radius: 100px;
-  border: 1px solid rgba(255,255,255,0.1);
-  pointer-events: none;
 }
 
 /* Close button - top-right of viewport */
@@ -983,37 +1741,6 @@ html.lenis, html.lenis body {
 .board-tile__name {
   /* deprecated - no caption is rendered; kept only in case of cached CSS */
   display: none;
-}
-
-/* Variant dots - bottom center */
-/* Dots now sit inside the static bottom bar, no absolute positioning needed */
-.lb-dots {
-  display: flex;
-  gap: 8px;
-  padding: 7px 12px;
-  border-radius: 6px;
-  background: var(--lb-surface);
-  border: 1px solid var(--lb-border);
-}
-
-.lb-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  border: none;
-  background: var(--lb-fg-faint);
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-  padding: 0;
-}
-
-.lb-dot:hover {
-  background: var(--lb-fg-muted);
-}
-
-.lb-dot--active {
-  background: var(--lb-fg);
-  transform: scale(1.3);
 }
 
 /* Prev / Next card arrows - live in the bottom info bar, flanking card name */

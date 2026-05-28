@@ -24,7 +24,7 @@ export type CardLanguage =
   | 'TC'       // asia-tc.onepiece-cardgame.com      (Hong Kong / Macau, Traditional Chinese)
   | 'TW'       // asia-tw.onepiece-cardgame.com      (Taiwan, Traditional Chinese)
   | 'SC'       // onepiece-cardgame.cn (via onepieceserve.windoent.com JSON API)
-               // — Mainland China Simplified Chinese, added in Phase 8.
+               // - Mainland China Simplified Chinese, added in Phase 8.
                // Tracks the bulk paginated /cardlist/ endpoint plus the
                // Premium-Bandai-style product pages where the SC-exclusive
                // anniversary / serialized prints live.
@@ -33,16 +33,16 @@ export type CardLanguage =
  * Two mutually-exclusive view modes for the gallery, picked from the
  * header pill group:
  *
- *   - 'EN' — show only the EN catalogue (en + asia-en), EN art
- *   - 'JP' — show only the JP catalogue, JP art
+ *   - 'EN' - show only the EN catalogue (en + asia-en), EN art
+ *   - 'JP' - show only the JP catalogue, JP art
  *
  * Why CN was removed (the deprecation is documented in
  * `samples/jp-cn-compare/README.md` with side-by-side screenshots):
  * Bandai's TC / TW CDNs hot-link the JP file for the vast majority
- * of cards — `curl`-confirmed byte-identical, same SHA-256. The CN
+ * of cards - `curl`-confirmed byte-identical, same SHA-256. The CN
  * picker therefore promised "view Chinese scans" but delivered "view
  * the JP file under a different URL." That's the worst kind of
- * affordance — it implies a difference that doesn't exist, burns
+ * affordance - it implies a difference that doesn't exist, burns
  * render cycles re-decoding identical bytes on every flip, and
  * confuses users (the canonical "JP and CN look the same" bug
  * report). The SC source (`source.windoent.com`) has its own scans
@@ -51,7 +51,7 @@ export type CardLanguage =
  * picker option.
  *
  * SC-exclusive prints stay in the bundle (e.g. OP01-016 `_p9_sc`,
- * the 1st Anniversary serialized Nami) — they just aren't reachable
+ * the 1st Anniversary serialized Nami) - they just aren't reachable
  * via a top-level "show me Chinese cards" affordance. Re-enabling
  * CN later is reverting this file + the LANGUAGE_GROUPS table + the
  * header pill list (a one-commit change).
@@ -64,7 +64,7 @@ export type LanguagePickerValue = 'EN' | 'JP'
 /**
  * Map a picker value to the ordered list of source languages it covers.
  * `applyLanguageFilter` uses this both to decide which prints to
- * surface AND to pick which localized image URL to render — the
+ * surface AND to pick which localized image URL to render - the
  * iteration order IS the preference order.
  *
  * EN is strict: only `en.onepiece-cardgame.com` (and the R2 mirror
@@ -73,7 +73,7 @@ export type LanguagePickerValue = 'EN' | 'JP'
  * scans for Asian-region English speakers. In practice Bandai uses
  * that catalogue to LIST Japanese-region promos (Promotion Pack EX
  * Vol.N, Premium Card Collection, Standard Battle prizes, etc.) for
- * Asian collectors who play the JP format — and the files behind the
+ * Asian collectors who play the JP format - and the files behind the
  * URLs are the Japanese scans, sometimes byte-identical to the JP
  * CDN (verified for OP07-015_p3.png: r2-mirror SHA-256 ===
  * jp-CDN SHA-256). That meant EN mode was leaking JP-text cards
@@ -96,14 +96,14 @@ export type LanguagePickerValue = 'EN' | 'JP'
  *     the JP URL because it comes first in the order. Cards that
  *     only have the en_asia URL (e.g. OP01-021_p1_aen "Winner
  *     prize for September 2022 Standard Battle") still surface
- *     under JP, rendered from asia-en — which is, again, the JP
+ *     under JP, rendered from asia-en - which is, again, the JP
  *     scan with a different hostname. dedupeVariants collapses any
  *     near-duplicates via filename key so we don't show the same
  *     artwork twice in the fan.
  *
  * Long-term, the data layer should be re-run with stricter EN_ASIA
  * detection (don't tag a print as EN_ASIA unless the URL actually
- * serves English-text glyphs) — until that happens the runtime
+ * serves English-text glyphs) - until that happens the runtime
  * bucket mapping below is the source of truth.
  */
 export const LANGUAGE_GROUPS: Record<LanguagePickerValue, CardLanguage[]> = {

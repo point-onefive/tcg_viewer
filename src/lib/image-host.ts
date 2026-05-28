@@ -10,7 +10,7 @@
  * `cross-origin-resource-policy: same-site`. That silently blocks any
  * direct cross-origin <img> load from localhost (or any non-Bandai
  * host). The only way these images render in the browser is to proxy
- * them through our own origin — which is exactly what the Next image
+ * them through our own origin - which is exactly what the Next image
  * optimizer (`/_next/image?url=...`) does. Setting
  * `unoptimized={true}` for those URLs is a trap: it bypasses the
  * proxy and the image silently fails to render, leaving the lightbox /

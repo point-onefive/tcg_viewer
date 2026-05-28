@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Allow a build-time override of the output dir so an ad-hoc production
+  // build (`NEXT_DIST_DIR=.next-perf npm run build`) can coexist with a
+  // running dev server. Default unchanged — only set when explicitly
+  // overriding for performance measurements.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   images: {
     // Serve WebP from the optimizer. Source PNGs (especially One Piece) are
     // large; WebP cuts payload ~30-60% and the optimizer caches results.
@@ -101,6 +106,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'assets.tcgdex.net',
+      },
+      {
+        // TCGPlayer product images. Hosts booster-box and sealed-product
+        // thumbnails used on the /sealed dashboard. Populated by the
+        // op_hub pricing pipeline.
+        protocol: 'https',
+        hostname: 'tcgplayer-cdn.tcgplayer.com',
       },
     ],
   },

@@ -359,7 +359,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   //
   // Facet toggles (alt art, color, type, rarity) do NOT force-expand.
   // Those filters often leave many cards per set and users expect to
-  // collapse everything except the sets they're browsing — toggling
+  // collapse everything except the sets they're browsing - toggling
   // "Alt art" should not undo a deliberate "Collapse all" gesture.
   const hasActiveFilter = searchQuery.trim().length > 0
 

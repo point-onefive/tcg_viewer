@@ -2,21 +2,41 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'motion/react'
 import { Bookmark, Layers } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 import { filterAndBuildWall } from '@/lib/card-filter'
+import { isErrataCode } from '@/lib/cards-one-piece-errata'
+
+// PricePanel pulls in @/lib/pricing (which lazy-loads the pricing JSON
+// bundle on demand) AND the recharts sparkline. Static-importing it here
+// would land both in the home-route chunk for every visitor, even the
+// 99% who never open a card. Lazy-import keeps it cold until the user
+// actually opens the lightbox. ssr:false because the lightbox is a
+// client-only overlay (driven by zustand store flags); SSRing it adds
+// nothing the client doesn't already render after hydration.
+const PricePanel = dynamic(
+  () => import('./price-panel').then((m) => m.PricePanel),
+  { ssr: false },
+)
 
 // How many neighbouring variants on each side of the active one are
 // actually loaded as <Image>s. Cards in our dataset can have up to 11
 // variants (OP01-016, OP05-062, anniversary boxes…) and mounting every
 // one at 460px wide simultaneously fires up to 11 parallel optimizer
-// requests — most for cards that are off the rendered fan or barely
+// requests; most for cards that are off the rendered fan or barely
 // visible behind it. ±2 keeps the fan animation looking the same (we
 // already fade anything beyond ±3 to 0 opacity) while halving network
 // pressure on big-variant cards.
-const LIGHTBOX_LOAD_WINDOW = 2
+// Load images for cards within ±N steps of focus. We render the
+// entire fan (all variants) so the user sees what's available, but
+// the heavy <Image fill> mounts only happen inside this window;
+// distant variants render a translucent rounded placeholder. ±4
+// covers the typical fan visible area at the current stage scale
+// without firing 11 parallel optimizer requests on big-variant cards.
+const LIGHTBOX_LOAD_WINDOW = 4
 
 interface LightboxViewerProps { cards: Card[] }
 
@@ -41,6 +61,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     language,
   } = useStore()
   const [focused, setFocused] = useState(0)
+  const [errataInfoOpen, setErrataInfoOpen] = useState(false)
 
   // Mirror CardGrid's filter so arrow-key navigation stays inside
   // the user's filter scope. Without this the lightbox walked the
@@ -96,7 +117,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // pre-release / pack) so the bottom info bar can render a small
   // print-specific subtitle when the user focuses a variant. This
   // matters most for prints that LOOK identical to another at
-  // thumbnail size — the differentiator is often a holographic
+  // thumbnail size; the differentiator is often a holographic
   // treatment or a Winner-stamp overlay rather than the artwork
   // itself, and showing the distribution context tells the user
   // "this isn't a duplicate of the base; it's the tournament-prize
@@ -147,6 +168,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     } else {
       setFocused(0)
     }
+    setErrataInfoOpen(false)
   }
 
   // Belt-and-suspenders clamp. The during-render reset above already
@@ -303,7 +325,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 letterSpacing: '0.08em',
               }}
             >
-              {navIndex >= 0 ? navIndex + 1 : '—'}{' '}
+              {navIndex >= 0 ? navIndex + 1 : '-'}{' '}
               <span style={{ opacity: 0.4 }}>/</span> {navTotal}
             </div>
 
@@ -361,7 +383,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             </div>
           </div>
 
-          {/* Card stage · centered, no side arrows so fan can never be obscured */}
+          {/* Card stage · centered, no side arrows so fan can never be obscured. */}
           <div
             className="relative z-10 flex items-center justify-center w-full"
             style={{ flex: 1, minHeight: 0 }}
@@ -373,12 +395,13 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 const offset = i - safeFocused
                 const absOffset = Math.abs(offset)
                 const isActive = i === safeFocused
-                // Visibility band: cards beyond ±3 are fully faded out
-                // and non-interactive anyway. Loading band: we go one
-                // tighter (LIGHTBOX_LOAD_WINDOW = 2) so anything two
-                // steps from the focus is already cached the moment
-                // the user steps the fan, but distant variants don't
-                // race the active one for bandwidth.
+                // Visibility band: every variant renders in the fan
+                // (no hard cutoff) so the user sees the full carousel.
+                // Loading band: only variants within
+                // LIGHTBOX_LOAD_WINDOW (=4) actually mount the heavy
+                // <Image> tag; anything farther shows the rounded
+                // placeholder so we don't fire 11 parallel optimizer
+                // requests on big-variant cards.
                 const isInLoadWindow = absOffset <= LIGHTBOX_LOAD_WINDOW
                 return (
                   <motion.div
@@ -387,8 +410,16 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                     onClick={() => setFocused(i)}
                     initial={{ opacity: 0, scale: 0.85, y: 30 }}
                     animate={{
-                      opacity: absOffset > 3 ? 0 : 1 - absOffset * 0.12,
-                      scale: isActive ? 1 : 0.82 - absOffset * 0.05,
+                      // No hard cutoff; render every variant in the
+                      // fan so the user sees the full carousel. The
+                      // fade is gentler (0.09 per step) and clamps at
+                      // 0.2 so even ten-variant cards stay visible
+                      // without going invisible.
+                      opacity: Math.max(0.2, 1 - absOffset * 0.09),
+                      // Tighter scale falloff (0.04 per step, floor 0.55)
+                      // so distant cards still read as cards rather than
+                      // shrinking to dots.
+                      scale: isActive ? 1 : Math.max(0.55, 0.82 - absOffset * 0.04),
                       x: offset * 180,
                       rotate: offset * 4,
                       zIndex: 20 - absOffset,
@@ -397,7 +428,6 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                     transition={{ type: 'spring', stiffness: 200, damping: 26, mass: 0.8 }}
                     style={{
                       cursor: isActive ? 'default' : 'pointer',
-                      pointerEvents: absOffset > 3 ? 'none' : 'auto',
                     }}
                   >
                     {isInLoadWindow ? (
@@ -427,26 +457,43 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                         aria-hidden
                       />
                     )}
-                    {/* Variant label */}
-                    {hasMultiple && (
-                      <div className="lb-card__label">
-                        {img.label === 'base' ? 'Base' : img.label.toUpperCase()}
-                      </div>
-                    )}
                   </motion.div>
                 )
               })}
             </div>
           </div>
 
-          {/* Bottom info bar */}
+          {/* Bottom info bar
+              ----------------
+              Tight vertical rhythm so the entire block reads as a
+              single caption unit anchored to the card above. The
+              card face already conveys name / rarity / card-type /
+              set-index, so the caption is reduced to just the
+              set-context line (distribution string, e.g.
+              "-ROMANCE DAWN- [OP01]" or "English Version 1st
+              Anniversary Set") flanked by prev/next nav arrows,
+              optionally with errata + stamp pills, plus the variant
+              dots and the pricing strip below.
+
+              `minHeight` reserves the worst-case bar height so the
+              card above never shifts vertically when the user
+              navigates between simple/multi-print/errata/low-confidence
+              variants; the bar's blank space absorbs the difference. */}
           <div
-            className="relative z-20 w-full flex flex-col items-center gap-3 pb-6 pt-3"
+            className="lb-bottom-bar relative z-20 w-full flex flex-col items-center justify-start gap-2 pb-6 pt-2"
             onClick={(e) => e.stopPropagation()}
             style={{ flexShrink: 0 }}
           >
-            {/* Card name row with prev/next arrows flanking · never overlaps the fan */}
-            <div className="flex items-center justify-center gap-3 md:gap-4 w-full px-4">
+            {/* Set-context row · prev arrow ←─────── distribution ───────→ next arrow.
+                Arrows anchor to the LEFT / RIGHT edges of the lightbox
+                shell (justify-between) so they never crowd the set text
+                in the middle. Set text takes the central flex-1 slot
+                with truncation so very-long distribution strings don't
+                push arrows off-screen. When the focused print has no
+                distribution / stamp / errata data we still render a
+                fixed-height spacer so the arrow buttons don't jump as
+                the user cycles variants. */}
+            <div className="flex items-center justify-between gap-3 md:gap-4 w-full px-6 md:px-10">
               <button
                 className="lb-arrow"
                 onClick={(e) => { e.stopPropagation(); goPrev() }}
@@ -458,77 +505,133 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                 </svg>
               </button>
 
-              <div className="flex flex-col items-center gap-1 text-center" style={{ minWidth: 0, flex: '0 1 auto' }}>
-                <span
-                  className="font-bold tracking-tight leading-tight truncate"
-                  style={{ color: 'var(--lb-fg)', fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 3vw, 22px)', maxWidth: 'min(70vw, 520px)' }}
-                >
-                  {card.name}
-                </span>
-                <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--lb-fg-muted)' }}>
-                  {card.setCode && <span>{card.setCode}</span>}
-                  {card.rarity && <><span style={{ opacity: 0.3 }}>·</span><span>{card.rarity}</span></>}
-                  {card.cardType && <><span style={{ opacity: 0.3 }}>·</span><span>{card.cardType}</span></>}
-                </div>
-                {/* Print-level subtitle: shows the focused variant's
-                    distribution context (e.g. "Premium Card Collection",
-                    "Promo · Winner-stamped") so visually-similar prints
-                    aren't mistaken for duplicates. The pipeline already
-                    merges near-duplicate variants by image filename
-                    (see card-filter.ts `dedupeVariants`) and folds
-                    their distribution strings together with " · "
-                    separators, so a single surviving print can read
-                    "Premium Card Collection -Best Selection- · 2024
-                    Anniversary Promo". A stamp icon appears alongside
-                    for tournament-prize / event prints whose artwork
-                    is otherwise indistinguishable from the base. The
-                    row stays hidden for the base card when it has no
-                    distribution metadata of its own — empty space is
-                    better than empty padding. */}
-                {(() => {
-                  const img = images[safeFocused]
-                  if (!img) return null
-                  const hasMeta = Boolean(img.distribution) || Boolean(img.stamp)
-                  if (!hasMeta) return null
-                  const STAMP_LABEL: Record<string, string> = {
-                    winner: 'Winner',
-                    event: 'Event',
-                    champion: 'Champion',
-                    'pre-release': 'Pre-release',
-                    pack: 'Pack',
-                  }
-                  const stampLabel = img.stamp ? (STAMP_LABEL[img.stamp] ?? img.stamp) : null
+              {(() => {
+                const img = images[safeFocused]
+                // card.id is the canonical card code on base entries
+                // (e.g. "OP01-016"); the errata list is keyed on the
+                // same canonical codes. Errata applies to the card's
+                // effect text and therefore covers every variant of
+                // the same code (parallel, alt-art, manga, ...).
+                const erratata = isErrataCode(card.id)
+                const hasMeta =
+                  Boolean(img?.distribution) || Boolean(img?.stamp) || erratata
+                const STAMP_LABEL: Record<string, string> = {
+                  winner: 'Winner',
+                  event: 'Event',
+                  champion: 'Champion',
+                  'pre-release': 'Pre-release',
+                  pack: 'Pack',
+                }
+                const stampLabel = img?.stamp
+                  ? (STAMP_LABEL[img.stamp] ?? img.stamp)
+                  : null
+                if (!hasMeta) {
+                  // Keep a stable 36px row even when the focused
+                  // print has no caption text - matches the arrow
+                  // button height so the row never collapses.
                   return (
                     <div
-                      className="flex items-center gap-2 text-[11px] truncate"
                       style={{
-                        color: 'var(--lb-fg-muted)',
-                        opacity: 0.85,
-                        maxWidth: 'min(70vw, 520px)',
+                        minHeight: 36,
+                        minWidth: 0,
+                        flex: '1 1 0',
                       }}
-                    >
-                      {stampLabel && (
-                        <span
-                          className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                          style={{
-                            borderRadius: 3,
-                            background: 'color-mix(in srgb, #E85D2A 18%, transparent)',
-                            color: '#E85D2A',
-                            letterSpacing: '0.08em',
-                            flexShrink: 0,
-                          }}
-                          title={`${stampLabel} stamp print`}
-                        >
-                          {stampLabel}
-                        </span>
-                      )}
-                      {img.distribution && (
-                        <span className="truncate">{img.distribution}</span>
-                      )}
-                    </div>
+                    />
                   )
-                })()}
-              </div>
+                }
+                return (
+                  <div
+                    className="flex items-center justify-center gap-2 text-sm truncate text-center"
+                    style={{
+                      color: 'var(--lb-fg-muted)',
+                      opacity: 0.95,
+                      maxWidth: 'min(70vw, 520px)',
+                      minWidth: 0,
+                      flex: '1 1 0',
+                      minHeight: 36,
+                    }}
+                  >
+                    {stampLabel && (
+                      <span
+                        className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                        style={{
+                          borderRadius: 3,
+                          background:
+                            'color-mix(in srgb, #E85D2A 18%, transparent)',
+                          color: '#E85D2A',
+                          letterSpacing: '0.08em',
+                          flexShrink: 0,
+                        }}
+                        title={`${stampLabel} stamp print`}
+                      >
+                        {stampLabel}
+                      </span>
+                    )}
+                    {erratata && (
+                      <span className="lb-errata-anchor">
+                        <button
+                          type="button"
+                          className="lb-errata-pill"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setErrataInfoOpen((v) => !v)
+                          }}
+                          aria-expanded={errataInfoOpen}
+                          aria-label="About errata cards"
+                          title="Click for details"
+                        >
+                          Errata
+                        </button>
+                        {errataInfoOpen && (
+                          <div
+                            role="dialog"
+                            aria-label="Errata explanation"
+                            className="lb-errata-popover"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="lb-errata-popover__title">
+                              Two distinct printings exist for this card
+                            </div>
+                            <p>
+                              Bandai re-issued this card with corrected text.
+                              The original (pre-errata) and corrected
+                              (post-errata) printings trade as separate
+                              markets and can sell at very different prices.
+                            </p>
+                            <p>
+                              Listing data does not cleanly separate the two
+                              printings, so the price shown here is a blended
+                              signal across both. Always research and verify
+                              which printing you are buying or selling.
+                            </p>
+                            <a
+                              href="https://en.onepiece-cardgame.com/rules/errata_card/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Bandai&rsquo;s official errata reference
+                            </a>
+                            <button
+                              type="button"
+                              className="lb-errata-popover__close"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setErrataInfoOpen(false)
+                              }}
+                              aria-label="Close"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </span>
+                    )}
+                    {img?.distribution && (
+                      <span className="truncate">{img.distribution}</span>
+                    )}
+                  </div>
+                )
+              })()}
 
               <button
                 className="lb-arrow"
@@ -542,19 +645,16 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               </button>
             </div>
 
-            {/* Variant dots */}
-            {hasMultiple && (
-              <div className="lb-dots">
-                {images.map((img, i) => (
-                  <button
-                    key={img.id}
-                    className={`lb-dot${i === safeFocused ? ' lb-dot--active' : ''}`}
-                    onClick={() => setFocused(i)}
-                    aria-label={`View ${img.label}`}
-                  />
-                ))}
-              </div>
-            )}
+            {/* Pricing strip · one horizontal bar that integrates into
+                the bottom info column. Same component on every viewport
+                . At narrow widths the cells stack vertically. Renders
+                nothing when the focused print has no resolved market
+                price, so unmatched variants don't pad the bottom bar. */}
+            {(() => {
+              const focusedId = images[safeFocused]?.id
+              if (!focusedId) return null
+              return <PricePanel wallCardId={focusedId} />
+            })()}
           </div>
         </motion.div>
       )}
