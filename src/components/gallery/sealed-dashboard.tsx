@@ -16,9 +16,9 @@ import {
   formatRelative,
   formatUsd,
   getBoxes,
-  getPricingMeta,
   useEnsureBoxesLoaded,
 } from '@/lib/pricing'
+import setsMeta from '@/lib/sets-one-piece.json'
 
 const Sparkline = dynamic(
   () => import('./pricing-sparkline').then((m) => m.Sparkline),
@@ -36,8 +36,23 @@ export function SealedDashboard() {
   // state we already show before the first cron run. Memoised on
   // `ready` so the sorted list stabilises once the data lands.
   const ready = useEnsureBoxesLoaded()
-  const boxes = useMemo(() => (ready ? getBoxes() : []), [ready])
-  const meta = getPricingMeta()
+  // Grid sorts in canonical chronological order: OP01..OPxx, then ST
+  // series, then EB series, then PRB series, then everything else.
+  // Per the user's rule, OP releases always come before EB and PRB
+  // releases regardless of strict calendar date. See `scoreSetAbbr`
+  // below for the exact ordering logic.
+  const boxes = useMemo(() => {
+    if (!ready) return []
+    const all = getBoxes()
+    return [...all].sort((a, b) => {
+      const ao = scoreSetAbbr(a.setAbbr)
+      const bo = scoreSetAbbr(b.setAbbr)
+      if (ao !== bo) return ao - bo
+      // Same set: sort by name for stable ordering (e.g. two boxes
+      // from the same OP release stay grouped).
+      return a.name.localeCompare(b.name)
+    })
+  }, [ready])
   const [activeId, setActiveId] = useState<string | null>(null)
 
   // Aggregate stats for the page header.
@@ -50,8 +65,6 @@ export function SealedDashboard() {
       max: withMarket.length ? Math.max(...withMarket.map((b) => b.market || 0)) : 0,
     }
   }, [boxes])
-
-  const lastSync = meta?.lastSuccessful?.tcgtracking_full
 
   return (
     <div
@@ -124,14 +137,6 @@ export function SealedDashboard() {
         >
           Daily TCGPlayer market price across every One Piece booster
           box we track.
-          {lastSync ? (
-            <>
-              {' '}
-              <span style={{ color: 'var(--text-muted)' }}>
-                Refreshed {formatRelative(lastSync)}.
-              </span>
-            </>
-          ) : null}
         </p>
 
         {/* Hero stat strip - three themed cards with the brand-orange
@@ -364,3 +369,61 @@ function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
     </div>
   )
 }
+
+/**
+ * Score a setAbbr for canonical release order (smaller = earlier).
+ *
+ * Two-tier ordering:
+ *   1. Prefix bucket: OP < ST < EB < PRB < everything else.
+ *   2. Numeric component within the bucket.
+ *
+ * Per the user's rule, OP releases always come before EB and PRB
+ * releases regardless of strict calendar date. The bucket sizes are
+ * spaced so two-digit set numbers within a bucket can never spill
+ * into the next bucket.
+ *
+ * Hybrid box codes that live in two sets at once (e.g. "OP15-EB04")
+ * pick the *latest* side's bucket because that's the actual release
+ * vehicle - "OP15-EB04" is an EB04 product first, an OP15 collab
+ * second, so it groups with the EB family.
+ */
+function scoreSetAbbr(rawCode: string): number {
+  const PREFIX_BUCKET: Record<string, number> = {
+    OP: 0,
+    ST: 1000,
+    EB: 2000,
+    PRB: 3000,
+  }
+  const FALLBACK_BUCKET = 9000
+
+  // Normalize: strip separator dashes between the letter prefix and
+  // the number ("EB-01" -> "EB01") but keep dashes that join two set
+  // codes ("OP15-EB04"). The simplest split: any "-" followed by a
+  // letter survives; "-" followed by a digit is a separator.
+  const normalized = rawCode.replace(/-(?=\d)/g, '')
+  const segments = normalized.split(/[^A-Z0-9]+/i)
+
+  let bestBucket = FALLBACK_BUCKET
+  let chosenNum = 0
+  for (const seg of segments) {
+    const m = seg.match(/^([A-Z]+)0*(\d+)?$/)
+    if (!m) continue
+    const bucket = PREFIX_BUCKET[m[1]] ?? FALLBACK_BUCKET
+    const num = m[2] ? parseInt(m[2], 10) : 0
+    if (
+      bucket > bestBucket ||
+      (bestBucket === FALLBACK_BUCKET && bucket < FALLBACK_BUCKET)
+    ) {
+      bestBucket = bucket
+      chosenNum = num
+    } else if (bucket === bestBucket && num > chosenNum) {
+      chosenNum = num
+    }
+  }
+  return bestBucket + chosenNum
+}
+
+// Silence unused-import warning - setsMeta isn't needed for scoring
+// any more, but other helpers may want it later, so keep the file
+// path bound.
+void setsMeta
