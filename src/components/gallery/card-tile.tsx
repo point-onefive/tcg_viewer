@@ -88,7 +88,6 @@ export function CardTile({ entry, priority = false, showStack = false }: CardTil
   }, [imageSources.length])
 
   const primaryColor = card.colors?.[0] ? (COLOR_MAP[card.colors[0]] ?? 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.15)'
-  const showVariantLabel = entry.kind === 'variant'
 
   const rafPending = useRef(false)
   const lastEvent = useRef<{ clientX: number; clientY: number } | null>(null)
@@ -160,12 +159,6 @@ export function CardTile({ entry, priority = false, showStack = false }: CardTil
 
         <div className="card-tile__shine" />
         <div className="card-tile__colorbar" />
-
-        {showVariantLabel && (
-          <span className="card-tile__print-pill" aria-hidden>
-            {entry.printLabel}
-          </span>
-        )}
 
         {showTilePrices && <PriceBadge printId={entry.printId} />}
       </div>
