@@ -374,7 +374,15 @@ function pickLocalizedImage(
 export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   let result = cards
   if (f.activeSet) result = result.filter((c) => c.setCode === f.activeSet)
-  if (f.activeRarity) result = result.filter((c) => c.rarity === f.activeRarity)
+  if (f.activeRarity) {
+    const r = f.activeRarity
+    result = result.filter((c) =>
+      c.rarity === r ||
+      // Also match cards that have at least one variant with this rarity
+      // (e.g. LR+ / LR++ parallels live on the base LR card's variants[]).
+      c.variants?.some((v) => v.rarity === r)
+    )
+  }
   if (f.activeColor) {
     const target = f.activeColor
     result = result.filter((c) => c.colors?.includes(target))
