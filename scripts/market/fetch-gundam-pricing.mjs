@@ -4,13 +4,16 @@
  * writes src/lib/pricing-gundam.json in the same CardPricing shape that
  * the One Piece pipeline produces.
  *
+ * Also appends a daily snapshot to src/lib/price-history-gundam.json so
+ * the lightbox sparkline builds up over time (same pattern as OP).
+ *
  * Source:   eBay Browse API (free tier) — production credentials from .env.local
- * Coverage: All base-card IDs in src/lib/cards-gundam.json
- * Output:   src/lib/pricing-gundam.json
+ * Coverage: All base-card IDs + variants in src/lib/cards-gundam.json
+ * Outputs:  src/lib/pricing-gundam.json
+ *           src/lib/price-history-gundam.json
  *
- * Run:      node scripts/market/fetch-gundam-pricing.mjs
- *
- * Rate:     300ms between requests → ~3-4 min for 656 cards
+ * Run:  node scripts/market/fetch-gundam-pricing.mjs
+ *       node scripts/market/fetch-gundam-pricing.mjs --force   (re-price all, ignore resume)
  */
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -147,16 +150,18 @@ function computeStats(items) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const FORCE = process.argv.includes('--force')
 
 const cards = JSON.parse(
   readFileSync(join(projectRoot, 'src/lib/cards-gundam.json'), 'utf-8')
 )
 const syncedAt = new Date().toISOString()
 const outPath = join(projectRoot, 'src/lib/pricing-gundam.json')
+const historyPath = join(projectRoot, 'src/lib/price-history-gundam.json')
 
-// Resume: if output exists, skip entries already priced
+// Resume: if output exists, skip entries already priced (unless --force)
 let existing = { syncedAt: '', cards: {} }
-if (existsSync(outPath)) {
+if (!FORCE && existsSync(outPath)) {
   try {
     existing = JSON.parse(readFileSync(outPath, 'utf-8'))
     console.log(`Resuming — ${Object.keys(existing.cards).length} entries already priced`)
@@ -264,11 +269,38 @@ for (let i = 0; i < allEntries.length; i++) {
 output.syncedAt = syncedAt
 writeFileSync(outPath, JSON.stringify(output, null, 2))
 
+// ── Append daily snapshot to price history ────────────────────────────────────
+// Loads existing history (or creates fresh), adds one [unix_ms, market] point
+// per card for today. Skips cards with no market price. Only appends if the
+// last snapshot for a card is > 12h old (prevents double-appending on re-runs).
+const nowMs = Date.now()
+let history = { syncedAt, series: {} }
+if (existsSync(historyPath)) {
+  try { history = JSON.parse(readFileSync(historyPath, 'utf-8')) } catch { /* fresh */ }
+}
+
+let historyAdded = 0
+for (const [id, entry] of Object.entries(output.cards)) {
+  if (!entry.primaryMarket) continue
+  const series = history.series[id] ?? []
+  const lastPoint = series[series.length - 1]
+  // Skip if we already have a point less than 12 hours ago
+  if (lastPoint && nowMs - lastPoint[0] < 12 * 60 * 60 * 1000) continue
+  series.push([nowMs, entry.primaryMarket])
+  history.series[id] = series
+  historyAdded++
+}
+history.syncedAt = syncedAt
+writeFileSync(historyPath, JSON.stringify(history, null, 2))
+
 const totalPriced = Object.values(output.cards).filter(c => c.primaryMarket).length
+const maxHistory = Math.max(0, ...Object.values(history.series).map(s => s.length))
 console.log(`\n━━━ Done ━━━`)
 console.log(`  Total in bundle:   ${Object.keys(output.cards).length}`)
 console.log(`  With market price: ${totalPriced}`)
 console.log(`  New this run:      ${priced}`)
 console.log(`  Skipped (resume):  ${skipped}`)
 console.log(`  No data:           ${noData}`)
-console.log(`  Written:           ${outPath}`)
+console.log(`  History snapshots added: ${historyAdded}  (max per card: ${maxHistory})`)
+console.log(`  Written: ${outPath}`)
+console.log(`  Written: ${historyPath}`)

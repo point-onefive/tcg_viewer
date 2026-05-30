@@ -262,6 +262,9 @@ export function loadBoxes(): Promise<BoxesBundle> {
 let _gundamPricingCache: PricingBundle | null = null
 let _gundamPricingPromise: Promise<PricingBundle> | null = null
 
+let _gundamHistoryCache: PricingHistoryBundle | null = null
+let _gundamHistoryPromise: Promise<PricingHistoryBundle> | null = null
+
 export function loadGundamPricing(): Promise<PricingBundle> {
   if (_gundamPricingCache) return Promise.resolve(_gundamPricingCache)
   if (!_gundamPricingPromise) {
@@ -278,12 +281,36 @@ export function loadGundamPricing(): Promise<PricingBundle> {
   return _gundamPricingPromise
 }
 
+export function loadGundamHistory(): Promise<PricingHistoryBundle> {
+  if (_gundamHistoryCache) return Promise.resolve(_gundamHistoryCache)
+  if (!_gundamHistoryPromise) {
+    _gundamHistoryPromise = import('./price-history-gundam.json')
+      .then((m) => {
+        _gundamHistoryCache = (m.default ?? m) as unknown as PricingHistoryBundle
+        return _gundamHistoryCache
+      })
+      .catch(() => {
+        _gundamHistoryCache = EMPTY_HISTORY
+        return EMPTY_HISTORY
+      })
+  }
+  return _gundamHistoryPromise
+}
+
 export function getGundamCardPricing(wallCardId: string): CardPricing | null {
   return _gundamPricingCache?.cards[wallCardId] ?? null
 }
 
+export function getGundamCardHistory(wallCardId: string): [number, number][] {
+  return _gundamHistoryCache?.series[wallCardId] ?? []
+}
+
 export function useEnsureGundamPricingLoaded(): boolean {
   return useReady(() => _gundamPricingCache !== null, loadGundamPricing)
+}
+
+export function useEnsureGundamHistoryLoaded(): boolean {
+  return useReady(() => _gundamHistoryCache !== null, loadGundamHistory)
 }
 
 // ---------------------------------------------------------------------------
@@ -327,6 +354,30 @@ export function useEnsurePricingLoadedForCollection(collection: string): boolean
   if (collection === 'one-piece') return opReady
   if (collection === 'gundam') return gundamReady
   return true
+}
+
+export function useEnsureHistoryLoadedForCollection(collection: string): boolean {
+  const opReady = useEnsureHistoryLoaded()
+  const gundamReady = useEnsureGundamHistoryLoaded()
+  if (collection === 'one-piece') return opReady
+  if (collection === 'gundam') return gundamReady
+  return true
+}
+
+export function getCardHistoryForCollection(
+  collection: string,
+  wallCardId: string,
+): [number, number][] {
+  if (collection === 'one-piece') return getCardHistory(wallCardId)
+  if (collection === 'gundam') {
+    const direct = getGundamCardHistory(wallCardId)
+    if (direct.length) return direct
+    // Variant fallback: use base card history when variant has none yet
+    const baseId = wallCardId.replace(/_[a-z]\d+$/i, '')
+    if (baseId !== wallCardId) return getGundamCardHistory(baseId)
+    return []
+  }
+  return []
 }
 
 // Public sync lookups --------------------------------------------------------

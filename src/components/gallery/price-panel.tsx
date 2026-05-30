@@ -11,9 +11,9 @@ import { useMemo } from 'react'
 import {
   formatRelative,
   formatUsd,
-  getCardHistory,
+  getCardHistoryForCollection,
   getCardPricingForCollection,
-  useEnsureHistoryLoaded,
+  useEnsureHistoryLoadedForCollection,
   useEnsurePricingLoadedForCollection,
 } from '@/lib/pricing'
 
@@ -29,12 +29,11 @@ interface PricePanelProps {
 
 export function PricePanel({ wallCardId, collection = 'one-piece' }: PricePanelProps) {
   const pricingReady = useEnsurePricingLoadedForCollection(collection)
-  // History is One Piece only — eBay active listings don't have sparkline data yet.
-  const historyReady = useEnsureHistoryLoaded()
+  const historyReady = useEnsureHistoryLoadedForCollection(collection)
 
   const pricing = pricingReady ? getCardPricingForCollection(collection, wallCardId) : null
   const history = useMemo(
-    () => (historyReady && pricing && collection === 'one-piece' ? getCardHistory(wallCardId) : []),
+    () => (historyReady && pricing ? getCardHistoryForCollection(collection, wallCardId) : []),
     [historyReady, pricing, collection, wallCardId],
   )
 

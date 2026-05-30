@@ -60,16 +60,17 @@ run('node scripts/market/fetch-gundam-pricing.mjs', {
   label: 'fetch-gundam-pricing.mjs',
 })
 
-// 3. Check if the file actually changed
-const status = run('git status --porcelain src/lib/pricing-gundam.json', {
-  label: 'check for changes',
-})
+// 3. Check if either pricing or history file changed
+const status = run(
+  'git status --porcelain src/lib/pricing-gundam.json src/lib/price-history-gundam.json',
+  { label: 'check for changes' },
+)
 
 if (!status) {
-  console.log('\n✓ pricing-gundam.json unchanged — nothing to commit.')
+  console.log('\n✓ Gundam pricing files unchanged — nothing to commit.')
 } else {
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
-  run(`git add src/lib/pricing-gundam.json`, { label: 'git add' })
+  run(`git add src/lib/pricing-gundam.json src/lib/price-history-gundam.json`, { label: 'git add' })
   run(`git commit -m "chore(gundam): refresh pricing ${now}"`, { label: 'git commit' })
 
   if (DRY_RUN) {
