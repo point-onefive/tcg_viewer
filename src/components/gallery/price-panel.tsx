@@ -1,10 +1,8 @@
 // Lightbox pricing strip - single horizontal bar below the variant dots.
 //
-// Two cells: hero raw TCGPlayer market price + trend sparkline. The
-// graded eBay matrix (PSA / BGS / CGC / SGC) was removed because the
-// upstream TCGPriceLookup feed proved too stale and Vault-blind to
-// trust on chase cards - see docs/VPS_HANDOFF_PRICING.md for the
-// rationale.
+// Two cells: hero market price + trend sparkline.
+// Supports both One Piece (TCGPlayer-sourced via op_hub) and Gundam
+// (eBay Browse active listings via fetch-gundam-pricing.mjs).
 
 'use client'
 
@@ -14,9 +12,9 @@ import {
   formatRelative,
   formatUsd,
   getCardHistory,
-  getCardPricing,
+  getCardPricingForCollection,
   useEnsureHistoryLoaded,
-  useEnsurePricingLoaded,
+  useEnsurePricingLoadedForCollection,
 } from '@/lib/pricing'
 
 const Sparkline = dynamic(() => import('./pricing-sparkline').then((m) => m.Sparkline), {
@@ -26,23 +24,30 @@ const Sparkline = dynamic(() => import('./pricing-sparkline').then((m) => m.Spar
 
 interface PricePanelProps {
   wallCardId: string
+  collection?: string
 }
 
-export function PricePanel({ wallCardId }: PricePanelProps) {
-  const pricingReady = useEnsurePricingLoaded()
+export function PricePanel({ wallCardId, collection = 'one-piece' }: PricePanelProps) {
+  const pricingReady = useEnsurePricingLoadedForCollection(collection)
+  // History is One Piece only — eBay active listings don't have sparkline data yet.
   const historyReady = useEnsureHistoryLoaded()
 
-  const pricing = pricingReady ? getCardPricing(wallCardId) : null
+  const pricing = pricingReady ? getCardPricingForCollection(collection, wallCardId) : null
   const history = useMemo(
-    () => (historyReady && pricing ? getCardHistory(wallCardId) : []),
-    [historyReady, pricing, wallCardId],
+    () => (historyReady && pricing && collection === 'one-piece' ? getCardHistory(wallCardId) : []),
+    [historyReady, pricing, collection, wallCardId],
   )
 
   if (!pricing) return null
 
   const heroValue = pricing.primaryMarket
   const subtype = pricing.primarySubtype
-  const heroLabel = subtype ? `TCGPlayer ${subtype.toLowerCase()}` : 'TCGPlayer market'
+  const isEbaySource = pricing.source === 'ebay'
+  const heroLabel = isEbaySource
+    ? 'eBay active listings'
+    : subtype
+      ? `TCGPlayer ${subtype.toLowerCase()}`
+      : 'TCGPlayer market'
   const listings = pricing.listings
   const syncedAt = pricing.syncedAt
   const phantomMarket = (pricing.flags ?? []).includes('phantom_market')
@@ -58,7 +63,9 @@ export function PricePanel({ wallCardId }: PricePanelProps) {
   // trust the number; the alternative (hiding outright) loses too much
   // useful signal for cards we genuinely can't disambiguate.
   const lowConfidence =
-    typeof pricing.matchConfidence === 'number' && pricing.matchConfidence < 0.5
+    !isEbaySource &&
+    typeof pricing.matchConfidence === 'number' &&
+    pricing.matchConfidence < 0.5
 
   return (
     <div className="lbp-shell">
@@ -88,7 +95,7 @@ export function PricePanel({ wallCardId }: PricePanelProps) {
                 {listings ? (
                   <>
                     <span className="lbp-hero-dot">·</span>
-                    <span title="Total NM listings across SKUs">
+                    <span title={isEbaySource ? 'NM single listings filtered' : 'Total NM listings across SKUs'}>
                       {listings.toLocaleString()} listing{listings === 1 ? '' : 's'}
                     </span>
                   </>
@@ -129,7 +136,9 @@ export function PricePanel({ wallCardId }: PricePanelProps) {
               <Sparkline data={history} />
             </div>
           ) : (
-            <div className="lbp-empty">Builds with each daily sync</div>
+            <div className="lbp-empty">
+              {isEbaySource ? 'Builds with each pricing refresh' : 'Builds with each daily sync'}
+            </div>
           )}
         </div>
       </section>

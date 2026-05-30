@@ -71,6 +71,29 @@ function variantLabel(suffix) {
   return suffix.toUpperCase()
 }
 
+/**
+ * Normalize rarity strings from the Bandai scrape.
+ * The site embeds extra whitespace and sometimes a "+" / "++" suffix
+ * separated by many spaces: "LR                +" → "LR+"
+ */
+function cleanRarity(s) {
+  if (!s) return undefined
+  // Collapse internal whitespace sequences to a single space, then
+  // remove the space before trailing + or ++ suffixes.
+  return s.replace(/\s+/g, ' ').trim().replace(/\s+(\+\+?)$/, '$1') || undefined
+}
+
+/**
+ * Map a raw pack/distribution label to a clean display string.
+ * Strips set-code brackets ("[GD01]") from standard booster names.
+ * Keeps special product names as-is (Edition Beta, Championship, etc.)
+ */
+function cleanDistribution(pack, sourceTitle) {
+  const raw = pack || sourceTitle || ''
+  if (!raw) return undefined
+  return raw.trim() || undefined
+}
+
 function numOrNull(s) {
   if (s == null || s === '') return null
   const n = Number(String(s).trim())
@@ -108,11 +131,13 @@ for (const r of raw) {
   if (!suffix) {
     entry.primary = r
   } else {
+    const rawRecord = raw.find((r2) => r2.id === r.id) ?? r
     entry.variants.push({
       id: r.id,
       label: variantLabel(suffix),
       imageUrl: imageUrlFor(r.id),
-      rarity: r.rarity,
+      rarity: cleanRarity(r.rarity),
+      distribution: cleanDistribution(rawRecord.pack, rawRecord.sourceTitle),
     })
   }
 }
@@ -132,11 +157,11 @@ for (const [baseId, { primary, variants }] of byBase) {
     code: baseId,
     name: p.name || baseId,
     setCode,
-    setName: setNameFor(baseId, p.sourcePackLabel),
+    setName: setNameFor(baseId, p.pack || p.sourceTitle),
     releaseDate: setMeta?.date,
     releaseOrder: setMeta?.order ?? 999,
     cardType: p.type || undefined,          // UNIT / PILOT / COMMAND / BASE
-    rarity: p.rarity || undefined,          // C / U / R / SR / LR / P
+    rarity: cleanRarity(p.rarity),          // C / U / R / LR / LR+ / LR++ / P
     colors: colorsFrom(p.color),
     cost: numOrNull(p.cost),
     power: numOrNull(p.ap),                 // AP in Gundam terms
@@ -145,9 +170,10 @@ for (const [baseId, { primary, variants }] of byBase) {
     types: p.trait ? p.trait.split(/\)\s*\(/).map((t) => t.replace(/^[(]|[)]$/g, '').trim()).filter(Boolean) : [],
     effect: p.effect || undefined,
     trigger: undefined,
+    distribution: cleanDistribution(p.pack, p.sourceTitle),
     imageSmall: imageUrlFor(baseId),
     imageLarge: imageUrlFor(baseId),
-    variants: variants.length ? variants.map((v) => ({ id: v.id, label: v.label || 'Variant', imageUrl: v.imageUrl })) : undefined,
+    variants: variants.length ? variants.map((v) => ({ id: v.id, label: v.label || 'Variant', imageUrl: v.imageUrl, rarity: v.rarity, distribution: v.distribution })) : undefined,
   })
 }
 

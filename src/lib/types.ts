@@ -168,6 +168,11 @@ export type CardVariant = {
   source?: CardSource
   // Stamped tournament / event / prize overlay, if any.
   stamp?: PrintStamp | null
+  // Rarity of this specific variant print. In most TCGs the variant
+  // rarity differs from the base card (e.g. Gundam LR base → LR+
+  // Parallel → LR++ Double Parallel). Undefined when the rarity
+  // equals the base card's rarity or is unknown.
+  rarity?: string
   // Limitless provenance fields (populated only when source === 'limitless').
   limitless_product?: string | null
   limitless_artist?: string | null

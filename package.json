@@ -21,6 +21,8 @@
     "gundam:images": "node scripts/download-gundam-images.mjs",
     "gundam:all": "npm run gundam:fetch && npm run gundam:images && npm run gundam:generate",
     "gundam:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-gundam --prefix=cards/gundam --ext=webp",
+    "gundam:pricing": "node scripts/market/fetch-gundam-pricing.mjs",
+    "gundam:scan": "node scripts/scan-for-new-gundam.mjs",
     "dbs:fetch": "node scripts/fetch-dbs-data.mjs",
     "dbs:generate": "node scripts/generate-dbs-data.mjs",
     "dbs:images": "node scripts/download-dbs-images.mjs",
