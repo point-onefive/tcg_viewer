@@ -373,7 +373,19 @@ function pickLocalizedImage(
  */
 export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   let result = cards
-  if (f.activeSet) result = result.filter((c) => c.setCode === f.activeSet)
+  if (f.activeSet) {
+    const s = f.activeSet
+    // Convert setCode (e.g. "PRB01") to the bracketed distribution tag
+    // Bandai uses in their cardlist strings (e.g. "[PRB-01]").
+    // Pattern: insert hyphen before the numeric suffix → PRB01 → PRB-01
+    const distTag = '[' + s.replace(/^([A-Za-z]+)(\d+)$/, '$1-$2') + ']'
+    result = result.filter((c) => {
+      if (c.setCode === s) return true
+      // Also surface cards that have at least one variant from this set
+      // (e.g. PRB-01/PRB-02 reprints live as variants under their original setCode)
+      return (c.variants ?? []).some((v) => v.distribution?.includes(distTag))
+    })
+  }
   if (f.activeRarity) {
     const r = f.activeRarity
     result = result.filter((c) =>
