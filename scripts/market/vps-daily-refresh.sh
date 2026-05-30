@@ -36,27 +36,31 @@ echo "▶ git pull origin main"
 git pull origin main
 
 # ─── 2. One Piece pricing via op_hub ─────────────────────────────────────────
-# op_hub is a separate Python project. Adjust OP_HUB_DIR to its location on
-# the VPS. The export command writes:
+# op_hub lives at /home/openclaw/one_piece_current_events on the VPS.
+# Binary: $OP_HUB_DIR/.venv/bin/op-hub
+# The export command writes:
 #   src/lib/pricing-one-piece.json
 #   src/lib/price-history-one-piece.json
 #   src/lib/pricing-meta.json
 # to this repo directory.
-OP_HUB_DIR="${OP_HUB_DIR:-/root/op_hub}"
+OP_HUB_DIR="${OP_HUB_DIR:-/home/openclaw/one_piece_current_events}"
 
 echo ""
 echo "▶ One Piece pricing (op_hub)"
 if [ -d "$OP_HUB_DIR" ]; then
   cd "$OP_HUB_DIR"
-  # Activate virtualenv if present
-  if [ -f ".venv/bin/activate" ]; then
-    source .venv/bin/activate
-  elif [ -f "venv/bin/activate" ]; then
-    source venv/bin/activate
+  # Use the venv binary directly — works regardless of active venv
+  OP_HUB_BIN="$OP_HUB_DIR/.venv/bin/op-hub"
+  if [ ! -f "$OP_HUB_BIN" ]; then
+    # Fallback: scan venv/bin variants
+    OP_HUB_BIN=$(find "$OP_HUB_DIR" -path "*/bin/op-hub" -type f 2>/dev/null | head -1)
   fi
-  # Run the export — writes directly into the tcg_viewer repo path
-  python -m op_hub pricing export-card-wall --out "$REPO_ROOT/src/lib"
-  echo "  ✓ op_hub export complete"
+  if [ -z "$OP_HUB_BIN" ]; then
+    echo "  ⚠ op-hub binary not found in $OP_HUB_DIR — skipping One Piece pricing"
+  else
+    "$OP_HUB_BIN" pricing export-card-wall --output-dir "$REPO_ROOT/src/lib"
+    echo "  ✓ op_hub export complete"
+  fi
   cd "$REPO_ROOT"
 else
   echo "  ⚠ OP_HUB_DIR not found ($OP_HUB_DIR) — skipping One Piece pricing"
