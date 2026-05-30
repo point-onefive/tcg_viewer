@@ -67,11 +67,37 @@ async function ensureToken() {
 }
 
 // ── eBay Browse search ────────────────────────────────────────────────────────
-async function searchListings(cardId, limit = 50) {
+
+/**
+ * Build an eBay search query for a card or variant.
+ * - Base cards:  `"GD01-001" Gundam Card Game`
+ * - _p1 (LR+):  `"GD01-001" Gundam Card Game parallel`
+ * - _r1 (Alt):  `"GD01-001" Gundam Card Game alt art`
+ * - Edition Beta specific _p2: `"GD01-001" Gundam Card Game "edition beta"`
+ *
+ * We search the BASE code (not the full variant id) because eBay sellers
+ * rarely include the "_p1" suffix in their listing titles.
+ */
+function buildQuery(id, distribution) {
+  const baseCode = id.replace(/_[a-z]\d+$/i, '')
+  const suffix = id.match(/_([a-z]\d+)$/i)?.[1]
+  if (!suffix) return `"${baseCode}" Gundam Card Game`
+
+  const dist = (distribution || '').toLowerCase()
+  if (dist.includes('edition beta')) return `"${baseCode}" Gundam Card Game "edition beta"`
+  if (dist.includes('championship') || dist.includes('winner') || dist.includes('world')) {
+    return `"${baseCode}" Gundam Card Game championship`
+  }
+  if (/^r\d+$/i.test(suffix)) return `"${baseCode}" Gundam Card Game alt art`
+  // Default for _p1, _p2, _p3 etc.: add "parallel"
+  return `"${baseCode}" Gundam Card Game parallel`
+}
+
+async function searchListings(id, distribution, limit = 50) {
   const token = await ensureToken()
+  const q = buildQuery(id, distribution)
   const url = new URL('https://api.ebay.com/buy/browse/v1/item_summary/search')
-  // Include the game name so "ST01-001" doesn't pull One Piece ST01-001 results
-  url.searchParams.set('q', `"${cardId}" Gundam Card Game`)
+  url.searchParams.set('q', q)
   url.searchParams.set('limit', String(limit))
   url.searchParams.set('category_ids', '183454') // Trading Card Singles
   const r = await fetch(url.toString(), {
@@ -128,17 +154,26 @@ const cards = JSON.parse(
 const syncedAt = new Date().toISOString()
 const outPath = join(projectRoot, 'src/lib/pricing-gundam.json')
 
-// Resume: if output exists, skip cards already priced
+// Resume: if output exists, skip entries already priced
 let existing = { syncedAt: '', cards: {} }
 if (existsSync(outPath)) {
   try {
     existing = JSON.parse(readFileSync(outPath, 'utf-8'))
-    console.log(`Resuming — ${Object.keys(existing.cards).length} cards already priced`)
+    console.log(`Resuming — ${Object.keys(existing.cards).length} entries already priced`)
   } catch { /* start fresh */ }
 }
 
+// Build full list: base cards + all variants
+const allEntries = []
+for (const card of cards) {
+  allEntries.push({ id: card.id, name: card.name, rarity: card.rarity, setCode: card.setCode, distribution: card.distribution, isVariant: false })
+  for (const v of card.variants ?? []) {
+    allEntries.push({ id: v.id, name: card.name + (v.label ? ` · ${v.label}` : ''), rarity: v.rarity ?? card.rarity, setCode: card.setCode, distribution: v.distribution ?? card.distribution, isVariant: true })
+  }
+}
+
 console.log(`━━━ Gundam pricing pipeline ━━━`)
-console.log(`Cards to price: ${cards.length}  marketplace: ${MARKETPLACE}`)
+console.log(`Entries to price: ${allEntries.length} (${cards.length} base + ${allEntries.length - cards.length} variants)  marketplace: ${MARKETPLACE}`)
 console.log(`Output: ${outPath}\n`)
 
 const output = { ...existing }
@@ -146,9 +181,9 @@ let priced = 0
 let skipped = 0
 let noData = 0
 
-for (let i = 0; i < cards.length; i++) {
-  const card = cards[i]
-  const { id, name, rarity, setCode } = card
+for (let i = 0; i < allEntries.length; i++) {
+  const entry = allEntries[i]
+  const { id, name, rarity, setCode, distribution, isVariant } = entry
 
   // Resume: skip if already priced in existing output
   if (existing.cards[id]) {
@@ -157,15 +192,15 @@ for (let i = 0; i < cards.length; i++) {
   }
 
   try {
-    const data = await searchListings(id, 50)
+    const data = await searchListings(id, distribution, 50)
     const items = data?.itemSummaries ?? []
     const singles = filterSingleListings(items)
     const stats = computeStats(singles)
+    const tag = isVariant ? '~' : ' '
 
     if (!stats) {
       noData++
-      process.stdout.write(`  ✗ ${id.padEnd(12)} no usable listings (${items.length} raw)\n`)
-      // Write a "no data" entry so resume doesn't re-query
+      process.stdout.write(`  ✗${tag}${id.padEnd(16)} no usable listings (${items.length} raw)\n`)
       output.cards[id] = {
         tcgplayerId: 0,
         cardCode: id,
@@ -185,9 +220,9 @@ for (let i = 0; i < cards.length; i++) {
       }
     } else {
       priced++
-      const pct = ((i + 1) / cards.length * 100).toFixed(0)
+      const pct = ((i + 1) / allEntries.length * 100).toFixed(0)
       process.stdout.write(
-        `  ✓ ${id.padEnd(12)} [${rarity.padEnd(2)}]  ${singles.length}/${items.length} singles  $${stats.low}–$${stats.high}  median=$${stats.market}  (${pct}%)\n`
+        `  ✓${tag}${id.padEnd(16)} [${(rarity||'?').padEnd(4)}]  ${singles.length}/${items.length} singles  $${stats.low}–$${stats.high}  median=$${stats.market}  (${pct}%)\n`
       )
       output.cards[id] = {
         tcgplayerId: 0,
@@ -208,18 +243,18 @@ for (let i = 0; i < cards.length; i++) {
         primarySubtype: 'Normal',
         listings: singles.length,
         matchMethod: 'ebay_browse',
-        matchConfidence: 0.7,
+        matchConfidence: isVariant ? 0.6 : 0.7,
       }
     }
   } catch (err) {
     console.error(`\n  ERROR on ${id}: ${err.message}`)
   }
 
-  // Write incrementally every 50 cards so we don't lose data on crash
+  // Write incrementally every 50 entries
   if ((i + 1) % 50 === 0) {
     output.syncedAt = syncedAt
     writeFileSync(outPath, JSON.stringify(output, null, 2))
-    console.log(`  ↳ checkpoint saved (${i + 1}/${cards.length})`)
+    console.log(`  ↳ checkpoint saved (${i + 1}/${allEntries.length})`)
   }
 
   await sleep(300)
@@ -229,9 +264,11 @@ for (let i = 0; i < cards.length; i++) {
 output.syncedAt = syncedAt
 writeFileSync(outPath, JSON.stringify(output, null, 2))
 
+const totalPriced = Object.values(output.cards).filter(c => c.primaryMarket).length
 console.log(`\n━━━ Done ━━━`)
-console.log(`  Priced:      ${priced + skipped}`)
-console.log(`  New this run: ${priced}`)
-console.log(`  Skipped:     ${skipped} (already had data)`)
-console.log(`  No data:     ${noData}`)
-console.log(`  Written:     ${outPath}`)
+console.log(`  Total in bundle:   ${Object.keys(output.cards).length}`)
+console.log(`  With market price: ${totalPriced}`)
+console.log(`  New this run:      ${priced}`)
+console.log(`  Skipped (resume):  ${skipped}`)
+console.log(`  No data:           ${noData}`)
+console.log(`  Written:           ${outPath}`)

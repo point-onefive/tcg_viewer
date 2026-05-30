@@ -301,7 +301,23 @@ export function getCardPricingForCollection(
   wallCardId: string,
 ): CardPricing | null {
   if (collection === 'one-piece') return getCardPricing(wallCardId)
-  if (collection === 'gundam') return getGundamCardPricing(wallCardId)
+  if (collection === 'gundam') {
+    const direct = getGundamCardPricing(wallCardId)
+    if (direct) return direct
+    // For variant IDs (e.g. "GD01-001_p1"), fall back to the base card's
+    // price so parallel tiles show something rather than staying blank.
+    // The variant's specific market can differ (LR+ > LR base), so the
+    // badge dims via low-confidence styling when using a fallback.
+    const baseId = wallCardId.replace(/_[a-z]\d+$/i, '')
+    if (baseId !== wallCardId) {
+      const base = getGundamCardPricing(baseId)
+      if (base?.primaryMarket) {
+        // Return a shallow copy flagged as a fallback estimate
+        return { ...base, matchConfidence: 0.4, matchMethod: 'base_fallback' }
+      }
+    }
+    return null
+  }
   return null
 }
 
