@@ -131,6 +131,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
       label: 'base',
       distribution: card.distribution,
       stamp: null as string | null,
+      comingSoon: false,
     }
     const variants = (card.variants ?? []).map((v) => ({
       id: v.id,
@@ -138,6 +139,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
       label: v.label,
       distribution: v.distribution,
       stamp: v.stamp ?? null,
+      comingSoon: v.comingSoon ?? false,
     }))
     return [base, ...variants]
   }, [card])
@@ -431,7 +433,18 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                       cursor: isActive ? 'default' : 'pointer',
                     }}
                   >
-                    {isInLoadWindow ? (
+                    {img.comingSoon ? (
+                      <div className="lb-card-coming-soon">
+                        <div className="lb-cs-inner">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" opacity="0.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l3 3"/>
+                          </svg>
+                          <span className="lb-cs-label">Alt Art 2</span>
+                          <span className="lb-cs-sub">Coming Soon</span>
+                        </div>
+                      </div>
+                    ) : isInLoadWindow ? (
                       <Image
                         src={img.src}
                         alt={img.label}

@@ -175401,6 +175401,18 @@
           "SC": "OP16-119_p1"
         },
         "source": "bandai"
+      },
+      {
+        "id": "OP16-119_p2",
+        "label": "p2",
+        "imageUrl": "",
+        "distribution": "-THE TIME OF BATTLE- [OP-16]",
+        "regions": ["EN", "JP"],
+        "languages": ["EN", "EN_ASIA", "JP", "TC", "TW"],
+        "imagesByLanguage": {},
+        "regionalIds": {},
+        "source": "bandai",
+        "comingSoon": true
       }
     ]
   },

@@ -173,6 +173,12 @@ export type CardVariant = {
   // Parallel → LR++ Double Parallel). Undefined when the rarity
   // equals the base card's rarity or is unknown.
   rarity?: string
+  // Set to true when the print is confirmed to exist (announced or
+  // seen in promotional material) but the official image has not
+  // been published by Bandai yet. The lightbox shows a "Coming Soon"
+  // placeholder slot. When the image goes live the scan will pick up
+  // the real entry and this stub should be removed.
+  comingSoon?: boolean
   // Limitless provenance fields (populated only when source === 'limitless').
   limitless_product?: string | null
   limitless_artist?: string | null
