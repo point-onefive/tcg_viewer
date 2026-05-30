@@ -105,6 +105,13 @@
     "cardCount": 119
   },
   {
+    "setCode": "OP16",
+    "setName": "The Time of Battle",
+    "releaseDate": "2026-06-06",
+    "releaseOrder": 16,
+    "cardCount": 119
+  },
+  {
     "setCode": "ST01",
     "setName": "Starter - Straw Hat Crew",
     "releaseDate": "2022-07-08",
@@ -369,13 +376,6 @@
     "releaseDate": "",
     "releaseOrder": 99,
     "cardCount": 2
-  },
-  {
-    "setCode": "OP16",
-    "setName": "OP16",
-    "releaseDate": "",
-    "releaseOrder": 900,
-    "cardCount": 119
   },
   {
     "setCode": "P",

@@ -48,6 +48,7 @@ const SET_META = {
   'OP13': { name: 'Carrying On His Will',      date: '2025-09-12', order: 13 },
   'OP14': { name: "The Azure Sea's Seven",     date: '2025-12-05', order: 14 },
   'OP15': { name: "Adventure on Kami's Island",date: '2026-03-06', order: 15 },
+  'OP16': { name: 'The Time of Battle',       date: '2026-06-06', order: 16 },
   'ST01': { name: 'Starter - Straw Hat Crew',  date: '2022-07-08', order: 20 },
   'ST02': { name: 'Starter - Worst Generation',date: '2022-07-08', order: 21 },
   'ST03': { name: 'Starter - Seven Warlords',  date: '2022-07-08', order: 22 },
