@@ -132,7 +132,7 @@ for (const [baseId, { primary, variants }] of byBase) {
     code: baseId,
     name: p.name || baseId,
     setCode,
-    setName: setNameFor(baseId, p.sourcePackLabel),
+    setName: setNameFor(baseId, p.pack || p.sourceTitle),
     releaseDate: setMeta?.date,
     releaseOrder: setMeta?.order ?? 999,
     cardType: p.type || undefined,          // UNIT / PILOT / COMMAND / BASE
@@ -145,6 +145,10 @@ for (const [baseId, { primary, variants }] of byBase) {
     types: p.trait ? p.trait.split(/\)\s*\(/).map((t) => t.replace(/^[(]|[)]$/g, '').trim()).filter(Boolean) : [],
     effect: p.effect || undefined,
     trigger: undefined,
+    // distribution: the product/pack label — used in lightbox detail and
+    // future set-filter refinement. Prefer the "Where to get it" field,
+    // fall back to Source Title.
+    distribution: p.pack || p.sourceTitle || undefined,
     imageSmall: imageUrlFor(baseId),
     imageLarge: imageUrlFor(baseId),
     variants: variants.length ? variants.map((v) => ({ id: v.id, label: v.label || 'Variant', imageUrl: v.imageUrl })) : undefined,

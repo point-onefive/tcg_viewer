@@ -59,6 +59,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     searchQuery,
     lightboxPrintId,
     language,
+    activeCollection,
   } = useStore()
   const [focused, setFocused] = useState(0)
   const [errataInfoOpen, setErrataInfoOpen] = useState(false)
@@ -653,7 +654,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
             {(() => {
               const focusedId = images[safeFocused]?.id
               if (!focusedId) return null
-              return <PricePanel wallCardId={focusedId} />
+              return <PricePanel wallCardId={focusedId} collection={activeCollection} />
             })()}
           </div>
         </motion.div>

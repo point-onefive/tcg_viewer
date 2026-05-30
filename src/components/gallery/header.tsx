@@ -350,6 +350,7 @@ function MobileMoreFiltersMenu({
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const hasPricing = activeCollection === 'one-piece' || activeCollection === 'gundam'
 
   useEffect(() => {
     if (!open) return
@@ -519,7 +520,7 @@ function MobileMoreFiltersMenu({
                 onClick={() => setOnlyErrata(!onlyErrata)}
               />
             )}
-            {isOnePiece && (
+            {hasPricing && (
               <FacetOptionRow
                 label="Prices"
                 selected={showTilePrices}
@@ -610,6 +611,8 @@ export function Header({ sets }: HeaderProps) {
   // per-region scans.
   const facets = COLLECTION_FACETS[activeCollection]
   const isOnePiece = activeCollection === 'one-piece'
+  const isGundam = activeCollection === 'gundam'
+  const hasPricing = isOnePiece || isGundam
   const showVariantToggles = facets.hasVariants
   const altArtTitle = flattenWall
     ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
@@ -1449,7 +1452,7 @@ export function Header({ sets }: HeaderProps) {
               Errata
             </button>
           )}
-          {isOnePiece && (
+          {hasPricing && (
             <button
               type="button"
               onClick={() => setShowTilePrices(!showTilePrices)}
@@ -1459,8 +1462,10 @@ export function Header({ sets }: HeaderProps) {
               aria-label={showTilePrices ? 'Hide market prices on tiles' : 'Show market prices on tiles'}
               title={
                 showTilePrices
-                  ? 'Hide TCGPlayer market prices on tile thumbnails'
-                  : 'Overlay TCGPlayer market price on each tile thumbnail'
+                  ? 'Hide market prices on tile thumbnails'
+                  : isGundam
+                    ? 'Overlay eBay active listing prices on each tile'
+                    : 'Overlay TCGPlayer market price on each tile thumbnail'
               }
             >
               Prices
