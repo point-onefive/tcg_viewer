@@ -303,54 +303,71 @@ every few months) usually need a one-line entry in
 `data/print-buckets.json` to merge their per-region prints into a single
 canonical row.
 
-### 4.2 Weekly / on new-product release (~45 min, full mirror)
+### 4.2 New booster release (~25 min, EN images only)
 
-When Bandai drops a new booster (or a Limitless category lands a
-batch of stamped prints), run the full sequence:
+**This is the standard playbook for ingesting a new EN/JP booster set
+(e.g. OP16, OP17, …).** Only EN images are mirrored to R2 — JP and
+other regions serve directly from Bandai's CDN, so there is no need
+to download or upload their images.
+
+> **Do NOT run `--language=all` for image downloads.** It will try to
+> download the entire JP/TC/TW/SC catalogue (~4500 images each) even
+> though those regions have always served from Bandai CDN. Only
+> `--language=en` (the default) is needed.
 
 ```bash
-# 1. Re-scrape every Bandai region (cardlist + product pages + .cn API)
-node scripts/fetch-card-data.mjs --language=all
-node scripts/fetch-bandai-products.mjs
-node scripts/fetch-bandai-cn.mjs
+# 1. Re-scrape every Bandai region + product pages + CN API
+node scripts/fetch-card-data.mjs --language=all      # ~4 min
+node scripts/fetch-bandai-products.mjs               # ~2 min
+node scripts/fetch-bandai-cn.mjs                     # ~2 min
 
-# 2. Refresh the Limitless inventory and find new gaps
-node scripts/fetch-limitless-supplement.mjs --all
-node scripts/diff-limitless-vs-local.mjs
-node scripts/scrape-limitless-missing.mjs
+# 2. Refresh Limitless supplement (finds new tournament/promo prints)
+node scripts/fetch-limitless-supplement.mjs --all    # ~17 min
+node scripts/diff-limitless-vs-local.mjs             # ~1s
+node scripts/scrape-limitless-missing.mjs            # ~1 min
 
-# 3. Rebuild the unified catalogue
-node scripts/dedupe-cross-language.mjs
-#    → review data/print-buckets.suggested.json now (see §5)
-#    → if you promote any auto-matches, re-run the dedupe step.
-node scripts/merge-limitless-supplement.mjs
+# 3. Dedupe + merge
+node scripts/dedupe-cross-language.mjs               # ~1s  → review print-buckets.suggested.json (see §5)
+node scripts/merge-limitless-supplement.mjs          # ~1s
 
-# 4. Mirror images (per-language, throttled to 2 req/s)
-node scripts/download-images.mjs --cdn --language=all
+# 4. Download NEW EN images only (incremental — skips already-cached)
+node scripts/download-images.mjs --cdn               # default is EN; skips existing hashes; ~2 min for a new booster
+
+# 5. Upload new EN images to R2 (incremental)
+node scripts/upload-to-r2.mjs                        # skips already-uploaded via data/uploaded-*.json
+
+# 6. Rebuild inventory + regenerate bundle + commit
+node scripts/build-inventory.mjs
+node scripts/generate-card-data.mjs
+git add src/lib/cards-one-piece.json src/lib/sets-one-piece.json
+git commit -m "feat(opXX): ingest <set name>"
+git push origin main
+```
+
+Net-new images are typically 100–200 EN PNGs for a standard booster.
+The download and upload steps complete in minutes, not hours.
+
+### 4.3 Full re-mirror of all EN images (~45 min, rarely needed)
+
+Only needed if R2 is wiped, images are corrupted, or you're setting
+up a new environment from scratch. Run the §4.2 sequence but also
+upload JP (JP images are on disk after a full `--language=all`
+download if you need them on R2):
+
+```bash
+node scripts/download-images.mjs --cdn --language=all   # WARNING: ~90 min; downloads all ~4500 JP+other images
 node scripts/download-limitless-images.mjs
-
-# 5. Push images to R2 (incremental; skips already-uploaded files
-#    via data/uploaded-*.json markers)
 node scripts/upload-to-r2.mjs                                       # EN root
 node scripts/upload-to-r2.mjs --dir=public/cards/jp      --prefix=cards/jp
 node scripts/upload-to-r2.mjs --dir=public/cards/asia-en --prefix=cards/asia-en
 node scripts/upload-to-r2.mjs --dir=public/cards/tc      --prefix=cards/tc
 node scripts/upload-to-r2.mjs --dir=public/cards/tw      --prefix=cards/tw
-node scripts/upload-to-r2.mjs --dir=public/cards/sc      --prefix=cards/sc  # once SC is staged locally
-
-# 6. Refresh inventory + regenerate the bundle
-node scripts/build-inventory.mjs
-node scripts/generate-card-data.mjs
+node scripts/upload-to-r2.mjs --dir=public/cards/sc      --prefix=cards/sc
 ```
 
-On a clean run nothing in step 4 / 5 downloads or re-uploads anything
-that didn't change — `data/inventory.json` (image hashes) and
-`data/uploaded-*.json` (R2 marker files) carry the previous state
-forward.
+### 4.4 First-time bootstrap (~2 h)
 
-### 4.3 First-time bootstrap (~2 h)
-
-Same as 4.2 but with an empty `data/inventory.json`. Step 4 is the
+Same as 4.3 but with an empty `data/inventory.json`. Step 4 is the
 long pole — five regions × ~4500 cards × 500 ms / req ≈ 90 min for
 the polite Bandai sweep. Run it overnight.
 
