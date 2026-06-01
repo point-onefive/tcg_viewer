@@ -8,9 +8,10 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Package, TrendingUp, Trophy } from 'lucide-react'
+import { HelpCircle, Layers, Package } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { Footer } from '@/components/gallery/footer'
 import {
   BoxPricing,
   formatRelative,
@@ -18,7 +19,9 @@ import {
   getBoxes,
   useEnsureBoxesLoaded,
 } from '@/lib/pricing'
+import type { CardSet } from '@/lib/types'
 import setsMeta from '@/lib/sets-one-piece.json'
+import { useStore } from '@/lib/store'
 
 const Sparkline = dynamic(
   () => import('./pricing-sparkline').then((m) => m.Sparkline),
@@ -32,8 +35,6 @@ const Sparkline = dynamic(
  * same product ID also serves an `_in_1000x1000` original, which Next's
  * image optimizer downscales to crisp WebP at whatever size each spot
  * requests — so a single uniform source covers tiles AND the modal.
- * Non-TCGPlayer URLs (or anything that doesn't match the product CDN
- * pattern) pass through untouched.
  */
 function hiResBoxImage(url: string | null): string | null {
   if (!url) return url
@@ -48,17 +49,24 @@ const BoxLineChart = dynamic(
   { ssr: false, loading: () => <div className="sb-detail-chart-skeleton" /> },
 )
 
+const SET_LOOKUP = new Map<string, CardSet>(
+  (setsMeta as CardSet[]).map((s) => [s.setCode, s]),
+)
+
+/** "EB-01" → "EB01", "OP01" → "OP01". Hybrid codes try each segment. */
+function lookupSetMeta(setAbbr: string): CardSet | null {
+  const direct = setAbbr.replace(/-(?=\d)/g, '')
+  if (SET_LOOKUP.has(direct)) return SET_LOOKUP.get(direct)!
+  for (const seg of setAbbr.split(/[^A-Z0-9]+/i)) {
+    if (SET_LOOKUP.has(seg)) return SET_LOOKUP.get(seg)!
+  }
+  return null
+}
+
 export function SealedDashboard() {
-  // Triggers the lazy boxes-bundle load on mount. While in flight,
-  // getBoxes() returns [] and we render the same "no data yet" empty
-  // state we already show before the first cron run. Memoised on
-  // `ready` so the sorted list stabilises once the data lands.
   const ready = useEnsureBoxesLoaded()
-  // Grid sorts in canonical chronological order: OP01..OPxx, then ST
-  // series, then EB series, then PRB series, then everything else.
-  // Per the user's rule, OP releases always come before EB and PRB
-  // releases regardless of strict calendar date. See `scoreSetAbbr`
-  // below for the exact ordering logic.
+  const tierPoolCount = useStore((s) => s.tierPool.length)
+
   const boxes = useMemo(() => {
     if (!ready) return []
     const all = getBoxes()
@@ -66,14 +74,25 @@ export function SealedDashboard() {
       const ao = scoreSetAbbr(a.setAbbr)
       const bo = scoreSetAbbr(b.setAbbr)
       if (ao !== bo) return ao - bo
-      // Same set: sort by name for stable ordering (e.g. two boxes
-      // from the same OP release stay grouped).
       return a.name.localeCompare(b.name)
     })
   }, [ready])
+
+  const grouped = useMemo(() => {
+    const out: { setAbbr: string; setInfo: CardSet | null; items: BoxPricing[] }[] = []
+    for (const box of boxes) {
+      const last = out[out.length - 1]
+      if (!last || last.setAbbr !== box.setAbbr) {
+        out.push({ setAbbr: box.setAbbr, setInfo: lookupSetMeta(box.setAbbr), items: [box] })
+      } else {
+        last.items.push(box)
+      }
+    }
+    return out
+  }, [boxes])
+
   const [activeId, setActiveId] = useState<string | null>(null)
 
-  // Aggregate stats for the page header.
   const stats = useMemo(() => {
     const withMarket = boxes.filter((b) => b.market !== null)
     const totalMarket = withMarket.reduce((sum, b) => sum + (b.market || 0), 0)
@@ -84,169 +103,178 @@ export function SealedDashboard() {
     }
   }, [boxes])
 
+  const ctrl: React.CSSProperties = {
+    background: 'var(--bg-surface)',
+    border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
+    borderRadius: 6,
+    color: 'var(--text-primary)',
+  }
+
   return (
-    <div
-      className="relative min-h-screen pb-24"
-      style={{
-        background: 'var(--bg)',
-        color: 'var(--text-primary)',
-        fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
-      }}
-    >
-      {/* Sticky glass header mirrors the help page / brand lockup
-          pattern so the /sealed route reads as part of the same site,
-          not a stray microsite. */}
-      <header
-        className="sticky top-0 z-20 px-4 py-3"
-        style={{
-          background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
-          backdropFilter: 'blur(18px) saturate(140%)',
-          WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/"
-              className="footer-btn group inline-flex items-center gap-1.5 text-xs font-medium"
-              style={{
-                color: 'var(--text-muted)',
-                background: 'var(--bg-surface)',
-                border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                borderRadius: 6,
-                height: 30,
-                padding: '0 10px',
-              }}
-              aria-label="Back to The Card Wall"
-            >
-              <ArrowLeft size={14} aria-hidden />
-              <span>Back to the wall</span>
+    <div className="sb-page">
+      {/* Row 1 — same brand lockup + nav cluster as the gallery header */}
+      <header className="sb-header">
+        <div className="sb-header__inner">
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/" className="sb-brand group" aria-label="The Card Wall - home">
+              <span className="sb-brand__mascot">
+                <img
+                  src="/images/site-logo.png"
+                  alt=""
+                  aria-hidden
+                  width={22}
+                  height={22}
+                  className="sb-brand__logo"
+                />
+              </span>
+              <span className="sb-brand__wordmark">
+                <span className="sb-brand__the" aria-hidden>the</span>
+                <span>Card Wall</span>
+              </span>
             </Link>
-            <div
-              aria-hidden
-              className="hidden sm:block"
-              style={{ width: 1, height: 22, background: 'var(--text-muted)', opacity: 0.4 }}
-            />
-            <div className="flex items-center gap-2">
-              <Package size={18} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
-              <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">
-                Booster boxes
-              </h1>
-            </div>
+            <span className="sb-brand__beta" aria-label="Beta release">beta</span>
           </div>
-          <ThemeToggle />
+
+          <div
+            aria-hidden
+            className="hidden xl:flex flex-1 items-center justify-center pointer-events-none select-none"
+          >
+            <span className="sb-tagline">
+              <span className="sb-tagline__quote">“</span>
+              Daily TCGPlayer market prices for every booster box
+              <span className="sb-tagline__quote">”</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/help"
+              className="footer-btn inline-flex items-center justify-center"
+              style={{ ...ctrl, width: 30, height: 30 }}
+              aria-label="How it works"
+              title="How it works"
+            >
+              <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
+            </Link>
+            <ThemeToggle />
+            <Link
+              href="/tier-list"
+              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+              style={{
+                ...ctrl,
+                height: 30,
+                background: tierPoolCount > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
+                color: tierPoolCount > 0 ? 'var(--bg)' : 'var(--text-primary)',
+              }}
+              aria-label="Open tier list maker"
+            >
+              <Layers size={12} strokeWidth={2.25} aria-hidden />
+              Tiers
+            </Link>
+            <span
+              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium pointer-events-none"
+              style={{
+                ...ctrl,
+                height: 30,
+                background: 'var(--text-primary)',
+                color: 'var(--bg)',
+                borderColor: 'var(--text-primary)',
+              }}
+              aria-current="page"
+            >
+              <Package size={12} strokeWidth={2.25} aria-hidden />
+              Sealed
+            </span>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pt-8 sm:pt-10">
-        {/* Page intro + freshness line. Kept compact so the stat strip
-            below it owns the visual weight. */}
-        <p
-          className="sb-lede"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 16,
-            lineHeight: 1.55,
-            color: 'var(--text-secondary)',
-            letterSpacing: '-0.005em',
-            maxWidth: '60ch',
-          }}
-        >
-          Daily TCGPlayer market price across every One Piece booster
-          box we track.
-        </p>
-
-        {/* Hero stat strip - three themed cards with the brand-orange
-            accent treatment. Mobile-first: stacks vertically below 480px,
-            two-up on tablet, three-up on desktop. Numbers are
-            display-font and oversized so they read at a glance. */}
-        <section
-          className="sb-statstrip"
-          aria-label="Booster box headline metrics"
-        >
-          <StatCard
-            icon={<Package size={16} strokeWidth={2.25} />}
-            label="Boxes tracked"
-            value={String(stats.count)}
-            hint="All printed sets currently sold on TCGPlayer"
-          />
-          <StatCard
-            icon={<TrendingUp size={16} strokeWidth={2.25} />}
-            label="Average market"
-            value={formatUsd(stats.avg)}
-            hint="Mean TCGPlayer market across every tracked box"
-          />
-          <StatCard
-            icon={<Trophy size={16} strokeWidth={2.25} />}
-            label="Top box"
-            value={formatUsd(stats.max)}
-            hint="Highest TCGPlayer market across every tracked box"
-            featured
-          />
-        </section>
-
-      {boxes.length === 0 ? (
-        <div className="sb-empty">
-          <p>
-            No booster box data yet. Run{' '}
-            <code>op-hub pricing sync-tcgtracking</code> on the VPS to
-            populate the dashboard.
-          </p>
+      <main className="sb-main">
+        {/* Collection band — mirrors the card wall's set/collection header */}
+        <div className="sb-collection-band">
+          <div className="sb-collection-band__eyebrow">Sealed product</div>
+          <div className="sb-collection-band__row">
+            <h1 className="sb-collection-band__title">One Piece booster boxes</h1>
+            <span className="sb-collection-band__meta">
+              {stats.count.toLocaleString()} boxes
+              {stats.avg > 0 && <> · avg {formatUsd(stats.avg)}</>}
+              {stats.max > 0 && <> · top {formatUsd(stats.max)}</>}
+            </span>
+          </div>
         </div>
-      ) : (
-        <div className="sb-grid">
-          {boxes.map((box) => (
-            <BoxTile
-              key={box.tcgplayerId}
-              box={box}
-              active={String(box.tcgplayerId) === activeId}
-              onClick={() =>
-                setActiveId((prev) =>
-                  prev === String(box.tcgplayerId) ? null : String(box.tcgplayerId),
-                )
-              }
-            />
-          ))}
-        </div>
-      )}
 
-      {activeId && <BoxDetail boxId={activeId} onClose={() => setActiveId(null)} />}
+        {!ready ? (
+          <div className="sb-loading" aria-live="polite">Loading box prices…</div>
+        ) : boxes.length === 0 ? (
+          <div className="sb-empty">
+            <p>
+              No booster box data yet. Run{' '}
+              <code>op-hub pricing sync-tcgtracking</code> on the VPS to
+              populate the dashboard.
+            </p>
+          </div>
+        ) : (
+          <div className="sb-sections">
+            {grouped.map((group) => (
+              <section key={group.setAbbr} className="sb-section">
+                <SetSectionHeader
+                  setAbbr={group.setAbbr}
+                  setInfo={group.setInfo}
+                  count={group.items.length}
+                />
+                <div className="sb-grid">
+                  {group.items.map((box) => (
+                    <BoxTile
+                      key={box.tcgplayerId}
+                      box={box}
+                      active={String(box.tcgplayerId) === activeId}
+                      onClick={() =>
+                        setActiveId((prev) =>
+                          prev === String(box.tcgplayerId) ? null : String(box.tcgplayerId),
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {activeId && <BoxDetail boxId={activeId} onClose={() => setActiveId(null)} />}
       </main>
+
+      <Footer />
     </div>
   )
 }
 
-/**
- * Brand-themed stat card for the booster-box hero strip. Three of these
- * render side-by-side at desktop sizes and stack vertically on phones.
- * The optional `featured` flag tints the card with the brand-orange
- * accent so a single "headline" metric (e.g. Top box) can pop without
- * unbalancing the others.
- */
-function StatCard({
-  icon,
-  label,
-  value,
-  hint,
-  featured = false,
+function SetSectionHeader({
+  setAbbr,
+  setInfo,
+  count,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  hint: string
-  featured?: boolean
+  setAbbr: string
+  setInfo: CardSet | null
+  count: number
 }) {
   return (
-    <div
-      className={`sb-statcard${featured ? ' sb-statcard--featured' : ''}`}
-      title={hint}
-    >
-      <div className="sb-statcard__head">
-        <span className="sb-statcard__icon" aria-hidden>{icon}</span>
-        <span className="sb-statcard__label">{label}</span>
+    <div className="sb-set-header">
+      <div className="sb-set-header__rule" aria-hidden />
+      <div className="sb-set-header__row">
+        <span className="sb-set-header__code">{setAbbr}</span>
+        {setInfo && (
+          <>
+            <span className="sb-set-header__name">{setInfo.setName}</span>
+            {setInfo.releaseDate && (
+              <span className="sb-set-header__date">{setInfo.releaseDate}</span>
+            )}
+          </>
+        )}
+        <span className="sb-set-header__count">
+          {count} {count === 1 ? 'box' : 'boxes'}
+        </span>
       </div>
-      <div className="sb-statcard__value">{value}</div>
     </div>
   )
 }
@@ -266,10 +294,11 @@ function BoxTile({
     const last = box.history[box.history.length - 1][1]
     if (!first) return null
     const delta = ((last - first) / first) * 100
-    return { delta, last, first }
+    return { delta }
   }, [box.history])
 
   const imageUrl = hiResBoxImage(box.imageUrl)
+  const shortName = box.name.replace(/^[^:]+:\s*/, '').replace(/\s*-\s*Booster Box.*$/i, '')
 
   return (
     <button
@@ -278,40 +307,42 @@ function BoxTile({
       onClick={onClick}
       aria-label={`${box.setAbbr} ${box.name}`}
     >
-      <div className="sb-tile__image">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={box.name}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 240px"
-            className="object-contain"
-          />
-        ) : (
-          <div className="sb-tile__image-fallback" aria-hidden>
-            {box.setAbbr || '?'}
-          </div>
+      <div className="sb-tile__stage">
+        <div className="sb-tile__img-wrap">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={box.name}
+              fill
+              sizes="(max-width: 640px) 45vw, (max-width: 1280px) 25vw, 220px"
+              className="sb-tile__img object-contain"
+              quality={75}
+            />
+          ) : (
+            <div className="sb-tile__image-fallback" aria-hidden>
+              {box.setAbbr || '?'}
+            </div>
+          )}
+        </div>
+        <div className="sb-tile__shine" aria-hidden />
+        {box.market != null && (
+          <span className="sb-tile__price-badge">{formatUsd(box.market)}</span>
+        )}
+        {trend && (
+          <span
+            className={`sb-tile__trend sb-tile__trend--${trend.delta >= 0 ? 'up' : 'down'}`}
+            title={`${trend.delta >= 0 ? '+' : ''}${trend.delta.toFixed(1)}% over ${box.history.length} snapshots`}
+          >
+            {trend.delta >= 0 ? '▲' : '▼'} {Math.abs(trend.delta).toFixed(1)}%
+          </span>
         )}
       </div>
 
-      <div className="sb-tile__body">
-        <div className="sb-tile__top">
-          <span className="sb-tile__set">{box.setAbbr || '-'}</span>
-          {trend && (
-            <span
-              className={`sb-tile__trend sb-tile__trend--${trend.delta >= 0 ? 'up' : 'down'}`}
-              title={`${trend.delta >= 0 ? '+' : ''}${trend.delta.toFixed(1)}% over ${box.history.length} snapshots`}
-            >
-              {trend.delta >= 0 ? '▲' : '▼'} {Math.abs(trend.delta).toFixed(1)}%
-            </span>
-          )}
-        </div>
-        <div className="sb-tile__name">{box.name}</div>
-        <div className="sb-tile__price">{formatUsd(box.market)}</div>
+      <div className="sb-tile__foot">
+        <div className="sb-tile__name">{shortName || box.name}</div>
         {box.listings ? (
           <div className="sb-tile__meta">{box.listings} listings</div>
         ) : null}
-
         {box.history.length >= 2 && (
           <div className="sb-tile__spark">
             <Sparkline data={box.history} />
@@ -325,6 +356,8 @@ function BoxTile({
 function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
   const box = useMemo(() => getBoxes().find((b) => String(b.tcgplayerId) === boxId), [boxId])
   if (!box) return null
+
+  const imageUrl = hiResBoxImage(box.imageUrl)
 
   return (
     <div
@@ -340,21 +373,24 @@ function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
             <span className="sb-detail__set">{box.setAbbr}</span>
             <span className="sb-detail__name">{box.name}</span>
           </div>
-          <button onClick={onClose} className="sb-detail__close" aria-label="Close">
+          <button type="button" onClick={onClose} className="sb-detail__close" aria-label="Close">
             ×
           </button>
         </div>
 
         <div className="sb-detail__body">
           <div className="sb-detail__image">
-            {box.imageUrl ? (
-              <Image
-                src={hiResBoxImage(box.imageUrl)!}
-                alt={box.name}
-                fill
-                sizes="(max-width: 768px) 80vw, 360px"
-                className="object-contain"
-              />
+            {imageUrl ? (
+              <div className="sb-detail__img-wrap">
+                <Image
+                  src={imageUrl}
+                  alt={box.name}
+                  fill
+                  sizes="(max-width: 768px) 80vw, 360px"
+                  className="object-contain"
+                  quality={75}
+                />
+              </div>
             ) : null}
           </div>
 
@@ -390,23 +426,6 @@ function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
   )
 }
 
-/**
- * Score a setAbbr for canonical release order (smaller = earlier).
- *
- * Two-tier ordering:
- *   1. Prefix bucket: OP < ST < EB < PRB < everything else.
- *   2. Numeric component within the bucket.
- *
- * Per the user's rule, OP releases always come before EB and PRB
- * releases regardless of strict calendar date. The bucket sizes are
- * spaced so two-digit set numbers within a bucket can never spill
- * into the next bucket.
- *
- * Hybrid box codes that live in two sets at once (e.g. "OP15-EB04")
- * pick the *latest* side's bucket because that's the actual release
- * vehicle - "OP15-EB04" is an EB04 product first, an OP15 collab
- * second, so it groups with the EB family.
- */
 function scoreSetAbbr(rawCode: string): number {
   const PREFIX_BUCKET: Record<string, number> = {
     OP: 0,
@@ -416,10 +435,6 @@ function scoreSetAbbr(rawCode: string): number {
   }
   const FALLBACK_BUCKET = 9000
 
-  // Normalize: strip separator dashes between the letter prefix and
-  // the number ("EB-01" -> "EB01") but keep dashes that join two set
-  // codes ("OP15-EB04"). The simplest split: any "-" followed by a
-  // letter survives; "-" followed by a digit is a separator.
   const normalized = rawCode.replace(/-(?=\d)/g, '')
   const segments = normalized.split(/[^A-Z0-9]+/i)
 
@@ -442,8 +457,3 @@ function scoreSetAbbr(rawCode: string): number {
   }
   return bestBucket + chosenNum
 }
-
-// Silence unused-import warning - setsMeta isn't needed for scoring
-// any more, but other helpers may want it later, so keep the file
-// path bound.
-void setsMeta
