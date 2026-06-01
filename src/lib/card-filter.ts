@@ -495,6 +495,7 @@ export function buildWallEntries(
         })
       }
       for (const v of variants) {
+        if (v.comingSoon) continue
         const { primary, fallbacks } = wallImageSources(card, v, bucket)
         out.push({
           wallKey: v.id,
