@@ -350,18 +350,29 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const allCollapsed =
     visibleSetCodes.length > 0 && visibleSetCodes.every((s) => collapsedSets.has(s))
 
-  // While the user is searching, ignore per-set collapse and render
-  // everything expanded. Otherwise a query like "nami" with most sets
-  // collapsed yields a stack of 44px header strips ("OP02 · 1 cards",
-  // "OP03 · 1 cards", …) between the actual hits the user wanted to
-  // see. The underlying `collapsedSets` state is left untouched so the
-  // layout snaps back the instant they clear the query.
+  // While the user is searching, sets default to EXPANDED so a query
+  // like "nami" doesn't bury its hits behind a stack of 44px collapsed
+  // header strips ("OP02 · 1 cards", "OP03 · 1 cards", …). But a set the
+  // user EXPLICITLY collapses (tracked in `userToggledSets`) must stay
+  // collapsed even during search — otherwise the collapse chevron looks
+  // broken. So during search we only honor deliberate collapses, not the
+  // default-collapsed state. Clearing the query snaps everything back.
   //
   // Facet toggles (alt art, color, type, rarity) do NOT force-expand.
   // Those filters often leave many cards per set and users expect to
   // collapse everything except the sets they're browsing - toggling
   // "Alt art" should not undo a deliberate "Collapse all" gesture.
   const hasActiveFilter = searchQuery.trim().length > 0
+
+  // Effective collapse state for a set. Normally just `collapsedSets`,
+  // but while searching we require the collapse to be a deliberate user
+  // gesture (in `userToggledSets`) so default-collapsed sets reveal their
+  // search hits while manual collapses still work.
+  const isSetCollapsed = useCallback(
+    (setCode: string) =>
+      collapsedSets.has(setCode) && (!hasActiveFilter || userToggledSets.has(setCode)),
+    [collapsedSets, hasActiveFilter, userToggledSets],
+  )
 
   const { rows, rowMeta, firstCardRowIndex } = useMemo(() => {
     const rows: (WallEntry[] | CardSet)[] = []
@@ -373,7 +384,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     for (const entry of wallEntries) {
       if (entry.card.setCode !== currentSet) {
         currentSet = entry.card.setCode
-        currentCollapsed = hasActiveFilter ? false : collapsedSets.has(currentSet)
+        currentCollapsed = isSetCollapsed(currentSet)
         const set = sets.find((s) => s.setCode === currentSet)
         if (set) {
           rows.push(set)
@@ -392,7 +403,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     }
 
     return { rows, rowMeta, firstCardRowIndex }
-  }, [wallEntries, columns, sets, collapsedSets, hasActiveFilter])
+  }, [wallEntries, columns, sets, isSetCollapsed])
 
   const estimateSize = useCallback(
     (index: number) => {
@@ -601,12 +612,11 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
           if (type === 'header') {
             const set = row as CardSet
-            // During search we force-expand every set (see the
-            // `hasActiveFilter` block in the rows useMemo), so the
-            // chevron should show "expanded" too - otherwise the
-            // arrow would point right while the cards underneath
-            // are clearly visible, which reads as a bug.
-            const isCollapsed = hasActiveFilter ? false : collapsedSets.has(set.setCode)
+            // Mirror the same effective-collapse logic used to build the
+            // rows so the chevron direction always matches what's rendered
+            // beneath it (expanded during search unless deliberately
+            // collapsed by the user).
+            const isCollapsed = isSetCollapsed(set.setCode)
             const count = setCounts.get(set.setCode) ?? 0
             return (
               <SetHeaderRow
