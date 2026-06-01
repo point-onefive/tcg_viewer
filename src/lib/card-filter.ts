@@ -447,6 +447,14 @@ export interface WallEntry {
   imageFallbacks?: string[]
   /** Short label for badges / aria (e.g. "Base", "p1"). */
   printLabel: string
+  /**
+   * Set this tile groups under on the wall. Normally the card's own
+   * `setCode`, but a cross-set reprint (e.g. an OP16 SP whose base card
+   * lives in OP14) is promoted to the *filtered* set so it appears in
+   * the section the user is actually browsing. Falls back to
+   * `card.setCode` when undefined.
+   */
+  groupSetCode?: string
 }
 
 /**
@@ -474,13 +482,61 @@ function wallImageSources(
 
 export function buildWallEntries(
   cards: Card[],
-  opts: { flatten: boolean; onlyAltArt: boolean; language: LanguagePickerValue },
+  opts: {
+    flatten: boolean
+    onlyAltArt: boolean
+    language: LanguagePickerValue
+    /**
+     * The set the wall is currently filtered to (if any). When set, a
+     * card whose *base* lives in another set but that carries a variant
+     * belonging to this set is treated as a cross-set reprint: its tile
+     * is promoted into this set and shows the reprint art, not the base.
+     */
+    activeSet?: string | null
+  },
 ): WallEntry[] {
   const bucket = LANGUAGE_GROUPS[opts.language] ?? LANGUAGE_GROUPS.EN
   const out: WallEntry[] = []
+
+  // Distribution tag for the active set, e.g. "OP16" → "[OP-16]". Used to
+  // detect which variants belong to the filtered set (Bandai stores the
+  // origin product in the variant's `distribution` string).
+  const activeSet = opts.activeSet ?? null
+  const distTag = activeSet
+    ? '[' + activeSet.replace(/^([A-Za-z]+)(\d+)$/, '$1-$2') + ']'
+    : null
+  const variantInActiveSet = (v: CardVariant) =>
+    !!distTag && !v.comingSoon && !!v.distribution?.includes(distTag)
+
   for (const card of cards) {
     const variants = card.variants ?? []
+    // A card is a "cross-set reprint" relative to the active filter when
+    // its base belongs to a different set but it has a variant in the
+    // filtered set. Those tiles are promoted into the active set and
+    // render the reprint art instead of the base.
+    const isCrossSet =
+      !!activeSet && card.setCode !== activeSet && variants.some(variantInActiveSet)
+
     if (opts.flatten) {
+      if (isCrossSet) {
+        // F-B: only the reprint(s) that belong to the filtered set, shown
+        // under that set. The base print stays home in its origin set.
+        for (const v of variants) {
+          if (!variantInActiveSet(v)) continue
+          const { primary, fallbacks } = wallImageSources(card, v, bucket)
+          out.push({
+            wallKey: v.id,
+            kind: 'variant',
+            card,
+            printId: v.id,
+            imageSmall: primary,
+            imageFallbacks: fallbacks.length > 0 ? fallbacks : undefined,
+            printLabel: v.label || v.id,
+            groupSetCode: activeSet,
+          })
+        }
+        continue
+      }
       if (opts.onlyAltArt && variants.length === 0) continue
       if (!opts.onlyAltArt) {
         const { primary, fallbacks } = wallImageSources(card, null, bucket)
@@ -509,7 +565,30 @@ export function buildWallEntries(
       }
       continue
     }
+
+    // ── Stacked mode ──
     if (opts.onlyAltArt && variants.length === 0) continue
+
+    if (isCrossSet) {
+      // Hero tile shows the reprint that belongs to the filtered set, but
+      // it still opens the full card stack in the lightbox (starting on
+      // the reprint). Grouped under the active set so it reads as part of
+      // the product the user filtered to.
+      const hero = variants.find(variantInActiveSet)!
+      const { primary, fallbacks } = wallImageSources(card, hero, bucket)
+      out.push({
+        wallKey: hero.id,
+        kind: 'base',
+        card,
+        printId: hero.id,
+        imageSmall: primary,
+        imageFallbacks: fallbacks.length > 0 ? fallbacks : undefined,
+        printLabel: card.name,
+        groupSetCode: activeSet,
+      })
+      continue
+    }
+
     const { primary, fallbacks } = wallImageSources(card, null, bucket)
     out.push({
       wallKey: card.id,
@@ -534,6 +613,7 @@ export function filterAndBuildWall(
     flatten: f.flatten,
     onlyAltArt: f.onlyAltArt,
     language: f.language,
+    activeSet: f.activeSet,
   })
   return { filtered, entries }
 }
@@ -575,7 +655,7 @@ export function sortWallEntries(
   const buckets = new Map<string, WallEntry[]>()
   const order: string[] = []
   for (const e of entries) {
-    const sc = e.card.setCode
+    const sc = e.groupSetCode ?? e.card.setCode
     if (!buckets.has(sc)) { buckets.set(sc, []); order.push(sc) }
     buckets.get(sc)!.push(e)
   }

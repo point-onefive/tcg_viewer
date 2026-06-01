@@ -352,12 +352,41 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
   )
 
+  // Regroup entries into contiguous blocks by *display* set. A tile's
+  // display set is normally its card's setCode, but cross-set reprints
+  // carry a `groupSetCode` override (e.g. an OP16 SP whose base lives in
+  // OP14 is promoted into OP16). Promotion leaves the tile at its origin
+  // position in the flat list, so without this regroup a promoted tile
+  // would emit a stray header mid-section. Buckets keep first-appearance
+  // order, which preserves the bundle's release ordering when nothing is
+  // promoted.
+  const groupedEntries = useMemo(() => {
+    let needsRegroup = false
+    for (const e of wallEntries) {
+      if (e.groupSetCode && e.groupSetCode !== e.card.setCode) { needsRegroup = true; break }
+    }
+    if (!needsRegroup) return wallEntries
+    const buckets = new Map<string, WallEntry[]>()
+    const order: string[] = []
+    for (const e of wallEntries) {
+      const sc = e.groupSetCode ?? e.card.setCode
+      if (!buckets.has(sc)) { buckets.set(sc, []); order.push(sc) }
+      buckets.get(sc)!.push(e)
+    }
+    const flat: WallEntry[] = []
+    for (const sc of order) flat.push(...buckets.get(sc)!)
+    return flat
+  }, [wallEntries])
+
   // Tile counts per set (from wall entries) - shown in collapsed headers.
   const setCounts = useMemo(() => {
     const counts = new Map<string, number>()
-    for (const e of wallEntries) counts.set(e.card.setCode, (counts.get(e.card.setCode) ?? 0) + 1)
+    for (const e of groupedEntries) {
+      const sc = e.groupSetCode ?? e.card.setCode
+      counts.set(sc, (counts.get(sc) ?? 0) + 1)
+    }
     return counts
-  }, [wallEntries])
+  }, [groupedEntries])
 
   const visibleSetCodes = useMemo(() => Array.from(setCounts.keys()), [setCounts])
   const allCollapsed =
@@ -394,9 +423,10 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     let currentCollapsed = false
     let firstCardRowIndex = -1
 
-    for (const entry of wallEntries) {
-      if (entry.card.setCode !== currentSet) {
-        currentSet = entry.card.setCode
+    for (const entry of groupedEntries) {
+      const entrySet = entry.groupSetCode ?? entry.card.setCode
+      if (entrySet !== currentSet) {
+        currentSet = entrySet
         currentCollapsed = isSetCollapsed(currentSet)
         const set = sets.find((s) => s.setCode === currentSet)
         if (set) {
@@ -416,7 +446,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     }
 
     return { rows, rowMeta, firstCardRowIndex }
-  }, [wallEntries, columns, sets, isSetCollapsed])
+  }, [groupedEntries, columns, sets, isSetCollapsed])
 
   const estimateSize = useCallback(
     (index: number) => {
