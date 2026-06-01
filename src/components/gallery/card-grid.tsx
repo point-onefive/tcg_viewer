@@ -5,7 +5,8 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ChevronRight, X } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
-import { filterAndBuildWall, type WallEntry } from '@/lib/card-filter'
+import { filterAndBuildWall, sortWallEntries, type WallEntry } from '@/lib/card-filter'
+import { getCardPricingForCollection } from '@/lib/pricing'
 import { COLLECTION_FACETS, facetLabel } from '@/lib/collection-facets'
 import { CardTile } from './card-tile'
 
@@ -116,6 +117,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     language,
     activeCollection,
     zoom,
+    wallSort,
   } = useStore()
   const collectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
   const [mounted, setMounted] = useState(false)
@@ -324,8 +326,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // the JSON bundle"). Keep the dep list aligned with the keys we
   // pass into filterCards or memoisation will silently drift.
   const { entries: wallEntries } = useMemo(
-    () =>
-      filterAndBuildWall(cards, {
+    () => {
+      const result = filterAndBuildWall(cards, {
         activeSet,
         activeRarity,
         activeColor,
@@ -335,8 +337,19 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         searchQuery,
         flatten: flattenWall,
         language,
-      }),
-    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, onlyErrata, searchQuery, flattenWall, language],
+      })
+      if (wallSort !== 'default') {
+        result.entries = sortWallEntries(
+          result.entries,
+          wallSort,
+          wallSort === 'price-desc'
+            ? (id) => getCardPricingForCollection(activeCollection, id)?.primaryMarket ?? null
+            : undefined,
+        )
+      }
+      return result
+    },
+    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
   )
 
   // Tile counts per set (from wall entries) - shown in collapsed headers.

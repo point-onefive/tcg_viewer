@@ -86,6 +86,11 @@ interface StoreState {
   // reloads.
   showTilePrices: boolean
   setShowTilePrices: (v: boolean) => void
+  // Wall sort applied within each set group. 'default' = set order
+  // (collector number, same as bundle order). Other values sort tiles
+  // within each set header group without removing the headers.
+  wallSort: 'default' | 'cost-asc' | 'cost-desc' | 'rarity' | 'type' | 'power-desc' | 'price-desc'
+  setWallSort: (s: 'default' | 'cost-asc' | 'cost-desc' | 'rarity' | 'type' | 'power-desc' | 'price-desc') => void
   // Single-select view mode for the gallery:
   //
   //   - 'EN'         : EN + Asia-EN cardlists. Card text reads in English.
@@ -220,6 +225,8 @@ export const useStore = create<StoreState>()(
       setFlattenWall: (flattenWall) => set({ flattenWall }),
       showTilePrices: false,
       setShowTilePrices: (showTilePrices) => set({ showTilePrices }),
+      wallSort: 'default',
+      setWallSort: (wallSort) => set({ wallSort }),
       // Default to EN: the app's surface language is English, so an
       // English-speaking user starting fresh sees a wall they can read.
       // JP is one click away for users who want the master catalogue.
@@ -346,6 +353,7 @@ export const useStore = create<StoreState>()(
         language: state.language,
         flattenWall: state.flattenWall,
         showTilePrices: state.showTilePrices,
+        wallSort: state.wallSort,
         tierBoardTiers: state.tierBoardTiers,
         tierBoardTitle: state.tierBoardTitle,
         // Drop upload-kind cards from the persisted slice: their
@@ -355,7 +363,7 @@ export const useStore = create<StoreState>()(
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 16,
+      version: 17,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -468,6 +476,10 @@ export const useStore = create<StoreState>()(
           // Default off keeps the wall reading as a clean image grid
           // for users who don't care about prices.
           s.showTilePrices = false
+        }
+        if (fromVersion < 17) {
+          // v17 adds wall sort (default = bundle order).
+          s.wallSort = 'default'
         }
         return s as StoreState
       },

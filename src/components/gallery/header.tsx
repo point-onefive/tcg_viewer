@@ -593,6 +593,7 @@ export function Header({ sets }: HeaderProps) {
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
     showTilePrices, setShowTilePrices,
+    wallSort, setWallSort,
     language, setLanguage,
     activeCollection, setActiveCollection,
     zoom, setZoom,
@@ -1518,6 +1519,23 @@ export function Header({ sets }: HeaderProps) {
               </div>
             </>
           )}
+
+          {/* Sort picker */}
+          <select
+            value={wallSort}
+            onChange={(e) => setWallSort(e.target.value as typeof wallSort)}
+            className="footer-btn shrink-0 px-2 text-xs font-medium outline-none cursor-pointer appearance-none"
+            style={{ ...ctrl, height: 30 }}
+            aria-label="Sort cards"
+          >
+            <option value="default">Sort: Default</option>
+            <option value="cost-asc">Cost ↑</option>
+            <option value="cost-desc">Cost ↓</option>
+            <option value="rarity">Rarity</option>
+            <option value="type">Card type</option>
+            {(isOnePiece || isGundam) && <option value="power-desc">Power ↓</option>}
+            {hasPricing && <option value="price-desc">Price ↓</option>}
+          </select>
 
           {/* Search.
               Width sized to fit the entire placeholder at rest.

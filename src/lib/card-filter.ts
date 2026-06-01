@@ -536,3 +536,79 @@ export function filterAndBuildWall(
   })
   return { filtered, entries }
 }
+
+// ── Wall sorting ────────────────────────────────────────────────────────────
+
+export type WallSortKey =
+  | 'default'
+  | 'cost-asc'
+  | 'cost-desc'
+  | 'rarity'
+  | 'type'
+  | 'power-desc'
+  | 'price-desc'
+
+const RARITY_ORDER: Record<string, number> = {
+  // One Piece
+  SEC: 0, SAR: 1, SP: 2, SR: 3, RR: 4, R: 5, UC: 6, C: 7, L: 8, P: 9,
+  // Gundam additions (where not already covered by OP keys above)
+  'LR++': 0, 'LR+': 1, LR: 2, U: 6,
+}
+const TYPE_ORDER: Record<string, number> = {
+  LEADER: 0, CHARACTER: 1, EVENT: 2, STAGE: 3, DON: 4,
+}
+
+/**
+ * Sort wall entries within each set group by the given key.
+ * Entries are mutated in-place (stable sort so set grouping is preserved).
+ * Pricing sort requires a `getPrice` resolver; pass null if unavailable.
+ */
+export function sortWallEntries(
+  entries: WallEntry[],
+  sort: WallSortKey,
+  getPrice?: (id: string) => number | null,
+): WallEntry[] {
+  if (sort === 'default') return entries
+
+  // Build per-set buckets, sort each, reassemble (preserves set order)
+  const buckets = new Map<string, WallEntry[]>()
+  const order: string[] = []
+  for (const e of entries) {
+    const sc = e.card.setCode
+    if (!buckets.has(sc)) { buckets.set(sc, []); order.push(sc) }
+    buckets.get(sc)!.push(e)
+  }
+
+  const comparator = (a: WallEntry, b: WallEntry): number => {
+    switch (sort) {
+      case 'cost-asc':  return (a.card.cost ?? 99) - (b.card.cost ?? 99)
+      case 'cost-desc': return (b.card.cost ?? 0)  - (a.card.cost ?? 0)
+      case 'power-desc':return (b.card.power ?? 0) - (a.card.power ?? 0)
+      case 'rarity': {
+        const ra = RARITY_ORDER[a.card.rarity ?? ''] ?? 50
+        const rb = RARITY_ORDER[b.card.rarity ?? ''] ?? 50
+        return ra - rb
+      }
+      case 'type': {
+        const ta = TYPE_ORDER[a.card.cardType ?? ''] ?? 99
+        const tb = TYPE_ORDER[b.card.cardType ?? ''] ?? 99
+        if (ta !== tb) return ta - tb
+        return (a.card.cost ?? 0) - (b.card.cost ?? 0)
+      }
+      case 'price-desc': {
+        const pa = getPrice?.(a.printId) ?? -1
+        const pb = getPrice?.(b.printId) ?? -1
+        return pb - pa
+      }
+      default: return 0
+    }
+  }
+
+  const sorted: WallEntry[] = []
+  for (const sc of order) {
+    const bucket = buckets.get(sc)!
+    bucket.sort(comparator)
+    sorted.push(...bucket)
+  }
+  return sorted
+}
