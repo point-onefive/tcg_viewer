@@ -25,6 +25,24 @@ const Sparkline = dynamic(
   { ssr: false, loading: () => <div className="sb-sparkline-skeleton" /> },
 )
 
+/**
+ * Upgrade a TCGPlayer product image URL to its high-resolution square
+ * source. The op_hub pricing pipeline stores the `_200w` thumbnail
+ * (~200px wide → soft/blurry on retina tiles and the detail panel). The
+ * same product ID also serves an `_in_1000x1000` original, which Next's
+ * image optimizer downscales to crisp WebP at whatever size each spot
+ * requests — so a single uniform source covers tiles AND the modal.
+ * Non-TCGPlayer URLs (or anything that doesn't match the product CDN
+ * pattern) pass through untouched.
+ */
+function hiResBoxImage(url: string | null): string | null {
+  if (!url) return url
+  return url.replace(
+    /(tcgplayer-cdn\.tcgplayer\.com\/product\/\d+)_[^/.]+\.(?:jpg|jpeg|png|webp)/i,
+    '$1_in_1000x1000.jpg',
+  )
+}
+
 const BoxLineChart = dynamic(
   () => import('./box-line-chart').then((m) => m.BoxLineChart),
   { ssr: false, loading: () => <div className="sb-detail-chart-skeleton" /> },
@@ -251,6 +269,8 @@ function BoxTile({
     return { delta, last, first }
   }, [box.history])
 
+  const imageUrl = hiResBoxImage(box.imageUrl)
+
   return (
     <button
       type="button"
@@ -259,9 +279,9 @@ function BoxTile({
       aria-label={`${box.setAbbr} ${box.name}`}
     >
       <div className="sb-tile__image">
-        {box.imageUrl ? (
+        {imageUrl ? (
           <Image
-            src={box.imageUrl}
+            src={imageUrl}
             alt={box.name}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 240px"
@@ -329,7 +349,7 @@ function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
           <div className="sb-detail__image">
             {box.imageUrl ? (
               <Image
-                src={box.imageUrl}
+                src={hiResBoxImage(box.imageUrl)!}
                 alt={box.name}
                 fill
                 sizes="(max-width: 768px) 80vw, 360px"
