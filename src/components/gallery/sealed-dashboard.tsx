@@ -19,8 +19,6 @@ import {
   getBoxes,
   useEnsureBoxesLoaded,
 } from '@/lib/pricing'
-import type { CardSet } from '@/lib/types'
-import setsMeta from '@/lib/sets-one-piece.json'
 import { useStore } from '@/lib/store'
 
 const Sparkline = dynamic(
@@ -49,20 +47,6 @@ const BoxLineChart = dynamic(
   { ssr: false, loading: () => <div className="sb-detail-chart-skeleton" /> },
 )
 
-const SET_LOOKUP = new Map<string, CardSet>(
-  (setsMeta as CardSet[]).map((s) => [s.setCode, s]),
-)
-
-/** "EB-01" → "EB01", "OP01" → "OP01". Hybrid codes try each segment. */
-function lookupSetMeta(setAbbr: string): CardSet | null {
-  const direct = setAbbr.replace(/-(?=\d)/g, '')
-  if (SET_LOOKUP.has(direct)) return SET_LOOKUP.get(direct)!
-  for (const seg of setAbbr.split(/[^A-Z0-9]+/i)) {
-    if (SET_LOOKUP.has(seg)) return SET_LOOKUP.get(seg)!
-  }
-  return null
-}
-
 export function SealedDashboard() {
   const ready = useEnsureBoxesLoaded()
   const tierPoolCount = useStore((s) => s.tierPool.length)
@@ -77,19 +61,6 @@ export function SealedDashboard() {
       return a.name.localeCompare(b.name)
     })
   }, [ready])
-
-  const grouped = useMemo(() => {
-    const out: { setAbbr: string; setInfo: CardSet | null; items: BoxPricing[] }[] = []
-    for (const box of boxes) {
-      const last = out[out.length - 1]
-      if (!last || last.setAbbr !== box.setAbbr) {
-        out.push({ setAbbr: box.setAbbr, setInfo: lookupSetMeta(box.setAbbr), items: [box] })
-      } else {
-        last.items.push(box)
-      }
-    }
-    return out
-  }, [boxes])
 
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -214,29 +185,18 @@ export function SealedDashboard() {
             </p>
           </div>
         ) : (
-          <div className="sb-sections">
-            {grouped.map((group) => (
-              <section key={group.setAbbr} className="sb-section">
-                <SetSectionHeader
-                  setAbbr={group.setAbbr}
-                  setInfo={group.setInfo}
-                  count={group.items.length}
-                />
-                <div className="sb-grid">
-                  {group.items.map((box) => (
-                    <BoxTile
-                      key={box.tcgplayerId}
-                      box={box}
-                      active={String(box.tcgplayerId) === activeId}
-                      onClick={() =>
-                        setActiveId((prev) =>
-                          prev === String(box.tcgplayerId) ? null : String(box.tcgplayerId),
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
+          <div className="sb-grid">
+            {boxes.map((box) => (
+              <BoxTile
+                key={box.tcgplayerId}
+                box={box}
+                active={String(box.tcgplayerId) === activeId}
+                onClick={() =>
+                  setActiveId((prev) =>
+                    prev === String(box.tcgplayerId) ? null : String(box.tcgplayerId),
+                  )
+                }
+              />
             ))}
           </div>
         )}
@@ -245,36 +205,6 @@ export function SealedDashboard() {
       </main>
 
       <Footer />
-    </div>
-  )
-}
-
-function SetSectionHeader({
-  setAbbr,
-  setInfo,
-  count,
-}: {
-  setAbbr: string
-  setInfo: CardSet | null
-  count: number
-}) {
-  return (
-    <div className="sb-set-header">
-      <div className="sb-set-header__rule" aria-hidden />
-      <div className="sb-set-header__row">
-        <span className="sb-set-header__code">{setAbbr}</span>
-        {setInfo && (
-          <>
-            <span className="sb-set-header__name">{setInfo.setName}</span>
-            {setInfo.releaseDate && (
-              <span className="sb-set-header__date">{setInfo.releaseDate}</span>
-            )}
-          </>
-        )}
-        <span className="sb-set-header__count">
-          {count} {count === 1 ? 'box' : 'boxes'}
-        </span>
-      </div>
     </div>
   )
 }
@@ -339,6 +269,7 @@ function BoxTile({
       </div>
 
       <div className="sb-tile__foot">
+        <span className="sb-tile__set">{box.setAbbr}</span>
         <div className="sb-tile__name">{shortName || box.name}</div>
         {box.listings ? (
           <div className="sb-tile__meta">{box.listings} listings</div>
