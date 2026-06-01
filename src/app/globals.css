@@ -808,15 +808,8 @@ html.lenis, html.lenis body {
 
 .sb-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px 12px;
+  /* column count + gap are set inline by the zoom slider */
   padding-top: 16px;
-}
-@media (min-width: 640px) {
-  .sb-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 18px 14px;
-  }
 }
 
 .sb-tile {

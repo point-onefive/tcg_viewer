@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { HelpCircle, Layers, Package } from 'lucide-react'
@@ -47,9 +47,33 @@ const BoxLineChart = dynamic(
   { ssr: false, loading: () => <div className="sb-detail-chart-skeleton" /> },
 )
 
+// zoom 1 = 2 cols (big), 12 = ~13 cols (small). Same feel as card wall.
+function zoomToCols(zoom: number, windowWidth: number): number {
+  const desired = zoom + 1
+  const max = windowWidth < 768 ? 6 : 12
+  return Math.min(Math.max(desired, 1), max)
+}
+
+function gapForCols(cols: number): number {
+  if (cols >= 10) return 8
+  if (cols >= 7)  return 10
+  return 14
+}
+
 export function SealedDashboard() {
   const ready = useEnsureBoxesLoaded()
   const tierPoolCount = useStore((s) => s.tierPool.length)
+  const [zoom, setZoom] = useState(4)
+  const [windowWidth, setWindowWidth] = useState(1200)
+
+  useEffect(() => {
+    const update = () => setWindowWidth(window.innerWidth)
+    update()
+    window.addEventListener('resize', update, { passive: true })
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  const columns = zoomToCols(zoom, windowWidth)
 
   const boxes = useMemo(() => {
     if (!ready) return []
@@ -118,6 +142,29 @@ export function SealedDashboard() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Zoom slider — same widget as card wall header */}
+            <div
+              className="flex items-center gap-2 px-3"
+              style={{ ...ctrl, height: 30 }}
+            >
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+              </svg>
+              <input
+                type="range" min={1} max={11} step={1} value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="zoom-slider" aria-label="Zoom level" style={{ width: 90 }}
+              />
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+              </svg>
+            </div>
             <Link
               href="/help"
               className="footer-btn inline-flex items-center justify-center"
@@ -185,7 +232,13 @@ export function SealedDashboard() {
             </p>
           </div>
         ) : (
-          <div className="sb-grid">
+          <div
+            className="sb-grid"
+            style={{
+              gridTemplateColumns: `repeat(${columns}, 1fr)`,
+              gap: gapForCols(columns),
+            }}
+          >
             {boxes.map((box) => (
               <BoxTile
                 key={box.tcgplayerId}
