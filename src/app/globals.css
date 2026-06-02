@@ -1117,10 +1117,6 @@ html.lenis, html.lenis body {
   box-shadow: var(--shadow-card);
   background: var(--bg-surface);
   overflow: hidden;
-  /* Block every form of native drag preview / ghost the browser might
-     attach to a thumb during a pointer drag. -webkit-user-drag:none
-     covers Safari/Chrome; user-select stops accidental text/image
-     selection from animating a translucent fly-out. */
   -webkit-user-drag: none;
   user-select: none;
   -webkit-user-select: none;
@@ -1128,6 +1124,95 @@ html.lenis, html.lenis body {
     transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.22s ease,
     opacity 0.15s ease;
+}
+
+.tier-list-thumb--selected {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--text-primary), var(--shadow-card);
+}
+
+/* Checkmark overlay shown in pool select mode */
+.pool-tile-check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--text-primary) 18%, transparent);
+  color: var(--bg);
+  border-radius: inherit;
+}
+
+.tier-list-thumb--selected .pool-tile-check {
+  background: color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+
+/* Assign-to-tier bar */
+.pool-assign-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 24px;
+}
+
+.pool-assign-bar__label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.pool-assign-bar__tiers {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pool-assign-bar__tier-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.pool-assign-bar__tier-btn:hover {
+  transform: scale(1.08);
+  opacity: 0.9;
+}
+
+.pool-assign-bar__cancel {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pool-assign-bar__cancel:hover {
+  color: var(--text-primary);
 }
 
 .tier-list-thumb img {

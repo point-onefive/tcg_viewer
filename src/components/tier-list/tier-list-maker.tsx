@@ -29,6 +29,7 @@ import { useStore } from '@/lib/store'
 import { defaultTiers, tiersMatchDefault, type TierCard, type TierCardKind, type TierDef } from '@/lib/tier-list-types'
 import {
   Check,
+  CheckSquare,
   ClipboardList,
   Copy,
   GripVertical,
@@ -37,6 +38,7 @@ import {
   Inbox,
   Layers,
   Loader2,
+  MousePointerClick,
   Plus,
   RotateCcw,
   Trash2,
@@ -361,12 +363,18 @@ function SortableCard({
   kind,
   aspectRatio,
   onRemove,
+  selectMode = false,
+  selected = false,
+  onToggleSelect,
 }: {
   id: string
   src: string
   kind: TierCardKind
   aspectRatio?: number
   onRemove: () => void
+  selectMode?: boolean
+  selected?: boolean
+  onToggleSelect?: (id: string) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -379,21 +387,8 @@ function SortableCard({
   return (
     <div
       ref={setNodeRef}
-      className="group relative tier-list-thumb"
+      className={`group relative tier-list-thumb${selected ? ' tier-list-thumb--selected' : ''}`}
       style={{
-        // While this tile is the one being dragged we deliberately
-        // skip the transform + transition that useSortable hands us.
-        // For the active item, `transform` is the *cursor-delta*
-        // (how far the user has dragged); applying that to a
-        // visibility:hidden element is invisible during the drag but
-        // produces a visible "shake" on release - visibility flips
-        // back, the still-applied cursor transform transitions back
-        // toward 0, and the post-drop FLIP transform fights it.
-        //
-        // With both suppressed during isDragging, the source sits
-        // hidden at its DOM slot, and on release the only thing
-        // useSortable applies is the clean FLIP delta (old slot →
-        // new slot), which animates as a single smooth bump.
         transform: isDragging ? undefined : CSS.Translate.toString(transform),
         transition: isDragging ? undefined : transition,
         visibility: isDragging ? 'hidden' : undefined,
@@ -408,15 +403,12 @@ function SortableCard({
     >
       <button
         type="button"
-        // draggable={false} + onDragStart preventDefault eliminate the
-        // browser's native HTML5 drag preview (a translucent screenshot
-        // that macOS browsers attach to image buttons, on top of
-        // @dnd-kit's DragOverlay - visible "ghost" above the overlay).
         draggable={false}
         onDragStart={(e) => e.preventDefault()}
-        {...listeners}
-        {...attributes}
-        aria-label="Drag to rank image"
+        {...(selectMode ? {} : listeners)}
+        {...(selectMode ? {} : attributes)}
+        onClick={selectMode ? () => onToggleSelect?.(id) : undefined}
+        aria-label={selectMode ? (selected ? 'Deselect image' : 'Select image') : 'Drag to rank image'}
         style={{
           display: 'block',
           width: '100%',
@@ -425,7 +417,7 @@ function SortableCard({
           margin: 0,
           background: 'transparent',
           border: 'none',
-          cursor: 'grab',
+          cursor: selectMode ? 'pointer' : 'grab',
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -507,6 +499,19 @@ function SortableCard({
       >
         ✕
       </button>
+
+      {/* Select mode checkmark overlay */}
+      {selectMode && (
+        <div
+          className="pool-tile-check"
+          aria-hidden
+          style={{ pointerEvents: 'none' }}
+        >
+          {selected && (
+            <Check size={14} strokeWidth={3} />
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -1056,6 +1061,32 @@ export function TierListMaker() {
   const resetBoard = useStore((s) => s.resetTierBoard)
   const resetTierChart = useStore((s) => s.resetTierChart)
   const [activeId, setActiveId] = useState<string | null>(null)
+  // Pool selection mode state
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const toggleSelectMode = useCallback(() => {
+    setSelectMode((v) => {
+      if (v) setSelectedIds(new Set())
+      return !v
+    })
+  }, [])
+
+  const toggleCardSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }, [])
+
+  const assignSelectedToTier = useCallback((tierId: string) => {
+    setCards((prev) =>
+      prev.map((c) => selectedIds.has(c.id) ? { ...c, tierId } : c),
+    )
+    setSelectedIds(new Set())
+    setSelectMode(false)
+  }, [selectedIds, setCards])
   // Tier-row drag state. Kept in its own pair (instead of widening
   // `activeId`) because the two DndContexts are independent and we
   // don't want a card drag to ever resolve against tierActiveId or
@@ -1711,14 +1742,32 @@ export function TierListMaker() {
                     {pasteHint}
                   </span>
                   {cards.some((c) => c.tierId === null) && (
-                    <button
-                      type="button"
-                      onClick={clearBankOnly}
-                      className="footer-btn inline-flex items-center px-2 py-1 text-xs font-semibold"
-                      style={{ ...ctrlBase, height: 28 }}
-                    >
-                      Clear pool
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={toggleSelectMode}
+                        className="footer-btn inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                        style={{
+                          ...ctrlBase,
+                          height: 28,
+                          ...(selectMode ? { background: 'var(--text-primary)', color: 'var(--bg)', borderColor: 'var(--text-primary)' } : {}),
+                        }}
+                        aria-pressed={selectMode}
+                      >
+                        <MousePointerClick size={11} strokeWidth={2.25} aria-hidden />
+                        {selectMode ? 'Cancel' : 'Select'}
+                      </button>
+                      {!selectMode && (
+                        <button
+                          type="button"
+                          onClick={clearBankOnly}
+                          className="footer-btn inline-flex items-center px-2 py-1 text-xs font-semibold"
+                          style={{ ...ctrlBase, height: 28 }}
+                        >
+                          Clear pool
+                        </button>
+                      )}
+                    </>
                   )}
                 </>
               }
@@ -1784,6 +1833,9 @@ export function TierListMaker() {
                           kind={c.kind}
                           aspectRatio={c.aspectRatio}
                           onRemove={() => removeCard(c.id)}
+                          selectMode={selectMode}
+                          selected={selectedIds.has(c.id)}
+                          onToggleSelect={toggleCardSelect}
                         />
                       ))}
                     </SortableContext>
@@ -1792,6 +1844,37 @@ export function TierListMaker() {
               )
             })()}
           </section>
+
+          {/* Assign-to-tier bar — appears below pool when items are selected */}
+          {selectMode && selectedIds.size > 0 && (
+            <div className="pool-assign-bar">
+              <span className="pool-assign-bar__label">
+                <CheckSquare size={13} strokeWidth={2.5} aria-hidden />
+                {selectedIds.size} selected — assign to:
+              </span>
+              <div className="pool-assign-bar__tiers">
+                {tiers.map((tier) => (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    className="pool-assign-bar__tier-btn"
+                    style={{ background: tier.color }}
+                    onClick={() => assignSelectedToTier(tier.id)}
+                    aria-label={`Assign to ${tier.label}`}
+                  >
+                    {tier.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="pool-assign-bar__cancel"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear selection
+              </button>
+            </div>
+          )}
 
           {/* Section header for the chart. Same SectionLabel pattern
               as the Pool above so the page reads as two consistent
