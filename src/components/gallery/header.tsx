@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, HelpCircle, Layers, Menu, X, Check, ChevronDown, Package } from 'lucide-react'
+import { Bookmark, HelpCircle, Layers, LineChart, Menu, X, Check, ChevronDown, Package } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
@@ -903,6 +903,25 @@ export function Header({ sets }: HeaderProps) {
             Sealed
           </Link>
 
+          {/* Chart race maker. Sibling secondary surface alongside
+              Tiers + Sealed; a standalone social-content tool for
+              animating a line chart from pasted data. */}
+          <Link
+            href="/chart-race"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            style={{
+              ...ctrl,
+              height: 30,
+              background: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
+            }}
+            aria-label="Chart Race maker"
+            title="Chart Race maker"
+          >
+            <LineChart size={12} strokeWidth={2.25} aria-hidden />
+            Chart Race
+          </Link>
+
           {/* Board trigger · last in the cluster so its variable-
               width count badge grows away from siblings, never into
               them. */}
@@ -979,6 +998,16 @@ export function Header({ sets }: HeaderProps) {
             title="Booster box prices"
           >
             <Package size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
+
+          <Link
+            href="/chart-race"
+            className="footer-btn relative inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 32, height: 32 }}
+            aria-label="Chart Race maker"
+            title="Chart Race maker"
+          >
+            <LineChart size={14} strokeWidth={2.25} aria-hidden />
           </Link>
 
           {/* Hamburger */}
@@ -1685,6 +1714,17 @@ export function Header({ sets }: HeaderProps) {
           >
             <Package size={16} strokeWidth={2.25} aria-hidden />
             <span>Booster boxes</span>
+          </Link>
+
+          <Link
+            href="/chart-race"
+            onClick={() => setMobileOpen(false)}
+            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            style={{ ...ctrl }}
+            aria-label="Chart Race maker"
+          >
+            <LineChart size={16} strokeWidth={2.25} aria-hidden />
+            <span>Chart Race maker</span>
           </Link>
 
           {/* How-it-works link · groups with Feedback so the two

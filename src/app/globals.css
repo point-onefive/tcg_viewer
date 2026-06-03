@@ -1479,6 +1479,47 @@ html.lenis, html.lenis body {
   cursor: pointer;
 }
 
+/* ─── Chart race transport / speed sliders ─────────────────────── */
+/* Same visual language as the zoom slider (thin track, round thumb)
+   but a touch larger so the play-bar reads as a primary control and
+   stays comfortable to drag on a phone. Disabled state dims the thumb
+   so a data-less chart can't pretend to be scrubbable. */
+.chart-race-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border-subtle);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.chart-race-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.chart-race-range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.chart-race-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+}
+.chart-race-range:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* Editable tier-list chart title. Placeholder is a muted italic so an
    untitled chart reads as "click to name me" instead of looking like
    real content. ::placeholder can't be set inline from React, so it
