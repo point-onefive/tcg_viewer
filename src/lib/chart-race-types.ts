@@ -117,6 +117,22 @@ export function freshId(prefix = 's'): string {
 }
 
 /**
+ * Optional head-of-line avatars for the default sample series, keyed
+ * by series id. Drop real artwork into `public/images/chart-race/`
+ * and point these at it (e.g. `/images/chart-race/op.png`) to make
+ * the starter chart ship with branded line heads. Leaving a value
+ * `undefined` simply renders that line's head as the plain coloured
+ * dot - so an empty map (the current state) is perfectly valid and
+ * produces zero broken-image requests. See the folder README for the
+ * naming convention and recommended image specs.
+ */
+const DEFAULT_HEAD_IMAGES: { opbox?: string; sp500?: string; bitcoin?: string } = {
+  opbox: undefined,
+  sp500: undefined,
+  bitcoin: undefined,
+}
+
+/**
  * Starter dataset so the page is never blank on first load. A real
  * "what if you'd bought a booster box?" comparison: the OP01 Romance
  * Dawn first-print sealed box vs the S&P 500 and Bitcoin, monthly
@@ -169,9 +185,9 @@ export function sampleState(): ChartRaceState {
     78621.12, 66995.86, 68233.31, 76304.32, 73579.69, 65881.79,
   ]
   const series: ChartSeries[] = [
-    { id: 'opbox', name: 'OPTCG (Romance Dawn Booster Box)', color: pickColor(0) },
-    { id: 'sp500', name: 'S&P 500', color: pickColor(1) },
-    { id: 'bitcoin', name: 'Bitcoin', color: pickColor(3) },
+    { id: 'opbox', name: 'OPTCG (Romance Dawn Booster Box)', color: pickColor(0), image: DEFAULT_HEAD_IMAGES.opbox },
+    { id: 'sp500', name: 'S&P 500', color: pickColor(1), image: DEFAULT_HEAD_IMAGES.sp500 },
+    { id: 'bitcoin', name: 'Bitcoin', color: pickColor(3), image: DEFAULT_HEAD_IMAGES.bitcoin },
   ]
   const rows: ChartRow[] = labels.map((label, i) => ({
     label,
