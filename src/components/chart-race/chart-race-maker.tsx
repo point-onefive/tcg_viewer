@@ -8,6 +8,7 @@ import {
   Download,
   FileUp,
   Gauge,
+  Image as ImageIcon,
   LineChart,
   Pause,
   Play,
@@ -17,6 +18,7 @@ import {
   Table,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { useChartRace } from '@/lib/chart-race-store'
@@ -62,6 +64,48 @@ const uploadChip: React.CSSProperties = {
   padding: '6px 12px',
   height: 30,
   display: 'inline-flex',
+}
+
+/* ── Head-of-line avatar helper ──────────────────────────────────
+   Turns a pasted/uploaded image file into a small, square, centre-
+   cropped data URL. Square keeps the circular badge clip clean; the
+   96px cap keeps the persisted store tiny (a few KB per line) while
+   staying crisp at the ~32px the badge renders at on a retina canvas.
+   Returns null for non-images or decode failures so callers can
+   no-op rather than crash. ──────────────────────────────────────── */
+async function fileToHeadImage(file: File, size = 96): Promise<string | null> {
+  if (!file.type.startsWith('image/')) return null
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = () => resolve(String(r.result))
+      r.onerror = () => reject(r.error)
+      r.readAsDataURL(file)
+    })
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const im = new window.Image()
+      im.onload = () => resolve(im)
+      im.onerror = reject
+      im.src = dataUrl
+    })
+    const w = img.naturalWidth
+    const h = img.naturalHeight
+    if (!w || !h) return dataUrl
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return dataUrl
+    // Cover-fit: crop the longer axis so a portrait/landscape source
+    // fills the square badge without distortion.
+    const side = Math.min(w, h)
+    const sx = (w - side) / 2
+    const sy = (h - side) / 2
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size)
+    return canvas.toDataURL('image/webp', 0.85)
+  } catch {
+    return null
+  }
 }
 
 /* ── Brand lockup, mirrored from the tier-list header so the nav
@@ -654,41 +698,109 @@ function ChartFigure({
               finish close together (e.g. S&P 500 + Bitcoin both near
               the baseline) don't print on top of each other. */}
           {(() => {
-            const TIP_MIN_GAP = 15
-            const lo = PAD_T + 6
-            const hi = VB_H - PAD_B - 6
-            // Collect drawable tips with their natural label Y, sorted
-            // top-to-bottom, then push any that crowd their neighbour
-            // downward; finally clamp the stack back inside the plot.
+            const HEAD_R = 16
+            // Leader-line de-overlap, ramped by playback progress.
+            //
+            // Early in the run every line is bunched near the start
+            // value, so forcing badges apart builds an ugly vertical
+            // tower of leaders. Instead we let them OVERLAP on their
+            // true points at the start, then smoothly ease into full
+            // leader-line separation across the middle of the timeline.
+            // `strength` 0 = pure overlap, 1 = full de-overlap; the
+            // smoothstep avoids any hard "pop" at the switchover.
+            const playFrac = maxIndex > 0 ? clamped / maxIndex : 1
+            const RAMP_START = 0.35
+            const RAMP_END = 0.65
+            const t = Math.max(0, Math.min(1, (playFrac - RAMP_START) / (RAMP_END - RAMP_START)))
+            const strength = t * t * (3 - 2 * t) // smoothstep
+            const hasImages = geo.some(({ series: s, tip }) => tip && s.image)
+            const FULL_GAP = hasImages ? 2 * HEAD_R + 3 : 15
+            const MIN_GAP = FULL_GAP * strength
+            const pad = hasImages ? HEAD_R + 2 : 6
+            const lo = PAD_T + pad
+            const hi = VB_H - PAD_B - pad
             const items = geo
-              .map(({ series: s, tip }) => (tip ? { s, tip, y: Math.max(lo, Math.min(tip.y, hi)) } : null))
-              .filter((x): x is { s: ChartSeries; tip: Pt; y: number } => x != null)
+              .map(({ series: s, tip }) =>
+                tip ? { s, tip, trueY: tip.y, y: Math.max(lo, Math.min(tip.y, hi)) } : null,
+              )
+              .filter(
+                (x): x is { s: ChartSeries; tip: Pt; trueY: number; y: number } => x != null,
+              )
               .sort((a, b) => a.y - b.y)
+            // First pass: push each crowded badge below its neighbour.
+            // With MIN_GAP near 0 (early run) this is a no-op and badges
+            // stay on their true points, overlapping freely.
             for (let i = 1; i < items.length; i++) {
-              if (items[i].y - items[i - 1].y < TIP_MIN_GAP) {
-                items[i].y = items[i - 1].y + TIP_MIN_GAP
+              if (items[i].y - items[i - 1].y < MIN_GAP) {
+                items[i].y = items[i - 1].y + MIN_GAP
               }
             }
+            // If the stack overflowed the bottom, slide it all up, then
+            // clamp the top back inside the plot box.
             const overflow = items.length ? items[items.length - 1].y - hi : 0
             if (overflow > 0) for (const it of items) it.y -= overflow
             for (const it of items) it.y = Math.max(lo, it.y)
-            return items.map(({ s, tip, y }) => (
-              <g key={`tip-${s.id}`}>
-                <circle cx={tip.x} cy={tip.y} r={4.5} fill={s.color} stroke="var(--bg-surface)" strokeWidth={2} />
-                {settings.showValues && (
-                  <text
-                    x={tip.x + 10}
-                    y={y}
-                    dominantBaseline="middle"
-                    fontSize={13}
-                    fontWeight={700}
-                    fill={s.color}
-                  >
-                    {formatValue(tip.v, fmtPrefix, fmtSuffix, fmtSigned)}
-                  </text>
-                )}
-              </g>
-            ))
+            return items.map(({ s, tip, trueY, y }) => {
+              const labelX = tip.x + (s.image ? 2 * HEAD_R + 12 : 10)
+              // A badge counts as "moved" once it's a few px off its
+              // true point; only then do we draw the connector stub.
+              const moved = s.image && Math.abs(y - trueY) > 2
+              return (
+                <g key={`tip-${s.id}`}>
+                  {s.image ? (
+                    <>
+                      {/* Leader: true point on the line -> badge centre.
+                          Drawn first so the badge sits on top of it. */}
+                      {moved && (
+                        <line
+                          x1={tip.x}
+                          y1={trueY}
+                          x2={tip.x + HEAD_R}
+                          y2={y}
+                          stroke={s.color}
+                          strokeWidth={1.5}
+                          strokeLinecap="round"
+                          opacity={0.55}
+                        />
+                      )}
+                      {/* Small dot pinning the series' real value. */}
+                      <circle cx={tip.x} cy={trueY} r={3} fill={s.color} />
+                      <clipPath id={`headclip-${s.id}`}>
+                        <circle cx={tip.x + HEAD_R} cy={y} r={HEAD_R} />
+                      </clipPath>
+                      <image
+                        href={s.image}
+                        x={tip.x}
+                        y={y - HEAD_R}
+                        width={HEAD_R * 2}
+                        height={HEAD_R * 2}
+                        preserveAspectRatio="xMidYMid slice"
+                        clipPath={`url(#headclip-${s.id})`}
+                      />
+                      {/* Background-coloured outer ring first so stacked
+                          badges visually cut out from each other, then
+                          the series-coloured ring on top. */}
+                      <circle cx={tip.x + HEAD_R} cy={y} r={HEAD_R + 1} fill="none" stroke="var(--bg-surface)" strokeWidth={2} />
+                      <circle cx={tip.x + HEAD_R} cy={y} r={HEAD_R} fill="none" stroke={s.color} strokeWidth={1.5} />
+                    </>
+                  ) : (
+                    <circle cx={tip.x} cy={trueY} r={4.5} fill={s.color} stroke="var(--bg-surface)" strokeWidth={2} />
+                  )}
+                  {settings.showValues && (
+                    <text
+                      x={labelX}
+                      y={y}
+                      dominantBaseline="middle"
+                      fontSize={13}
+                      fontWeight={700}
+                      fill={s.color}
+                    >
+                      {formatValue(tip.v, fmtPrefix, fmtSuffix, fmtSigned)}
+                    </text>
+                  )}
+                </g>
+              )
+            })
           })()}
         </svg>
       ) : (
@@ -1373,6 +1485,7 @@ const DataGrid = memo(function DataGrid() {
     setXAxisLabel,
     renameSeries,
     recolorSeries,
+    setSeriesImage,
     addSeries,
     removeSeries,
     setRowLabel,
@@ -1382,12 +1495,52 @@ const DataGrid = memo(function DataGrid() {
     clearData,
   } = useChartRace()
 
+  // Which line a pasted image lands on. Armed by clicking anywhere in
+  // a line's header column (or its image slot). With a single line we
+  // don't need an explicit pick, so paste just works.
+  const [armedSeriesId, setArmedSeriesId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const targetForPaste = armedSeriesId ?? (series.length === 1 ? series[0]?.id ?? null : null)
+
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent) => {
+      const file = Array.from(event.clipboardData?.items ?? [])
+        .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+        .map((it) => it.getAsFile())
+        .find((f): f is File => Boolean(f))
+      if (!file) return
+      if (!targetForPaste) return
+      event.preventDefault()
+      void fileToHeadImage(file).then((url) => {
+        if (url) setSeriesImage(targetForPaste, url)
+      })
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [targetForPaste, setSeriesImage])
+
   return (
     <section
       aria-label="Data"
       className="mb-6 p-4"
       style={{ ...ctrlBase, borderRadius: 8, boxShadow: 'var(--shadow-card)' }}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        aria-hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (!file || !armedSeriesId) return
+          void fileToHeadImage(file).then((url) => {
+            if (url) setSeriesImage(armedSeriesId, url)
+          })
+        }}
+      />
       <SectionLabel
         icon={Table}
         label="Data"
@@ -1437,6 +1590,20 @@ const DataGrid = memo(function DataGrid() {
         </p>
       ) : (
         <div className="overflow-x-auto">
+          <p className="mb-2 flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <ImageIcon size={13} aria-hidden style={{ color: BRAND }} />
+            {targetForPaste ? (
+              <span>
+                Paste an image (Cmd/Ctrl+V) to set the head of{' '}
+                <strong style={{ color: 'var(--text-primary)' }}>
+                  {series.find((s) => s.id === targetForPaste)?.name || 'this line'}
+                </strong>
+                , or click a line&rsquo;s image box to upload.
+              </span>
+            ) : (
+              <span>Click a line to select it, then paste an image (Cmd/Ctrl+V) or click its image box to set the head.</span>
+            )}
+          </p>
           <table className="w-full border-collapse" style={{ fontSize: 13 }}>
             <thead>
               <tr>
@@ -1451,7 +1618,23 @@ const DataGrid = memo(function DataGrid() {
                   />
                 </th>
                 {series.map((s) => (
-                  <th key={s.id} className="p-1" style={{ minWidth: 130 }}>
+                  <th
+                    key={s.id}
+                    className="p-1"
+                    style={{
+                      minWidth: 130,
+                      borderRadius: 8,
+                      // Inset ring so it draws inside the cell bounds and
+                      // can't be clipped by the horizontal scroll container
+                      // on the leading/trailing columns.
+                      boxShadow:
+                        armedSeriesId === s.id
+                          ? `inset 0 0 0 1.5px ${BRAND}`
+                          : 'none',
+                    }}
+                    onClickCapture={() => setArmedSeriesId(s.id)}
+                    onFocusCapture={() => setArmedSeriesId(s.id)}
+                  >
                     <div className="flex items-center gap-1">
                       <input
                         type="color"
@@ -1461,10 +1644,44 @@ const DataGrid = memo(function DataGrid() {
                         style={{ width: 26, height: 30, padding: 0, border: '1px solid var(--border-subtle)', borderRadius: 6, background: 'transparent' }}
                         aria-label={`${s.name} colour`}
                       />
+                      <div className="relative shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setArmedSeriesId(s.id)
+                            fileInputRef.current?.click()
+                          }}
+                          className="inline-flex items-center justify-center overflow-hidden"
+                          style={{ width: 30, height: 30, padding: 0, border: '1px solid var(--border-subtle)', borderRadius: 6, background: 'var(--bg-surface)', cursor: 'pointer' }}
+                          aria-label={s.image ? `Replace ${s.name} head image` : `Add head image to ${s.name}`}
+                          title={s.image ? 'Replace head image (click to upload, or paste)' : 'Add a head image: click to upload, or copy an image and paste'}
+                        >
+                          {s.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={s.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <ImageIcon size={14} aria-hidden style={{ color: 'var(--text-muted)' }} />
+                          )}
+                        </button>
+                        {s.image && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSeriesImage(s.id, null)
+                            }}
+                            aria-label={`Remove ${s.name} head image`}
+                            title="Remove head image"
+                            style={{ position: 'absolute', top: -6, right: -6, width: 16, height: 16, borderRadius: 999, background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', lineHeight: 0, padding: 0 }}
+                          >
+                            <X size={10} aria-hidden />
+                          </button>
+                        )}
+                      </div>
                       <input
                         value={s.name}
                         onChange={(e) => renameSeries(s.id, e.target.value)}
-                        className="w-full px-2 py-1.5 text-xs font-semibold"
+                        className="chart-race-series-name w-full px-2 py-1.5 text-xs font-semibold"
                         style={{ ...ctrlBase }}
                         aria-label="Series name"
                       />

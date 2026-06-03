@@ -102,6 +102,15 @@ textarea:focus-visible {
   border-radius: inherit;
 }
 
+/* The chart-race series-name field sits inside a cell that already
+   shows an orange "armed" ring on focus, so the default white focus
+   outline reads as a redundant inner stroke. Suppress it here; the
+   cell ring is the focus affordance. */
+.chart-race-series-name:focus-visible {
+  outline: none;
+  outline-offset: 0;
+}
+
 /* Unified theme transition: every element's color tokens shift in sync
    so dark/light toggle feels like a single swap, not a staggered cascade.
    Only color-family properties are transitioned; elements with their own

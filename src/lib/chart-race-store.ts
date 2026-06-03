@@ -34,6 +34,8 @@ interface ChartRaceStore extends ChartRaceState {
   setRows: (rows: ChartRow[]) => void
   renameSeries: (id: string, name: string) => void
   recolorSeries: (id: string, color: string) => void
+  /** Set (or clear, with null) the head-of-line avatar for a series. */
+  setSeriesImage: (id: string, image: string | null) => void
   addSeries: (name: string, color: string) => void
   removeSeries: (id: string) => void
 
@@ -78,6 +80,12 @@ export const useChartRace = create<ChartRaceStore>()(
       recolorSeries: (id, color) =>
         set((s) => ({
           series: s.series.map((x) => (x.id === id ? { ...x, color } : x)),
+        })),
+      setSeriesImage: (id, image) =>
+        set((s) => ({
+          series: s.series.map((x) =>
+            x.id === id ? { ...x, image: image ?? undefined } : x,
+          ),
         })),
       addSeries: (name, color) =>
         set((s) => ({
@@ -157,7 +165,7 @@ export const useChartRace = create<ChartRaceStore>()(
     }),
     {
       name: 'tcw-chart-race',
-      version: 4,
+      version: 5,
       // Refresh the starter dataset for anyone still sitting on a prior
       // untouched default (coffee/tea, or an earlier booster-box cut). Anyone
       // who built or imported their own chart keeps it.
@@ -176,6 +184,13 @@ export const useChartRace = create<ChartRaceStore>()(
           if (isOldSample) {
             return { ...s, ...sampleState(), settings: defaultSettings() } as ChartRaceStore
           }
+        }
+        // v5: the head value label now defaults OFF. Flip anyone who is
+        // still on the old implicit default (true) so the cleaner
+        // label-free chart is what they see; people who turned it off
+        // already are unaffected.
+        if (fromVersion < 5 && s.settings) {
+          s.settings = { ...s.settings, showValues: false }
         }
         return s as ChartRaceStore
       },

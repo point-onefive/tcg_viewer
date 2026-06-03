@@ -23,6 +23,13 @@ export interface ChartSeries {
   name: string
   /** Any CSS colour. Defaults pulled from `SERIES_PALETTE`. */
   color: string
+  /**
+   * Optional avatar shown as a circular badge riding the head of the
+   * line (instead of just the value dot). Stored as a small, square,
+   * downscaled data URL so it survives a refresh via the persisted
+   * store and exports cleanly with html-to-image (no CORS/blob).
+   */
+  image?: string
 }
 
 export interface ChartRow {
@@ -98,7 +105,7 @@ export function defaultSettings(): ChartRaceSettings {
     dynamicAxis: false,
     smooth: true,
     area: false,
-    showValues: true,
+    showValues: false,
   }
 }
 
