@@ -127,9 +127,9 @@ export function freshId(prefix = 's'): string {
  * naming convention and recommended image specs.
  */
 const DEFAULT_HEAD_IMAGES: { opbox?: string; sp500?: string; bitcoin?: string } = {
-  opbox: undefined,
-  sp500: undefined,
-  bitcoin: undefined,
+  opbox: '/images/chart-race/op.png',
+  sp500: '/images/chart-race/sp500.png',
+  bitcoin: '/images/chart-race/bitcoin.png',
 }
 
 /**
