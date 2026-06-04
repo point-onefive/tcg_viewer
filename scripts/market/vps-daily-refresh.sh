@@ -63,8 +63,9 @@ fi
 # --- 2. One Piece pricing via op_hub ------------------------------------------
 # op_hub lives at /home/openclaw/one_piece_current_events on the VPS.
 # Binary: $OP_HUB_DIR/.venv/bin/op-hub
-# The export command writes pricing-one-piece.json, price-history-one-piece.json
-# and pricing-meta.json into this repo's src/lib.
+# ``pricing daily`` runs the full pipeline: TCGTracking sync (cards + boxes)
+# followed by JSON export. This replaces the old ``export-card-wall``-only call
+# which skipped the box sync and left pricing-boxes-one-piece.json stale.
 OP_HUB_DIR="${OP_HUB_DIR:-/home/openclaw/one_piece_current_events}"
 
 echo ""
@@ -77,8 +78,8 @@ if [ -d "$OP_HUB_DIR" ]; then
   if [ -z "$OP_HUB_BIN" ]; then
     fail "op-hub binary not found in $OP_HUB_DIR - skipped One Piece pricing"
   else
-    if ( cd "$OP_HUB_DIR" && "$OP_HUB_BIN" pricing export-card-wall --output-dir "$REPO_ROOT/src/lib" ); then
-      echo "  ok op_hub export complete"
+    if ( cd "$OP_HUB_DIR" && "$OP_HUB_BIN" pricing daily ); then
+      echo "  ok op_hub daily (sync + export) complete"
     else
       fail "op_hub export failed (exit $?)"
     fi
@@ -121,6 +122,7 @@ echo "> status: $STATUS  (failures: ${#FAILURES[@]})"
 TRACKED_FILES=(
   src/lib/pricing-one-piece.json
   src/lib/price-history-one-piece.json
+  src/lib/pricing-boxes-one-piece.json
   src/lib/pricing-meta.json
   src/lib/pricing-gundam.json
   src/lib/price-history-gundam.json
