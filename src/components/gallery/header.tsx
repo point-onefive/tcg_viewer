@@ -1203,12 +1203,11 @@ export function Header({ sets }: HeaderProps) {
         />
       </div>
 
-      {/* ── Mobile row-4 · Zoom slider ───────────────────────────────
+      {/* ── Mobile row-4 · Sort + Zoom slider ──────────────────────────
           Zoom was the last hamburger-only control. Promoted here so
           the entire filter set is reachable without ever opening the
-          sheet. Matches the desktop slider's range (1-29) so mobile
-          users get the same "as tiny as it gets" zoom-out. The
-          surrounding rect-grid icons mirror the desktop language. */}
+          sheet. Sort lives in this same row — it's a secondary
+          control that fits naturally beside zoom. */}
       <div
         className="nav:hidden flex items-center gap-2 px-4"
         style={{
@@ -1216,6 +1215,31 @@ export function Header({ sets }: HeaderProps) {
           borderTop: '1px solid var(--border-subtle)',
         }}
       >
+        {/* Sort — native select matches the other mobile selects */}
+        <select
+          value={wallSort}
+          onChange={(e) => setWallSort(e.target.value as typeof wallSort)}
+          className="shrink-0 px-2 text-xs font-medium outline-none cursor-pointer appearance-none"
+          style={{
+            ...(wallSort !== 'default' ? ctrlActive : ctrl),
+            height: 30,
+            paddingRight: 22,
+            backgroundImage:
+              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 6px center',
+          }}
+          aria-label="Sort cards"
+        >
+          <option value="default">Sort: Default</option>
+          <option value="cost-asc">Cost ↑</option>
+          <option value="cost-desc">Cost ↓</option>
+          <option value="rarity">Rarity</option>
+          <option value="type">Card type</option>
+          {(isOnePiece || isGundam) && <option value="power-desc">Power ↓</option>}
+          {hasPricing && <option value="price-desc">Price ↓</option>}
+        </select>
+
         <div
           className="flex items-center gap-2 flex-1 px-3"
           style={{ ...ctrl, height: 30 }}
