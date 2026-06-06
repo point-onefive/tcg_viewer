@@ -165,10 +165,11 @@ export const useChartRace = create<ChartRaceStore>()(
     }),
     {
       name: 'tcw-chart-race',
-      version: 5,
+      version: 6,
       // Refresh the starter dataset for anyone still sitting on a prior
-      // untouched default (coffee/tea, or an earlier booster-box cut). Anyone
-      // who built or imported their own chart keeps it.
+      // untouched default (coffee/tea, earlier booster-box cuts, or the
+      // pre-crash-sim real-data version). Anyone who built or imported
+      // their own chart keeps it.
       migrate: (persisted, fromVersion) => {
         const s = (persisted || {}) as Partial<ChartRaceStore>
         if (fromVersion < 4) {
@@ -185,12 +186,25 @@ export const useChartRace = create<ChartRaceStore>()(
             return { ...s, ...sampleState(), settings: defaultSettings() } as ChartRaceStore
           }
         }
-        // v5: the head value label now defaults OFF. Flip anyone who is
-        // still on the old implicit default (true) so the cleaner
-        // label-free chart is what they see; people who turned it off
-        // already are unaffected.
+        // v5: the head value label now defaults OFF.
         if (fromVersion < 5 && s.settings) {
           s.settings = { ...s.settings, showValues: false }
+        }
+        // v6: replace the old real-data sample with the crash-simulation
+        // sample. Anyone on the default "OP vs SP500 vs BTC" chart with
+        // the standard opbox/sp500/bitcoin series gets the new data.
+        // Custom charts (different title or different series ids) are kept.
+        if (fromVersion < 6) {
+          const isDefaultSample =
+            s.title === 'OP vs SP500 vs BTC' &&
+            Array.isArray(s.series) &&
+            s.series.length === 3 &&
+            s.series.some((x) => x.id === 'opbox') &&
+            s.series.some((x) => x.id === 'sp500') &&
+            s.series.some((x) => x.id === 'bitcoin')
+          if (isDefaultSample) {
+            return { ...s, ...sampleState() } as ChartRaceStore
+          }
         }
         return s as ChartRaceStore
       },
