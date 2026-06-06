@@ -366,6 +366,7 @@ function SortableCard({
   selectMode = false,
   selected = false,
   onToggleSelect,
+  thumbOverrideW,
 }: {
   id: string
   src: string
@@ -375,13 +376,24 @@ function SortableCard({
   selectMode?: boolean
   selected?: boolean
   onToggleSelect?: (id: string) => void
+  // When set, overrides the base-width from thumbDimensions (used by
+  // the pool zoom scrubber). Height scales proportionally so the card
+  // aspect ratio is always preserved.
+  thumbOverrideW?: number
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     data: { kind: 'card', id },
   })
 
-  const { width, height, fit } = thumbDimensions(kind, aspectRatio)
+  const base = thumbDimensions(kind, aspectRatio)
+  const width = thumbOverrideW ?? base.width
+  // Scale height proportionally to the override width so portrait and
+  // upload cards always fill their tile without letter-boxing.
+  const height = thumbOverrideW
+    ? Math.round(base.height * (thumbOverrideW / base.width))
+    : base.height
+  const fit = base.fit
   const renderedSrc = toCorsSafeImageSrc(src)
 
   return (
@@ -1064,6 +1076,15 @@ export function TierListMaker() {
   // Pool selection mode state
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  // Pool zoom: 1–13 scale steps. At step 4 the tile is ~78px (original
+  // default). Range mirrors the mobile card-wall slider so the UX
+  // language is consistent.
+  const [poolZoom, setPoolZoom] = useState(4)
+
+  // Map the 1-13 zoom step to a tile width. Step 4 → 78px (original
+  // THUMB_W_DEFAULT) so the default view is unchanged. Steps below 4
+  // shrink down to ~36px; steps above scale up to ~220px.
+  const poolThumbW = Math.round(36 + (poolZoom - 1) * (220 - 36) / 12)
 
   const toggleSelectMode = useCallback(() => {
     setSelectMode((v) => {
@@ -1738,6 +1759,30 @@ export function TierListMaker() {
               label="Pool"
               right={
                 <>
+                  {/* Zoom scrubber — same visual language as card wall */}
+                  <div
+                    className="flex items-center gap-2 px-3 shrink-0"
+                    style={{ ...ctrlBase, height: 28 }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                      <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                    </svg>
+                    <input
+                      type="range" min={1} max={13} step={1} value={poolZoom}
+                      onChange={(e) => setPoolZoom(Number(e.target.value))}
+                      className="zoom-slider" aria-label="Pool tile size"
+                      style={{ width: 80 }}
+                    />
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                      <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                    </svg>
+                  </div>
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     {pasteHint}
                   </span>
@@ -1836,6 +1881,7 @@ export function TierListMaker() {
                           selectMode={selectMode}
                           selected={selectedIds.has(c.id)}
                           onToggleSelect={toggleCardSelect}
+                          thumbOverrideW={poolThumbW}
                         />
                       ))}
                     </SortableContext>
@@ -2126,13 +2172,19 @@ export function TierListMaker() {
 
           <DragOverlay adjustScale={false} dropAnimation={null}>
             {activeCard ? (() => {
-              const { width, height, fit } = thumbDimensions(activeCard.kind, activeCard.aspectRatio)
+              const base = thumbDimensions(activeCard.kind, activeCard.aspectRatio)
+              // Pool cards use the zoomed size; charted cards use the fixed tier-row thumb.
+              const isPoolCard = activeCard.tierId === null
+              const overlayW = isPoolCard ? poolThumbW : base.width
+              const overlayH = isPoolCard
+                ? Math.round(base.height * (poolThumbW / base.width))
+                : base.height
               return (
                 <div
                   className="pointer-events-none overflow-hidden opacity-[0.98]"
                   style={{
-                    width,
-                    height,
+                    width: overlayW,
+                    height: overlayH,
                     borderRadius: 8,
                     border: '1px solid var(--border-subtle)',
                     background: 'var(--bg-surface)',
@@ -2161,7 +2213,7 @@ export function TierListMaker() {
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: fit,
+                      objectFit: base.fit,
                       display: 'block',
                       userSelect: 'none',
                     }}
