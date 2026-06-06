@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
   defaultSettings,
+  sampleSettings,
   sampleState,
   type ChartRaceSettings,
   type ChartRaceState,
@@ -62,7 +63,7 @@ export const useChartRace = create<ChartRaceStore>()(
   persist(
     (set) => ({
       ...sampleState(),
-      settings: defaultSettings(),
+      settings: sampleSettings(),
 
       setTitle: (v) => set({ title: v }),
       setSubtitle: (v) => set({ subtitle: v }),
@@ -165,46 +166,39 @@ export const useChartRace = create<ChartRaceStore>()(
     }),
     {
       name: 'tcw-chart-race',
-      version: 6,
-      // Refresh the starter dataset for anyone still sitting on a prior
-      // untouched default (coffee/tea, earlier booster-box cuts, or the
-      // pre-crash-sim real-data version). Anyone who built or imported
-      // their own chart keeps it.
+      version: 7,
+      // Refresh the starter dataset for anyone on a prior untouched default.
+      // Anyone who built or imported their own chart keeps it.
       migrate: (persisted, fromVersion) => {
         const s = (persisted || {}) as Partial<ChartRaceStore>
+        // Helper: is this still the unmodified default OP/SP500/BTC sample?
+        const isDefaultSample = () =>
+          s.title === 'OP vs SP500 vs BTC' &&
+          Array.isArray(s.series) &&
+          s.series.length === 3 &&
+          s.series.some((x) => x.id === 'opbox') &&
+          s.series.some((x) => x.id === 'sp500') &&
+          s.series.some((x) => x.id === 'bitcoin')
         if (fromVersion < 4) {
           const isOldSample =
             s.title === 'Coffee vs Tea' ||
             s.title === 'What if you bought a booster box?' ||
-            s.title === 'OP vs SP500 vs BTC' ||
+            isDefaultSample() ||
             (Array.isArray(s.series) &&
               s.series.length === 2 &&
-              s.series.some((x) => x.id === 'coffee')) ||
-            (Array.isArray(s.series) &&
-              s.series.some((x) => x.id === 'opbox'))
+              s.series.some((x) => x.id === 'coffee'))
           if (isOldSample) {
-            return { ...s, ...sampleState(), settings: defaultSettings() } as ChartRaceStore
+            return { ...s, ...sampleState(), settings: sampleSettings() } as ChartRaceStore
           }
         }
-        // v5: the head value label now defaults OFF.
+        // v5: head value label defaults OFF.
         if (fromVersion < 5 && s.settings) {
           s.settings = { ...s.settings, showValues: false }
         }
-        // v6: replace the old real-data sample with the crash-simulation
-        // sample. Anyone on the default "OP vs SP500 vs BTC" chart with
-        // the standard opbox/sp500/bitcoin series gets the new data.
-        // Custom charts (different title or different series ids) are kept.
-        if (fromVersion < 6) {
-          const isDefaultSample =
-            s.title === 'OP vs SP500 vs BTC' &&
-            Array.isArray(s.series) &&
-            s.series.length === 3 &&
-            s.series.some((x) => x.id === 'opbox') &&
-            s.series.some((x) => x.id === 'sp500') &&
-            s.series.some((x) => x.id === 'bitcoin')
-          if (isDefaultSample) {
-            return { ...s, ...sampleState() } as ChartRaceStore
-          }
+        // v6 + v7: replace old data with current crash-sim + normalize:false.
+        // Covers anyone migrating from any prior default sample version.
+        if (fromVersion < 7 && isDefaultSample()) {
+          return { ...s, ...sampleState(), settings: sampleSettings() } as ChartRaceStore
         }
         return s as ChartRaceStore
       },
