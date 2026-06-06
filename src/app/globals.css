@@ -1136,8 +1136,8 @@ html.lenis, html.lenis body {
 }
 
 .tier-list-thumb--selected {
-  border-color: var(--text-primary);
-  box-shadow: 0 0 0 2px var(--text-primary), var(--shadow-card);
+  border-color: #E85D2A;
+  box-shadow: 0 0 0 2px #E85D2A, var(--shadow-card);
 }
 
 /* Checkmark overlay shown in pool select mode */
@@ -1145,15 +1145,38 @@ html.lenis, html.lenis body {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--text-primary) 18%, transparent);
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 5px;
+  /* No background when unselected — tile looks normal, just the corner
+     indicator shows it's in select mode */
+  background: transparent;
   color: var(--bg);
   border-radius: inherit;
+  transition: background 0.12s ease;
+}
+
+/* Small circle in top-left corner to signal "selectable" state */
+.pool-tile-check::before {
+  content: '';
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: rgba(0,0,0,0.35);
+  flex-shrink: 0;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 .tier-list-thumb--selected .pool-tile-check {
-  background: color-mix(in srgb, var(--text-primary) 42%, transparent);
+  /* Strong dark scrim so selected cards are immediately obvious */
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.tier-list-thumb--selected .pool-tile-check::before {
+  background: #E85D2A;
+  border-color: #E85D2A;
 }
 
 /* Assign-to-tier bar */

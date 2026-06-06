@@ -520,7 +520,17 @@ function SortableCard({
           style={{ pointerEvents: 'none' }}
         >
           {selected && (
-            <Check size={14} strokeWidth={3} />
+            <Check
+              size={11}
+              strokeWidth={3.5}
+              style={{
+                position: 'absolute',
+                top: 9,
+                left: 9,
+                color: '#fff',
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
           )}
         </div>
       )}
