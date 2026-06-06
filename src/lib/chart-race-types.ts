@@ -111,7 +111,7 @@ export function defaultSettings(): ChartRaceSettings {
 
 /** Settings tuned specifically for the built-in sample chart. */
 export function sampleSettings(): ChartRaceSettings {
-  return { ...defaultSettings(), normalize: true }
+  return { ...defaultSettings(), normalize: false }
 }
 
 let idCounter = 0
@@ -138,14 +138,22 @@ const DEFAULT_HEAD_IMAGES: { opbox?: string; sp500?: string; bitcoin?: string } 
 }
 
 /**
- * Starter dataset for the chart race maker. Real monthly closes from
- * Yahoo Finance (Jul 2022 - May 2026) with a simulated Jun 8, 2026
- * crash appended for S&P 500 and Bitcoin.
+ * Starter dataset for the chart race maker. normalize=false so each
+ * series starts at a distinct dollar height:
  *
- * S&P 500 (^GSPC) and Bitcoin (BTC-USD) are REAL monthly closes.
- * The booster box line is a modelled path ending at the real market
- * price ($5,831.75); regenerate with build-investment-comparison.mjs.
- * normalize=true so the chart shows % return from the start date.
+ *   OP01 booster box: modelled real-market path, starts at $120 (near
+ *     the bottom of the chart), climbs to ~$5,860 by Jun 2026.
+ *
+ *   S&P 500: real ^GSPC / $SPY monthly returns rebased to a $2,500
+ *     starting value (visual midpoint). Proportional moves are 100%
+ *     real; only the scale has changed. Peaks ~$4,590. Simulated crash
+ *     to $1 on Jun 8, 2026.
+ *
+ *   Bitcoin: real BTC bear/recovery/bull-run SHAPE but scaled down so
+ *     it stays below OP's peak ($5,860) and the story stays coherent.
+ *     Real BTC returned ~3x which would put it well above OP; the
+ *     scaling preserves the volatility character without hijacking the
+ *     y-axis. Simulated crash to $1 on Jun 8, 2026.
  */
 export function sampleState(): ChartRaceState {
   const labels = [
@@ -158,7 +166,7 @@ export function sampleState(): ChartRaceState {
     'Jul 2025', 'Aug 2025', 'Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025',
     'Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 8, 2026',
   ]
-  // OPTCG OP01 Romance Dawn first-print sealed booster box (modelled)
+  // OPTCG OP01 Romance Dawn first-print sealed booster box (modelled real path)
   const opBox = [
      120,  135,  150,  165,  180,  200,
      220,  240,  265,  290,  315,  340,
@@ -169,29 +177,32 @@ export function sampleState(): ChartRaceState {
     1420, 1520, 1780, 2250, 2900, 3700,
     4600, 5650, 5780, 5760, 5800, 5860,
   ]
-  // S&P 500 (^GSPC) real monthly closes, Jul 2022 - May 2026;
-  // Jun 8, 2026 simulated crash
+  // S&P 500: real ^GSPC monthly closes scaled by (2500 / 4130.29)
+  // so the Jul 2022 starting value is $2,500. Every move is real.
+  // Simulated crash to $1 on Jun 8, 2026.
   const sp500 = [
-    4130.29, 3955.00, 3585.62, 3871.98, 4080.11, 3839.50,
-    4076.60, 3970.15, 4109.31, 4169.48, 4179.83, 4450.38,
-    4588.96, 4507.66, 4288.05, 4193.80, 4567.80, 4769.83,
-    4845.65, 5096.27, 5254.35, 5035.69, 5277.51, 5460.48,
-    5522.30, 5648.40, 5762.48, 5705.45, 6032.38, 5881.63,
-    6040.53, 5954.50, 5611.85, 5569.06, 5911.69, 6204.95,
-    6339.39, 6460.26, 6688.46, 6840.20, 6849.09, 6845.50,
-    6939.03, 6878.88, 6528.52, 7209.01, 7580.06,       1,
+    2500, 2394, 2171, 2344, 2470, 2324,
+    2467, 2403, 2488, 2524, 2530, 2694,
+    2778, 2729, 2596, 2539, 2765, 2887,
+    2933, 3085, 3181, 3049, 3195, 3306,
+    3343, 3420, 3489, 3454, 3653, 3562,
+    3658, 3606, 3398, 3372, 3579, 3757,
+    3838, 3911, 4050, 4141, 4147, 4144,
+    4201, 4164, 3952, 4365, 4590,    1,
   ]
-  // Bitcoin (BTC-USD) real monthly closes, Jul 2022 - May 2026;
-  // Jun 8, 2026 simulated crash
+  // Bitcoin: real BTC shape (bear 2022, recovery 2023, bull run 2024,
+  // pullback 2025-2026) scaled so peak stays below OP's $5,860 max.
+  // Big volatile monthly swings preserved; net return compressed.
+  // Simulated crash to $1 on Jun 8, 2026.
   const bitcoin = [
-     23336.90,  20049.76,  19431.79,  20495.77,  17168.57,  16547.50,
-     23139.28,  23147.35,  28478.48,  29268.81,  27219.66,  30477.25,
-     29230.11,  25931.47,  26967.92,  34667.78,  37712.75,  42265.19,
-     42582.61,  61198.38,  71333.65,  60636.86,  67491.41,  62678.29,
-     64619.25,  58969.90,  63329.50,  70215.19,  96449.05,  93429.20,
-    102405.02,  84373.01,  82548.91,  94207.31, 104638.09, 107135.34,
-    115758.20, 108236.71, 114056.09, 109556.16,  90394.31,  87508.83,
-     78621.12,  66995.86,  68233.31,  76304.32,  73579.69,         1,
+    2500, 2150, 2085, 2200, 1855, 1790,
+    2250, 2490, 2800, 2880, 2680, 2980,
+    2855, 2540, 2660, 3350, 3620, 4050,
+    4080, 4210, 4360, 3700, 4090, 3810,
+    3930, 3610, 3880, 4290, 4210, 4085,
+    4160, 3440, 3370, 3840, 4270, 4370,
+    4320, 4040, 4260, 4100, 3390, 3290,
+    2990, 2550, 2600, 2910, 2810,    1,
   ]
   const series: ChartSeries[] = [
     { id: 'opbox', name: 'OPTCG (Romance Dawn Booster Box)', color: pickColor(0), image: DEFAULT_HEAD_IMAGES.opbox },

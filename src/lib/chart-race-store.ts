@@ -143,7 +143,7 @@ export const useChartRace = create<ChartRaceStore>()(
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
 
-      loadSample: () => set({ ...sampleState() }),
+      loadSample: () => set({ ...sampleState(), settings: sampleSettings() }),
       clearData: () => set({ series: [], rows: [] }),
       clearLabels: () =>
         set({
@@ -166,7 +166,7 @@ export const useChartRace = create<ChartRaceStore>()(
     }),
     {
       name: 'tcw-chart-race',
-      version: 8,
+      version: 9,
       // Refresh the starter dataset for anyone on a prior untouched default.
       // Anyone who built or imported their own chart keeps it.
       migrate: (persisted, fromVersion) => {
@@ -195,8 +195,8 @@ export const useChartRace = create<ChartRaceStore>()(
         if (fromVersion < 5 && s.settings) {
           s.settings = { ...s.settings, showValues: false }
         }
-        // v6-v8: replace any prior default crash-sim with current real+crash data.
-        if (fromVersion < 8 && isDefaultSample()) {
+        // v6-v9: replace any prior default sample with current data + settings.
+        if (fromVersion < 9 && isDefaultSample()) {
           return { ...s, ...sampleState(), settings: sampleSettings() } as ChartRaceStore
         }
         return s as ChartRaceStore
