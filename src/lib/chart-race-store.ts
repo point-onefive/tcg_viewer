@@ -166,7 +166,7 @@ export const useChartRace = create<ChartRaceStore>()(
     }),
     {
       name: 'tcw-chart-race',
-      version: 7,
+      version: 8,
       // Refresh the starter dataset for anyone on a prior untouched default.
       // Anyone who built or imported their own chart keeps it.
       migrate: (persisted, fromVersion) => {
@@ -195,9 +195,8 @@ export const useChartRace = create<ChartRaceStore>()(
         if (fromVersion < 5 && s.settings) {
           s.settings = { ...s.settings, showValues: false }
         }
-        // v6 + v7: replace old data with current crash-sim + normalize:false.
-        // Covers anyone migrating from any prior default sample version.
-        if (fromVersion < 7 && isDefaultSample()) {
+        // v6-v8: replace any prior default crash-sim with current real+crash data.
+        if (fromVersion < 8 && isDefaultSample()) {
           return { ...s, ...sampleState(), settings: sampleSettings() } as ChartRaceStore
         }
         return s as ChartRaceStore

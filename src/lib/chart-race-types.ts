@@ -111,7 +111,7 @@ export function defaultSettings(): ChartRaceSettings {
 
 /** Settings tuned specifically for the built-in sample chart. */
 export function sampleSettings(): ChartRaceSettings {
-  return { ...defaultSettings(), normalize: false }
+  return { ...defaultSettings(), normalize: true }
 }
 
 let idCounter = 0
@@ -138,16 +138,14 @@ const DEFAULT_HEAD_IMAGES: { opbox?: string; sp500?: string; bitcoin?: string } 
 }
 
 /**
- * Starter dataset for the chart race maker. Simulated crash scenario:
- * raw dollar values with normalize=false so each line starts at its
- * actual dollar amount:
- *   - OPTCG booster box: starts at $500 (bottom of chart), compounds
- *     ~5%/month to ~$4,939 by mid-2026.
- *   - S&P 500: starts at $2,500 (visual midpoint), tight +-3% oscillation,
- *     crashes to $1 on Jun 8, 2026.
- *   - Bitcoin: starts at $2,500 (visual midpoint), wider +-10% oscillation,
- *     crashes to $1 on Jun 8, 2026.
- * This is a simulation, not real market data.
+ * Starter dataset for the chart race maker. Real monthly closes from
+ * Yahoo Finance (Jul 2022 - May 2026) with a simulated Jun 8, 2026
+ * crash appended for S&P 500 and Bitcoin.
+ *
+ * S&P 500 (^GSPC) and Bitcoin (BTC-USD) are REAL monthly closes.
+ * The booster box line is a modelled path ending at the real market
+ * price ($5,831.75); regenerate with build-investment-comparison.mjs.
+ * normalize=true so the chart shows % return from the start date.
  */
 export function sampleState(): ChartRaceState {
   const labels = [
@@ -160,40 +158,40 @@ export function sampleState(): ChartRaceState {
     'Jul 2025', 'Aug 2025', 'Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025',
     'Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 8, 2026',
   ]
-  // OPTCG booster box: starts at $500, ~5%/month compound growth to ~$4,939
+  // OPTCG OP01 Romance Dawn first-print sealed booster box (modelled)
   const opBox = [
-     500,  525,  551,  578,  607,  637,
-     669,  702,  737,  774,  813,  853,
-     896,  941,  988, 1037, 1089, 1143,
-    1200, 1260, 1323, 1389, 1459, 1531,
-    1608, 1688, 1773, 1862, 1954, 2052,
-    2154, 2262, 2375, 2494, 2619, 2750,
-    2888, 3032, 3184, 3343, 3510, 3686,
-    3870, 4064, 4267, 4480, 4704, 4939,
+     120,  135,  150,  165,  180,  200,
+     220,  240,  265,  290,  315,  340,
+     370,  400,  430,  460,  495,  530,
+     565,  600,  640,  680,  720,  760,
+     800,  845,  890,  935,  980, 1025,
+    1070, 1110, 1155, 1195, 1225, 1260,
+    1420, 1520, 1780, 2250, 2900, 3700,
+    4600, 5650, 5780, 5760, 5800, 5860,
   ]
-  // S&P 500: natural drift around $2,500 with multi-month runs and varied
-  // move sizes (not alternating). Range ~$2,480-$2,582. Crashes to $1 Jun 8.
+  // S&P 500 (^GSPC) real monthly closes, Jul 2022 - May 2026;
+  // Jun 8, 2026 simulated crash
   const sp500 = [
-    2500, 2538, 2558, 2528, 2498, 2520,
-    2548, 2575, 2548, 2518, 2545, 2568,
-    2540, 2508, 2482, 2512, 2545, 2568,
-    2548, 2578, 2558, 2528, 2558, 2582,
-    2558, 2535, 2508, 2542, 2568, 2545,
-    2518, 2548, 2575, 2548, 2512, 2542,
-    2568, 2548, 2518, 2548, 2525, 2498,
-    2528, 2558, 2535, 2512, 2542,    1,
+    4130.29, 3955.00, 3585.62, 3871.98, 4080.11, 3839.50,
+    4076.60, 3970.15, 4109.31, 4169.48, 4179.83, 4450.38,
+    4588.96, 4507.66, 4288.05, 4193.80, 4567.80, 4769.83,
+    4845.65, 5096.27, 5254.35, 5035.69, 5277.51, 5460.48,
+    5522.30, 5648.40, 5762.48, 5705.45, 6032.38, 5881.63,
+    6040.53, 5954.50, 5611.85, 5569.06, 5911.69, 6204.95,
+    6339.39, 6460.26, 6688.46, 6840.20, 6849.09, 6845.50,
+    6939.03, 6878.88, 6528.52, 7209.01, 7580.06,       1,
   ]
-  // Bitcoin: wider multi-month runs, bigger swings (~$2,320-$2,760),
-  // genuinely volatile feel. Crashes to $1 Jun 8.
+  // Bitcoin (BTC-USD) real monthly closes, Jul 2022 - May 2026;
+  // Jun 8, 2026 simulated crash
   const bitcoin = [
-    2500, 2640, 2720, 2580, 2420, 2320,
-    2480, 2640, 2760, 2680, 2540, 2420,
-    2560, 2680, 2580, 2440, 2560, 2700,
-    2620, 2480, 2360, 2520, 2680, 2760,
-    2640, 2520, 2400, 2540, 2680, 2600,
-    2460, 2580, 2700, 2620, 2480, 2600,
-    2720, 2640, 2520, 2640, 2540, 2420,
-    2560, 2680, 2560, 2440, 2560,    1,
+     23336.90,  20049.76,  19431.79,  20495.77,  17168.57,  16547.50,
+     23139.28,  23147.35,  28478.48,  29268.81,  27219.66,  30477.25,
+     29230.11,  25931.47,  26967.92,  34667.78,  37712.75,  42265.19,
+     42582.61,  61198.38,  71333.65,  60636.86,  67491.41,  62678.29,
+     64619.25,  58969.90,  63329.50,  70215.19,  96449.05,  93429.20,
+    102405.02,  84373.01,  82548.91,  94207.31, 104638.09, 107135.34,
+    115758.20, 108236.71, 114056.09, 109556.16,  90394.31,  87508.83,
+     78621.12,  66995.86,  68233.31,  76304.32,  73579.69,         1,
   ]
   const series: ChartSeries[] = [
     { id: 'opbox', name: 'OPTCG (Romance Dawn Booster Box)', color: pickColor(0), image: DEFAULT_HEAD_IMAGES.opbox },
