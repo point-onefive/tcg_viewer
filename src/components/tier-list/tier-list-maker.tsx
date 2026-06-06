@@ -1080,11 +1080,19 @@ export function TierListMaker() {
   // default). Range mirrors the mobile card-wall slider so the UX
   // language is consistent.
   const [poolZoom, setPoolZoom] = useState(4)
+  // Chart zoom: independent from pool zoom so the user can have a
+  // compact pool overview while keeping chart tiles large (or vice
+  // versa). Same step range and math as poolZoom.
+  const [chartZoom, setChartZoom] = useState(4)
 
   // Map the 1-13 zoom step to a tile width. Step 4 → 78px (original
   // THUMB_W_DEFAULT) so the default view is unchanged. Steps below 4
   // shrink down to ~36px; steps above scale up to ~220px.
   const poolThumbW = Math.round(36 + (poolZoom - 1) * (220 - 36) / 12)
+  const chartThumbW = Math.round(36 + (chartZoom - 1) * (220 - 36) / 12)
+  // Portrait height derived from chart width (5:7 ratio) — used to
+  // set the tier row min-height so empty rows scale with the zoom.
+  const chartThumbH = Math.round(chartThumbW * (7 / 5))
 
   const toggleSelectMode = useCallback(() => {
     setSelectMode((v) => {
@@ -1948,6 +1956,30 @@ export function TierListMaker() {
                 : 'var(--text-muted)'
               return (
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* Chart zoom scrubber */}
+                  <div
+                    className="flex items-center gap-2 px-3 shrink-0"
+                    style={{ ...ctrlBase, height: 28 }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                      <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+                    </svg>
+                    <input
+                      type="range" min={1} max={13} step={1} value={chartZoom}
+                      onChange={(e) => setChartZoom(Number(e.target.value))}
+                      className="zoom-slider" aria-label="Chart tile size"
+                      style={{ width: 80 }}
+                    />
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                      <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                      <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+                    </svg>
+                  </div>
                   {(exportFlash || emptyHint) && (
                     <span
                       role="status"
@@ -2143,8 +2175,8 @@ export function TierListMaker() {
                   </div>
                   <DropZone
                     id={`tier-${tier.id}`}
-                    className="flex min-h-[112px] flex-1 flex-wrap content-center items-center gap-2 p-2"
-                    style={{ background: 'var(--bg-surface)' }}
+                    className="flex flex-1 flex-wrap content-center items-center gap-2 p-2"
+                    style={{ background: 'var(--bg-surface)', minHeight: chartThumbH + 16 }}
                   >
                     {(() => {
                       const rowCards = cards.filter((c) => c.tierId === tier.id)
@@ -2158,6 +2190,7 @@ export function TierListMaker() {
                               kind={c.kind}
                               aspectRatio={c.aspectRatio}
                               onRemove={() => removeCard(c.id)}
+                              thumbOverrideW={chartThumbW}
                             />
                           ))}
                         </SortableContext>
@@ -2173,12 +2206,10 @@ export function TierListMaker() {
           <DragOverlay adjustScale={false} dropAnimation={null}>
             {activeCard ? (() => {
               const base = thumbDimensions(activeCard.kind, activeCard.aspectRatio)
-              // Pool cards use the zoomed size; charted cards use the fixed tier-row thumb.
+              // Pool cards use the zoomed pool size; charted cards use the chart zoom.
               const isPoolCard = activeCard.tierId === null
-              const overlayW = isPoolCard ? poolThumbW : base.width
-              const overlayH = isPoolCard
-                ? Math.round(base.height * (poolThumbW / base.width))
-                : base.height
+              const overlayW = isPoolCard ? poolThumbW : chartThumbW
+              const overlayH = Math.round(base.height * (overlayW / base.width))
               return (
                 <div
                   className="pointer-events-none overflow-hidden opacity-[0.98]"
