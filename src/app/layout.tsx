@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   title: 'The Card Wall',
   description: "Find something you didn't know existed.",
   metadataBase: new URL('https://thecardwall.com'),
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
+  },
   openGraph: {
     title: 'The Card Wall',
     description: "Find something you didn't know existed.",
