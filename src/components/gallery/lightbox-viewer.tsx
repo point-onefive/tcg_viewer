@@ -134,6 +134,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
       distribution: card.distribution,
       stamp: null as string | null,
       comingSoon: false,
+      artist: card.artist ?? null,
     }
     const variants = (card.variants ?? []).map((v) => ({
       id: v.id,
@@ -142,6 +143,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
       distribution: v.distribution,
       stamp: v.stamp ?? null,
       comingSoon: v.comingSoon ?? false,
+      artist: v.limitless_artist ?? card.artist ?? null,
     }))
     return [base, ...variants]
   }, [card])
@@ -671,6 +673,21 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               if (!focusedId) return null
               return <PricePanel wallCardId={focusedId} collection={activeCollection} />
             })()}
+
+            {/* Artist credit — shown when the focused print has a known
+                illustrator. Pokémon carries this on every card (~92%
+                coverage); One Piece only on Limitless-sourced variants. */}
+            {images[safeFocused]?.artist && (
+              <p
+                className="text-[11px] text-center"
+                style={{ color: 'var(--lb-fg-muted)', opacity: 0.65, letterSpacing: '0.04em' }}
+              >
+                Illustrated by{' '}
+                <span style={{ opacity: 1, fontWeight: 500 }}>
+                  {images[safeFocused].artist}
+                </span>
+              </p>
+            )}
           </div>
         </motion.div>
       )}

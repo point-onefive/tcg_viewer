@@ -109,6 +109,7 @@ const cards = dedupedRaw.map((c) => {
     types: Array.isArray(c.subtypes) ? c.subtypes : [],
     effect,
     trigger: undefined,
+    artist: c.artist || undefined,
     imageSmall: r2Url(c.id),
     imageLarge: r2Url(c.id),
     variants: undefined,

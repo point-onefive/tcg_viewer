@@ -432,6 +432,7 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
           if (v && v.toLowerCase().includes(q)) return true
         }
       }
+      if (c.artist && c.artist.toLowerCase().includes(q)) return true
       return false
     })
   }

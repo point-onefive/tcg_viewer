@@ -231,6 +231,10 @@ export type Card = {
   // on any other region's cardlist). Powers the "language exclusives"
   // narrowing filter.
   exclusiveTo?: CardLanguage[]
+  // Illustrator / artist credit as printed on the card.
+  // Populated for Pokémon (from pokemontcg.io) and for One Piece
+  // Limitless-sourced variants (stored on CardVariant.limitless_artist).
+  artist?: string
   imageSmall: string
   imageLarge?: string
   // Per-language image URLs for the base (non-variant) card. Same
