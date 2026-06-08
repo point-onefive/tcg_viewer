@@ -54,6 +54,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     activeColor,
     activeCardType,
     activeSubtype,
+    activeArtist,
     onlyAltArt,
     onlyErrata,
     flattenWall,
@@ -78,13 +79,14 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
         activeColor,
         activeCardType,
         activeSubtype,
+        activeArtist,
         onlyAltArt,
         onlyErrata,
         searchQuery,
         flatten: flattenWall,
         language,
       }),
-    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, onlyAltArt, onlyErrata, searchQuery, flattenWall, language],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, activeArtist, onlyAltArt, onlyErrata, searchQuery, flattenWall, language],
   )
 
   // Card lookup uses the *unfiltered* pool on purpose: if the user

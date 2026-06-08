@@ -65,6 +65,9 @@ interface StoreState {
   // Pokémon subtype/era filter (ex, VMAX, Tera, Stage 1, etc.)
   activeSubtype: string | null
   setActiveSubtype: (s: string | null) => void
+  // Artist filter — populated for Pokémon; null for all other collections.
+  activeArtist: string | null
+  setActiveArtist: (a: string | null) => void
   // When true, only show cards with at least one variant (alt art).
   // In stacked mode: hide cards with zero variants. In flatten mode:
   // hide base prints and show variant tiles only (see buildWallEntries).
@@ -205,6 +208,7 @@ export const useStore = create<StoreState>()(
           activeColor: null,
           activeCardType: null,
           activeSubtype: null,
+          activeArtist: null,
           onlyAltArt: false,
           onlyErrata: false,
           flattenWall: false,
@@ -223,6 +227,8 @@ export const useStore = create<StoreState>()(
       setActiveCardType: (activeCardType) => set({ activeCardType }),
       activeSubtype: null,
       setActiveSubtype: (activeSubtype) => set({ activeSubtype }),
+      activeArtist: null,
+      setActiveArtist: (activeArtist) => set({ activeArtist }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
       onlyErrata: false,
@@ -369,7 +375,7 @@ export const useStore = create<StoreState>()(
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 18,
+      version: 19,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -490,6 +496,10 @@ export const useStore = create<StoreState>()(
         if (fromVersion < 18) {
           // v18 adds Pokémon subtype filter (default = no filter).
           s.activeSubtype = null
+        }
+        if (fromVersion < 19) {
+          // v19 adds artist filter (default = no filter).
+          s.activeArtist = null
         }
         return s as StoreState
       },

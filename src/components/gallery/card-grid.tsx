@@ -112,6 +112,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     activeSubtype, setActiveSubtype,
+    activeArtist, setActiveArtist,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -334,6 +335,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         activeColor,
         activeCardType,
         activeSubtype,
+        activeArtist,
         onlyAltArt,
         onlyErrata,
         searchQuery,
@@ -351,7 +353,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       }
       return result
     },
-    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, activeArtist, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
   )
 
   // Regroup entries into contiguous blocks by *display* set. A tile's
@@ -578,7 +580,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
           )}
         </div>
         {/* Active filter chips - visible only when at least one filter is on */}
-        {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
+        {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <span
               className="text-[10px] tracking-[0.18em] uppercase mr-1"
@@ -610,6 +612,9 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 onClear={() => setActiveSubtype(null)}
               />
             )}
+            {activeArtist && (
+              <FilterChip label={activeArtist} onClear={() => setActiveArtist(null)} />
+            )}
             {onlyAltArt && (
               <FilterChip
                 label={flattenWall ? 'Alt prints only' : 'Has alt art'}
@@ -636,6 +641,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setActiveColor(null)
                 setActiveCardType(null)
                 setActiveSubtype(null)
+                setActiveArtist(null)
                 setOnlyAltArt(false)
                 setOnlyErrata(false)
                 setFlattenWall(false)

@@ -18,6 +18,7 @@ import { COLLECTION_FACETS, type FacetOption } from '@/lib/collection-facets'
 
 interface HeaderProps {
   sets: CardSet[]
+  artists: string[]
 }
 
 /**
@@ -40,6 +41,155 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   { value: 'EN', label: 'EN', description: 'English (Bandai EN + Asia-EN cardlists).' },
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
 ]
+
+/**
+ * Typeahead combobox for the artist filter. Renders a text input that
+ * filters a dropdown of matching artist names as you type. Only shown
+ * when the active collection carries artist data (artists.length > 0).
+ */
+function ArtistTypeahead({
+  value,
+  onChange,
+  artists,
+  ctrl,
+  ctrlActive,
+}: {
+  value: string | null
+  onChange: (v: string | null) => void
+  artists: string[]
+  ctrl: React.CSSProperties
+  ctrlActive: React.CSSProperties
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Close on outside click or Escape
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setQuery('')
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setOpen(false); setQuery('') }
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const filtered = query.trim().length > 0
+    ? artists.filter((a) => a.toLowerCase().includes(query.toLowerCase().trim())).slice(0, 40)
+    : []
+
+  // When a value is selected, show it as the trigger label
+  if (value) {
+    return (
+      <div
+        className="shrink-0 inline-flex items-center gap-1 px-3 text-xs font-medium footer-btn"
+        style={{ ...(ctrlActive), height: 30, gap: 6 }}
+      >
+        <span className="truncate" style={{ maxWidth: 140 }}>{value}</span>
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          aria-label="Clear artist filter"
+          className="outline-none"
+          style={{ color: 'inherit', opacity: 0.7, lineHeight: 1, flexShrink: 0 }}
+        >
+          ×
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div ref={wrapperRef} className="relative shrink-0">
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder="Artist…"
+        value={query}
+        onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        className="footer-btn px-3 text-xs font-medium outline-none"
+        style={{
+          ...ctrl,
+          height: 30,
+          width: 110,
+          cursor: 'text',
+          background: open ? 'color-mix(in srgb, var(--text-primary) 4%, var(--bg-surface))' : undefined,
+        }}
+        aria-label="Filter by artist"
+        aria-autocomplete="list"
+        aria-expanded={open && filtered.length > 0}
+        autoComplete="off"
+      />
+      <AnimatePresence>
+        {open && filtered.length > 0 && (
+          <motion.div
+            role="listbox"
+            aria-label="Artist options"
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 top-full mt-1.5"
+            style={{
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              minWidth: 200,
+              maxHeight: 280,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              zIndex: 200,
+              padding: 4,
+            }}
+          >
+            {filtered.map((artist) => (
+              <button
+                key={artist}
+                type="button"
+                role="option"
+                aria-selected={false}
+                onClick={() => {
+                  onChange(artist)
+                  setQuery('')
+                  setOpen(false)
+                }}
+                className="w-full flex items-center px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
+                style={{
+                  height: 30,
+                  borderRadius: 5,
+                  background: 'transparent',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                {artist}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 /**
  * Custom popover dropdown for a single-select filter facet. Replaces
@@ -580,7 +730,7 @@ function MobileMoreFiltersMenu({
   )
 }
 
-export function Header({ sets }: HeaderProps) {
+export function Header({ sets, artists }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
@@ -588,6 +738,7 @@ export function Header({ sets }: HeaderProps) {
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
     activeSubtype, setActiveSubtype,
+    activeArtist, setActiveArtist,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -1213,6 +1364,15 @@ export function Header({ sets }: HeaderProps) {
             ))}
           </select>
         )}
+        {artists.length > 0 && (
+          <ArtistTypeahead
+            value={activeArtist}
+            onChange={setActiveArtist}
+            artists={artists}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+          />
+        )}
         <MobileMoreFiltersMenu
           showVariantToggles={showVariantToggles}
           isOnePiece={isOnePiece}
@@ -1504,6 +1664,15 @@ export function Header({ sets }: HeaderProps) {
               ctrlActive={ctrlActive}
               menuMinWidth={170}
               menuMaxHeight={320}
+            />
+          )}
+          {artists.length > 0 && (
+            <ArtistTypeahead
+              value={activeArtist}
+              onChange={setActiveArtist}
+              artists={artists}
+              ctrl={ctrl}
+              ctrlActive={ctrlActive}
             />
           )}
           {showVariantToggles && (

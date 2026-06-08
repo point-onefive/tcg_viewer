@@ -33,6 +33,17 @@ export default function Home() {
     const codesWithCards = new Set(cards.map((c) => c.setCode))
     return rawSets.filter((s) => codesWithCards.has(s.setCode))
   }, [rawSets, cards])
+  // Sorted unique artist list — only collections where cards carry the
+  // artist field (currently Pokémon). Empty array for all others so
+  // the Header can conditionally render the typeahead without importing
+  // collection-specific logic.
+  const artists = useMemo(() => {
+    const seen = new Set<string>()
+    for (const c of cards) {
+      if (c.artist) seen.add(c.artist)
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b))
+  }, [cards])
   const ready = hasData(activeCollection)
 
   // The old first-visit OnboardingTour was removed in favour of a
@@ -43,7 +54,7 @@ export default function Home() {
   // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
-      <Header sets={sets} />
+      <Header sets={sets} artists={artists} />
       {ready ? (
         <>
           <CardGrid cards={cards} sets={sets} />

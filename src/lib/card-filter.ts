@@ -17,6 +17,8 @@ export interface CardFilterState {
   // "Tera", "Stage 1"). Null = no filter. Ignored for non-Pokémon collections
   // since other collections don't have the same attributes vocabulary.
   activeSubtype: string | null
+  // Artist filter — exact match against card.artist.
+  activeArtist: string | null
   onlyAltArt: boolean
   // When true, restrict the wall to the curated list of One Piece
   // cards that have received an official errata. List lives in
@@ -407,6 +409,10 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   if (f.activeSubtype) {
     const sub = f.activeSubtype
     result = result.filter((c) => c.attributes?.includes(sub))
+  }
+  if (f.activeArtist) {
+    const a = f.activeArtist
+    result = result.filter((c) => c.artist === a)
   }
   if (f.onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
   if (f.onlyErrata) result = result.filter((c) => ONE_PIECE_ERRATA_CODES.has(c.code))
