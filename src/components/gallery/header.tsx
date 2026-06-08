@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
-import { COLLECTION_FACETS } from '@/lib/collection-facets'
+import { COLLECTION_FACETS, facetSelectLabel, type FacetOption } from '@/lib/collection-facets'
 // Per-collection facet config lives in `@/lib/collection-facets`.
 // Card type / Rarity / Color values vary by TCG; this header just
 // reads `COLLECTION_FACETS[activeCollection]` and renders generic
@@ -41,8 +41,6 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
 ]
 
-type FacetOption = { value: string; label: string; swatch?: string }
-
 /**
  * Custom popover dropdown for a single-select filter facet. Replaces
  * the native <select> for the in-app Card type / Colour pickers so the
@@ -62,6 +60,15 @@ type FacetOption = { value: string; label: string; swatch?: string }
  * the label (used by the Colour facet) so the dropdown reads as a
  * palette, not a plain text list.
  */
+function FacetStars({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="facet-stars" aria-hidden>
+      {'★'.repeat(count)}
+    </span>
+  )
+}
+
 function FacetPopover({
   placeholder,
   ariaLabel,
@@ -156,8 +163,12 @@ function FacetPopover({
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             minWidth: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
           }}
         >
+          {selectedOption?.stars ? <FacetStars count={selectedOption.stars} /> : null}
           {triggerLabel}
         </span>
         <ChevronDown
@@ -218,6 +229,7 @@ function FacetPopover({
               <FacetOptionRow
                 key={opt.value}
                 label={opt.label}
+                stars={opt.stars}
                 swatch={opt.swatch}
                 selected={value === opt.value}
                 onClick={() => {
@@ -240,11 +252,13 @@ function FacetPopover({
  */
 function FacetOptionRow({
   label,
+  stars,
   swatch,
   selected,
   onClick,
 }: {
   label: string
+  stars?: number
   swatch?: string
   selected: boolean
   onClick: () => void
@@ -293,6 +307,7 @@ function FacetOptionRow({
           }}
         />
       )}
+      {stars ? <FacetStars count={stars} /> : null}
       <span className="flex-1">{label}</span>
     </button>
   )
@@ -589,6 +604,7 @@ export function Header({ sets }: HeaderProps) {
     activeRarity, setActiveRarity,
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
+    activeSubtype, setActiveSubtype,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -613,7 +629,14 @@ export function Header({ sets }: HeaderProps) {
   const facets = COLLECTION_FACETS[activeCollection]
   const isOnePiece = activeCollection === 'one-piece'
   const isGundam = activeCollection === 'gundam'
+  const isPokemon = activeCollection === 'pokemon'
   const hasPricing = isOnePiece || isGundam
+  // Collections that have a meaningful `power` field (HP for Pokémon,
+  // power stat for OP/Gundam). Used to show/hide the "Power ↓" sort option.
+  const hasPower = isOnePiece || isGundam || isPokemon
+  // Collections that have a meaningful `cost` field. Pokémon cost is always
+  // null in the bundle, so cost sort is pointless there.
+  const hasCost = !isPokemon
   const showVariantToggles = facets.hasVariants
   const altArtTitle = flattenWall
     ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
@@ -1157,7 +1180,7 @@ export function Header({ sets }: HeaderProps) {
           <option value="">All rarities</option>
           {facets.rarities.map((r) => (
             <option key={r.value} value={r.value}>
-              {r.label}
+              {facetSelectLabel(r)}
             </option>
           ))}
         </select>
@@ -1183,6 +1206,30 @@ export function Header({ sets }: HeaderProps) {
             </option>
           ))}
         </select>
+        {facets.subtypes && (
+          <select
+            value={activeSubtype || ''}
+            onChange={(e) => setActiveSubtype(e.target.value || null)}
+            className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
+            style={{
+              ...(activeSubtype ? ctrlActive : ctrl),
+              height: 30,
+              paddingRight: 22,
+              backgroundImage:
+                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 6px center',
+            }}
+            aria-label="Filter by subtype"
+          >
+            <option value="">All subtypes</option>
+            {facets.subtypes.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        )}
         <MobileMoreFiltersMenu
           showVariantToggles={showVariantToggles}
           isOnePiece={isOnePiece}
@@ -1232,11 +1279,11 @@ export function Header({ sets }: HeaderProps) {
           aria-label="Sort cards"
         >
           <option value="default">Sort: Default</option>
-          <option value="cost-asc">Cost ↑</option>
-          <option value="cost-desc">Cost ↓</option>
+          {hasCost && <option value="cost-asc">Cost ↑</option>}
+          {hasCost && <option value="cost-desc">Cost ↓</option>}
           <option value="rarity">Rarity</option>
           <option value="type">Card type</option>
-          {(isOnePiece || isGundam) && <option value="power-desc">Power ↓</option>}
+          {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : 'Power ↓'}</option>}
           {hasPricing && <option value="price-desc">Price ↓</option>}
         </select>
 
@@ -1463,6 +1510,19 @@ export function Header({ sets }: HeaderProps) {
             ctrlActive={ctrlActive}
             menuMinWidth={150}
           />
+          {facets.subtypes && (
+            <FacetPopover
+              placeholder="All subtypes"
+              ariaLabel="Filter by subtype / era"
+              value={activeSubtype}
+              onChange={setActiveSubtype}
+              options={facets.subtypes}
+              ctrl={ctrl}
+              ctrlActive={ctrlActive}
+              menuMinWidth={170}
+              menuMaxHeight={320}
+            />
+          )}
           {showVariantToggles && (
             <>
               <button
@@ -1582,11 +1642,11 @@ export function Header({ sets }: HeaderProps) {
             aria-label="Sort cards"
           >
             <option value="default">Sort: Default</option>
-            <option value="cost-asc">Cost ↑</option>
-            <option value="cost-desc">Cost ↓</option>
+            {hasCost && <option value="cost-asc">Cost ↑</option>}
+            {hasCost && <option value="cost-desc">Cost ↓</option>}
             <option value="rarity">Rarity</option>
             <option value="type">Card type</option>
-            {(isOnePiece || isGundam) && <option value="power-desc">Power ↓</option>}
+            {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : 'Power ↓'}</option>}
             {hasPricing && <option value="price-desc">Price ↓</option>}
           </select>
 
