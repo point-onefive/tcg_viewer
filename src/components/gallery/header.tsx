@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
-import { COLLECTION_FACETS } from '@/lib/collection-facets'
+import { COLLECTION_FACETS, facetSelectLabel, type FacetOption } from '@/lib/collection-facets'
 // Per-collection facet config lives in `@/lib/collection-facets`.
 // Card type / Rarity / Color values vary by TCG; this header just
 // reads `COLLECTION_FACETS[activeCollection]` and renders generic
@@ -41,8 +41,6 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
 ]
 
-type FacetOption = { value: string; label: string; swatch?: string }
-
 /**
  * Custom popover dropdown for a single-select filter facet. Replaces
  * the native <select> for the in-app Card type / Colour pickers so the
@@ -62,6 +60,15 @@ type FacetOption = { value: string; label: string; swatch?: string }
  * the label (used by the Colour facet) so the dropdown reads as a
  * palette, not a plain text list.
  */
+function FacetStars({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="facet-stars" aria-hidden>
+      {'★'.repeat(count)}
+    </span>
+  )
+}
+
 function FacetPopover({
   placeholder,
   ariaLabel,
@@ -156,8 +163,12 @@ function FacetPopover({
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             minWidth: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
           }}
         >
+          {selectedOption?.stars ? <FacetStars count={selectedOption.stars} /> : null}
           {triggerLabel}
         </span>
         <ChevronDown
@@ -218,6 +229,7 @@ function FacetPopover({
               <FacetOptionRow
                 key={opt.value}
                 label={opt.label}
+                stars={opt.stars}
                 swatch={opt.swatch}
                 selected={value === opt.value}
                 onClick={() => {
@@ -240,11 +252,13 @@ function FacetPopover({
  */
 function FacetOptionRow({
   label,
+  stars,
   swatch,
   selected,
   onClick,
 }: {
   label: string
+  stars?: number
   swatch?: string
   selected: boolean
   onClick: () => void
@@ -293,6 +307,7 @@ function FacetOptionRow({
           }}
         />
       )}
+      {stars ? <FacetStars count={stars} /> : null}
       <span className="flex-1">{label}</span>
     </button>
   )
@@ -1165,7 +1180,7 @@ export function Header({ sets }: HeaderProps) {
           <option value="">All rarities</option>
           {facets.rarities.map((r) => (
             <option key={r.value} value={r.value}>
-              {r.label}
+              {facetSelectLabel(r)}
             </option>
           ))}
         </select>

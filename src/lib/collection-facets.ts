@@ -28,6 +28,8 @@ export type FacetOption = {
   value: string
   label: string
   swatch?: string
+  /** Optional gold-star prefix count (Pokémon IR/SIR/Hyper Rare). */
+  stars?: number
 }
 
 export type CollectionFacets = {
@@ -108,9 +110,9 @@ const POKEMON: CollectionFacets = {
   // Curated subset · Pokémon ships 25+ rarity strings. Ordered high → low
   // prestige so the popover reads as a natural scale.
   rarities: [
-    { value: 'Hyper Rare',                label: '✦✦✦ Hyper Rare' },
-    { value: 'Special Illustration Rare', label: '✦✦ Special Illustration' },
-    { value: 'Illustration Rare',         label: '✦ Illustration Rare' },
+    { value: 'Hyper Rare',                label: 'Hyper Rare',           stars: 3 },
+    { value: 'Special Illustration Rare', label: 'Special Illustration', stars: 2 },
+    { value: 'Illustration Rare',         label: 'Illustration Rare',    stars: 1 },
     { value: 'Shiny Ultra Rare',          label: 'Shiny Ultra Rare' },
     { value: 'Rare Rainbow',              label: 'Rainbow Rare' },
     { value: 'Rare Secret',               label: 'Secret Rare' },
@@ -242,4 +244,10 @@ export function facetLabel(
 ): string {
   if (!value) return ''
   return options.find((o) => o.value === value)?.label ?? value
+}
+
+/** Plain-text label for native <select> options (includes ★ prefix). */
+export function facetSelectLabel(opt: FacetOption): string {
+  if (!opt.stars) return opt.label
+  return `${'★'.repeat(opt.stars)} ${opt.label}`
 }
