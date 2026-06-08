@@ -2074,15 +2074,6 @@ html.lenis, html.lenis body {
   }
 }
 
-/* Gold ★ prefix for Pokémon premium rarities in facet popovers. */
-.facet-stars {
-  color: #c9a227;
-  font-size: 0.72em;
-  letter-spacing: -0.06em;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
 /* ─── Toolbar press affordance (site-wide) ────────────────────
    Hover lift + active press for pill-shaped controls. Used on
    header filters, tier-list actions, footer links, board panel,
