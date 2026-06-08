@@ -111,6 +111,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     activeRarity, setActiveRarity,
     activeColor, setActiveColor,
     activeCardType, setActiveCardType,
+    activeSubtype, setActiveSubtype,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -332,6 +333,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         activeRarity,
         activeColor,
         activeCardType,
+        activeSubtype,
         onlyAltArt,
         onlyErrata,
         searchQuery,
@@ -349,7 +351,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       }
       return result
     },
-    [cards, activeSet, activeRarity, activeColor, activeCardType, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
   )
 
   // Regroup entries into contiguous blocks by *display* set. A tile's
@@ -576,7 +578,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
           )}
         </div>
         {/* Active filter chips - visible only when at least one filter is on */}
-        {(activeSet || activeRarity || activeColor || activeCardType || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
+        {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <span
               className="text-[10px] tracking-[0.18em] uppercase mr-1"
@@ -601,6 +603,12 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             )}
             {activeColor && (
               <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />
+            )}
+            {activeSubtype && (
+              <FilterChip
+                label={facetLabel(COLLECTION_FACETS[activeCollection].subtypes ?? [], activeSubtype) || activeSubtype}
+                onClear={() => setActiveSubtype(null)}
+              />
             )}
             {onlyAltArt && (
               <FilterChip
@@ -627,6 +635,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 setActiveRarity(null)
                 setActiveColor(null)
                 setActiveCardType(null)
+                setActiveSubtype(null)
                 setOnlyAltArt(false)
                 setOnlyErrata(false)
                 setFlattenWall(false)

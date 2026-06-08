@@ -13,6 +13,10 @@ export interface CardFilterState {
   activeRarity: string | null
   activeColor: string | null
   activeCardType: string | null
+  // Pokémon subtype/era filter (maps to card.attributes, e.g. "ex", "VMAX",
+  // "Tera", "Stage 1"). Null = no filter. Ignored for non-Pokémon collections
+  // since other collections don't have the same attributes vocabulary.
+  activeSubtype: string | null
   onlyAltArt: boolean
   // When true, restrict the wall to the curated list of One Piece
   // cards that have received an official errata. List lives in
@@ -400,6 +404,10 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
     result = result.filter((c) => c.colors?.includes(target))
   }
   if (f.activeCardType) result = result.filter((c) => c.cardType === f.activeCardType)
+  if (f.activeSubtype) {
+    const sub = f.activeSubtype
+    result = result.filter((c) => c.attributes?.includes(sub))
+  }
   if (f.onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
   if (f.onlyErrata) result = result.filter((c) => ONE_PIECE_ERRATA_CODES.has(c.code))
   if (f.searchQuery.trim()) {
@@ -634,9 +642,50 @@ const RARITY_ORDER: Record<string, number> = {
   SEC: 0, SAR: 1, SP: 2, SR: 3, RR: 4, R: 5, UC: 6, C: 7, L: 8, P: 9,
   // Gundam additions (where not already covered by OP keys above)
   'LR++': 0, 'LR+': 1, LR: 2, U: 6,
+  // Pokémon — prestige order high → low. Mirrors collector/market hierarchy.
+  // Gold star spectrum (newest SV era):
+  'Hyper Rare':                  0,   // Gold full-art trainer (✦✦✦ equivalent)
+  'Special Illustration Rare':   1,   // 2 gold stars / SAR
+  'Illustration Rare':           2,   // 1 gold star / AR
+  'Shiny Ultra Rare':            3,
+  'Rare Rainbow':                4,   // Rainbow rare
+  'Rare Secret':                 5,   // Secret rare (older)
+  'Shiny Rare':                  6,
+  'ACE SPEC Rare':               7,
+  'Ultra Rare':                  8,   // ex / V-era full arts
+  'Double Rare':                 9,   // Two-prize ex
+  'Rare Ultra':                  10,  // VMAX / VSTAR / GX / EX
+  'Trainer Gallery Rare Holo':   11,
+  'Radiant Rare':                12,
+  'Amazing Rare':                13,
+  'Rare Holo VSTAR':             14,
+  'Rare Holo VMAX':              15,
+  'Rare Holo V':                 16,
+  'Rare Holo GX':                17,
+  'Rare Holo EX':                18,
+  'Rare Holo LV.X':              19,
+  'Rare Shiny GX':               20,
+  'Rare Shiny':                  21,
+  'Rare Holo Star':              22,
+  'Rare Holo':                   23,
+  'Rare BREAK':                  24,
+  'Rare Prime':                  25,
+  'Rare Prism Star':             26,
+  'Rare ACE':                    27,
+  'Classic Collection':          28,
+  'Mega Hyper Rare':             29,
+  'LEGEND':                      30,
+  'Black White Rare':            31,
+  Rare:                          32,
+  Promo:                         33,
+  Uncommon:                      34,
+  Common:                        35,
 }
 const TYPE_ORDER: Record<string, number> = {
+  // One Piece
   LEADER: 0, CHARACTER: 1, EVENT: 2, STAGE: 3, DON: 4,
+  // Pokémon
+  'Pokémon': 0, Trainer: 1, Energy: 2,
 }
 
 /**
@@ -674,7 +723,10 @@ export function sortWallEntries(
         const ta = TYPE_ORDER[a.card.cardType ?? ''] ?? 99
         const tb = TYPE_ORDER[b.card.cardType ?? ''] ?? 99
         if (ta !== tb) return ta - tb
-        return (a.card.cost ?? 0) - (b.card.cost ?? 0)
+        // Tiebreak: cost (One Piece/Gundam) then HP/power (Pokémon)
+        const costDiff = (a.card.cost ?? 0) - (b.card.cost ?? 0)
+        if (costDiff !== 0) return costDiff
+        return (b.card.power ?? 0) - (a.card.power ?? 0)
       }
       case 'price-desc': {
         const pa = getPrice?.(a.printId) ?? -1

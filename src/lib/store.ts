@@ -62,6 +62,9 @@ interface StoreState {
   // matches the raw value in the bundles without normalisation.
   activeCardType: string | null
   setActiveCardType: (t: string | null) => void
+  // Pokémon subtype/era filter (ex, VMAX, Tera, Stage 1, etc.)
+  activeSubtype: string | null
+  setActiveSubtype: (s: string | null) => void
   // When true, only show cards with at least one variant (alt art).
   // In stacked mode: hide cards with zero variants. In flatten mode:
   // hide base prints and show variant tiles only (see buildWallEntries).
@@ -201,6 +204,7 @@ export const useStore = create<StoreState>()(
           activeRarity: null,
           activeColor: null,
           activeCardType: null,
+          activeSubtype: null,
           onlyAltArt: false,
           onlyErrata: false,
           flattenWall: false,
@@ -217,6 +221,8 @@ export const useStore = create<StoreState>()(
       setActiveColor: (activeColor) => set({ activeColor }),
       activeCardType: null,
       setActiveCardType: (activeCardType) => set({ activeCardType }),
+      activeSubtype: null,
+      setActiveSubtype: (activeSubtype) => set({ activeSubtype }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
       onlyErrata: false,
@@ -363,7 +369,7 @@ export const useStore = create<StoreState>()(
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 17,
+      version: 18,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -480,6 +486,10 @@ export const useStore = create<StoreState>()(
         if (fromVersion < 17) {
           // v17 adds wall sort (default = bundle order).
           s.wallSort = 'default'
+        }
+        if (fromVersion < 18) {
+          // v18 adds Pokémon subtype filter (default = no filter).
+          s.activeSubtype = null
         }
         return s as StoreState
       },

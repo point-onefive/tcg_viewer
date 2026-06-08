@@ -35,6 +35,12 @@ export type CollectionFacets = {
   rarities: ReadonlyArray<FacetOption>
   colors: ReadonlyArray<FacetOption>
   /**
+   * Optional list of subtype/era filter options. Currently Pokémon-only
+   * (maps to card.attributes). When present, the header renders a fourth
+   * facet popover for "Subtype". Other collections leave this undefined.
+   */
+  subtypes?: ReadonlyArray<FacetOption>
+  /**
    * Does this collection's bundle ship alt-art / parallel `variants`?
    * Gates the Alt art and Flatten toggles in the header - Pokémon
    * treats each parallel as its own card (no nested variants), so
@@ -99,28 +105,58 @@ const POKEMON: CollectionFacets = {
     { value: 'Trainer', label: 'Trainer' },
     { value: 'Energy',  label: 'Energy' },
   ],
-  // Curated subset · Pokémon ships 25+ rarity strings. We surface the
-  // ones that map to meaningful card-count buckets (≥150 cards) plus
-  // the modern "premium" tiers collectors search for. Niche values
-  // (Rare Holo LV.X, Rare BREAK, etc.) are reachable via the search
-  // box rather than crowding the popover.
+  // Curated subset · Pokémon ships 25+ rarity strings. Ordered high → low
+  // prestige so the popover reads as a natural scale.
   rarities: [
-    { value: 'Common',                    label: 'Common' },
-    { value: 'Uncommon',                  label: 'Uncommon' },
-    { value: 'Rare',                      label: 'Rare' },
-    { value: 'Rare Holo',                 label: 'Rare Holo' },
-    { value: 'Promo',                     label: 'Promo' },
-    { value: 'Rare Ultra',                label: 'Ultra Rare' },
-    { value: 'Illustration Rare',         label: 'Illustration Rare' },
-    { value: 'Rare Secret',               label: 'Secret Rare' },
+    { value: 'Hyper Rare',                label: '✦✦✦ Hyper Rare' },
+    { value: 'Special Illustration Rare', label: '✦✦ Special Illustration' },
+    { value: 'Illustration Rare',         label: '✦ Illustration Rare' },
+    { value: 'Shiny Ultra Rare',          label: 'Shiny Ultra Rare' },
     { value: 'Rare Rainbow',              label: 'Rainbow Rare' },
-    { value: 'Special Illustration Rare', label: 'Special Illustration' },
-    { value: 'Hyper Rare',                label: 'Hyper Rare' },
+    { value: 'Rare Secret',               label: 'Secret Rare' },
+    { value: 'ACE SPEC Rare',             label: 'ACE SPEC' },
+    { value: 'Ultra Rare',                label: 'Ultra Rare' },
+    { value: 'Double Rare',               label: 'Double Rare' },
+    { value: 'Rare Ultra',                label: 'Rare Ultra' },
+    { value: 'Radiant Rare',              label: 'Radiant Rare' },
+    { value: 'Shiny Rare',                label: 'Shiny Rare' },
+    { value: 'Amazing Rare',              label: 'Amazing Rare' },
+    { value: 'Rare Holo',                 label: 'Rare Holo' },
+    { value: 'Rare',                      label: 'Rare' },
+    { value: 'Promo',                     label: 'Promo' },
+    { value: 'Uncommon',                  label: 'Uncommon' },
+    { value: 'Common',                    label: 'Common' },
   ],
   colors: [
     'Grass', 'Fire', 'Water', 'Lightning', 'Psychic',
     'Fighting', 'Darkness', 'Metal', 'Dragon', 'Fairy', 'Colorless',
   ].map(colorOpt),
+  // Era / mechanic subtypes — the most-searched `attributes` values.
+  // Ordered from newest SV era backward so recent cards appear first.
+  subtypes: [
+    { value: 'ex',             label: 'ex (SV)' },
+    { value: 'Tera',           label: 'Tera ex' },
+    { value: 'ACE SPEC',       label: 'ACE SPEC' },
+    { value: 'VSTAR',          label: 'VSTAR' },
+    { value: 'VMAX',           label: 'VMAX' },
+    { value: 'V',              label: 'V' },
+    { value: 'GX',             label: 'GX' },
+    { value: 'EX',             label: 'EX (XY)' },
+    { value: 'TAG TEAM',       label: 'TAG TEAM' },
+    { value: 'MEGA',           label: 'MEGA' },
+    { value: 'Radiant',        label: 'Radiant' },
+    { value: 'Prism Star',     label: 'Prism Star' },
+    { value: 'Ultra Beast',    label: 'Ultra Beast' },
+    { value: 'Ancient',        label: 'Ancient' },
+    { value: 'Future',         label: 'Future' },
+    { value: 'Stage 1',        label: 'Stage 1' },
+    { value: 'Stage 2',        label: 'Stage 2' },
+    { value: 'Basic',          label: 'Basic' },
+    { value: 'Supporter',      label: 'Supporter' },
+    { value: 'Item',           label: 'Item' },
+    { value: 'Stadium',        label: 'Stadium' },
+    { value: 'Special',        label: 'Special Energy' },
+  ],
   // Pokémon parallels ship as separate cards (own id, own name), not
   // as nested `variants` on a base card. Audited bundle: 0 cards with
   // variants out of 20.5k. Toggle would be a dead action.
