@@ -71,6 +71,13 @@ const COLOR_SWATCHES: Record<string, string> = {
   Fairy:     '#f472b6',
   Dragon:    '#7c3aed',
   Colorless: '#e5e7eb',
+  // Lorcana inks
+  Amber:     '#f59e0b',
+  Amethyst:  '#9333ea',
+  Emerald:   '#10b981',
+  Ruby:      '#dc2626',
+  Sapphire:  '#2563eb',
+  Steel:     '#64748b',
 }
 
 const colorOpt = (name: string): FacetOption => ({
@@ -223,12 +230,38 @@ const GUNDAM: CollectionFacets = {
   hasVariants: true,
 }
 
+const LORCANA: CollectionFacets = {
+  cardTypes: [
+    { value: 'Character', label: 'Character' },
+    { value: 'Action',    label: 'Action' },
+    { value: 'Item',      label: 'Item' },
+    { value: 'Location',  label: 'Location' },
+  ],
+  // Full ladder - Lorcana only ships 9 rarity strings. "Special" covers
+  // promo prints (organized play, D23, convention exclusives).
+  rarities: [
+    { value: 'Iconic',     label: 'Iconic' },
+    { value: 'Enchanted',  label: 'Enchanted' },
+    { value: 'Epic',       label: 'Epic' },
+    { value: 'Legendary',  label: 'Legendary' },
+    { value: 'Super Rare', label: 'Super Rare' },
+    { value: 'Rare',       label: 'Rare' },
+    { value: 'Uncommon',   label: 'Uncommon' },
+    { value: 'Common',     label: 'Common' },
+    { value: 'Special',    label: 'Special · Promo' },
+  ],
+  colors: ['Amber', 'Amethyst', 'Emerald', 'Ruby', 'Sapphire', 'Steel'].map(colorOpt),
+  // Like Pokémon: every print (Enchanted, promo) is its own card object.
+  hasVariants: false,
+}
+
 export const COLLECTION_FACETS: Record<Collection, CollectionFacets> = {
   'one-piece': ONE_PIECE,
   pokemon:     POKEMON,
   digimon:     DIGIMON,
   dbs:         DBS,
   gundam:      GUNDAM,
+  lorcana:     LORCANA,
 }
 
 /**

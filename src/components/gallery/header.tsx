@@ -764,10 +764,12 @@ export function Header({ sets, artists }: HeaderProps) {
   const isOnePiece = activeCollection === 'one-piece'
   const isGundam = activeCollection === 'gundam'
   const isPokemon = activeCollection === 'pokemon'
+  const isLorcana = activeCollection === 'lorcana'
   const hasPricing = isOnePiece || isGundam
   // Collections that have a meaningful `power` field (HP for Pokémon,
-  // power stat for OP/Gundam). Used to show/hide the "Power ↓" sort option.
-  const hasPower = isOnePiece || isGundam || isPokemon
+  // strength for Lorcana, power stat for OP/Gundam). Used to show/hide
+  // the "Power ↓" sort option.
+  const hasPower = isOnePiece || isGundam || isPokemon || isLorcana
   // Collections that have a meaningful `cost` field. Pokémon cost is always
   // null in the bundle, so cost sort is pointless there.
   const hasCost = !isPokemon
@@ -1426,7 +1428,7 @@ export function Header({ sets, artists }: HeaderProps) {
           {hasCost && <option value="cost-desc">Cost ↓</option>}
           <option value="rarity">Rarity</option>
           <option value="type">Card type</option>
-          {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : 'Power ↓'}</option>}
+          {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : isLorcana ? 'Strength ↓' : 'Power ↓'}</option>}
           {hasPricing && <option value="price-desc">Price ↓</option>}
         </select>
 
@@ -1798,7 +1800,7 @@ export function Header({ sets, artists }: HeaderProps) {
             {hasCost && <option value="cost-desc">Cost ↓</option>}
             <option value="rarity">Rarity</option>
             <option value="type">Card type</option>
-            {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : 'Power ↓'}</option>}
+            {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : isLorcana ? 'Strength ↓' : 'Power ↓'}</option>}
             {hasPricing && <option value="price-desc">Price ↓</option>}
           </select>
 

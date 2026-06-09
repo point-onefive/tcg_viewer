@@ -7,7 +7,8 @@ load automatically). This file is the human-readable index.
 ## Project at a glance
 
 `tcg_viewer` is a Next.js gallery + tier-list maker for trading card
-games (One Piece, Pokémon, Dragon Ball Super, Digimon, Gundam).
+games (One Piece, Pokémon, Dragon Ball Super, Digimon, Gundam,
+Lorcana).
 Card data lives in `src/lib/cards-*.json` bundles produced by the
 scripts in `scripts/`. The deployed UI reads these bundles directly
 at build time.
@@ -20,6 +21,7 @@ at build time.
 | Refresh One Piece catalog (full)    | `docs/data-pipeline.md` §4.2                                             |
 | Refresh One Piece catalog (quick)   | `docs/data-pipeline.md` §4.1                                             |
 | Ingest a single off-catalog print   | Edit `src/lib/cards-one-piece.json` directly — see `OP01-016_p9_sc` for the pattern |
+| Refresh Lorcana catalog             | `npm run lorcana:all` then `npm run lorcana:r2` (source: LorcanaJSON)    |
 | Dev server                          | `npm run dev` or `npm run dev:turbo`                                     |
 | Production build                    | `npm run build`                                                          |
 

@@ -687,12 +687,22 @@ const RARITY_ORDER: Record<string, number> = {
   Promo:                         33,
   Uncommon:                      34,
   Common:                        35,
+  // Lorcana — prestige high → low. Shares Rare/Uncommon/Common keys with
+  // Pokémon above (relative order only matters within one collection).
+  Iconic:                        0,
+  Enchanted:                     1,
+  Epic:                          2,
+  Legendary:                     3,
+  'Super Rare':                  4,
+  Special:                       33, // promo prints
 }
 const TYPE_ORDER: Record<string, number> = {
   // One Piece
   LEADER: 0, CHARACTER: 1, EVENT: 2, STAGE: 3, DON: 4,
   // Pokémon
   'Pokémon': 0, Trainer: 1, Energy: 2,
+  // Lorcana
+  Character: 0, Action: 1, Item: 2, Location: 3,
 }
 
 /**

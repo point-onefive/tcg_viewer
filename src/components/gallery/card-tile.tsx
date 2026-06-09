@@ -38,6 +38,13 @@ const COLOR_MAP: Record<string, string> = {
   Fairy:     '#f472b6',
   Dragon:    '#7c3aed',
   Colorless: '#e5e7eb',
+  // Lorcana inks
+  Amber:     '#f59e0b',
+  Amethyst:  '#9333ea',
+  Emerald:   '#10b981',
+  Ruby:      '#dc2626',
+  Sapphire:  '#2563eb',
+  Steel:     '#64748b',
 }
 
 interface CardTileProps {

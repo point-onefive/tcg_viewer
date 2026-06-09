@@ -1,0 +1,100 @@
+[
+  {
+    "setCode": "1",
+    "setName": "The First Chapter",
+    "releaseDate": "2023-09-01",
+    "releaseOrder": 800,
+    "cardCount": 241
+  },
+  {
+    "setCode": "2",
+    "setName": "Rise of the Floodborn",
+    "releaseDate": "2023-12-01",
+    "releaseOrder": 801,
+    "cardCount": 227
+  },
+  {
+    "setCode": "3",
+    "setName": "Into the Inklands",
+    "releaseDate": "2024-03-08",
+    "releaseOrder": 802,
+    "cardCount": 234
+  },
+  {
+    "setCode": "4",
+    "setName": "Ursula's Return",
+    "releaseDate": "2024-05-31",
+    "releaseOrder": 803,
+    "cardCount": 235
+  },
+  {
+    "setCode": "Q1",
+    "setName": "Illumineer's Quest: Deep Trouble",
+    "releaseDate": "2024-05-31",
+    "releaseOrder": 804,
+    "cardCount": 31
+  },
+  {
+    "setCode": "5",
+    "setName": "Shimmering Skies",
+    "releaseDate": "2024-08-23",
+    "releaseOrder": 805,
+    "cardCount": 234
+  },
+  {
+    "setCode": "6",
+    "setName": "Azurite Sea",
+    "releaseDate": "2024-11-25",
+    "releaseOrder": 806,
+    "cardCount": 239
+  },
+  {
+    "setCode": "7",
+    "setName": "Archazia's Island",
+    "releaseDate": "2025-03-21",
+    "releaseOrder": 807,
+    "cardCount": 238
+  },
+  {
+    "setCode": "8",
+    "setName": "The Reign of Jafar",
+    "releaseDate": "2025-06-06",
+    "releaseOrder": 808,
+    "cardCount": 236
+  },
+  {
+    "setCode": "Q2",
+    "setName": "Illumineer's Quest: Palace Heist",
+    "releaseDate": "2025-06-06",
+    "releaseOrder": 809,
+    "cardCount": 35
+  },
+  {
+    "setCode": "9",
+    "setName": "Fabled",
+    "releaseDate": "2025-09-05",
+    "releaseOrder": 810,
+    "cardCount": 257
+  },
+  {
+    "setCode": "10",
+    "setName": "Whispers in the Well",
+    "releaseDate": "2025-11-14",
+    "releaseOrder": 811,
+    "cardCount": 253
+  },
+  {
+    "setCode": "11",
+    "setName": "Winterspell",
+    "releaseDate": "2026-02-20",
+    "releaseOrder": 812,
+    "cardCount": 251
+  },
+  {
+    "setCode": "12",
+    "setName": "Wilds Unknown",
+    "releaseDate": "2026-05-15",
+    "releaseOrder": 813,
+    "cardCount": 255
+  }
+]

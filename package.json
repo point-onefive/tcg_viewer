@@ -37,7 +37,12 @@
     "pokemon:generate": "node scripts/generate-pokemon-bundle.mjs",
     "pokemon:images": "node scripts/download-pokemon-images.mjs",
     "pokemon:all": "npm run pokemon:fetch && npm run pokemon:images && npm run pokemon:generate",
-    "pokemon:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-pokemon --prefix=cards/pokemon --ext=webp"
+    "pokemon:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-pokemon --prefix=cards/pokemon --ext=webp",
+    "lorcana:fetch": "node scripts/fetch-lorcana-data.mjs",
+    "lorcana:generate": "node scripts/generate-lorcana-bundle.mjs",
+    "lorcana:images": "node scripts/download-lorcana-images.mjs",
+    "lorcana:all": "npm run lorcana:fetch && npm run lorcana:images && npm run lorcana:generate",
+    "lorcana:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-lorcana --prefix=cards/lorcana --ext=webp"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
