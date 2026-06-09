@@ -692,8 +692,12 @@ html.lenis, html.lenis body {
   border-bottom-left-radius: 6px;
 }
 .sb-brand__logo {
+  /* Explicit width: `auto` resolves to 0px in some Chromium flex
+     layouts (same bug as the gallery header logo). 15x22 matches the
+     mascot art's 556x834 aspect. */
   height: 22px;
-  width: auto;
+  width: 15px;
+  flex-shrink: 0;
   image-rendering: pixelated;
   display: block;
   transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -935,6 +939,17 @@ html.lenis, html.lenis body {
 }
 .sb-tile__trend--up { color: #22c55e; }
 .sb-tile__trend--down { color: #ef4444; }
+
+/* Dense grid (tiles < ~150px): the trend badge no longer fits over the
+   art and the price badge needs to shrink so it doesn't truncate. */
+.sb-grid--dense .sb-tile__trend { display: none; }
+.sb-grid--dense .sb-tile__price-badge {
+  top: 5px;
+  right: 5px;
+  padding: 2px 5px;
+  font-size: 10px;
+}
+.sb-grid--dense .sb-tile__spark { height: 20px; }
 
 .sb-tile__foot {
   display: flex;

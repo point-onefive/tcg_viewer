@@ -50,14 +50,65 @@ const BoxLineChart = dynamic(
 // zoom 1 = 2 cols (big), 12 = ~13 cols (small). Same feel as card wall.
 function zoomToCols(zoom: number, windowWidth: number): number {
   const desired = zoom + 1
+  if (windowWidth < 640) {
+    // Phones: compress the 1-11 zoom range into 1-3 columns. The
+    // desktop mapping put the default at 5-up, which shrank each box
+    // to ~70px — badges covered the art and prices truncated.
+    return Math.min(Math.max(Math.ceil(desired / 4), 1), 3)
+  }
   const max = windowWidth < 768 ? 6 : 12
   return Math.min(Math.max(desired, 1), max)
 }
 
-function gapForCols(cols: number): number {
-  if (cols >= 10) return 8
-  if (cols >= 7)  return 10
-  return 14
+// Row gap runs larger than column gap so the foot (name · listings ·
+// sparkline) reads as part of its own tile instead of floating in the
+// seam above the next row's box art.
+function gapForCols(cols: number): { col: number; row: number } {
+  if (cols >= 10) return { col: 8, row: 14 }
+  if (cols >= 7)  return { col: 10, row: 18 }
+  return { col: 14, row: 26 }
+}
+
+/** Card-wall-style zoom scrubber. `fluid` stretches the track to fill
+ *  its flex slot (mobile row); otherwise it's a fixed 90px desktop pill. */
+function ZoomScrubber({
+  zoom,
+  setZoom,
+  ctrl,
+  className,
+  fluid = false,
+}: {
+  zoom: number
+  setZoom: (z: number) => void
+  ctrl: React.CSSProperties
+  className?: string
+  fluid?: boolean
+}) {
+  return (
+    <div
+      className={`items-center gap-2 px-3 ${className ?? 'flex'}${fluid ? ' flex-1 min-w-0' : ''}`}
+      style={{ ...ctrl, height: 30 }}
+    >
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+        <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+        <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+        <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+        <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
+      </svg>
+      <input
+        type="range" min={1} max={11} step={1} value={zoom}
+        onChange={(e) => setZoom(Number(e.target.value))}
+        className="zoom-slider" aria-label="Zoom level"
+        style={fluid ? { width: '100%' } : { width: 90 }}
+      />
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+        <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+        <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+        <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+        <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
+      </svg>
+    </div>
+  )
 }
 
 export function SealedDashboard() {
@@ -142,32 +193,13 @@ export function SealedDashboard() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* Zoom slider — same widget as card wall header */}
-            <div
-              className="flex items-center gap-2 px-3"
-              style={{ ...ctrl, height: 30 }}
-            >
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              </svg>
-              <input
-                type="range" min={1} max={11} step={1} value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="zoom-slider" aria-label="Zoom level" style={{ width: 90 }}
-              />
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              </svg>
-            </div>
+            {/* Zoom + help live in row 1 on desktop only; on phones they
+                move to the dedicated second row below so the brand
+                lockup never gets crushed out of its own row. */}
+            <ZoomScrubber zoom={zoom} setZoom={setZoom} ctrl={ctrl} className="hidden sm:flex" />
             <Link
               href="/help"
-              className="footer-btn inline-flex items-center justify-center"
+              className="footer-btn hidden sm:inline-flex items-center justify-center"
               style={{ ...ctrl, width: 30, height: 30 }}
               aria-label="How it works"
               title="How it works"
@@ -187,7 +219,7 @@ export function SealedDashboard() {
               aria-label="Open tier list maker"
             >
               <Layers size={12} strokeWidth={2.25} aria-hidden />
-              Tiers
+              <span className="hidden sm:inline">Tiers</span>
             </Link>
             <span
               className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium pointer-events-none"
@@ -201,9 +233,27 @@ export function SealedDashboard() {
               aria-current="page"
             >
               <Package size={12} strokeWidth={2.25} aria-hidden />
-              Sealed
+              <span className="hidden sm:inline">Sealed</span>
             </span>
           </div>
+        </div>
+
+        {/* Mobile row 2 — full-width zoom scrubber + help. Mirrors the
+            card wall's mobile pattern of giving the zoom its own row. */}
+        <div
+          className="sm:hidden flex items-center gap-2"
+          style={{ padding: '0 16px 9px' }}
+        >
+          <ZoomScrubber zoom={zoom} setZoom={setZoom} ctrl={ctrl} fluid />
+          <Link
+            href="/help"
+            className="footer-btn inline-flex items-center justify-center shrink-0"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="How it works"
+            title="How it works"
+          >
+            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
         </div>
       </header>
 
@@ -233,10 +283,13 @@ export function SealedDashboard() {
           </div>
         ) : (
           <div
-            className="sb-grid"
+            // Dense = tiles too narrow for the overlay chrome (trend
+            // badge, full-size price). CSS strips those down so the
+            // box art stays legible at high zoom-out.
+            className={`sb-grid${windowWidth / columns < 150 ? ' sb-grid--dense' : ''}`}
             style={{
               gridTemplateColumns: `repeat(${columns}, 1fr)`,
-              gap: gapForCols(columns),
+              gap: `${gapForCols(columns).row}px ${gapForCols(columns).col}px`,
             }}
           >
             {boxes.map((box) => (

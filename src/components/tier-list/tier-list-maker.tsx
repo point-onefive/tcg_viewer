@@ -202,7 +202,15 @@ function SectionLabel({
             'linear-gradient(to right, color-mix(in srgb, #E85D2A 50%, transparent), transparent)',
         }}
       />
-      {right && <div className="ml-auto flex items-center gap-3 sm:ml-0">{right}</div>}
+      {/* On phones the action cluster takes its own full-width row
+          under the label (label row stays clean, controls wrap into
+          tidy lines). From sm up it sits inline after the rule, as
+          before. */}
+      {right && (
+        <div className="ml-auto flex w-full flex-wrap items-center gap-2 sm:ml-0 sm:w-auto sm:gap-3">
+          {right}
+        </div>
+      )}
     </div>
   )
 }
@@ -239,11 +247,14 @@ function BrandLockup() {
           src="/images/site-logo.png"
           alt=""
           aria-hidden
-          width={22}
+          width={15}
           height={22}
           style={{
+            // Explicit width: `auto` resolves to 0px in some Chromium
+            // flex layouts (same bug as the gallery header logo).
+            width: 15,
             height: 22,
-            width: 'auto',
+            flexShrink: 0,
             imageRendering: 'pixelated',
             display: 'block',
           }}
@@ -297,11 +308,12 @@ function BoardWatermark() {
       <img
         src="/images/site-logo.png"
         alt=""
-        width={28}
+        width={19}
         height={28}
         style={{
+          width: 19,
           height: 28,
-          width: 'auto',
+          flexShrink: 0,
           imageRendering: 'pixelated',
           display: 'block',
         }}
@@ -1770,7 +1782,7 @@ export function TierListMaker() {
                   {/* Zoom scrubber — same visual language as card wall */}
                   <div
                     className="flex items-center gap-2 px-3 shrink-0"
-                    style={{ ...ctrlBase, height: 28 }}
+                    style={{ ...ctrlBase, height: 30 }}
                   >
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                       <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
@@ -1791,7 +1803,9 @@ export function TierListMaker() {
                       <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
                     </svg>
                   </div>
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {/* Paste is a desktop gesture; on phones the hint just
+                      ate a whole header line, so it hides below sm. */}
+                  <span className="hidden text-xs sm:inline" style={{ color: 'var(--text-muted)' }}>
                     {pasteHint}
                   </span>
                   {cards.some((c) => c.tierId === null) && (
@@ -1799,10 +1813,10 @@ export function TierListMaker() {
                       <button
                         type="button"
                         onClick={toggleSelectMode}
-                        className="footer-btn inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold"
+                        className="footer-btn inline-flex items-center gap-1 px-2.5 text-xs font-semibold"
                         style={{
                           ...ctrlBase,
-                          height: 28,
+                          height: 30,
                           ...(selectMode ? { background: 'var(--text-primary)', color: 'var(--bg)', borderColor: 'var(--text-primary)' } : {}),
                         }}
                         aria-pressed={selectMode}
@@ -1814,8 +1828,8 @@ export function TierListMaker() {
                         <button
                           type="button"
                           onClick={clearBankOnly}
-                          className="footer-btn inline-flex items-center px-2 py-1 text-xs font-semibold"
-                          style={{ ...ctrlBase, height: 28 }}
+                          className="footer-btn inline-flex items-center px-2.5 text-xs font-semibold"
+                          style={{ ...ctrlBase, height: 30 }}
                         >
                           Clear pool
                         </button>
@@ -1955,11 +1969,11 @@ export function TierListMaker() {
                 ? '#1f7a3f'
                 : 'var(--text-muted)'
               return (
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                   {/* Chart zoom scrubber */}
                   <div
                     className="flex items-center gap-2 px-3 shrink-0"
-                    style={{ ...ctrlBase, height: 28 }}
+                    style={{ ...ctrlBase, height: 30 }}
                   >
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                       <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
@@ -2004,7 +2018,7 @@ export function TierListMaker() {
                     type="button"
                     onClick={() => setBorderAnimated((v) => !v)}
                     aria-pressed={borderAnimated}
-                    className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
                     style={{
                       ...ctrlBase,
                       height: 30,
@@ -2025,7 +2039,7 @@ export function TierListMaker() {
                     type="button"
                     onClick={handleCopyPng}
                     disabled={exporting !== null || exportDisabled}
-                    className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
                     style={{
                       ...ctrlBase,
                       height: 30,
@@ -2045,7 +2059,7 @@ export function TierListMaker() {
                     type="button"
                     onClick={handleSavePng}
                     disabled={exporting !== null || exportDisabled}
-                    className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                    className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
                     style={{
                       ...ctrlBase,
                       height: 30,
@@ -2066,7 +2080,7 @@ export function TierListMaker() {
                       type="button"
                       onClick={clearChart}
                       disabled={exporting !== null}
-                      className="footer-btn inline-flex items-center gap-1 px-3 text-xs font-medium"
+                      className="footer-btn inline-flex flex-1 items-center justify-center gap-1 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
                       style={{ ...ctrlBase, height: 30 }}
                       aria-label="Move every charted card back to the pool"
                     >
