@@ -54,7 +54,7 @@ interface CardTileProps {
    * image optimizer eager-loads and the LCP element isn't deferred.
    */
   priority?: boolean
-  /** Stacked-card hint behind the tile (default view only). */
+  /** Paint the "has alternate prints" ring around the tile (default view only). */
   showStack?: boolean
 }
 
@@ -140,13 +140,10 @@ export function CardTile({ entry, priority = false, showStack = false }: CardTil
         }
       }}
     >
-      {showStack && (
-        <>
-          <div className="card-tile__stack card-tile__stack--2" aria-hidden />
-          <div className="card-tile__stack card-tile__stack--1" aria-hidden />
-        </>
-      )}
-
+      {/* "Has alternates" is signalled by the colored ring that
+          `card-tile--has-variants` paints (see globals.css). The old
+          peek-sheet stack divs were removed — their 6-9px sway forced
+          generous grid gaps and wasted wall space. */}
       <div className="card-tile__img">
         {!loaded && <div className="card-tile__skeleton" />}
 

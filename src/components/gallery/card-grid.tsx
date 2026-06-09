@@ -10,10 +10,11 @@ import { getCardPricingForCollection } from '@/lib/pricing'
 import { COLLECTION_FACETS, facetLabel } from '@/lib/collection-facets'
 import { CardTile } from './card-tile'
 
-// Base gap (px) at normal zoom. We tighten this at high column
-// counts via gapForColumns() below so dense mosaics don't waste
-// horizontal space on whitespace.
-const GAP_DEFAULT = 14
+// Base gap (px) at normal zoom. The old 14px existed to give the
+// variant peek-sheet stack swing room; with the stack replaced by a
+// flush color ring (see card-tile--has-variants in globals.css) the
+// wall keeps just a small seam between cards at every zoom level.
+const GAP_DEFAULT = 8
 
 interface CardGridProps {
   cards: Card[]
@@ -60,23 +61,19 @@ function headerHeightFor(windowWidth: number): number {
   return windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
 }
 
-// Gap shrinks as the grid densifies. Around the default ~6 columns
-// a generous 14px gap reads as "card collection". At the extreme
-// zoom-out we want a stamp-album feel: a hairline seam so the freed
-// pixels go to actual card art. (The old curve held 10px all the way
-// to 13 cols, which read as wasted space once tiles dropped under
-// ~30px — especially on mobile where 14 cols is the ceiling.)
+// Gap shrinks as the grid densifies — a small seam at default zoom,
+// collapsing to a hairline at stamp-album densities so freed pixels
+// go to card art instead of whitespace.
 function gapForColumns(cols: number): number {
   if (cols >= 24) return 2
   if (cols >= 18) return 3
-  if (cols >= 13) return 5
-  if (cols >= 9) return 9
+  if (cols >= 13) return 4
+  if (cols >= 9) return 6
   return GAP_DEFAULT
 }
 
-// Past this column count the variant-stack peek sheets get clamped via
-// the `wall--dense` class — their 6-9px translate offsets would bleed
-// into neighbouring tiles once the gap drops to a hairline.
+// Past this column count the variant ring drops to a flush hairline
+// via the `wall--dense` class so it never bleeds into the 2-4px seam.
 const DENSE_COLUMNS = 13
 
 // Minimum columns so that 1 full card fits within the viewport
