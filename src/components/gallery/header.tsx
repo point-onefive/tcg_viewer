@@ -112,7 +112,7 @@ function ArtistTypeahead({
   }
 
   return (
-    <div ref={wrapperRef} className="relative shrink-0">
+    <div ref={wrapperRef} className="relative shrink-0 overflow-visible">
       <input
         ref={inputRef}
         type="text"
@@ -126,7 +126,14 @@ function ArtistTypeahead({
           height: 30,
           width: 110,
           cursor: 'text',
-          background: open ? 'color-mix(in srgb, var(--text-primary) 4%, var(--bg-surface))' : undefined,
+          ...(open && filtered.length > 0
+            ? {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                position: 'relative',
+                zIndex: 62,
+              }
+            : null),
         }}
         aria-label="Filter by artist"
         aria-autocomplete="list"
@@ -138,22 +145,28 @@ function ArtistTypeahead({
           <motion.div
             role="listbox"
             aria-label="Artist options"
-            initial={{ opacity: 0, y: -4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 top-full mt-1.5"
+            className="absolute left-0 top-full"
             style={{
+              transformOrigin: 'top left',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 8,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              borderTop: 'none',
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+              boxShadow: 'var(--shadow-card)',
+              zIndex: 61,
+              padding: 4,
               minWidth: 200,
+              maxWidth: 'calc(100vw - 24px)',
               maxHeight: 280,
               overflowY: 'auto',
               overflowX: 'hidden',
-              zIndex: 200,
-              padding: 4,
             }}
           >
             {filtered.map((artist) => (
@@ -199,17 +212,7 @@ function ArtistTypeahead({
  * brand typography) instead of falling back to the OS-default menu - * which on macOS Chrome paints an opaque white panel that ignores
  * dark mode and feels foreign next to the rest of the header.
  *
- * The trigger + dismissal physics mirror the Collection picker above:
- *
- *   - Click trigger to toggle.
- *   - Outside mousedown OR Escape key closes (effect installed only
- *     while open, so we don't leak listeners).
- *   - AnimatePresence fades + slides 4px so the open/close motion
- *     matches the Collection picker exactly.
- *
- * `swatch` on an option draws a small filled circle to the left of
- * the label (used by the Colour facet) so the dropdown reads as a
- * palette, not a plain text list.
+ * Shell + motion live in HeaderDropdown (same as the More menu).
  */
 function FacetPopover({
   placeholder,
@@ -254,166 +257,76 @@ function FacetPopover({
   menuAlign?: 'left' | 'right'
 }) {
   const [open, setOpen] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      clearTimeout(id)
-      document.removeEventListener('click', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
   const selectedOption = value ? options.find((o) => o.value === value) : null
   const triggerLabel = selectedOption?.label ?? placeholder
   const isActive = Boolean(value)
   const triggerStyle = isActive ? ctrlActive : ctrl
 
   return (
-    <div ref={wrapperRef} className={fluid ? 'relative flex-1 min-w-0' : 'relative shrink-0'}>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          setOpen((o) => !o)
-        }}
-        /* outline-none keeps focus indication consistent with the
-           Collection picker beside it; keyboard users still get a
-           visible focus ring via the global :focus-visible rule
-           (selects/inputs) - buttons here use hover/active styling
-           instead, matching the header's existing button language. */
-        /* Fluid mode trims horizontal padding - mobile rows split ~360px
-           between 3-4 triggers, so px-3 + gap-1.5 left almost no room
-           for the label text. */
-        className={`footer-btn inline-flex items-center text-xs font-medium outline-none whitespace-nowrap ${fluid ? 'w-full gap-1 px-2' : 'gap-1.5 px-3'}`}
-        style={{
-          ...triggerStyle,
-          height: 30,
-          ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
-          ...(open
-            ? {
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-                position: 'relative',
-                zIndex: 62,
-              }
-            : null),
-        }}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={ariaLabel}
-      >
-        {selectedOption?.swatch && (
-          <span
-            aria-hidden
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: selectedOption.swatch,
-              flexShrink: 0,
-              boxShadow: '0 0 0 1px color-mix(in srgb, var(--text-primary) 18%, transparent)',
-            }}
-          />
-        )}
-        <span
-          style={{
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            minWidth: 0,
-            ...(fluid ? { flex: 1, textAlign: 'left' } : null),
-          }}
-        >
-          {triggerLabel}
-        </span>
-        <ChevronDown
-          size={12}
-          strokeWidth={2.25}
-          style={{
-            transition: 'transform 180ms ease',
-            transform: open ? 'rotate(180deg)' : 'rotate(0)',
-            color: 'var(--text-muted)',
-          }}
-        />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="listbox"
-            aria-label={ariaLabel}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className={`absolute top-full ${menuAlign === 'right' ? 'right-0' : 'left-0'}`}
-            style={{
-              transformOrigin: menuAlign === 'right' ? 'top right' : 'top left',
-              background: triggerStyle.background,
-              border: triggerStyle.border,
-              borderTop: 'none',
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              boxShadow: 'var(--shadow-card)',
-              zIndex: 61,
-              padding: 4,
-              minWidth: menuMinWidth,
-              // Never let the panel walk past the viewport edge on
-              // narrow screens (mobile rows place popovers near both
-              // edges).
-              maxWidth: 'calc(100vw - 24px)',
-              // When menuMaxHeight is set, the panel becomes its own
-              // scroll container so long lists (e.g. 50+ sets) stay
-              // inside the page bounds instead of overflowing past
-              // the viewport into the browser chrome (which is what
-              // a native <select> would do). Clear row scrolls with
-              // the rest - having it pin to the top added visual
-              // chrome that didn't earn its keep on shorter lists.
-              ...(menuMaxHeight
-                ? { maxHeight: menuMaxHeight, overflowY: 'auto', overflowX: 'hidden' }
-                : { overflow: 'hidden' }),
-            }}
-          >
-            {/* "Clear" row: null value, shown as a reset action.
-                Sits above the real options so the popover reads as
-                "[All] / Red / Green / …" the same way the trigger
-                label shows the placeholder when no value is set. */}
-            <FacetOptionRow
-              label={placeholder}
-              selected={value === null}
-              onClick={() => {
-                onChange(null)
-                setOpen(false)
+    <HeaderDropdown
+      ariaLabel={ariaLabel}
+      align={menuAlign}
+      minWidth={menuMinWidth}
+      maxHeight={menuMaxHeight}
+      open={open}
+      onOpenChange={setOpen}
+      wrapperClassName={fluid ? 'relative flex-1 min-w-0 overflow-visible' : 'relative shrink-0 overflow-visible'}
+      triggerClassName={`footer-btn inline-flex items-center text-xs font-medium outline-none whitespace-nowrap ${fluid ? 'w-full gap-1 px-2' : 'gap-1.5 px-3'}`}
+      triggerStyle={{
+        ...triggerStyle,
+        ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
+      }}
+      triggerChildren={
+        <>
+          {selectedOption?.swatch && (
+            <span
+              aria-hidden
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: selectedOption.swatch,
+                flexShrink: 0,
+                boxShadow: '0 0 0 1px color-mix(in srgb, var(--text-primary) 18%, transparent)',
               }}
             />
-            {options.map((opt) => (
-              <FacetOptionRow
-                key={opt.value}
-                label={opt.label}
-                swatch={opt.swatch}
-                selected={value === opt.value}
-                onClick={() => {
-                  onChange(opt.value)
-                  setOpen(false)
-                }}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )}
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+              ...(fluid ? { flex: 1, textAlign: 'left' } : null),
+            }}
+          >
+            {triggerLabel}
+          </span>
+          <DropdownChevron open={open} />
+        </>
+      }
+    >
+      <FacetOptionRow
+        label={placeholder}
+        selected={value === null}
+        onClick={() => {
+          onChange(null)
+          setOpen(false)
+        }}
+      />
+      {options.map((opt) => (
+        <FacetOptionRow
+          key={opt.value}
+          label={opt.label}
+          swatch={opt.swatch}
+          selected={value === opt.value}
+          onClick={() => {
+            onChange(opt.value)
+            setOpen(false)
+          }}
+        />
+      ))}
+    </HeaderDropdown>
   )
 }
 
@@ -482,6 +395,145 @@ function FacetOptionRow({
   )
 }
 
+/** Chevron shared by every header dropdown trigger. */
+function DropdownChevron({ open }: { open: boolean }) {
+  return (
+    <ChevronDown
+      size={12}
+      strokeWidth={2.25}
+      style={{
+        transition: 'transform 180ms ease',
+        transform: open ? 'rotate(180deg)' : 'rotate(0)',
+        color: 'var(--text-muted)',
+        flexShrink: 0,
+      }}
+    />
+  )
+}
+
+/** Shared open/close physics + panel chrome — matches the More menu. */
+const HEADER_DROPDOWN_EASE = [0.22, 1, 0.36, 1] as const
+
+const headerDropdownPanelStyle = (
+  align: 'left' | 'right',
+  minWidth: number,
+  maxWidth: string,
+  maxHeight?: number,
+): React.CSSProperties => ({
+  transformOrigin: align === 'right' ? 'top right' : 'top left',
+  background: 'var(--bg-surface)',
+  border: '1px solid var(--border-subtle)',
+  borderTop: 'none',
+  borderTopLeftRadius: 0,
+  borderTopRightRadius: 0,
+  borderBottomLeftRadius: 8,
+  borderBottomRightRadius: 8,
+  boxShadow: 'var(--shadow-card)',
+  zIndex: 61,
+  padding: 4,
+  minWidth,
+  maxWidth,
+  ...(maxHeight
+    ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' }
+    : { overflow: 'hidden' }),
+})
+
+function HeaderDropdown({
+  ariaLabel,
+  ariaHaspopup = 'listbox',
+  align = 'left',
+  minWidth = 180,
+  maxHeight,
+  maxWidth = 'calc(100vw - 24px)',
+  wrapperClassName = 'relative shrink-0 overflow-visible',
+  triggerClassName = 'footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap',
+  triggerStyle,
+  open,
+  onOpenChange,
+  triggerChildren,
+  children,
+}: {
+  ariaLabel: string
+  ariaHaspopup?: 'listbox' | 'menu'
+  align?: 'left' | 'right'
+  minWidth?: number
+  maxHeight?: number
+  maxWidth?: string
+  wrapperClassName?: string
+  triggerClassName?: string
+  triggerStyle: React.CSSProperties
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  triggerChildren: React.ReactNode
+  children: React.ReactNode
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        onOpenChange(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onOpenChange(false) }
+    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      clearTimeout(id)
+      document.removeEventListener('click', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open, onOpenChange])
+
+  return (
+    <div ref={wrapperRef} className={wrapperClassName}>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onOpenChange(!open)
+        }}
+        className={triggerClassName}
+        style={{
+          ...triggerStyle,
+          height: 30,
+          ...(open
+            ? {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                position: 'relative',
+                zIndex: 62,
+              }
+            : null),
+        }}
+        aria-haspopup={ariaHaspopup}
+        aria-expanded={open}
+        aria-label={ariaLabel}
+      >
+        {triggerChildren}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role={ariaHaspopup}
+            aria-label={ariaLabel}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.14, ease: HEADER_DROPDOWN_EASE }}
+            className={`absolute top-full ${align === 'right' ? 'right-0' : 'left-0'}`}
+            style={headerDropdownPanelStyle(align, minWidth, maxWidth, maxHeight)}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 /**
  * Collection switcher — shared between desktop filter bar and mobile
  * search row so switching TCGs is one tap, not buried in "More".
@@ -500,150 +552,50 @@ function CollectionPicker({
   menuAlign?: 'left' | 'right'
 }) {
   const [open, setOpen] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
   const activeName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
 
-  useEffect(() => {
-    if (!open) return
-    const onClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      clearTimeout(id)
-      document.removeEventListener('click', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
   return (
-    <div ref={wrapperRef} className="relative shrink-0 min-w-0">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          setOpen((o) => !o)
-        }}
-        className="footer-btn inline-flex items-center gap-1.5 whitespace-nowrap px-3 text-xs font-medium w-full"
-        style={{
-          ...ctrl,
-          height: 30,
-          ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
-          ...(open
-            ? {
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-                position: 'relative',
-                zIndex: 62,
-              }
-            : null),
-        }}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label="Collection"
-      >
-        <span
-          className="truncate"
-          style={{ minWidth: 0, ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth - 28 } : null) }}
-        >
-          {activeName}
-        </span>
-        <ChevronDown
-          size={12}
-          strokeWidth={2.25}
-          style={{
-            transition: 'transform 180ms ease',
-            transform: open ? 'rotate(180deg)' : 'rotate(0)',
-            color: 'var(--text-muted)',
-            flexShrink: 0,
-          }}
-        />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="listbox"
-            aria-label="Collection"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className={`absolute top-full min-w-[200px] overflow-hidden ${menuAlign === 'right' ? 'right-0' : 'left-0'}`}
-            style={{
-              transformOrigin: menuAlign === 'right' ? 'top right' : 'top left',
-              background: ctrl.background,
-              border: ctrl.border,
-              borderTop: 'none',
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              boxShadow: 'var(--shadow-card)',
-              zIndex: 61,
-              padding: 4,
-            }}
+    <HeaderDropdown
+      ariaLabel="Collection"
+      align={menuAlign}
+      minWidth={200}
+      open={open}
+      onOpenChange={setOpen}
+      wrapperClassName="relative shrink-0 min-w-0 overflow-visible"
+      triggerClassName="footer-btn inline-flex items-center gap-1.5 whitespace-nowrap px-3 text-xs font-medium w-full"
+      triggerStyle={{
+        ...ctrl,
+        ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
+      }}
+      triggerChildren={
+        <>
+          <span
+            className="truncate"
+            style={{ minWidth: 0, ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth - 28 } : null) }}
           >
-            {COLLECTIONS.map((c) => {
-              const selected = c.id === activeCollection
-              const disabled = !c.available
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  disabled={disabled}
-                  onClick={() => {
-                    if (disabled) return
-                    setActiveCollection(c.id)
-                    setOpen(false)
-                  }}
-                  className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
-                  style={{
-                    height: 30,
-                    borderRadius: 5,
-                    background: selected ? 'var(--text-primary)' : 'transparent',
-                    color: selected
-                      ? 'var(--bg)'
-                      : disabled
-                      ? 'var(--text-muted)'
-                      : 'var(--text-primary)',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    opacity: disabled ? 0.55 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!selected && !disabled) {
-                      e.currentTarget.style.background =
-                        'color-mix(in srgb, var(--text-primary) 8%, transparent)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!selected) e.currentTarget.style.background = 'transparent'
-                  }}
-                >
-                  <Check
-                    size={12}
-                    strokeWidth={2.5}
-                    style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
-                  />
-                  <span className="flex-1">{c.name}</span>
-                  {disabled && (
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                      soon
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            {activeName}
+          </span>
+          <DropdownChevron open={open} />
+        </>
+      }
+    >
+      {COLLECTIONS.map((c) => {
+        const selected = c.id === activeCollection
+        const disabled = !c.available
+        return (
+          <FacetOptionRow
+            key={c.id}
+            label={disabled ? `${c.name} (soon)` : c.name}
+            selected={selected}
+            onClick={() => {
+              if (disabled) return
+              setActiveCollection(c.id)
+              setOpen(false)
+            }}
+          />
+        )
+      })}
+    </HeaderDropdown>
   )
 }
 
@@ -686,27 +638,7 @@ function MobileMoreFiltersMenu({
   ctrlActive: React.CSSProperties
 }) {
   const [open, setOpen] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (!open) return
-    const onClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      clearTimeout(id)
-      document.removeEventListener('click', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
-  // Always render: even when a collection has no toggle filters
-  // (e.g. Pokémon, no variants), the More menu still hosts Language.
   const activeCount =
     (onlyAltArt ? 1 : 0) +
     (flattenWall ? 1 : 0) +
@@ -715,162 +647,112 @@ function MobileMoreFiltersMenu({
   const isActive = activeCount > 0
 
   return (
-    <div ref={wrapperRef} className="relative shrink-0">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          setOpen((o) => !o)
-        }}
-        className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
-        style={{
-          ...(isActive ? ctrlActive : ctrl),
-          height: 30,
-          ...(open
-            ? {
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-                position: 'relative',
-                zIndex: 62,
-              }
-            : null),
-        }}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={activeCount > 0 ? `More filters (${activeCount} active)` : 'More filters'}
-      >
-        More
-        {activeCount > 0 && (
-          <span
-            className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-            style={{
-              minWidth: 16,
-              height: 16,
-              padding: '0 4px',
-              borderRadius: 999,
-              background: 'var(--text-primary)',
-              color: 'var(--bg)',
-            }}
-          >
-            {activeCount}
-          </span>
-        )}
-        <ChevronDown
-          size={12}
-          strokeWidth={2.25}
-          style={{
-            transition: 'transform 180ms ease',
-            transform: open ? 'rotate(180deg)' : 'rotate(0)',
-            color: 'var(--text-muted)',
-          }}
+    <HeaderDropdown
+      ariaLabel={activeCount > 0 ? `More filters (${activeCount} active)` : 'More filters'}
+      ariaHaspopup="menu"
+      align="right"
+      open={open}
+      onOpenChange={setOpen}
+      triggerStyle={isActive ? ctrlActive : ctrl}
+      triggerChildren={
+        <>
+          More
+          {activeCount > 0 && (
+            <span
+              className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+              style={{
+                minWidth: 16,
+                height: 16,
+                padding: '0 4px',
+                borderRadius: 999,
+                background: 'var(--text-primary)',
+                color: 'var(--bg)',
+              }}
+            >
+              {activeCount}
+            </span>
+          )}
+          <DropdownChevron open={open} />
+        </>
+      }
+    >
+      {showVariantToggles && (
+        <>
+          <FacetOptionRow
+            label="Alt art"
+            selected={onlyAltArt}
+            onClick={() => setOnlyAltArt(!onlyAltArt)}
+          />
+          <FacetOptionRow
+            label="Flatten"
+            selected={flattenWall}
+            onClick={() => setFlattenWall(!flattenWall)}
+          />
+        </>
+      )}
+      {isOnePiece && (
+        <FacetOptionRow
+          label="Errata"
+          selected={onlyErrata}
+          onClick={() => setOnlyErrata(!onlyErrata)}
         />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="menu"
-            aria-label="More filters"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute right-0 top-full"
-            style={{
-              transformOrigin: 'top right',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderTop: 'none',
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              boxShadow: 'var(--shadow-card)',
-              zIndex: 61,
-              padding: 4,
-              minWidth: 180,
-            }}
+      )}
+      {hasPricing && (
+        <FacetOptionRow
+          label="Prices"
+          selected={showTilePrices}
+          onClick={() => setShowTilePrices(!showTilePrices)}
+        />
+      )}
+      {isOnePiece && (
+        <div
+          className="px-2.5 py-2"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <div
+            className="text-[10px] font-semibold uppercase tracking-wide mb-1.5"
+            style={{ color: 'var(--text-muted)' }}
           >
-            {showVariantToggles && (
-              <>
-                <FacetOptionRow
-                  label="Alt art"
-                  selected={onlyAltArt}
-                  onClick={() => setOnlyAltArt(!onlyAltArt)}
-                />
-                <FacetOptionRow
-                  label="Flatten"
-                  selected={flattenWall}
-                  onClick={() => setFlattenWall(!flattenWall)}
-                />
-              </>
-            )}
-            {isOnePiece && (
-              <FacetOptionRow
-                label="Errata"
-                selected={onlyErrata}
-                onClick={() => setOnlyErrata(!onlyErrata)}
-              />
-            )}
-            {hasPricing && (
-              <FacetOptionRow
-                label="Prices"
-                selected={showTilePrices}
-                onClick={() => setShowTilePrices(!showTilePrices)}
-              />
-            )}
-            {isOnePiece && (
-              <div
-                className="px-2.5 py-2"
-                style={{ borderTop: '1px solid var(--border-subtle)' }}
-              >
-                <div
-                  className="text-[10px] font-semibold uppercase tracking-wide mb-1.5"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  Language
-                </div>
-                <div
-                  className="inline-flex items-center w-full"
+            Language
+          </div>
+          <div
+            className="inline-flex items-center w-full"
+            style={{
+              ...ctrl,
+              height: 30,
+              padding: 2,
+              overflow: 'hidden',
+            }}
+            role="radiogroup"
+            aria-label="Language"
+          >
+            {LANGUAGE_OPTIONS.map((opt) => {
+              const selected = language === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setLanguage(opt.value)}
+                  className="inline-flex flex-1 items-center justify-center text-[11px] font-semibold outline-none"
                   style={{
-                    ...ctrl,
-                    height: 30,
-                    padding: 2,
-                    overflow: 'hidden',
+                    height: 24,
+                    borderRadius: 4,
+                    background: selected ? 'var(--text-primary)' : 'transparent',
+                    color: selected ? 'var(--bg)' : 'var(--text-primary)',
+                    transition: 'background 0.18s ease, color 0.18s ease',
                   }}
-                  role="radiogroup"
-                  aria-label="Language"
+                  title={opt.description}
                 >
-                  {LANGUAGE_OPTIONS.map((opt) => {
-                    const selected = language === opt.value
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        onClick={() => setLanguage(opt.value)}
-                        className="inline-flex flex-1 items-center justify-center text-[11px] font-semibold outline-none"
-                        style={{
-                          height: 24,
-                          borderRadius: 4,
-                          background: selected ? 'var(--text-primary)' : 'transparent',
-                          color: selected ? 'var(--bg)' : 'var(--text-primary)',
-                          transition: 'background 0.18s ease, color 0.18s ease',
-                        }}
-                        title={opt.description}
-                      >
-                        {opt.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </HeaderDropdown>
   )
 }
 
@@ -977,7 +859,7 @@ export function Header({ sets, artists }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50"
+      className="fixed top-0 left-0 right-0 z-50 overflow-visible"
       style={{
         // Heavier background-color so we can lean less on backdrop-filter,
         // which is a major Safari scroll-jank source when it's blurring a
@@ -1325,7 +1207,7 @@ export function Header({ sets, artists }: HeaderProps) {
           switching TCGs is always one tap. Search flexes in the middle;
           Set anchors right like before. */}
       <div
-        className="nav:hidden flex items-center gap-2 px-4 min-w-0"
+        className="nav:hidden flex items-center gap-2 px-4 min-w-0 overflow-visible"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -1401,7 +1283,7 @@ export function Header({ sets, artists }: HeaderProps) {
           Language) live behind a single "More" pill so the row fits
           narrow viewports without a horizontal scrollbar. */}
       <div
-        className="nav:hidden flex items-center gap-2 px-4 min-w-0"
+        className="nav:hidden flex items-center gap-2 px-4 min-w-0 overflow-visible"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -1496,7 +1378,7 @@ export function Header({ sets, artists }: HeaderProps) {
           sheet. Sort lives in this same row — it's a secondary
           control that fits naturally beside zoom. */}
       <div
-        className="nav:hidden flex items-center gap-2 px-4"
+        className="nav:hidden flex items-center gap-2 px-4 overflow-visible"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
@@ -1567,7 +1449,7 @@ export function Header({ sets, artists }: HeaderProps) {
         style={{ borderTop: '1px solid var(--border-subtle)' }}
       >
         <div
-          className="mx-auto flex items-center gap-2 px-4"
+          className="mx-auto flex items-center gap-2 px-4 overflow-visible"
           style={{ maxWidth: 1800, height: 40 }}
         >
           <CollectionPicker
