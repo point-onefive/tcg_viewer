@@ -68,7 +68,7 @@ function ArtistTypeahead({
   // Close on outside click or Escape
   useEffect(() => {
     if (!open) return
-    const onDown = (e: MouseEvent) => {
+    const onClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false)
         setQuery('')
@@ -77,10 +77,11 @@ function ArtistTypeahead({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setOpen(false); setQuery('') }
     }
-    document.addEventListener('mousedown', onDown)
+    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      clearTimeout(id)
+      document.removeEventListener('click', onClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
@@ -221,6 +222,8 @@ function FacetPopover({
   menuMinWidth = 160,
   menuMaxHeight,
   triggerMaxWidth,
+  fluid = false,
+  menuAlign = 'left',
 }: {
   placeholder: string
   ariaLabel: string
@@ -241,22 +244,31 @@ function FacetPopover({
   // doesn't stretch the row and shove the rest of the filter strip
   // around. Selected text truncates with an ellipsis at this width.
   triggerMaxWidth?: number
+  // Fluid mode: trigger stretches to fill its flex slot (mobile filter
+  // rows divide the row between 3-4 popovers) instead of hugging its
+  // label like the desktop pills do.
+  fluid?: boolean
+  // Anchor the menu to the trigger's right edge. Used for popovers near
+  // the right viewport edge on mobile, where a left-anchored menu would
+  // overflow off-screen.
+  menuAlign?: 'left' | 'right'
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
-    const onDown = (e: MouseEvent) => {
+    const onClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onDown)
+    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      clearTimeout(id)
+      document.removeEventListener('click', onClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
@@ -264,22 +276,37 @@ function FacetPopover({
   const selectedOption = value ? options.find((o) => o.value === value) : null
   const triggerLabel = selectedOption?.label ?? placeholder
   const isActive = Boolean(value)
+  const triggerStyle = isActive ? ctrlActive : ctrl
 
   return (
-    <div ref={wrapperRef} className="relative shrink-0">
+    <div ref={wrapperRef} className={fluid ? 'relative flex-1 min-w-0' : 'relative shrink-0'}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
         /* outline-none keeps focus indication consistent with the
            Collection picker beside it; keyboard users still get a
            visible focus ring via the global :focus-visible rule
            (selects/inputs) - buttons here use hover/active styling
            instead, matching the header's existing button language. */
-        className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+        /* Fluid mode trims horizontal padding - mobile rows split ~360px
+           between 3-4 triggers, so px-3 + gap-1.5 left almost no room
+           for the label text. */
+        className={`footer-btn inline-flex items-center text-xs font-medium outline-none whitespace-nowrap ${fluid ? 'w-full gap-1 px-2' : 'gap-1.5 px-3'}`}
         style={{
-          ...(isActive ? ctrlActive : ctrl),
+          ...triggerStyle,
           height: 30,
           ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
+          ...(open
+            ? {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                position: 'relative',
+                zIndex: 62,
+              }
+            : null),
         }}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -304,6 +331,7 @@ function FacetPopover({
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             minWidth: 0,
+            ...(fluid ? { flex: 1, textAlign: 'left' } : null),
           }}
         >
           {triggerLabel}
@@ -324,20 +352,28 @@ function FacetPopover({
           <motion.div
             role="listbox"
             aria-label={ariaLabel}
-            initial={{ opacity: 0, y: -4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 top-full mt-1.5"
+            className={`absolute top-full ${menuAlign === 'right' ? 'right-0' : 'left-0'}`}
             style={{
-              transformOrigin: 'top left',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 8,
+              transformOrigin: menuAlign === 'right' ? 'top right' : 'top left',
+              background: triggerStyle.background,
+              border: triggerStyle.border,
+              borderTop: 'none',
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
               boxShadow: 'var(--shadow-card)',
-              zIndex: 60,
+              zIndex: 61,
               padding: 4,
               minWidth: menuMinWidth,
+              // Never let the panel walk past the viewport edge on
+              // narrow screens (mobile rows place popovers near both
+              // edges).
+              maxWidth: 'calc(100vw - 24px)',
               // When menuMaxHeight is set, the panel becomes its own
               // scroll container so long lists (e.g. 50+ sets) stay
               // inside the page bounds instead of overflowing past
@@ -504,16 +540,17 @@ function MobileMoreFiltersMenu({
 
   useEffect(() => {
     if (!open) return
-    const onDown = (e: MouseEvent) => {
+    const onClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onDown)
+    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      clearTimeout(id)
+      document.removeEventListener('click', onClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
@@ -532,9 +569,23 @@ function MobileMoreFiltersMenu({
     <div ref={wrapperRef} className="relative shrink-0">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
         className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
-        style={{ ...(isActive ? ctrlActive : ctrl), height: 30 }}
+        style={{
+          ...(isActive ? ctrlActive : ctrl),
+          height: 30,
+          ...(open
+            ? {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                position: 'relative',
+                zIndex: 62,
+              }
+            : null),
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={activeCount > 0 ? `More filters (${activeCount} active)` : 'More filters'}
@@ -571,18 +622,22 @@ function MobileMoreFiltersMenu({
           <motion.div
             role="menu"
             aria-label="More filters"
-            initial={{ opacity: 0, y: -4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute right-0 top-full mt-1.5"
+            className="absolute right-0 top-full"
             style={{
               transformOrigin: 'top right',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 8,
+              borderTop: 'none',
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
               boxShadow: 'var(--shadow-card)',
-              zIndex: 60,
+              zIndex: 61,
               padding: 4,
               minWidth: 180,
             }}
@@ -776,6 +831,21 @@ export function Header({ sets, artists }: HeaderProps) {
   // null in the bundle, so cost sort is pointless there.
   const hasCost = !isPokemon
   const showVariantToggles = facets.hasVariants
+  // Sort options shared by the desktop pill and the mobile row-4 popover.
+  // Rendered through FacetPopover (placeholder = "Sort: Default" doubles as
+  // the clear row) so sort gets the same toggle/close behavior, styling,
+  // and active highlight as every other filter control.
+  const sortOptions: FacetOption[] = [
+    ...(hasCost
+      ? [{ value: 'cost-asc', label: 'Cost ↑' }, { value: 'cost-desc', label: 'Cost ↓' }]
+      : []),
+    { value: 'rarity', label: 'Rarity' },
+    { value: 'type', label: 'Card type' },
+    ...(hasPower
+      ? [{ value: 'power-desc', label: isPokemon ? 'HP ↓' : isLorcana ? 'Strength ↓' : 'Power ↓' }]
+      : []),
+    ...(hasPricing ? [{ value: 'price-desc', label: 'Price ↓' }] : []),
+  ]
   const altArtTitle = flattenWall
     ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
     : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
@@ -787,16 +857,17 @@ export function Header({ sets, artists }: HeaderProps) {
   // Close collection dropdown on outside click / Escape
   useEffect(() => {
     if (!collectionOpen) return
-    const onDown = (e: MouseEvent) => {
+    const onClick = (e: MouseEvent) => {
       if (collectionRef.current && !collectionRef.current.contains(e.target as Node)) {
         setCollectionOpen(false)
       }
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCollectionOpen(false) }
-    document.addEventListener('mousedown', onDown)
+    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      clearTimeout(id)
+      document.removeEventListener('click', onClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [collectionOpen])
@@ -1232,38 +1303,29 @@ export function Header({ sets, artists }: HeaderProps) {
           )}
         </div>
 
-        {/* Set selector stays native here · the mobile OS picker
-            (bottom sheet on Android, wheel on iOS) handles a 50-set
-            list better than any custom popover, and we don't have
-            the desktop-overlay-bleed problem because mobile select
-            overlays are confined to the page. */}
-        <select
-          value={activeSet || ''}
-          onChange={(e) => setActiveSet(e.target.value || null)}
-          className="px-2 text-xs outline-none cursor-pointer appearance-none"
-          style={{
-            ...(activeSet ? ctrlActive : ctrl),
-            height: 30,
-            maxWidth: 110,
-            // Reserve room for a small chevron painted via SVG bg.
-            // Native arrow is suppressed via appearance:none so the
-            // control matches the styled language of the surrounding
-            // pills.
-            paddingRight: 22,
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 6px center',
-          }}
-          aria-label="Filter by set"
-        >
-          <option value="">All Sets</option>
-          {sets.map((s) => (
-            <option key={s.setCode} value={s.setCode}>
-              {s.setCode} · {s.setName}
-            </option>
-          ))}
-        </select>
+        {/* Set selector · custom popover, same as desktop. Native mobile
+            selects paint an OS menu that overlaps the trigger, ignores
+            site styling, and doesn't toggle closed when the trigger is
+            tapped again - all reported as bugs. The popover scrolls
+            internally (menuMaxHeight) so the 50-set list stays usable
+            on touch. Anchored right because it sits at the row's right
+            edge. */}
+        <FacetPopover
+          placeholder="All Sets"
+          ariaLabel="Filter by set"
+          value={activeSet}
+          onChange={setActiveSet}
+          options={sets.map((s) => ({
+            value: s.setCode,
+            label: `${s.setCode} · ${s.setName}`,
+          }))}
+          ctrl={ctrl}
+          ctrlActive={ctrlActive}
+          menuMinWidth={230}
+          menuMaxHeight={360}
+          triggerMaxWidth={110}
+          menuAlign="right"
+        />
       </div>
 
       {/* ── Mobile row-3 · primary facets + More menu ──────────────────
@@ -1278,95 +1340,60 @@ export function Header({ sets, artists }: HeaderProps) {
           borderTop: '1px solid var(--border-subtle)',
         }}
       >
-        <select
-          value={activeCardType || ''}
-          onChange={(e) => setActiveCardType(e.target.value || null)}
-          className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
-          style={{
-            ...(activeCardType ? ctrlActive : ctrl),
-            height: 30,
-            paddingRight: 22,
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 6px center',
-          }}
-          aria-label="Filter by card type"
-        >
-          <option value="">All types</option>
-          {facets.cardTypes.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={activeRarity || ''}
-          onChange={(e) => setActiveRarity(e.target.value || null)}
-          className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
-          style={{
-            ...(activeRarity ? ctrlActive : ctrl),
-            height: 30,
-            paddingRight: 22,
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 6px center',
-          }}
-          aria-label="Filter by rarity"
-        >
-          <option value="">All rarities</option>
-          {facets.rarities.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={activeColor || ''}
-          onChange={(e) => setActiveColor(e.target.value || null)}
-          className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
-          style={{
-            ...(activeColor ? ctrlActive : ctrl),
-            height: 30,
-            paddingRight: 22,
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 6px center',
-          }}
-          aria-label="Filter by color"
-        >
-          <option value="">All colors</option>
-          {facets.colors.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+        {/* Custom popovers (matching desktop) instead of native selects -
+            the OS menu overlapped the trigger, clashed with site styling,
+            and wouldn't toggle closed on a second tap. Fluid mode splits
+            the row width between them; the right-most popovers anchor
+            right so their menus stay on-screen. */}
+        <FacetPopover
+          placeholder="All types"
+          ariaLabel="Filter by card type"
+          value={activeCardType}
+          onChange={setActiveCardType}
+          options={facets.cardTypes}
+          ctrl={ctrl}
+          ctrlActive={ctrlActive}
+          menuMinWidth={150}
+          fluid
+        />
+        <FacetPopover
+          placeholder="All rarities"
+          ariaLabel="Filter by rarity"
+          value={activeRarity}
+          onChange={setActiveRarity}
+          options={facets.rarities}
+          ctrl={ctrl}
+          ctrlActive={ctrlActive}
+          menuMinWidth={180}
+          menuMaxHeight={320}
+          fluid
+        />
+        <FacetPopover
+          placeholder="All colors"
+          ariaLabel="Filter by color"
+          value={activeColor}
+          onChange={setActiveColor}
+          options={facets.colors}
+          ctrl={ctrl}
+          ctrlActive={ctrlActive}
+          menuMinWidth={150}
+          fluid
+          menuAlign="right"
+        />
         {facets.subtypes && (
-          <select
-            value={activeSubtype || ''}
-            onChange={(e) => setActiveSubtype(e.target.value || null)}
-            className="min-w-0 flex-1 px-2 text-xs outline-none cursor-pointer appearance-none truncate"
-            style={{
-              ...(activeSubtype ? ctrlActive : ctrl),
-              height: 30,
-              paddingRight: 22,
-              backgroundImage:
-                'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 6px center',
-            }}
-            aria-label="Filter by subtype"
-          >
-            <option value="">All subtypes</option>
-            {facets.subtypes.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          <FacetPopover
+            placeholder="All subtypes"
+            ariaLabel="Filter by subtype / era"
+            value={activeSubtype}
+            onChange={setActiveSubtype}
+            options={facets.subtypes}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            menuMinWidth={170}
+            menuMaxHeight={320}
+            fluid
+            menuAlign="right"
+          />
         )}
         {artists.length > 0 && (
           <ArtistTypeahead
@@ -1409,30 +1436,17 @@ export function Header({ sets, artists }: HeaderProps) {
           borderTop: '1px solid var(--border-subtle)',
         }}
       >
-        {/* Sort — native select matches the other mobile selects */}
-        <select
-          value={wallSort}
-          onChange={(e) => setWallSort(e.target.value as typeof wallSort)}
-          className="shrink-0 px-2 text-xs font-medium outline-none cursor-pointer appearance-none"
-          style={{
-            ...(wallSort !== 'default' ? ctrlActive : ctrl),
-            height: 30,
-            paddingRight: 22,
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 12 12\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'3 5 6 8 9 5\'/></svg>")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 6px center',
-          }}
-          aria-label="Sort cards"
-        >
-          <option value="default">Sort: Default</option>
-          {hasCost && <option value="cost-asc">Cost ↑</option>}
-          {hasCost && <option value="cost-desc">Cost ↓</option>}
-          <option value="rarity">Rarity</option>
-          <option value="type">Card type</option>
-          {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : isLorcana ? 'Strength ↓' : 'Power ↓'}</option>}
-          {hasPricing && <option value="price-desc">Price ↓</option>}
-        </select>
+        {/* Sort — same custom popover as desktop */}
+        <FacetPopover
+          placeholder="Sort: Default"
+          ariaLabel="Sort cards"
+          value={wallSort === 'default' ? null : wallSort}
+          onChange={(v) => setWallSort((v ?? 'default') as typeof wallSort)}
+          options={sortOptions}
+          ctrl={ctrl}
+          ctrlActive={ctrlActive}
+          menuMinWidth={150}
+        />
 
         <div
           className="flex items-center gap-2 flex-1 px-3"
@@ -1494,9 +1508,23 @@ export function Header({ sets, artists }: HeaderProps) {
           <div ref={collectionRef} className="relative shrink-0">
             <button
               type="button"
-              onClick={() => setCollectionOpen((o) => !o)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setCollectionOpen((o) => !o)
+              }}
               className="footer-btn inline-flex items-center gap-1.5 whitespace-nowrap px-3 text-xs font-medium"
-              style={{ ...ctrl, height: 30 }}
+              style={{
+                ...ctrl,
+                height: 30,
+                ...(collectionOpen
+                  ? {
+                      borderBottomLeftRadius: 0,
+                      borderBottomRightRadius: 0,
+                      position: 'relative',
+                      zIndex: 62,
+                    }
+                  : null),
+              }}
               aria-haspopup="listbox"
               aria-expanded={collectionOpen}
               aria-label="Collection"
@@ -1518,18 +1546,22 @@ export function Header({ sets, artists }: HeaderProps) {
                 <motion.div
                   role="listbox"
                   aria-label="Collection"
-                  initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
                   transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute left-0 top-full mt-1.5 min-w-[200px] overflow-hidden"
+                  className="absolute left-0 top-full min-w-[200px] overflow-hidden"
                   style={{
                     transformOrigin: 'top left',
                     background: 'var(--bg-surface)',
                     border: '1px solid var(--border-subtle)',
-                    borderRadius: 8,
+                    borderTop: 'none',
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 0,
+                    borderBottomLeftRadius: 8,
+                    borderBottomRightRadius: 8,
                     boxShadow: 'var(--shadow-card)',
-                    zIndex: 60,
+                    zIndex: 61,
                     padding: 4,
                   }}
                 >
@@ -1624,8 +1656,8 @@ export function Header({ sets, artists }: HeaderProps) {
               (not native <select>) keep menus inside site styling -
               macOS Chrome's native dropdown overlay paints an opaque
               white panel that ignores dark mode and feels foreign next
-              to the rest of the header. Mobile keeps native selects
-              because the OS picker is better tuned for touch. */}
+              to the rest of the header. Mobile uses the same popovers
+              in fluid mode for consistent toggle + attached-menu UX. */}
           <FacetPopover
             placeholder="All types"
             ariaLabel="Filter by card type"
@@ -1789,22 +1821,20 @@ export function Header({ sets, artists }: HeaderProps) {
             </>
           )}
 
-          {/* Sort picker */}
-          <select
-            value={wallSort}
-            onChange={(e) => setWallSort(e.target.value as typeof wallSort)}
-            className="footer-btn shrink-0 px-2 text-xs font-medium outline-none cursor-pointer appearance-none"
-            style={{ ...ctrl, height: 30 }}
-            aria-label="Sort cards"
-          >
-            <option value="default">Sort: Default</option>
-            {hasCost && <option value="cost-asc">Cost ↑</option>}
-            {hasCost && <option value="cost-desc">Cost ↓</option>}
-            <option value="rarity">Rarity</option>
-            <option value="type">Card type</option>
-            {hasPower && <option value="power-desc">{isPokemon ? 'HP ↓' : isLorcana ? 'Strength ↓' : 'Power ↓'}</option>}
-            {hasPricing && <option value="price-desc">Price ↓</option>}
-          </select>
+          {/* Sort picker · same custom popover as the facet filters so it
+              toggles closed on re-click, sits flush under the trigger, and
+              highlights when a non-default sort is active (the old native
+              select gave no hint that a sticky sort was applied). */}
+          <FacetPopover
+            placeholder="Sort: Default"
+            ariaLabel="Sort cards"
+            value={wallSort === 'default' ? null : wallSort}
+            onChange={(v) => setWallSort((v ?? 'default') as typeof wallSort)}
+            options={sortOptions}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            menuMinWidth={150}
+          />
 
           {/* Search.
               Width sized to fit the entire placeholder at rest.

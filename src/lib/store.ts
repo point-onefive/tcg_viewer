@@ -365,7 +365,10 @@ export const useStore = create<StoreState>()(
         language: state.language,
         flattenWall: state.flattenWall,
         showTilePrices: state.showTilePrices,
-        wallSort: state.wallSort,
+        // wallSort is deliberately NOT persisted. A sort picked during one
+        // browsing session silently reordering the wall days later reads as
+        // "the cards are broken", not "my old sort is still on" — fresh
+        // visits should always open in canonical set order.
         tierBoardTiers: state.tierBoardTiers,
         tierBoardTitle: state.tierBoardTitle,
         // Drop upload-kind cards from the persisted slice: their
@@ -375,7 +378,7 @@ export const useStore = create<StoreState>()(
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 19,
+      version: 21,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -501,7 +504,26 @@ export const useStore = create<StoreState>()(
           // v19 adds artist filter (default = no filter).
           s.activeArtist = null
         }
+        if (fromVersion < 20) {
+          // v20 stops persisting wallSort (session-only now). Clear any
+          // stale sort baked into older persisted blobs so returning
+          // visitors get canonical set order again.
+          s.wallSort = 'default'
+        }
+        if (fromVersion < 21) {
+          // v21 re-clears wallSort on every upgrade path. Older blobs
+          // could still carry a wallSort key even after v20 stopped
+          // writing it — zustand merges stored keys on rehydrate, so
+          // a leftover "price-desc" silently reordered the wall for
+          // returning visitors (incognito looked fine; regular browser
+          // did not).
+          s.wallSort = 'default'
+        }
         return s as StoreState
+      },
+      onRehydrateStorage: () => (state) => {
+        // Belt-and-suspenders: never restore a sort from localStorage.
+        if (state) state.wallSort = 'default'
       },
     }
   )
