@@ -7,8 +7,10 @@
 #      source of code; it must always mirror origin and never diverge)
 #   2. Run op_hub  -> prices + history for One Piece  (TCGPlayer)
 #   3. Run Gundam  -> prices + history for Gundam      (eBay Browse API)
-#   4. Commit + push pricing data + a refresh-status.json heartbeat
-#   5. Ping a healthcheck URL on success (optional)
+#   4. Run Pokémon -> prices + history for Pokémon     (pokemontcg.io / TCGplayer)
+#   5. Run Lorcana -> prices + history for Lorcana     (Lorcast / TCGplayer)
+#   6. Commit + push pricing data + a refresh-status.json heartbeat
+#   7. Ping a healthcheck URL on success (optional)
 #
 # Run manually:   bash scripts/market/vps-daily-refresh.sh
 # Dry run:        bash scripts/market/vps-daily-refresh.sh --dry-run
@@ -99,6 +101,27 @@ else
   fail "Gundam pricing failed (exit $?)"
 fi
 
+# --- 3b. Pokémon pricing via pokemontcg.io -------------------------------------
+# TCGplayer market prices embedded in the catalog API. POKEMONTCG_API_KEY in
+# .env.local lifts the rate limit but is optional (script self-throttles).
+echo ""
+echo "> Pokémon pricing (pokemontcg.io / TCGplayer)"
+if node scripts/market/fetch-pokemon-pricing.mjs; then
+  echo "  ok Pokémon pricing complete"
+else
+  fail "Pokémon pricing failed (exit $?)"
+fi
+
+# --- 3c. Lorcana pricing via Lorcast -------------------------------------------
+# TCGplayer USD prices from the Lorcast community API. No credentials needed.
+echo ""
+echo "> Lorcana pricing (Lorcast / TCGplayer)"
+if node scripts/market/fetch-lorcana-pricing.mjs; then
+  echo "  ok Lorcana pricing complete"
+else
+  fail "Lorcana pricing failed (exit $?)"
+fi
+
 # --- 4. Write status heartbeat ------------------------------------------------
 # A committed heartbeat means a missed/failed night is visible immediately in
 # git history (and on the deployed site) instead of going unnoticed for days.
@@ -126,6 +149,10 @@ TRACKED_FILES=(
   src/lib/pricing-meta.json
   src/lib/pricing-gundam.json
   src/lib/price-history-gundam.json
+  src/lib/pricing-pokemon.json
+  src/lib/price-history-pokemon.json
+  src/lib/pricing-lorcana.json
+  src/lib/price-history-lorcana.json
   "$STATUS_FILE"
 )
 

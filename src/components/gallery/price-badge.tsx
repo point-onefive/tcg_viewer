@@ -38,7 +38,10 @@ export function PriceBadge({ printId }: PriceBadgeProps) {
   if ((pricing.flags ?? []).includes('phantom_market')) return null
 
   const isEbaySource = pricing.source === 'ebay'
-  const lowConfidence = isEbaySource ? false : (pricing.listings ?? 0) < 2
+  // Listings-based confidence only applies where the pipeline reports a
+  // listing count (op_hub). Pokémon/Lorcana TCGplayer feeds don't expose
+  // listing depth, so an absent count must not dim every badge.
+  const lowConfidence = isEbaySource ? false : pricing.listings != null && pricing.listings < 2
 
   return (
     <span

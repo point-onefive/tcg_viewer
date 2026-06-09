@@ -498,7 +498,9 @@ function MobileMoreFiltersMenu({
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const hasPricing = activeCollection === 'one-piece' || activeCollection === 'gundam'
+  const hasPricing =
+    activeCollection === 'one-piece' || activeCollection === 'gundam' ||
+    activeCollection === 'pokemon' || activeCollection === 'lorcana'
 
   useEffect(() => {
     if (!open) return
@@ -765,7 +767,7 @@ export function Header({ sets, artists }: HeaderProps) {
   const isGundam = activeCollection === 'gundam'
   const isPokemon = activeCollection === 'pokemon'
   const isLorcana = activeCollection === 'lorcana'
-  const hasPricing = isOnePiece || isGundam
+  const hasPricing = isOnePiece || isGundam || isPokemon || isLorcana
   // Collections that have a meaningful `power` field (HP for Pokémon,
   // strength for Lorcana, power stat for OP/Gundam). Used to show/hide
   // the "Power ↓" sort option.
