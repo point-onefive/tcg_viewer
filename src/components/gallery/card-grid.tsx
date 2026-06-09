@@ -21,23 +21,21 @@ interface CardGridProps {
 }
 
 const CARD_RATIO = 7 / 5 // height / width
-// The fixed header height depends on breakpoint *and* (on mobile)
-// which TCG is active, because every filter was lifted out of the
-// hamburger sheet and into persistent rows under the brand row:
+// The fixed header height depends on breakpoint. On mobile every
+// collection gets the same four persistent rows under the brand bar:
 //
 //   desktop : 48 brand + 40 filter toolbar                  =  88
-//   mobile  : 48 brand + 40 search/set
-//                      + 40 facets (One Piece only)
-//                      + 40 zoom slider                     = 128 or 168
+//   mobile  : 48 brand + 40 collection/search/set
+//                      + 40 facets
+//                      + 40 sort/zoom                       = 168
 //
-// The taller mobile header eats a chunk of viewport but means zero
-// "open sheet, tweak, close sheet, scroll" round-trips for every
-// filter on the page. The non-One Piece TCGs skip the facets row so
-// they don't pay for filters that don't exist for them yet (Pokemon
-// types / Digimon colors will eventually slot into that same row).
-const HEADER_H_MOBILE_BASE = 128
-const HEADER_H_MOBILE_ONE_PIECE = 168
-const HEADER_H_DESKTOP = 88
+// card-grid uses this for the spacer below the fixed header and for
+// the virtualizer scrollMargin. Keep in sync if mobile rows change.
+export const GALLERY_HEADER_H_MOBILE = 168
+export const GALLERY_HEADER_H_DESKTOP = 88
+
+const HEADER_H_MOBILE = GALLERY_HEADER_H_MOBILE
+const HEADER_H_DESKTOP = GALLERY_HEADER_H_DESKTOP
 const LG_BREAKPOINT = 1024
 // Hard ceiling on how tiny we let cards get. Picked empirically: at
 // 30 columns on a 1024px viewport with a 4px gap, each tile is
@@ -58,11 +56,8 @@ const MAX_COLUMNS = 30
 // values don't sneak past the cap when the user loads on mobile.
 const MAX_COLUMNS_MOBILE = 14
 
-function headerHeightFor(windowWidth: number, activeCollection: string): number {
-  if (windowWidth >= LG_BREAKPOINT) return HEADER_H_DESKTOP
-  return activeCollection === 'one-piece'
-    ? HEADER_H_MOBILE_ONE_PIECE
-    : HEADER_H_MOBILE_BASE
+function headerHeightFor(windowWidth: number): number {
+  return windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
 }
 
 // Gap shrinks as the grid densifies. Around the default ~6 columns
@@ -81,7 +76,7 @@ function gapForColumns(cols: number): number {
 // real gap may be tighter at high column counts, but that only
 // gives us *more* headroom for fitting cards vertically.
 function minColumnsForViewport(windowWidth: number, windowHeight: number, activeCollection: string): number {
-  const usableHeight = windowHeight - headerHeightFor(windowWidth, activeCollection) - GAP_DEFAULT
+  const usableHeight = windowHeight - headerHeightFor(windowWidth) - GAP_DEFAULT
   const containerWidth = Math.min(windowWidth, 1800) - 32
   // cardWidth = containerWidth / cols, cardHeight = cardWidth * CARD_RATIO
   // We need cardHeight <= usableHeight
@@ -319,7 +314,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // scrollMargin, and the column-fitting math (`minColumnsForViewport`
   // also recomputes it, but cheaply). Depends on collection because
   // the One Piece facets row adds another 40px on mobile.
-  const headerH = headerHeightFor(windowWidth, activeCollection)
+  const headerH = headerHeightFor(windowWidth)
 
   // Filter logic lives in @/lib/card-filter so the lightbox viewer
   // can apply the exact same filter on the same inputs - that's what
@@ -454,7 +449,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   const estimateSize = useCallback(
     (index: number) => {
-      if (rowMeta[index] === 'header') return 44
+      if (rowMeta[index] === 'header') return 56
       const padding = 32
       const gap = gapForColumns(columns)
       const containerWidth = Math.min(window.innerWidth, 1800) - padding
@@ -467,15 +462,9 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   const virtualizer = useWindowVirtualizer({
     count: mounted ? rows.length : 0,
     estimateSize,
-    // Was 12 → 4 → now 2. 65% of card images hit the Next image
-    // optimizer (Bandai CDNs hot-linked when no R2 mirror exists yet),
-    // so each off-screen tile we mount eagerly is one more
-    // optimizer hit that competes with the in-viewport row for
-    // bandwidth. Two rows of preload is enough headroom for smooth
-    // scrolling at desktop column counts (≤30) without flooding the
-    // network the moment the user lands on the page.
     overscan: 2,
     scrollMargin: headerH,
+    measureElement: (el) => el.getBoundingClientRect().height,
   })
 
   if (!mounted) {
@@ -514,13 +503,13 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   return (
     <div className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800 }}>
-      {/* Spacer matches the fixed header (48px mobile, 88px desktop). */}
+      {/* Spacer matches the fixed header (168px mobile, 88px desktop). */}
       <div style={{ height: headerH }} />
 
       {/* Collection title - top-level grouping (collection > set).
           Sits on a lifted surface panel to create depth against the page bg. */}
       <div
-        className="-mx-4 md:-mx-4 px-4 md:px-4 py-3 md:py-3.5"
+        className="-mx-4 md:-mx-4 px-4 md:px-4 py-3.5 md:py-4"
         style={{
           background: 'var(--bg-surface)',
           borderTop: '1px solid var(--border-subtle)',
@@ -529,43 +518,42 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         }}
       >
         <div
-          className="text-[10px] tracking-[0.22em] uppercase mb-1"
+          className="text-[10px] tracking-[0.22em] uppercase mb-1.5"
           style={{ color: 'var(--text-muted)' }}
         >
           Collection
         </div>
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h2
-            className="uppercase"
-            style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--text-primary)',
-              fontSize: 'clamp(20px, 2.4vw, 28px)',
-              fontWeight: 700,
-              letterSpacing: '-0.015em',
-              lineHeight: 1,
-            }}
-          >
-            {collectionName}
-          </h2>
-          <span
-            className="text-[11px] tracking-[0.16em] uppercase"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {wallEntries.length.toLocaleString()} {flattenWall ? 'prints' : 'cards'}
-            {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
-          </span>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+          <div className="min-w-0 flex-1">
+            <h2
+              className="uppercase break-words"
+              style={{
+                fontFamily: 'var(--font-display)',
+                color: 'var(--text-primary)',
+                fontSize: 'clamp(22px, 2.6vw, 30px)',
+                fontWeight: 700,
+                letterSpacing: '-0.015em',
+                lineHeight: 1.15,
+              }}
+            >
+              {collectionName}
+            </h2>
+            <p
+              className="text-[11px] tracking-[0.14em] uppercase mt-1.5"
+              style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}
+            >
+              {wallEntries.length.toLocaleString()} {flattenWall ? 'prints' : 'cards'}
+              {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
+            </p>
+          </div>
           {visibleSetCodes.length > 1 && (
             <button
               type="button"
               onClick={() => {
-                // Explicitly mark every visible set as user-touched so the
-                // auto-expand-on-scroll observer doesn't immediately
-                // override a "Collapse all" gesture as the user scrolls.
                 setUserToggledSets(new Set(visibleSetCodes))
                 setCollapsedSets(allCollapsed ? new Set() : new Set(visibleSetCodes))
               }}
-              className="footer-btn text-[10px] tracking-[0.16em] uppercase ml-auto inline-flex items-center gap-1 px-2 py-1"
+              className="footer-btn text-[10px] tracking-[0.16em] uppercase shrink-0 inline-flex items-center gap-1 px-2 py-1 self-start sm:self-auto"
               style={{
                 color: 'var(--text-primary)',
                 background: 'var(--bg)',
@@ -684,6 +672,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
                 isCollapsed={isCollapsed}
                 onToggle={toggleSet}
                 onAutoExpand={autoExpandSet}
+                measureRef={virtualizer.measureElement}
+                dataIndex={virtualRow.index}
                 style={{ height: virtualRow.size, transform: "translateY(" + top + "px)" }}
               />
             )
@@ -741,6 +731,8 @@ function SetHeaderRow({
   isCollapsed,
   onToggle,
   onAutoExpand,
+  measureRef,
+  dataIndex,
   style,
 }: {
   set: CardSet
@@ -748,6 +740,8 @@ function SetHeaderRow({
   isCollapsed: boolean
   onToggle: (setCode: string) => void
   onAutoExpand: (setCode: string) => void
+  measureRef?: (node: Element | null) => void
+  dataIndex: number
   style: React.CSSProperties
 }) {
   const rowRef = useRef<HTMLDivElement>(null)
@@ -783,7 +777,11 @@ function SetHeaderRow({
 
   return (
     <div
-      ref={rowRef}
+      ref={(node) => {
+        rowRef.current = node
+        measureRef?.(node)
+      }}
+      data-index={dataIndex}
       className="absolute top-0 left-0 w-full flex flex-col justify-end pb-2"
       style={style}
     >
@@ -794,7 +792,7 @@ function SetHeaderRow({
       <button
         type="button"
         onClick={() => onToggle(set.setCode)}
-        className="flex items-center gap-2 text-left w-full -ml-1 pl-1 py-1 rounded"
+        className="flex items-start gap-2 text-left w-full -ml-1 pl-1 py-1 rounded"
         aria-expanded={!isCollapsed}
         aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${set.setName}`}
         style={{ cursor: 'pointer', background: 'transparent' }}
@@ -807,31 +805,37 @@ function SetHeaderRow({
             transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
             transition: 'transform 0.15s ease',
             flexShrink: 0,
+            marginTop: 2,
           }}
         />
-        <div className="flex items-baseline gap-2.5 flex-wrap">
-          <span
-            className="text-xs font-bold tracking-[0.12em] uppercase"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span
+              className="text-xs font-bold tracking-[0.12em] uppercase shrink-0"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+            >
+              {set.setCode}
+            </span>
+            <span
+              className="text-[10px] tracking-wider uppercase break-words"
+              style={{ color: 'var(--text-secondary)', lineHeight: 1.35 }}
+            >
+              {set.setName}
+            </span>
+          </div>
+          <div
+            className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5"
+            style={{ color: 'var(--text-muted)' }}
           >
-            {set.setCode}
-          </span>
-          <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-secondary)' }}>·</span>
-          <span className="text-[10px] tracking-wider uppercase" style={{ color: 'var(--text-secondary)' }}>
-            {set.setName}
-          </span>
-          {set.releaseDate && (
-            <>
-              <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
-              <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
+            {set.releaseDate && (
+              <span className="text-[10px] tracking-wider tabular-nums">
                 {set.releaseDate}
               </span>
-            </>
-          )}
-          <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
-          <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
-            {count} cards
-          </span>
+            )}
+            <span className="text-[10px] tracking-wider tabular-nums">
+              {count} cards
+            </span>
+          </div>
         </div>
       </button>
     </div>

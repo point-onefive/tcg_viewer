@@ -483,19 +483,174 @@ function FacetOptionRow({
 }
 
 /**
- * Mobile-only overflow menu for secondary filters (Collection,
- * Alt art, Flatten, Errata, Prices, Language). Keeps the primary
- * facet row to three dropdowns plus one "More" pill so the strip
- * fits narrow viewports without a horizontal scrollbar. The trigger
- * shows a count badge when any toggle filter is active.
- *
- * Collection picker is duplicated here (it also lives in the
- * hamburger sheet) because below the `nav` breakpoint the desktop
- * row that normally hosts the inline Collection picker is gone, and
- * we don't want users to have to open a second overlay (the burger)
- * to switch TCG. Same pattern as Language - that one isn't a "toggle
- * filter" either, but it lives in More so it's reachable one tap
- * deep instead of two.
+ * Collection switcher — shared between desktop filter bar and mobile
+ * search row so switching TCGs is one tap, not buried in "More".
+ */
+function CollectionPicker({
+  activeCollection,
+  setActiveCollection,
+  ctrl,
+  triggerMaxWidth,
+  menuAlign = 'left',
+}: {
+  activeCollection: Collection
+  setActiveCollection: (c: Collection) => void
+  ctrl: React.CSSProperties
+  triggerMaxWidth?: number
+  menuAlign?: 'left' | 'right'
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const activeName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      clearTimeout(id)
+      document.removeEventListener('click', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={wrapperRef} className="relative shrink-0 min-w-0">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
+        className="footer-btn inline-flex items-center gap-1.5 whitespace-nowrap px-3 text-xs font-medium w-full"
+        style={{
+          ...ctrl,
+          height: 30,
+          ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth } : null),
+          ...(open
+            ? {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                position: 'relative',
+                zIndex: 62,
+              }
+            : null),
+        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Collection"
+      >
+        <span
+          className="truncate"
+          style={{ minWidth: 0, ...(triggerMaxWidth ? { maxWidth: triggerMaxWidth - 28 } : null) }}
+        >
+          {activeName}
+        </span>
+        <ChevronDown
+          size={12}
+          strokeWidth={2.25}
+          style={{
+            transition: 'transform 180ms ease',
+            transform: open ? 'rotate(180deg)' : 'rotate(0)',
+            color: 'var(--text-muted)',
+            flexShrink: 0,
+          }}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="listbox"
+            aria-label="Collection"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            className={`absolute top-full min-w-[200px] overflow-hidden ${menuAlign === 'right' ? 'right-0' : 'left-0'}`}
+            style={{
+              transformOrigin: menuAlign === 'right' ? 'top right' : 'top left',
+              background: ctrl.background,
+              border: ctrl.border,
+              borderTop: 'none',
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+              boxShadow: 'var(--shadow-card)',
+              zIndex: 61,
+              padding: 4,
+            }}
+          >
+            {COLLECTIONS.map((c) => {
+              const selected = c.id === activeCollection
+              const disabled = !c.available
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  disabled={disabled}
+                  onClick={() => {
+                    if (disabled) return
+                    setActiveCollection(c.id)
+                    setOpen(false)
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
+                  style={{
+                    height: 30,
+                    borderRadius: 5,
+                    background: selected ? 'var(--text-primary)' : 'transparent',
+                    color: selected
+                      ? 'var(--bg)'
+                      : disabled
+                      ? 'var(--text-muted)'
+                      : 'var(--text-primary)',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    opacity: disabled ? 0.55 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!selected && !disabled) {
+                      e.currentTarget.style.background =
+                        'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!selected) e.currentTarget.style.background = 'transparent'
+                  }}
+                >
+                  <Check
+                    size={12}
+                    strokeWidth={2.5}
+                    style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
+                  />
+                  <span className="flex-1">{c.name}</span>
+                  {disabled && (
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                      soon
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/**
+ * Mobile-only overflow menu for secondary filters (Alt art, Flatten,
+ * Errata, Prices, Language). Collection switching lives in its own
+ * picker on the search row so it stays one tap away.
  */
 function MobileMoreFiltersMenu({
   showVariantToggles,
@@ -508,10 +663,9 @@ function MobileMoreFiltersMenu({
   setOnlyErrata,
   showTilePrices,
   setShowTilePrices,
+  hasPricing,
   language,
   setLanguage,
-  activeCollection,
-  setActiveCollection,
   ctrl,
   ctrlActive,
 }: {
@@ -525,18 +679,14 @@ function MobileMoreFiltersMenu({
   setOnlyErrata: (v: boolean) => void
   showTilePrices: boolean
   setShowTilePrices: (v: boolean) => void
+  hasPricing: boolean
   language: LanguagePickerValue
   setLanguage: (v: LanguagePickerValue) => void
-  activeCollection: Collection
-  setActiveCollection: (c: Collection) => void
   ctrl: React.CSSProperties
   ctrlActive: React.CSSProperties
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const hasPricing =
-    activeCollection === 'one-piece' || activeCollection === 'gundam' ||
-    activeCollection === 'pokemon' || activeCollection === 'lorcana'
 
   useEffect(() => {
     if (!open) return
@@ -556,8 +706,7 @@ function MobileMoreFiltersMenu({
   }, [open])
 
   // Always render: even when a collection has no toggle filters
-  // (e.g. Pokémon, no variants), the More menu still hosts the
-  // Collection picker so it's reachable without opening the burger.
+  // (e.g. Pokémon, no variants), the More menu still hosts Language.
   const activeCount =
     (onlyAltArt ? 1 : 0) +
     (flattenWall ? 1 : 0) +
@@ -642,68 +791,6 @@ function MobileMoreFiltersMenu({
               minWidth: 180,
             }}
           >
-            {/* Collection picker · sits at the top so the highest-
-                level filter (which TCG?) reads first. Below the
-                `nav` breakpoint the desktop bar that normally hosts
-                this picker is hidden, so this section is the
-                primary entry point for switching collections (the
-                hamburger sheet keeps a copy too for users who open
-                it for the meta links). Disabled collections render
-                a "soon" tag and stay non-interactive. */}
-            <div
-              className="px-2.5 py-1.5"
-              style={{ borderBottom: '1px solid var(--border-subtle)' }}
-            >
-              <div
-                className="text-[10px] font-semibold uppercase tracking-wide mb-1"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Collection
-              </div>
-              {COLLECTIONS.map((c) => {
-                const selected = c.id === activeCollection
-                const disabled = !c.available
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    disabled={disabled}
-                    onClick={() => {
-                      if (disabled) return
-                      setActiveCollection(c.id)
-                      setOpen(false)
-                    }}
-                    className="w-full flex items-center gap-2 px-1 text-xs font-medium text-left transition-colors whitespace-nowrap"
-                    style={{
-                      height: 28,
-                      borderRadius: 4,
-                      background: selected ? 'var(--text-primary)' : 'transparent',
-                      color: selected
-                        ? 'var(--bg)'
-                        : disabled
-                        ? 'var(--text-muted)'
-                        : 'var(--text-primary)',
-                      cursor: disabled ? 'not-allowed' : 'pointer',
-                      opacity: disabled ? 0.55 : 1,
-                    }}
-                  >
-                    <Check
-                      size={11}
-                      strokeWidth={2.5}
-                      style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
-                    />
-                    <span className="flex-1">{c.name}</span>
-                    {disabled && (
-                      <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                        soon
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
             {showVariantToggles && (
               <>
                 <FacetOptionRow
@@ -851,28 +938,6 @@ export function Header({ sets, artists }: HeaderProps) {
     : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
   const altArtAria = altArtTitle
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [collectionOpen, setCollectionOpen] = useState(false)
-  const collectionRef = useRef<HTMLDivElement>(null)
-
-  // Close collection dropdown on outside click / Escape
-  useEffect(() => {
-    if (!collectionOpen) return
-    const onClick = (e: MouseEvent) => {
-      if (collectionRef.current && !collectionRef.current.contains(e.target as Node)) {
-        setCollectionOpen(false)
-      }
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCollectionOpen(false) }
-    const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      clearTimeout(id)
-      document.removeEventListener('click', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [collectionOpen])
-
-  const activeCollectionName = COLLECTIONS.find((c) => c.id === activeCollection)?.name ?? 'Collection'
 
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
@@ -1255,22 +1320,24 @@ export function Header({ sets, artists }: HeaderProps) {
         </div>
       </div>
 
-      {/* ── Mobile row-2 · Search + Set ──────────────────────────────
-          First of three persistent filter rows on mobile (rows 3 and
-          4 are below). Search and Set are the two highest-frequency
-          filters so they get the top spot directly under the brand
-          row. Every other filter (Card type / Color / Alt art / Zoom)
-          now also lives outside the hamburger - see the rows below.
-          The 40px row height matches desktop row-2 and rows 3/4 so
-          virtualized scroll math in card-grid stays clean. */}
+      {/* ── Mobile row-2 · Collection + Search + Set ───────────────────
+          Collection gets its own picker here (not buried in More) so
+          switching TCGs is always one tap. Search flexes in the middle;
+          Set anchors right like before. */}
       <div
-        className="nav:hidden flex items-center gap-2 px-4"
+        className="nav:hidden flex items-center gap-2 px-4 min-w-0"
         style={{
           height: 40,
           borderTop: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="relative flex-1" style={{ height: 30 }}>
+        <CollectionPicker
+          activeCollection={activeCollection}
+          setActiveCollection={setActiveCollection}
+          ctrl={ctrl}
+          triggerMaxWidth={108}
+        />
+        <div className="relative flex-1 min-w-0" style={{ height: 30 }}>
           <input
             type="text"
             value={searchQuery}
@@ -1415,10 +1482,9 @@ export function Header({ sets, artists }: HeaderProps) {
           setOnlyErrata={setOnlyErrata}
           showTilePrices={showTilePrices}
           setShowTilePrices={setShowTilePrices}
+          hasPricing={hasPricing}
           language={language}
           setLanguage={setLanguage}
-          activeCollection={activeCollection}
-          setActiveCollection={setActiveCollection}
           ctrl={ctrl}
           ctrlActive={ctrlActive}
         />
@@ -1504,122 +1570,11 @@ export function Header({ sets, artists }: HeaderProps) {
           className="mx-auto flex items-center gap-2 px-4"
           style={{ maxWidth: 1800, height: 40 }}
         >
-          {/* Collection Filter (custom popover so menu stays inside the site) */}
-          <div ref={collectionRef} className="relative shrink-0">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                setCollectionOpen((o) => !o)
-              }}
-              className="footer-btn inline-flex items-center gap-1.5 whitespace-nowrap px-3 text-xs font-medium"
-              style={{
-                ...ctrl,
-                height: 30,
-                ...(collectionOpen
-                  ? {
-                      borderBottomLeftRadius: 0,
-                      borderBottomRightRadius: 0,
-                      position: 'relative',
-                      zIndex: 62,
-                    }
-                  : null),
-              }}
-              aria-haspopup="listbox"
-              aria-expanded={collectionOpen}
-              aria-label="Collection"
-            >
-              <span className="whitespace-nowrap">{activeCollectionName}</span>
-              <ChevronDown
-                size={12}
-                strokeWidth={2.25}
-                style={{
-                  transition: 'transform 180ms ease',
-                  transform: collectionOpen ? 'rotate(180deg)' : 'rotate(0)',
-                  color: 'var(--text-muted)',
-                }}
-              />
-            </button>
-
-            <AnimatePresence>
-              {collectionOpen && (
-                <motion.div
-                  role="listbox"
-                  aria-label="Collection"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute left-0 top-full min-w-[200px] overflow-hidden"
-                  style={{
-                    transformOrigin: 'top left',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    borderTop: 'none',
-                    borderTopLeftRadius: 0,
-                    borderTopRightRadius: 0,
-                    borderBottomLeftRadius: 8,
-                    borderBottomRightRadius: 8,
-                    boxShadow: 'var(--shadow-card)',
-                    zIndex: 61,
-                    padding: 4,
-                  }}
-                >
-                  {COLLECTIONS.map((c) => {
-                    const selected = c.id === activeCollection
-                    const disabled = !c.available
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        disabled={disabled}
-                        onClick={() => {
-                          if (disabled) return
-                          setActiveCollection(c.id)
-                          setCollectionOpen(false)
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 text-xs font-medium text-left transition-colors whitespace-nowrap"
-                        style={{
-                          height: 30,
-                          borderRadius: 5,
-                          background: selected ? 'var(--text-primary)' : 'transparent',
-                          color: selected
-                            ? 'var(--bg)'
-                            : disabled
-                            ? 'var(--text-muted)'
-                            : 'var(--text-primary)',
-                          cursor: disabled ? 'not-allowed' : 'pointer',
-                          opacity: disabled ? 0.55 : 1,
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!selected && !disabled) {
-                            e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!selected) e.currentTarget.style.background = 'transparent'
-                        }}
-                      >
-                        <Check
-                          size={12}
-                          strokeWidth={2.5}
-                          style={{ opacity: selected ? 1 : 0, flexShrink: 0 }}
-                        />
-                        <span className="flex-1">{c.name}</span>
-                        {disabled && (
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                            soon
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <CollectionPicker
+            activeCollection={activeCollection}
+            setActiveCollection={setActiveCollection}
+            ctrl={ctrl}
+          />
 
           {/* Set Filter · custom popover (not <select>) so the menu
               stays inside the page DOM and scrolls internally. The
