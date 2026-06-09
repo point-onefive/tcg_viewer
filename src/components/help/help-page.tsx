@@ -97,17 +97,23 @@ export function HelpPage() {
         <Section title="Quick start">
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
-              Pick a TCG from the <Kbd>Collection</Kbd> dropdown (top-left of the
-              filter row).
+              Pick a TCG from the <Kbd>Collection</Kbd> picker — One Piece,
+              Pokémon, Lorcana, Digimon, Dragon Ball Super, and Gundam are all
+              here.
             </li>
             <li>
-              Choose <Kbd>EN</Kbd> or <Kbd>JP</Kbd> to swap catalogues and artwork.
-              Each mode shows only prints published in that region.
+              For One Piece, choose <Kbd>EN</Kbd> or <Kbd>JP</Kbd> to swap
+              catalogues and artwork. Other collections are English-only.
             </li>
             <li>
               Narrow with <Kbd>Set</Kbd>, <Kbd>Card type</Kbd>, <Kbd>Rarity</Kbd>,{' '}
               <Kbd>Color</Kbd>, <Kbd>Alt art</Kbd>, or <Kbd>Flatten</Kbd>. They
               compose - turn on as many as you want.
+            </li>
+            <li>
+              Sort the wall with the <Kbd>Sort</Kbd> dropdown — by card cost,
+              power / HP, rarity, or price. Sorting always runs within each set
+              group.
             </li>
             <li>Click any card to open the lightbox and flip through alt arts.</li>
             <li>
@@ -128,7 +134,7 @@ export function HelpPage() {
             items={[
               {
                 term: 'Collection',
-                desc: 'Switches between TCGs (One Piece, Pokémon, Digimon, …). Filters reset on switch so you don\u2019t carry over irrelevant ones.',
+                desc: 'Switches between TCGs (One Piece, Pokémon, Lorcana, Digimon, Dragon Ball Super, Gundam). Filters reset on switch so you don\u2019t carry over irrelevant ones.',
               },
               {
                 term: 'Set',
@@ -136,18 +142,22 @@ export function HelpPage() {
               },
               {
                 term: 'Card type / Rarity / Color',
-                desc: 'Every TCG has its own curated vocabulary - Pokémon shows energy types and modern rarity tiers; Digimon and Gundam show their native colour wheels; One Piece keeps Leader / Character / Event / Stage. Switching collection resets these so you don\u2019t carry over irrelevant ones.',
+                desc: 'Every TCG has its own curated vocabulary — Pokémon shows energy types and modern rarity tiers (Common through Special Illustration Rare); Lorcana shows ink colours and its rarity ladder; Digimon and Gundam show their native colour wheels; One Piece keeps Leader / Character / Event / Stage. Switching collection resets these so you don\u2019t carry over irrelevant ones.',
+              },
+              {
+                term: 'Artist (Pokémon)',
+                desc: 'Type any illustrator name into the Artist field to filter Pokémon cards by the person who drew them. Works as a typeahead — start typing and matching names surface immediately.',
               },
               {
                 term: 'Alt art',
                 desc: (
                   <>
-                    Default: hide cards with no alt prints. With{' '}
-                    <Kbd>Flatten</Kbd> off, matching cards keep a stacked-tile
-                    hint on the wall. With <Kbd>Flatten</Kbd> on, the same toggle
+                    When active, only cards that have at least one alternate
+                    print are shown. The matching cards get a coloured ring on
+                    the wall tile. With <Kbd>Flatten</Kbd> on, the same toggle
                     hides base prints and shows variant tiles only. Available for
-                    One Piece, Digimon, Dragon Ball, and Gundam (Pokémon ships
-                    parallels as separate cards, so no toggle there).
+                    One Piece, Digimon, Dragon Ball, and Gundam (Pokémon and
+                    Lorcana ship parallels as separate cards, so no toggle there).
                   </>
                 ),
               },
@@ -164,15 +174,25 @@ export function HelpPage() {
                 ),
               },
               {
+                term: 'Sort',
+                desc: (
+                  <>
+                    Orders cards <em>within</em> each set group. Options vary by
+                    collection: <Kbd>Cost ↓</Kbd> / <Kbd>Power ↓</Kbd> (or{' '}
+                    <Kbd>HP ↓</Kbd> for Pokémon, <Kbd>Strength ↓</Kbd> for
+                    Lorcana), <Kbd>Rarity ↓</Kbd>, and <Kbd>Price ↓</Kbd>. The
+                    default follows the official set order.
+                  </>
+                ),
+              },
+              {
                 term: 'Language',
                 desc: (
                   <>
-                    <Kbd>EN</Kbd> shows the English catalogue (Bandai EN +
-                    Asia-EN). <Kbd>JP</Kbd> shows the Japanese catalogue with
-                    the richest promo coverage. There is no separate CN/TC picker
-                    - Bandai&rsquo;s TC/TW files are byte-identical to JP for
-                    almost every card, so a third option would have duplicated
-                    the same art.
+                    <em>One Piece only.</em> <Kbd>EN</Kbd> shows the English
+                    catalogue (Bandai EN + Asia-EN). <Kbd>JP</Kbd> shows the
+                    Japanese catalogue with the richest promo coverage. Other
+                    collections are English-only.
                   </>
                 ),
               },
@@ -181,9 +201,9 @@ export function HelpPage() {
                 desc: (
                   <>
                     Substring match on name, code, set name, card text (effect /
-                    trigger), types, attributes, and localized names. Try{' '}
-                    <Kbd>OP01-001</Kbd>, <Kbd>luffy</Kbd>, or{' '}
-                    <Kbd>when attacking</Kbd>.
+                    trigger), types, attributes, artist, and localized names.
+                    Try <Kbd>OP01-001</Kbd>, <Kbd>luffy</Kbd>, <Kbd>when attacking</Kbd>,
+                    or an artist&rsquo;s name.
                   </>
                 ),
               },
@@ -199,9 +219,14 @@ export function HelpPage() {
               (tiny). Default sits around 6.
             </li>
             <li>
+              The <Kbd>Sort</Kbd> dropdown reorders cards within each set group
+              by cost, power / HP, rarity, or price. Switch back to{' '}
+              <Kbd>Default</Kbd> to restore the official set order.
+            </li>
+            <li>
               Set headers collapse with the chevron beside the set code. The{' '}
-              <em>Collapse all</em> link hides every set at once. Facet toggles
-              (Alt art, Flatten, color, type) respect your collapse choices.
+              <em>Collapse all</em> link hides every set at once. Collapse state
+              is respected even while filters or search are active.
             </li>
             <li>
               In flattened mode the header counts <em>prints</em> (each alt tile)
@@ -210,6 +235,10 @@ export function HelpPage() {
             <li>
               Active filters appear as removable chips above the first card. The
               chip strip is also where you find the <em>Clear all</em> shortcut.
+            </li>
+            <li>
+              Cards with alternate prints show a subtle coloured ring around the
+              tile. Click any to explore every variant in the lightbox.
             </li>
           </ul>
         </Section>
@@ -233,19 +262,20 @@ export function HelpPage() {
               </li>
               <li>
                 Below the fan you&rsquo;ll find the set name, the navigation
-                arrows, and (for One Piece) the live pricing strip.
+                arrows, the illustrator credit (where available), and the live
+                pricing strip.
               </li>
             </ul>
             <AltArtStack />
           </div>
         </Section>
 
-        <Section title="Pricing (One Piece)">
+        <Section title="Pricing">
           <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            One Piece cards in the lightbox carry a live two-cell pricing
-            strip. It refreshes once a day from a free TCGPlayer market-data
-            feed and the daily snapshot is appended to a per-card history so
-            the trend chart fills in as time goes on.
+            Cards in the lightbox for One Piece, Pokémon, and Lorcana show a
+            live pricing strip. Prices refresh once a day from TCGPlayer
+            market data and the daily snapshot is appended to a per-card
+            history so the trend chart fills in as time goes on.
           </p>
           <DefList
             items={[
@@ -338,8 +368,23 @@ export function HelpPage() {
               reorder, rename or recolour any tier.
             </li>
             <li>
+              Use <Kbd>Select</Kbd> in the pool to pick multiple cards at once,
+              then assign the whole selection to any tier in one tap.
+            </li>
+            <li>
+              Both the pool and the chart have independent <Kbd>Zoom</Kbd>{' '}
+              scrubbers so you can browse a dense pool while keeping chart tiles
+              large enough to read.
+            </li>
+            <li>
               Give your chart a title at the top - it sits inside the chart
               frame so it travels with any screenshot you take.
+            </li>
+            <li>
+              <Kbd>Copy PNG</Kbd> copies the chart to your clipboard (paste
+              straight into a tweet or DM). <Kbd>Save PNG</Kbd> downloads a
+              file. <Kbd>Border: On</Kbd> wraps the chart in a rotating
+              mascot-palette gradient ring before export.
             </li>
             <li>
               Everything runs locally. Nothing uploads.
