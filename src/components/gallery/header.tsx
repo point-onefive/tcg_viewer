@@ -216,6 +216,7 @@ function ArtistTypeahead({
  */
 function FacetPopover({
   placeholder,
+  clearLabel,
   ariaLabel,
   value,
   onChange,
@@ -229,6 +230,10 @@ function FacetPopover({
   menuAlign = 'left',
 }: {
   placeholder: string
+  // Label for the menu's clear/reset row. Defaults to `placeholder` —
+  // pass separately when the trigger uses a compact mobile label
+  // ("Type") but the menu should still read "All types".
+  clearLabel?: string
   ariaLabel: string
   value: string | null
   onChange: (next: string | null) => void
@@ -307,7 +312,7 @@ function FacetPopover({
       }
     >
       <FacetOptionRow
-        label={placeholder}
+        label={clearLabel ?? placeholder}
         selected={value === null}
         onClick={() => {
           onChange(null)
@@ -907,6 +912,9 @@ export function Header({ sets, artists }: HeaderProps) {
               src="/images/site-logo.png"
               alt=""
               aria-hidden
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
               width={22}
               height={22}
               style={{
@@ -1292,10 +1300,12 @@ export function Header({ sets, artists }: HeaderProps) {
         {/* Custom popovers (matching desktop) instead of native selects -
             the OS menu overlapped the trigger, clashed with site styling,
             and wouldn't toggle closed on a second tap. Fluid mode splits
-            the row width between them; the right-most popovers anchor
-            right so their menus stay on-screen. */}
+            the row width between them. Compact labels ("Type" not "All
+            types") keep every trigger readable on a 360px row; the menu's
+            clear row still reads the full "All …" label. */}
         <FacetPopover
-          placeholder="All types"
+          placeholder="Type"
+          clearLabel="All types"
           ariaLabel="Filter by card type"
           value={activeCardType}
           onChange={setActiveCardType}
@@ -1306,7 +1316,8 @@ export function Header({ sets, artists }: HeaderProps) {
           fluid
         />
         <FacetPopover
-          placeholder="All rarities"
+          placeholder="Rarity"
+          clearLabel="All rarities"
           ariaLabel="Filter by rarity"
           value={activeRarity}
           onChange={setActiveRarity}
@@ -1318,7 +1329,8 @@ export function Header({ sets, artists }: HeaderProps) {
           fluid
         />
         <FacetPopover
-          placeholder="All colors"
+          placeholder="Color"
+          clearLabel="All colors"
           ariaLabel="Filter by color"
           value={activeColor}
           onChange={setActiveColor}
@@ -1331,7 +1343,8 @@ export function Header({ sets, artists }: HeaderProps) {
         />
         {facets.subtypes && (
           <FacetPopover
-            placeholder="All subtypes"
+            placeholder="Era"
+            clearLabel="All subtypes"
             ariaLabel="Filter by subtype / era"
             value={activeSubtype}
             onChange={setActiveSubtype}
@@ -1342,15 +1355,6 @@ export function Header({ sets, artists }: HeaderProps) {
             menuMaxHeight={320}
             fluid
             menuAlign="right"
-          />
-        )}
-        {artists.length > 0 && (
-          <ArtistTypeahead
-            value={activeArtist}
-            onChange={setActiveArtist}
-            artists={artists}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
           />
         )}
         <MobileMoreFiltersMenu
@@ -1372,11 +1376,12 @@ export function Header({ sets, artists }: HeaderProps) {
         />
       </div>
 
-      {/* ── Mobile row-4 · Sort + Zoom slider ──────────────────────────
+      {/* ── Mobile row-4 · Sort + Artist + Zoom slider ─────────────────
           Zoom was the last hamburger-only control. Promoted here so
           the entire filter set is reachable without ever opening the
-          sheet. Sort lives in this same row — it's a secondary
-          control that fits naturally beside zoom. */}
+          sheet. Sort and the artist typeahead live in this same row —
+          secondary controls that fit naturally beside zoom (and keep
+          row-3's facet triggers from being crushed into "A…"). */}
       <div
         className="nav:hidden flex items-center gap-2 px-4 overflow-visible"
         style={{
@@ -1395,6 +1400,16 @@ export function Header({ sets, artists }: HeaderProps) {
           ctrlActive={ctrlActive}
           menuMinWidth={150}
         />
+
+        {artists.length > 0 && (
+          <ArtistTypeahead
+            value={activeArtist}
+            onChange={setActiveArtist}
+            artists={artists}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+          />
+        )}
 
         <div
           className="flex items-center gap-2 flex-1 px-3"

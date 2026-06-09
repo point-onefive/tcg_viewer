@@ -62,14 +62,22 @@ function headerHeightFor(windowWidth: number): number {
 
 // Gap shrinks as the grid densifies. Around the default ~6 columns
 // a generous 14px gap reads as "card collection". At the extreme
-// zoom-out we want a stamp-album feel, so the gap collapses to a
-// hairline so the freed pixels go to actual card art.
+// zoom-out we want a stamp-album feel: a hairline seam so the freed
+// pixels go to actual card art. (The old curve held 10px all the way
+// to 13 cols, which read as wasted space once tiles dropped under
+// ~30px — especially on mobile where 14 cols is the ceiling.)
 function gapForColumns(cols: number): number {
-  if (cols >= 24) return 4
-  if (cols >= 18) return 6
-  if (cols >= 13) return 10
+  if (cols >= 24) return 2
+  if (cols >= 18) return 3
+  if (cols >= 13) return 5
+  if (cols >= 9) return 9
   return GAP_DEFAULT
 }
+
+// Past this column count the variant-stack peek sheets get clamped via
+// the `wall--dense` class — their 6-9px translate offsets would bleed
+// into neighbouring tiles once the gap drops to a hairline.
+const DENSE_COLUMNS = 13
 
 // Minimum columns so that 1 full card fits within the viewport
 // height. Uses the default gap as a conservative upper bound - the
@@ -502,7 +510,10 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   }
 
   return (
-    <div className="mx-auto px-4 md:px-4" style={{ maxWidth: 1800 }}>
+    <div
+      className={`mx-auto px-4 md:px-4${columns >= DENSE_COLUMNS ? ' wall--dense' : ''}`}
+      style={{ maxWidth: 1800 }}
+    >
       {/* Spacer matches the fixed header (168px mobile, 88px desktop). */}
       <div style={{ height: headerH }} />
 
@@ -518,42 +529,46 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         }}
       >
         <div
-          className="text-[10px] tracking-[0.22em] uppercase mb-1.5"
+          className="text-[10px] tracking-[0.22em] uppercase mb-1"
           style={{ color: 'var(--text-muted)' }}
         >
           Collection
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
-          <div className="min-w-0 flex-1">
-            <h2
-              className="uppercase break-words"
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: 'var(--text-primary)',
-                fontSize: 'clamp(22px, 2.6vw, 30px)',
-                fontWeight: 700,
-                letterSpacing: '-0.015em',
-                lineHeight: 1.15,
-              }}
-            >
-              {collectionName}
-            </h2>
-            <p
-              className="text-[11px] tracking-[0.14em] uppercase mt-1.5"
-              style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}
-            >
-              {wallEntries.length.toLocaleString()} {flattenWall ? 'prints' : 'cards'}
-              {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
-            </p>
-          </div>
+        {/* Single horizontal row: title · count · collapse-all. The
+            title shrinks via clamp() and the count truncates before
+            anything wraps, so the bar stays one line on phones. */}
+        <div className="flex items-baseline gap-2.5 min-w-0">
+          <h2
+            className="uppercase whitespace-nowrap shrink-0"
+            style={{
+              fontFamily: 'var(--font-display)',
+              color: 'var(--text-primary)',
+              fontSize: 'clamp(18px, 4.5vw, 28px)',
+              fontWeight: 700,
+              letterSpacing: '-0.015em',
+              lineHeight: 1,
+            }}
+          >
+            {collectionName}
+          </h2>
+          <span
+            className="text-[11px] tracking-[0.14em] uppercase truncate min-w-0"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {wallEntries.length.toLocaleString()} {flattenWall ? 'prints' : 'cards'}
+            {activeSet ? ` · ${activeSet}` : ` · ${sets.length} sets`}
+          </span>
           {visibleSetCodes.length > 1 && (
             <button
               type="button"
               onClick={() => {
+                // Explicitly mark every visible set as user-touched so the
+                // auto-expand-on-scroll observer doesn't immediately
+                // override a "Collapse all" gesture as the user scrolls.
                 setUserToggledSets(new Set(visibleSetCodes))
                 setCollapsedSets(allCollapsed ? new Set() : new Set(visibleSetCodes))
               }}
-              className="footer-btn text-[10px] tracking-[0.16em] uppercase shrink-0 inline-flex items-center gap-1 px-2 py-1 self-start sm:self-auto"
+              className="footer-btn text-[10px] tracking-[0.16em] uppercase ml-auto shrink-0 inline-flex items-center gap-1 px-2 py-1"
               style={{
                 color: 'var(--text-primary)',
                 background: 'var(--bg)',
@@ -808,34 +823,29 @@ function SetHeaderRow({
             marginTop: 2,
           }}
         />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span
-              className="text-xs font-bold tracking-[0.12em] uppercase shrink-0"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
-            >
-              {set.setCode}
-            </span>
-            <span
-              className="text-[10px] tracking-wider uppercase break-words"
-              style={{ color: 'var(--text-secondary)', lineHeight: 1.35 }}
-            >
-              {set.setName}
-            </span>
-          </div>
-          <div
-            className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5"
-            style={{ color: 'var(--text-muted)' }}
+        <div className="flex items-baseline gap-2.5 flex-wrap min-w-0">
+          <span
+            className="text-xs font-bold tracking-[0.12em] uppercase"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
           >
-            {set.releaseDate && (
-              <span className="text-[10px] tracking-wider tabular-nums">
+            {set.setCode}
+          </span>
+          <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-secondary)' }}>·</span>
+          <span className="text-[10px] tracking-wider uppercase" style={{ color: 'var(--text-secondary)' }}>
+            {set.setName}
+          </span>
+          {set.releaseDate && (
+            <>
+              <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
+              <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
                 {set.releaseDate}
               </span>
-            )}
-            <span className="text-[10px] tracking-wider tabular-nums">
-              {count} cards
-            </span>
-          </div>
+            </>
+          )}
+          <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>·</span>
+          <span className="text-[10px] tracking-wider tabular-nums" style={{ color: 'var(--text-muted)' }}>
+            {count} cards
+          </span>
         </div>
       </button>
     </div>

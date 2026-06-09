@@ -1346,6 +1346,24 @@ html.lenis, html.lenis body {
   }
 }
 
+/* Dense wall (13+ columns): the grid gap collapses to a hairline, so
+   the stack peek sheets must hug the tile instead of swaying 6-9px
+   into the neighbour. Static micro-offset keeps the "has alternates"
+   cue without the visual noise; the ambient glow is dropped because a
+   14px halo around a 25px tile reads as blur, not signal. */
+.wall--dense .card-tile__stack--1 {
+  animation: none;
+  transform: translate(1.5px, 1.5px) rotate(0.8deg);
+}
+.wall--dense .card-tile__stack--2 {
+  animation: none;
+  transform: translate(3px, 3px) rotate(1.6deg);
+  opacity: 0.7;
+}
+.wall--dense .card-tile--has-variants {
+  box-shadow: none;
+}
+
 /* ─── Tier-list chart "blip" border ────────────────────────────────
    A thin brand-orange outline that's mostly dim, with a single
    brief brightness flash once per loop -- like a status LED or a
