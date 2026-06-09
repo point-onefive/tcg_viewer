@@ -1202,5 +1202,12 @@
     "releaseDate": "2026-03-27",
     "releaseOrder": 771,
     "cardCount": 124
+  },
+  {
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardCount": 122
   }
 ]

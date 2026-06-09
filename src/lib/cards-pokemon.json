@@ -550401,5 +550401,3318 @@
     "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\nMega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nGaia Wave (Fighting, Fighting, Fighting) - 200\nDuring your opponent's next turn, this Pokémon takes 30 less damage from attacks (after applying Weakness and Resistance).\n\nNullifying Zero (Fighting, Fighting, Fighting, Fighting, Fighting)\nFor each of your opponent's Pokémon, flip a coin. If heads, this attack does 150 damage to that Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)",
     "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me3-124.webp",
     "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me3-124.webp"
+  },
+  {
+    "id": "me4-1",
+    "code": "me4-1",
+    "name": "Weedle",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 50,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Surprise Attack (Grass) - 30\nFlip a coin. If tails, this attack does nothing.",
+    "artist": "sowsow",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-1.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-1.webp"
+  },
+  {
+    "id": "me4-2",
+    "code": "me4-2",
+    "name": "Kakuna",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 80,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "[Ability] Exoskeleton\nThis Pokémon takes 20 less damage from attacks (after applying Weakness and Resistance).\n\nHang Down (Grass) - 20",
+    "artist": "Mugi Hamada",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-2.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-2.webp"
+  },
+  {
+    "id": "me4-3",
+    "code": "me4-3",
+    "name": "Beedrill ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 310,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\nRumbling Bees (Grass) - 110×\nThis attack does 110 damage for each of your Beedrill and Beedrill ex in play.",
+    "artist": "toriyufu",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-3.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-3.webp"
+  },
+  {
+    "id": "me4-4",
+    "code": "me4-4",
+    "name": "Carnivine",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 110,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Chomp Whole (Colorless, Colorless, Colorless) - 80+\nIf your opponent's Active Pokémon has no Retreat Cost, this attack does 80 more damage.",
+    "artist": "Heisuke Kitazawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-4.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-4.webp"
+  },
+  {
+    "id": "me4-5",
+    "code": "me4-5",
+    "name": "Chespin",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Beat (Grass) - 10\n\nSpike Sting (Grass, Grass) - 30",
+    "artist": "HACCAN",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-5.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-5.webp"
+  },
+  {
+    "id": "me4-6",
+    "code": "me4-6",
+    "name": "Quilladin",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Leafy Charge (Grass) - 20\nSearch your deck for a Basic Grass Energy card and attach it to this Pokémon. Then, shuffle your deck.\n\nVine Whip (Grass, Grass, Colorless) - 80",
+    "artist": "Hideki Ishikawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-6.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-6.webp"
+  },
+  {
+    "id": "me4-7",
+    "code": "me4-7",
+    "name": "Chesnaught",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 180,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Needly Armor\nIf this Pokémon is in the Active Spot and is damaged by an attack from your opponent's Pokémon (even if this Pokémon is Knocked Out), place 3 damage counters on the Attacking Pokémon for each Grass Energy attached to this Pokémon.\n\nImpound (Grass, Grass, Colorless) - 160\nDuring your opponent's next turn, the Defending Pokémon can't retreat.",
+    "artist": "Uta",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-7.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-7.webp"
+  },
+  {
+    "id": "me4-8",
+    "code": "me4-8",
+    "name": "Vulpix",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Singe (Fire)\nYour opponent's Active Pokémon is now Burned.",
+    "artist": "Yoshimoto Yoshimon",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-8.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-8.webp"
+  },
+  {
+    "id": "me4-9",
+    "code": "me4-9",
+    "name": "Ninetales",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 120,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Nine-Tailed Transfer (Fire)\nMove all damage counters from 1 of your Benched Pokémon to your opponent's Active Pokémon.\n\nWill-O-Wisp (Fire, Fire) - 70",
+    "artist": "Ryuta Fuse",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-9.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-9.webp"
+  },
+  {
+    "id": "me4-10",
+    "code": "me4-10",
+    "name": "Ho-Oh",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Flames of Revival (Fire)\nPut up to 3 Basic Pokémon from your discard pile onto your Bench.\n\nBright Wing (Fire, Fire, Fire) - 130\nDiscard a Fire Energy from this Pokémon.",
+    "artist": "Takumi Wada",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-10.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-10.webp"
+  },
+  {
+    "id": "me4-11",
+    "code": "me4-11",
+    "name": "Fennekin",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Call for Family (Colorless)\nSearch your deck for up to 2 Basic Pokémon and put them onto your Bench. Then, shuffle your deck.\n\nSteady Firebreathing (Fire) - 10",
+    "artist": "saino misaki",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-11.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-11.webp"
+  },
+  {
+    "id": "me4-12",
+    "code": "me4-12",
+    "name": "Braixen",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Flamethrower (Fire, Fire) - 80\nDiscard an Energy from this Pokémon.",
+    "artist": "Taiga Kasai",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-12.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-12.webp"
+  },
+  {
+    "id": "me4-13",
+    "code": "me4-13",
+    "name": "Delphox",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 160,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Flaring Magic\nOnce during your turn, you may discard a Basic Fire Energy card from your hand in order to use this Ability. Draw cards until you have 7 cards in your hand.\n\nEnergized Storm (Fire, Fire) - 30×\nThis attack does 30 damage for each Energy attached to all Pokémon.",
+    "artist": "Gemi",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-13.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-13.webp"
+  },
+  {
+    "id": "me4-14",
+    "code": "me4-14",
+    "name": "Litleo",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Tackle (Colorless) - 10",
+    "artist": "Mina Nakai",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-14.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-14.webp"
+  },
+  {
+    "id": "me4-15",
+    "code": "me4-15",
+    "name": "Mega Pyroar ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 340,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nFerocious Bellow (Fire, Colorless) - 80\nDuring your opponent's next turn, attacks used by the Defending Pokémon do 50 less damage (before applying Weakness and Resistance).\n\nFiery Big Bang (Fire, Fire, Colorless) - 290-\nThis attack does 10 less damage for each damage counter on this Pokémon.",
+    "artist": "Keisuke Azuma",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-15.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-15.webp"
+  },
+  {
+    "id": "me4-16",
+    "code": "me4-16",
+    "name": "Remoraid",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Sharp Fin (Water) - 20",
+    "artist": "Mori You",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-16.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-16.webp"
+  },
+  {
+    "id": "me4-17",
+    "code": "me4-17",
+    "name": "Octillery",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 110,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Jet of Ink (Water) - 30\nDuring your opponent's next turn, if the Defending Pokémon tries to use an attack, your opponent flips 2 coins. If either of them is tails, that attack doesn't happen.\n\nTantrum (Water, Colorless) - 120\nThis Pokémon is now Confused.",
+    "artist": "matazo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-17.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-17.webp"
+  },
+  {
+    "id": "me4-18",
+    "code": "me4-18",
+    "name": "Delibird",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 90,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Pleasing Present (Colorless)\nEach player may attach up to 3 Basic Energy cards from their hand to their Pokémon in any way they like. Your opponent does this first.\n\nFlap (Colorless, Colorless) - 40",
+    "artist": "Saboteri",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-18.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-18.webp"
+  },
+  {
+    "id": "me4-19",
+    "code": "me4-19",
+    "name": "Keldeo",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 110,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Shoot Through (Water) - 20\nThis attack also does 20 damage to 1 of your opponent's Benched Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)\n\nReflect Energy (Water, Water) - 70\nMove an Energy from this Pokémon to 1 of your Benched Pokémon.",
+    "artist": "Mitsuhiro Arita",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-19.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-19.webp"
+  },
+  {
+    "id": "me4-20",
+    "code": "me4-20",
+    "name": "Froakie",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Collect (Colorless)\nDraw a card.\n\nWater Gun (Water) - 10",
+    "artist": "Kariya",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-20.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-20.webp"
+  },
+  {
+    "id": "me4-21",
+    "code": "me4-21",
+    "name": "Frogadier",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Summoning Jutsu (Water)\nSearch your deck for up to 3 Pokémon, reveal them, and put them into your hand. Then, shuffle your deck.\n\nAqua Edge (Water, Water) - 50",
+    "artist": "Nelnal",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-21.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-21.webp"
+  },
+  {
+    "id": "me4-22",
+    "code": "me4-22",
+    "name": "Mega Greninja ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 350,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\n[Ability] Mortal Shuriken\nOnce during your turn, if this Pokémon is in the Active Spot, you may discard a Basic Water Energy card from your hand in order to use this Ability. Place 6 damage counters on 1 of your opponent's Pokémon.\n\nNinja Spinner (Water, Water) - 120+\nYou may put a Water Energy attached to this Pokémon into your hand and have this attack do 80 more damage.",
+    "artist": "takuyoa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-22.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-22.webp"
+  },
+  {
+    "id": "me4-23",
+    "code": "me4-23",
+    "name": "Bergmite",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 80,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Chilly (Water) - 10\n\nFrost Breath (Water, Colorless, Colorless) - 50",
+    "artist": "Anesaki Dynamic",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-23.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-23.webp"
+  },
+  {
+    "id": "me4-24",
+    "code": "me4-24",
+    "name": "Avalugg",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 160,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Iceberg Breaker (Water) - 60×\nDiscard the top 6 cards of your deck, and this attack does 60 damage for each Basic Water Energy card you discarded in this way.\n\nFrost Stamp (Water, Water, Colorless, Colorless) - 160",
+    "artist": "Tomoki Sone",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-24.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-24.webp"
+  },
+  {
+    "id": "me4-25",
+    "code": "me4-25",
+    "name": "Wimpod",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Gnaw (Water) - 10\n\nCorkscrew Punch (Colorless, Colorless) - 20",
+    "artist": "0313",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-25.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-25.webp"
+  },
+  {
+    "id": "me4-26",
+    "code": "me4-26",
+    "name": "Golisopod",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 140,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Critical Slash (Water) - 30\nIf your opponent's Pokémon is Knocked Out by damage from this attack, during your opponent's next turn, prevent all damage from and effects of attacks done to this Pokémon.\n\nBoundless Power (Colorless, Colorless, Colorless) - 150\nDuring your next turn, this Pokémon can't use attacks.",
+    "artist": "Takeshi Nakamura",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-26.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-26.webp"
+  },
+  {
+    "id": "me4-27",
+    "code": "me4-27",
+    "name": "Mareep",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Thunder Wave (Lightning, Colorless) - 20\nFlip a coin. If heads, your opponent's Active Pokémon is now Paralyzed.",
+    "artist": "UKUMO viti",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-27.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-27.webp"
+  },
+  {
+    "id": "me4-28",
+    "code": "me4-28",
+    "name": "Flaaffy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": 90,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Disconnect (Lightning, Colorless) - 40\nDuring your opponent's next turn, they can't play any Item cards from their hand.",
+    "artist": "miki kudo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-28.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-28.webp"
+  },
+  {
+    "id": "me4-29",
+    "code": "me4-29",
+    "name": "Ampharos",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": 160,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Synchro Pulse\nIf you have the same number of cards in your hand as your opponent, attacks used by this Pokémon do 80 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance).\n\nFlashing Bolt (Lightning, Colorless) - 140\nDuring your next turn, this Pokémon can't use Flashing Bolt.",
+    "artist": "CHORISO",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-29.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-29.webp"
+  },
+  {
+    "id": "me4-30",
+    "code": "me4-30",
+    "name": "Emolga",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Minor Errand-Running (Colorless)\nSearch your deck for up to 2 Basic Energy cards, reveal them, and put them into your hand. Then, shuffle your deck.\n\nSky Return (Lightning) - 30\nPut this Pokémon and all attached cards into your hand.",
+    "artist": "Kazumasa Yasukuni",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-30.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-30.webp"
+  },
+  {
+    "id": "me4-31",
+    "code": "me4-31",
+    "name": "Deoxys",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 110,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Genome Charge (Colorless)\nSearch your deck for up to 2 Basic Psychic Energy cards and attach them to this Pokémon. Then, shuffle your deck.\n\nPsychic (Psychic, Psychic, Colorless) - 80+\nThis attack does 20 more damage for each Energy attached to your opponent's Active Pokémon.",
+    "artist": "Shiburingaru",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-31.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-31.webp"
+  },
+  {
+    "id": "me4-32",
+    "code": "me4-32",
+    "name": "Deoxys",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 120,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Psyspear (Psychic, Psychic, Psychic) - 120\nIf this Pokémon has at least 2 extra Energy attached (in addition to this attack's cost), this attack also does 120 damage to 1 of your opponent's Benched Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+    "artist": "nagimiso",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-32.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-32.webp"
+  },
+  {
+    "id": "me4-33",
+    "code": "me4-33",
+    "name": "Deoxys",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Psy Protection (Psychic, Psychic, Colorless) - 80\nDuring your opponent's next turn, prevent all damage done to this Pokémon by attacks from Pokémon that have an Ability.",
+    "artist": "GOSSAN",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-33.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-33.webp"
+  },
+  {
+    "id": "me4-34",
+    "code": "me4-34",
+    "name": "Deoxys",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Psyspeed (Psychic) - 30\nYou may draw cards until you have 5 cards in your hand.",
+    "artist": "hncl",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-34.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-34.webp"
+  },
+  {
+    "id": "me4-35",
+    "code": "me4-35",
+    "name": "Mega Floette ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 250,
+    "counter": null,
+    "attributes": [
+      "Basic",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Basic",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nGentle Light (Psychic)\nHeal 30 damage from each Pokémon (both yours and your opponent's).\n\nEternity Bloom (Psychic, Psychic, Psychic) - 200\nSearch your deck for up to 4 Basic Psychic Energy cards and attach them to your Benched Pokémon in any way you like. Then, shuffle your deck.",
+    "artist": "aky CG Works",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-35.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-35.webp"
+  },
+  {
+    "id": "me4-36",
+    "code": "me4-36",
+    "name": "Espurr",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 60,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Buddy Attack (Psychic) - 10+\nIf you played Emma from your hand during this turn, this attack does 60 more damage.",
+    "artist": "sowsow",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-36.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-36.webp"
+  },
+  {
+    "id": "me4-37",
+    "code": "me4-37",
+    "name": "Meowstic",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Tricky Steps (Psychic, Colorless) - 80\nYou may move an Energy from your opponent's Active Pokémon to 1 of their Benched Pokémon.",
+    "artist": "mingo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-37.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-37.webp"
+  },
+  {
+    "id": "me4-38",
+    "code": "me4-38",
+    "name": "Phantump",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "[Ability] Spiteful Evolution\nOnce during your turn, you may use this Ability. Choose a card in your hand that evolves from this Pokémon and put it onto this Pokémon to evolve it. If you do, place 2 damage counters on the Pokémon you evolved in this way. You can't use this Ability during your first turn.\n\nMumble (Psychic) - 10",
+    "artist": "Taiga Kasai",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-38.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-38.webp"
+  },
+  {
+    "id": "me4-39",
+    "code": "me4-39",
+    "name": "Trevenant",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Cursed Roots (Psychic) - 30\nDuring your opponent's next turn, Energy can't be attached from your opponent's hand to the Defending Pokémon.\n\nOverwhelming Pain (Psychic, Psychic) - 60+\nThis attack does 10 more damage for each damage counter on all of your opponent's Pokémon.",
+    "artist": "Uninori",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-39.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-39.webp"
+  },
+  {
+    "id": "me4-40",
+    "code": "me4-40",
+    "name": "Pumpkaboo",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 60,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Stampede (Psychic) - 20",
+    "artist": "Jerky",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-40.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-40.webp"
+  },
+  {
+    "id": "me4-41",
+    "code": "me4-41",
+    "name": "Gourgeist ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 270,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\nHorrifying Rondo (Psychic) - 30+\nThis attack does 50 more damage for each of your Benched Pokémon that has any damage counters on it.\n\nGhostly Touch (Psychic, Psychic) - 140\nDiscard a random card from your opponent's hand.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-41.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-41.webp"
+  },
+  {
+    "id": "me4-42",
+    "code": "me4-42",
+    "name": "Xerneas",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Geo Storm (Psychic, Psychic, Psychic) - 30×\nThis attack does 30 damage for each Psychic Energy attached to all of your Pokémon.",
+    "artist": "KEIICHIRO ITO",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-42.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-42.webp"
+  },
+  {
+    "id": "me4-43",
+    "code": "me4-43",
+    "name": "Sudowoodo",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 110,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Trials and Trip-ulations (Colorless)\nSearch your deck for up to 2 Transformation Tome cards, reveal them, and put them into your hand. Then, shuffle your deck.\n\nRock Hurl (Fighting) - 30\nThis attack's damage isn't affected by Resistance.",
+    "artist": "GOTO minori",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-43.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-43.webp"
+  },
+  {
+    "id": "me4-44",
+    "code": "me4-44",
+    "name": "Phanpy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 80,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Mud-Slap (Fighting) - 10\n\nRollout (Colorless, Colorless, Colorless) - 40",
+    "artist": "Akino Fukuji",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-44.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-44.webp"
+  },
+  {
+    "id": "me4-45",
+    "code": "me4-45",
+    "name": "Donphan",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 150,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "No Reprieve (Fighting) - 20\nDuring your next turn, attacks used by this Pokémon do 120 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance).\n\nSmashing Headbutt (Fighting, Colorless, Colorless, Colorless) - 180\nDiscard 2 Energy from this Pokémon.",
+    "artist": "Julie Hang",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-45.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-45.webp"
+  },
+  {
+    "id": "me4-46",
+    "code": "me4-46",
+    "name": "Baltoy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Continuous Spin (Fighting) - 30×\nFlip a coin until you get tails. This attack does 30 damage for each heads.",
+    "artist": "Tomomi Ozaki",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-46.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-46.webp"
+  },
+  {
+    "id": "me4-47",
+    "code": "me4-47",
+    "name": "Claydol",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 120,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Devolution Ray (Fighting) - 50\nIf your opponent's Active Pokémon is an evolved Pokémon, devolve it by putting the highest Stage Evolution card on it into your opponent's hand.",
+    "artist": "Oswaldo KATO",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-47.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-47.webp"
+  },
+  {
+    "id": "me4-48",
+    "code": "me4-48",
+    "name": "Mega Gallade ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 350,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nGale Slash (Fighting) - 50+\nIf this Pokémon has no damage counters on it, this attack does 150 more damage.\n\nMarvelous Edge (Fighting, Fighting, Colorless) - 240",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-48.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-48.webp"
+  },
+  {
+    "id": "me4-49",
+    "code": "me4-49",
+    "name": "Zubat",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 40,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Supersonic (Darkness)\nYour opponent's Active Pokémon is now Confused.",
+    "artist": "Mékayu",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-49.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-49.webp"
+  },
+  {
+    "id": "me4-50",
+    "code": "me4-50",
+    "name": "Golbat",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 80,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Covert Flight (Darkness) - 30\nDuring your opponent's next turn, prevent all damage done to this Pokémon by attacks from Basic Pokémon.",
+    "artist": "Mousho",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-50.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-50.webp"
+  },
+  {
+    "id": "me4-51",
+    "code": "me4-51",
+    "name": "Crobat",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Nighttime Maneuvers\nOnce during your turn, if this Pokémon is in the Active Spot, you may use this Ability. Search your deck for a card. Shuffle your deck, then put that card on top of it.\n\nPoison Sound Wave (Darkness) - 80\nYour opponent's Active Pokémon is now Confused and Poisoned.",
+    "artist": "IKEDA Saki",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-51.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-51.webp"
+  },
+  {
+    "id": "me4-52",
+    "code": "me4-52",
+    "name": "Qwilfish",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 90,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "[Ability] Poison Point\nIf this Pokémon is in the Active Spot and is damaged by an attack from your opponent's Pokémon (even if this Pokémon is Knocked Out), the Attacking Pokémon is now Poisoned.\n\nVenoshock (Darkness) - 30+\nIf your opponent's Active Pokémon is Poisoned, this attack does 50 more damage.",
+    "artist": "nisimono",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-52.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-52.webp"
+  },
+  {
+    "id": "me4-53",
+    "code": "me4-53",
+    "name": "Stunky",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Scratch (Darkness) - 20",
+    "artist": "Nobuhiro Imagawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-53.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-53.webp"
+  },
+  {
+    "id": "me4-54",
+    "code": "me4-54",
+    "name": "Skuntank",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 110,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Rear Kick (Darkness) - 40\n\nSmash Turn (Darkness, Darkness, Colorless) - 100\nSwitch this Pokémon with 1 of your Benched Pokémon.",
+    "artist": "Yuriko Akase",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-54.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-54.webp"
+  },
+  {
+    "id": "me4-55",
+    "code": "me4-55",
+    "name": "Krookodile ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 320,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\nCorner (Darkness, Colorless) - 80\nDuring your opponent's next turn, the Defending Pokémon can't retreat.\n\nStrong Bite (Darkness, Darkness, Colorless) - 140+\nIf this Pokémon has a Pokémon Tool attached, this attack does 140 more damage.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-55.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-55.webp"
+  },
+  {
+    "id": "me4-56",
+    "code": "me4-56",
+    "name": "Trubbish",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Acid Spray (Darkness) - 10\nFlip a coin. If heads, discard an Energy from your opponent's Active Pokémon.",
+    "artist": "Souichirou Gunjima",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-56.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-56.webp"
+  },
+  {
+    "id": "me4-57",
+    "code": "me4-57",
+    "name": "Garbodor",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 140,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "[Ability] Gloomy Garbage\nAttacks used by your opponent's Active Pokémon that has a Pokémon Tool attached do 20 less damage (before applying Weakness and Resistance).\n\nSludge Bomb (Darkness, Darkness, Colorless) - 100",
+    "artist": "HYOGONOSUKE",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-57.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-57.webp"
+  },
+  {
+    "id": "me4-58",
+    "code": "me4-58",
+    "name": "Skrelp",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Hook (Colorless) - 10",
+    "artist": "Shimaris Yukichi",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-58.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-58.webp"
+  },
+  {
+    "id": "me4-59",
+    "code": "me4-59",
+    "name": "Beldum",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Headbutt (Metal) - 10\n\nBeam (Metal, Colorless) - 20",
+    "artist": "toi8",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-59.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-59.webp"
+  },
+  {
+    "id": "me4-60",
+    "code": "me4-60",
+    "name": "Metang",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Metal Claw (Metal) - 30\n\nGuard Press (Metal, Metal, Colorless) - 70\nDuring your opponent's next turn, this Pokémon takes 30 less damage from attacks (after applying Weakness and Resistance).",
+    "artist": "Kazumasa Yasukuni",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-60.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-60.webp"
+  },
+  {
+    "id": "me4-61",
+    "code": "me4-61",
+    "name": "Metagross",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 180,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "Bounce Back (Metal) - 60\nSwitch out your opponent's Active Pokémon to the Bench. (Your opponent chooses the new Active Pokémon.)\n\nMetallic Hammer (Metal, Metal, Metal, Colorless) - 150+\nYou may discard 3 Metal Energy from this Pokémon and have this attack do 150 more damage.",
+    "artist": "Bun Toujo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-61.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-61.webp"
+  },
+  {
+    "id": "me4-62",
+    "code": "me4-62",
+    "name": "Ferroseed",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Rolling Tackle (Metal, Metal) - 40",
+    "artist": "OKUBO",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-62.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-62.webp"
+  },
+  {
+    "id": "me4-63",
+    "code": "me4-63",
+    "name": "Ferrothorn",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "[Ability] Startling Drop\nDuring your opponent's turn, if this Pokémon is discarded from your deck by an effect of an attack or Ability from your opponent's Pokémon, or by an effect of your opponent's Item or Supporter cards, discard the top 8 cards of your opponent's deck.\n\nSpecial Whip (Metal, Metal) - 70+\nIf this Pokémon has any Special Energy attached, this attack does 70 more damage.",
+    "artist": "Haru Akasaka",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-63.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-63.webp"
+  },
+  {
+    "id": "me4-64",
+    "code": "me4-64",
+    "name": "Cobalion ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 210,
+    "counter": null,
+    "attributes": [
+      "Basic",
+      "ex"
+    ],
+    "types": [
+      "Basic",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\n[Ability] Metal Road\nOnce during your turn, when this Pokémon moves from your Bench to the Active Spot, you may use this Ability. Move any amount of Metal Energy from your other Pokémon to this Pokémon.\n\nPower Tackle (Metal, Metal, Colorless) - 200\nDuring your next turn, this Pokémon can't use attacks.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-64.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-64.webp"
+  },
+  {
+    "id": "me4-65",
+    "code": "me4-65",
+    "name": "Mega Dragalge ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 330,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nCorrosive Liquid (Colorless, Colorless)\nDiscard all Pokémon Tools and Special Energy from all of your opponent's Pokémon.\n\nPernicious Poison (Water, Darkness)\nYour opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, place 16 damage counters on that Pokémon instead of 1.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-65.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-65.webp"
+  },
+  {
+    "id": "me4-66",
+    "code": "me4-66",
+    "name": "Goomy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 60,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Absorb (Water, Psychic) - 30\nHeal 30 damage from this Pokémon.",
+    "artist": "Anesaki Dynamic",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-66.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-66.webp"
+  },
+  {
+    "id": "me4-67",
+    "code": "me4-67",
+    "name": "Sliggoo",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 90,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Gentle Slap (Water, Psychic) - 70",
+    "artist": "Yoriyuki Ikegami",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-67.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-67.webp"
+  },
+  {
+    "id": "me4-68",
+    "code": "me4-68",
+    "name": "Goodra",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Rare",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 160,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Slimy Sliding\nWhen your opponent's Active Pokémon retreats, your opponent flips a coin. If tails, Energy for its Retreat Cost is not discarded, and they don't switch Pokémon. The effect of Slimy Sliding doesn't stack.\n\nDragon Pulse (Water, Psychic) - 160\nDiscard the top card of your deck.",
+    "artist": "Tonji Matsuno",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-68.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-68.webp"
+  },
+  {
+    "id": "me4-69",
+    "code": "me4-69",
+    "name": "Tauros",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Uncommon",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Target Together (Colorless, Colorless)\nChoose 1 of your opponent's Pokémon and flip a coin for each of your Pokémon in play that has \"Tauros\" in its name. This attack does 50 damage to the chosen Pokémon for each heads. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+    "artist": "Satoshi Ito",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-69.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-69.webp"
+  },
+  {
+    "id": "me4-70",
+    "code": "me4-70",
+    "name": "Patrat",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "[Ability] Watchful Eye\nDamage counters on each Pokémon (both yours and your opponent's) can't be moved to other Pokémon.\n\nBite (Colorless) - 10",
+    "artist": "Souichirou Gunjima",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-70.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-70.webp"
+  },
+  {
+    "id": "me4-71",
+    "code": "me4-71",
+    "name": "Watchog",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Snap Inspection (Colorless)\nFlip 3 coins. If any of them are heads, your opponent reveals their hand. For each heads, choose a card you find there and shuffle it into your opponent's deck.\n\nLow Kick (Colorless) - 50",
+    "artist": "Kouki Saitou",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-71.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-71.webp"
+  },
+  {
+    "id": "me4-72",
+    "code": "me4-72",
+    "name": "Minccino",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Common",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Take Down (Colorless) - 30\nThis Pokémon also does 10 damage to itself.",
+    "artist": "ryoma uratsuka",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-72.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-72.webp"
+  },
+  {
+    "id": "me4-73",
+    "code": "me4-73",
+    "name": "Cinccino ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Double Rare",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 240,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\n[Ability] Smooth Coat\nIf any damage is done to this Pokémon by attacks, flip a coin. If heads, prevent that damage.\n\nEnergized Slap (Colorless) - 40×\nThis attack does 40 damage for each Energy attached to this Pokémon.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-73.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-73.webp"
+  },
+  {
+    "id": "me4-74",
+    "code": "me4-74",
+    "name": "Adversity Policy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Pokémon Tool"
+    ],
+    "types": [
+      "Pokémon Tool"
+    ],
+    "effect": "If the Pokémon this card is attached to has Weakness to your opponent's Active Pokémon's type, is in the Active Spot, and is damaged by an attack from your opponent's Pokémon (even if this Pokémon is Knocked Out), draw 3 cards.",
+    "artist": "Ayaka Yoshida",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-74.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-74.webp"
+  },
+  {
+    "id": "me4-75",
+    "code": "me4-75",
+    "name": "Ange Floette",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Stadium"
+    ],
+    "types": [
+      "Stadium"
+    ],
+    "effect": "You can put this card into play only if you discard a Prism Tower in play, and you can put this card into play during the same turn you play Prism Tower.\nEach Mega Floette ex in play (both yours and your opponent's) gets +150 HP.",
+    "artist": "MARINA Chikazawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-75.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-75.webp"
+  },
+  {
+    "id": "me4-76",
+    "code": "me4-76",
+    "name": "AZ's Tranquility",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Switch your Active Pokémon with 1 of your Benched Pokémon. If you moved a Pokémon ex to your Bench in this way, heal 80 damage from that Pokémon.",
+    "artist": "GIDORA",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-76.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-76.webp"
+  },
+  {
+    "id": "me4-77",
+    "code": "me4-77",
+    "name": "Emma",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Your opponent reveals their hand, and you draw a card for each Pokémon you find there.",
+    "artist": "Akira Komayama",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-77.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-77.webp"
+  },
+  {
+    "id": "me4-78",
+    "code": "me4-78",
+    "name": "Great Haul Net",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "Choose 1 or both:\n• Shuffle up to 3 Water Pokémon from your discard pile into your deck.\n• Shuffle up to 3 Basic Water Energy cards from your discard pile into your deck.",
+    "artist": "Toyste Beach",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-78.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-78.webp"
+  },
+  {
+    "id": "me4-79",
+    "code": "me4-79",
+    "name": "Philippe",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Attach up to 2 Basic Metal Energy cards from your discard pile to 1 of your Metal Pokémon.",
+    "artist": "Souichirou Gunjima",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-79.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-79.webp"
+  },
+  {
+    "id": "me4-80",
+    "code": "me4-80",
+    "name": "Prism Tower",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Stadium"
+    ],
+    "types": [
+      "Stadium"
+    ],
+    "effect": "Once during each player's turn, that player may discard 2 cards from their hand in order to draw a card.",
+    "artist": "MARINA Chikazawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-80.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-80.webp"
+  },
+  {
+    "id": "me4-81",
+    "code": "me4-81",
+    "name": "Roxie's Performance",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "During your opponent's next turn, their Poisoned Pokémon can't retreat. (This includes newly Poisoned Pokémon.)",
+    "artist": "Nobusawa/Mochipuyo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-81.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-81.webp"
+  },
+  {
+    "id": "me4-82",
+    "code": "me4-82",
+    "name": "Special Red Card",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "You can use this card only if your opponent has 3 or fewer Prize cards remaining.\n\nYour opponent shuffles their hand and puts it on the bottom of their deck. If they put any cards on the bottom of their deck in this way, they draw 3 cards.",
+    "artist": "Studio Bora Inc.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-82.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-82.webp"
+  },
+  {
+    "id": "me4-83",
+    "code": "me4-83",
+    "name": "Transformation Tome",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Uncommon",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "You must play 2 Transformation Tome cards at once. (This effect works one time for 2 cards.)\n \nChoose a Basic Pokémon in your discard pile and switch it with 1 of your Basic Pokémon in play. Any attached cards, damage counters, Special Conditions, turns in play, and any other effects remain on the new Pokémon.",
+    "artist": "Toyste Beach",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-83.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-83.webp"
+  },
+  {
+    "id": "me4-84",
+    "code": "me4-84",
+    "name": "Bubbly Water Energy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Energy",
+    "rarity": "Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Special"
+    ],
+    "types": [
+      "Special"
+    ],
+    "effect": "As long as this card is attached to a Pokémon, it provides Water Energy.\n\nThe Water Pokémon this card is attached to recovers from all Special Conditions and can't be affected by any Special Conditions.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-84.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-84.webp"
+  },
+  {
+    "id": "me4-85",
+    "code": "me4-85",
+    "name": "Magnetic Metal Energy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Energy",
+    "rarity": "Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Special"
+    ],
+    "types": [
+      "Special"
+    ],
+    "effect": "As long as this card is attached to a Pokémon, it provides Metal Energy.\n\nThe Metal Pokémon this card is attached to has no Retreat Cost.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-85.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-85.webp"
+  },
+  {
+    "id": "me4-86",
+    "code": "me4-86",
+    "name": "Nitro Fire Energy",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Energy",
+    "rarity": "Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Special"
+    ],
+    "types": [
+      "Special"
+    ],
+    "effect": "As long as this card is attached to a Pokémon, it provides Fire Energy.\n \nIf this card is discarded by an effect of an attack used by the Fire Pokémon this card is attached to, put this card into your hand after attack damage and effects.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-86.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-86.webp"
+  },
+  {
+    "id": "me4-87",
+    "code": "me4-87",
+    "name": "Chespin",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Beat (Grass) - 10\n\nSpike Sting (Grass, Grass) - 30",
+    "artist": "Atsushi Furusawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-87.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-87.webp"
+  },
+  {
+    "id": "me4-88",
+    "code": "me4-88",
+    "name": "Froakie",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 70,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Collect (Colorless)\nDraw a card.\n\nWater Gun (Water) - 10",
+    "artist": "Susumu Maeya",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-88.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-88.webp"
+  },
+  {
+    "id": "me4-89",
+    "code": "me4-89",
+    "name": "Frogadier",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Summoning Jutsu (Water)\nSearch your deck for up to 3 Pokémon, reveal them, and put them into your hand. Then, shuffle your deck.\n\nAqua Edge (Water, Water) - 50",
+    "artist": "Susumu Maeya",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-89.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-89.webp"
+  },
+  {
+    "id": "me4-90",
+    "code": "me4-90",
+    "name": "Ampharos",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": 160,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Synchro Pulse\nIf you have the same number of cards in your hand as your opponent, attacks used by this Pokémon do 80 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance).\n\nFlashing Bolt (Lightning, Colorless) - 140\nDuring your next turn, this Pokémon can't use Flashing Bolt.",
+    "artist": "saino misaki",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-90.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-90.webp"
+  },
+  {
+    "id": "me4-91",
+    "code": "me4-91",
+    "name": "Xerneas",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Geo Storm (Psychic, Psychic, Psychic) - 30×\nThis attack does 30 damage for each Psychic Energy attached to all of your Pokémon.",
+    "artist": "YASHIRO Nanaco",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-91.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-91.webp"
+  },
+  {
+    "id": "me4-92",
+    "code": "me4-92",
+    "name": "Claydol",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Fighting"
+    ],
+    "cost": null,
+    "power": 120,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Devolution Ray (Fighting) - 50\nIf your opponent's Active Pokémon is an evolved Pokémon, devolve it by putting the highest Stage Evolution card on it into your opponent's hand.",
+    "artist": "matazo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-92.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-92.webp"
+  },
+  {
+    "id": "me4-93",
+    "code": "me4-93",
+    "name": "Crobat",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Darkness"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Stage 2"
+    ],
+    "types": [
+      "Stage 2"
+    ],
+    "effect": "[Ability] Nighttime Maneuvers\nOnce during your turn, if this Pokémon is in the Active Spot, you may use this Ability. Search your deck for a card. Shuffle your deck, then put that card on top of it.\n\nPoison Sound Wave (Darkness) - 80\nYour opponent's Active Pokémon is now Confused and Poisoned.",
+    "artist": "Kazuhisa Uragami",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-93.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-93.webp"
+  },
+  {
+    "id": "me4-94",
+    "code": "me4-94",
+    "name": "Metang",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Metal Claw (Metal) - 30\n\nGuard Press (Metal, Metal, Colorless) - 70\nDuring your opponent's next turn, this Pokémon takes 30 less damage from attacks (after applying Weakness and Resistance).",
+    "artist": "Kurata So",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-94.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-94.webp"
+  },
+  {
+    "id": "me4-95",
+    "code": "me4-95",
+    "name": "Sliggoo",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 90,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Gentle Slap (Water, Psychic) - 70",
+    "artist": "aspara",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-95.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-95.webp"
+  },
+  {
+    "id": "me4-96",
+    "code": "me4-96",
+    "name": "Tauros",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 130,
+    "counter": null,
+    "attributes": [
+      "Basic"
+    ],
+    "types": [
+      "Basic"
+    ],
+    "effect": "Target Together (Colorless, Colorless)\nChoose 1 of your opponent's Pokémon and flip a coin for each of your Pokémon in play that has \"Tauros\" in its name. This attack does 50 damage to the chosen Pokémon for each heads. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+    "artist": "Tsuyoshi Nagano",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-96.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-96.webp"
+  },
+  {
+    "id": "me4-97",
+    "code": "me4-97",
+    "name": "Watchog",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Illustration Rare",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 100,
+    "counter": null,
+    "attributes": [
+      "Stage 1"
+    ],
+    "types": [
+      "Stage 1"
+    ],
+    "effect": "Snap Inspection (Colorless)\nFlip 3 coins. If any of them are heads, your opponent reveals their hand. For each heads, choose a card you find there and shuffle it into your opponent's deck.\n\nLow Kick (Colorless) - 50",
+    "artist": "MARINA Chikazawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-97.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-97.webp"
+  },
+  {
+    "id": "me4-98",
+    "code": "me4-98",
+    "name": "Beedrill ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Grass"
+    ],
+    "cost": null,
+    "power": 310,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\nRumbling Bees (Grass) - 110×\nThis attack does 110 damage for each of your Beedrill and Beedrill ex in play.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-98.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-98.webp"
+  },
+  {
+    "id": "me4-99",
+    "code": "me4-99",
+    "name": "Mega Pyroar ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": 340,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nFerocious Bellow (Fire, Colorless) - 80\nDuring your opponent's next turn, attacks used by the Defending Pokémon do 50 less damage (before applying Weakness and Resistance).\n\nFiery Big Bang (Fire, Fire, Colorless) - 290-\nThis attack does 10 less damage for each damage counter on this Pokémon.",
+    "artist": "Keisuke Azuma",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-99.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-99.webp"
+  },
+  {
+    "id": "me4-100",
+    "code": "me4-100",
+    "name": "Mega Greninja ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 350,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\n[Ability] Mortal Shuriken\nOnce during your turn, if this Pokémon is in the Active Spot, you may discard a Basic Water Energy card from your hand in order to use this Ability. Place 6 damage counters on 1 of your opponent's Pokémon.\n\nNinja Spinner (Water, Water) - 120+\nYou may put a Water Energy attached to this Pokémon into your hand and have this attack do 80 more damage.",
+    "artist": "takuyoa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-100.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-100.webp"
+  },
+  {
+    "id": "me4-101",
+    "code": "me4-101",
+    "name": "Mega Floette ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 250,
+    "counter": null,
+    "attributes": [
+      "Basic",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Basic",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nGentle Light (Psychic)\nHeal 30 damage from each Pokémon (both yours and your opponent's).\n\nEternity Bloom (Psychic, Psychic, Psychic) - 200\nSearch your deck for up to 4 Basic Psychic Energy cards and attach them to your Benched Pokémon in any way you like. Then, shuffle your deck.",
+    "artist": "aky CG Works",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-101.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-101.webp"
+  },
+  {
+    "id": "me4-102",
+    "code": "me4-102",
+    "name": "Gourgeist ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 270,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\nHorrifying Rondo (Psychic) - 30+\nThis attack does 50 more damage for each of your Benched Pokémon that has any damage counters on it.\n\nGhostly Touch (Psychic, Psychic) - 140\nDiscard a random card from your opponent's hand.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-102.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-102.webp"
+  },
+  {
+    "id": "me4-103",
+    "code": "me4-103",
+    "name": "Cobalion ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Metal"
+    ],
+    "cost": null,
+    "power": 210,
+    "counter": null,
+    "attributes": [
+      "Basic",
+      "ex"
+    ],
+    "types": [
+      "Basic",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\n[Ability] Metal Road\nOnce during your turn, when this Pokémon moves from your Bench to the Active Spot, you may use this Ability. Move any amount of Metal Energy from your other Pokémon to this Pokémon.\n\nPower Tackle (Metal, Metal, Colorless) - 200\nDuring your next turn, this Pokémon can't use attacks.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-103.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-103.webp"
+  },
+  {
+    "id": "me4-104",
+    "code": "me4-104",
+    "name": "Mega Dragalge ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 330,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nCorrosive Liquid (Colorless, Colorless)\nDiscard all Pokémon Tools and Special Energy from all of your opponent's Pokémon.\n\nPernicious Poison (Water, Darkness)\nYour opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, place 16 damage counters on that Pokémon instead of 1.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-104.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-104.webp"
+  },
+  {
+    "id": "me4-105",
+    "code": "me4-105",
+    "name": "Cinccino ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Ultra Rare",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 240,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\n[Ability] Smooth Coat\nIf any damage is done to this Pokémon by attacks, flip a coin. If heads, prevent that damage.\n\nEnergized Slap (Colorless) - 40×\nThis attack does 40 damage for each Energy attached to this Pokémon.",
+    "artist": "5ban Graphics",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-105.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-105.webp"
+  },
+  {
+    "id": "me4-106",
+    "code": "me4-106",
+    "name": "AZ's Tranquility",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Switch your Active Pokémon with 1 of your Benched Pokémon. If you moved a Pokémon ex to your Bench in this way, heal 80 damage from that Pokémon.",
+    "artist": "GIDORA",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-106.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-106.webp"
+  },
+  {
+    "id": "me4-107",
+    "code": "me4-107",
+    "name": "Emma",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Your opponent reveals their hand, and you draw a card for each Pokémon you find there.",
+    "artist": "Akira Komayama",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-107.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-107.webp"
+  },
+  {
+    "id": "me4-108",
+    "code": "me4-108",
+    "name": "Energy Retrieval",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "Put up to 2 Basic Energy cards from your discard pile into your hand.",
+    "artist": "Studio Bora Inc.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-108.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-108.webp"
+  },
+  {
+    "id": "me4-109",
+    "code": "me4-109",
+    "name": "Jumbo Ice Cream",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "Heal 80 damage from your Active Pokémon that has 3 or more Energy attached.",
+    "artist": "AYUMI ODASHIMA",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-109.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-109.webp"
+  },
+  {
+    "id": "me4-110",
+    "code": "me4-110",
+    "name": "Philippe",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Attach up to 2 Basic Metal Energy cards from your discard pile to 1 of your Metal Pokémon.",
+    "artist": "Souichirou Gunjima",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-110.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-110.webp"
+  },
+  {
+    "id": "me4-111",
+    "code": "me4-111",
+    "name": "Prism Tower",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Stadium"
+    ],
+    "types": [
+      "Stadium"
+    ],
+    "effect": "Once during each player's turn, that player may discard 2 cards from their hand in order to draw a card.",
+    "artist": "MARINA Chikazawa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-111.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-111.webp"
+  },
+  {
+    "id": "me4-112",
+    "code": "me4-112",
+    "name": "Roxie's Performance",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "During your opponent's next turn, their Poisoned Pokémon can't retreat. (This includes newly Poisoned Pokémon.)",
+    "artist": "Nobusawa/Mochipuyo",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-112.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-112.webp"
+  },
+  {
+    "id": "me4-113",
+    "code": "me4-113",
+    "name": "Special Red Card",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "You can use this card only if your opponent has 3 or fewer Prize cards remaining.\n\nYour opponent shuffles their hand and puts it on the bottom of their deck. If they put any cards on the bottom of their deck in this way, they draw 3 cards.",
+    "artist": "Studio Bora Inc.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-113.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-113.webp"
+  },
+  {
+    "id": "me4-114",
+    "code": "me4-114",
+    "name": "Surfing Beach",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Stadium"
+    ],
+    "types": [
+      "Stadium"
+    ],
+    "effect": "Once during each player's turn, that player may switch their Active Water Pokémon with 1 of their Benched Water Pokémon.",
+    "artist": "AYUMI ODASHIMA",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-114.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-114.webp"
+  },
+  {
+    "id": "me4-115",
+    "code": "me4-115",
+    "name": "Tool Scrapper",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Ultra Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Item"
+    ],
+    "types": [
+      "Item"
+    ],
+    "effect": "Choose up to 2 Pokémon Tools attached to Pokémon (yours or your opponent's) and discard them.",
+    "artist": "Studio Bora Inc.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-115.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-115.webp"
+  },
+  {
+    "id": "me4-116",
+    "code": "me4-116",
+    "name": "Mega Greninja ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Special Illustration Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 350,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\n[Ability] Mortal Shuriken\nOnce during your turn, if this Pokémon is in the Active Spot, you may discard a Basic Water Energy card from your hand in order to use this Ability. Place 6 damage counters on 1 of your opponent's Pokémon.\n\nNinja Spinner (Water, Water) - 120+\nYou may put a Water Energy attached to this Pokémon into your hand and have this attack do 80 more damage.",
+    "artist": "Susumu Maeya",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-116.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-116.webp"
+  },
+  {
+    "id": "me4-117",
+    "code": "me4-117",
+    "name": "Mega Floette ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Special Illustration Rare",
+    "colors": [
+      "Psychic"
+    ],
+    "cost": null,
+    "power": 250,
+    "counter": null,
+    "attributes": [
+      "Basic",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Basic",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nGentle Light (Psychic)\nHeal 30 damage from each Pokémon (both yours and your opponent's).\n\nEternity Bloom (Psychic, Psychic, Psychic) - 200\nSearch your deck for up to 4 Basic Psychic Energy cards and attach them to your Benched Pokémon in any way you like. Then, shuffle your deck.",
+    "artist": "Teeziro",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-117.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-117.webp"
+  },
+  {
+    "id": "me4-118",
+    "code": "me4-118",
+    "name": "Mega Dragalge ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Special Illustration Rare",
+    "colors": [
+      "Dragon"
+    ],
+    "cost": null,
+    "power": 330,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\nCorrosive Liquid (Colorless, Colorless)\nDiscard all Pokémon Tools and Special Energy from all of your opponent's Pokémon.\n\nPernicious Poison (Water, Darkness)\nYour opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, place 16 damage counters on that Pokémon instead of 1.",
+    "artist": "Kazumasa Yasukunio",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-118.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-118.webp"
+  },
+  {
+    "id": "me4-119",
+    "code": "me4-119",
+    "name": "Cinccino ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Special Illustration Rare",
+    "colors": [
+      "Colorless"
+    ],
+    "cost": null,
+    "power": 240,
+    "counter": null,
+    "attributes": [
+      "Stage 1",
+      "ex"
+    ],
+    "types": [
+      "Stage 1",
+      "ex"
+    ],
+    "effect": "Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.\n\n[Ability] Smooth Coat\nIf any damage is done to this Pokémon by attacks, flip a coin. If heads, prevent that damage.\n\nEnergized Slap (Colorless) - 40×\nThis attack does 40 damage for each Energy attached to this Pokémon.",
+    "artist": "Keisin",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-119.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-119.webp"
+  },
+  {
+    "id": "me4-120",
+    "code": "me4-120",
+    "name": "AZ's Tranquility",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Special Illustration Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "Switch your Active Pokémon with 1 of your Benched Pokémon. If you moved a Pokémon ex to your Bench in this way, heal 80 damage from that Pokémon.",
+    "artist": "OKACHEKE",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-120.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-120.webp"
+  },
+  {
+    "id": "me4-121",
+    "code": "me4-121",
+    "name": "Roxie's Performance",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Trainer",
+    "rarity": "Special Illustration Rare",
+    "colors": [],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Supporter"
+    ],
+    "types": [
+      "Supporter"
+    ],
+    "effect": "During your opponent's next turn, their Poisoned Pokémon can't retreat. (This includes newly Poisoned Pokémon.)",
+    "artist": "Tomowaka",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-121.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-121.webp"
+  },
+  {
+    "id": "me4-122",
+    "code": "me4-122",
+    "name": "Mega Greninja ex",
+    "setCode": "me4",
+    "setName": "Chaos Rising",
+    "releaseDate": "2026-05-22",
+    "releaseOrder": 772,
+    "cardType": "Pokémon",
+    "rarity": "Mega Hyper Rare",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": 350,
+    "counter": null,
+    "attributes": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "types": [
+      "Stage 2",
+      "MEGA",
+      "ex"
+    ],
+    "effect": "Mega Evolution ex Rule: When your Mega Evolution Pokémon ex is Knocked Out, your opponent takes 3 Prize cards.\n\n[Ability] Mortal Shuriken\nOnce during your turn, if this Pokémon is in the Active Spot, you may discard a Basic Water Energy card from your hand in order to use this Ability. Place 6 damage counters on 1 of your opponent's Pokémon.\n\nNinja Spinner (Water, Water) - 120+\nYou may put a Water Energy attached to this Pokémon into your hand and have this attack do 80 more damage.",
+    "artist": "takuyoa",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-122.webp",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/pokemon/me4-122.webp"
   }
 ]
