@@ -908,6 +908,10 @@ export function Header({ sets, artists }: HeaderProps) {
               borderBottomLeftRadius: 6,
             }}
           >
+            {/* Explicit width — `width: auto` resolved to 0px in some
+                browsers (flex item + attr/CSS sizing conflict), which
+                rendered the chip as an empty sliver. 15x22 matches the
+                source art's 556x834 aspect. */}
             <img
               src="/images/site-logo.png"
               alt=""
@@ -915,11 +919,12 @@ export function Header({ sets, artists }: HeaderProps) {
               fetchPriority="high"
               loading="eager"
               decoding="async"
-              width={22}
+              width={15}
               height={22}
               style={{
+                width: 15,
                 height: 22,
-                width: 'auto',
+                flexShrink: 0,
                 imageRendering: 'pixelated',
                 display: 'block',
                 transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
