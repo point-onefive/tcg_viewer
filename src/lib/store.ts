@@ -365,6 +365,17 @@ export const useStore = create<StoreState>()(
         language: state.language,
         flattenWall: state.flattenWall,
         showTilePrices: state.showTilePrices,
+        // Active filters — persisted so a refresh doesn't clear the
+        // user's active search context. Switching collection still
+        // resets them via setActiveCollection.
+        searchQuery: state.searchQuery,
+        activeSet: state.activeSet,
+        activeCardType: state.activeCardType,
+        activeRarity: state.activeRarity,
+        activeColor: state.activeColor,
+        activeSubtype: state.activeSubtype,
+        activeArtist: state.activeArtist,
+        onlyAltArt: state.onlyAltArt,
         // wallSort is deliberately NOT persisted. A sort picked during one
         // browsing session silently reordering the wall days later reads as
         // "the cards are broken", not "my old sort is still on" — fresh
@@ -378,7 +389,7 @@ export const useStore = create<StoreState>()(
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 21,
+      version: 22,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -518,6 +529,20 @@ export const useStore = create<StoreState>()(
           // returning visitors (incognito looked fine; regular browser
           // did not).
           s.wallSort = 'default'
+        }
+        if (fromVersion < 22) {
+          // v22 starts persisting active filters. Old sessions have no
+          // stored values, so ensure every filter lands at its null/false
+          // default rather than undefined (which Zustand would merge
+          // incorrectly against the initialState default).
+          s.searchQuery  = s.searchQuery  ?? ''
+          s.activeSet       = s.activeSet       ?? null
+          s.activeCardType  = s.activeCardType  ?? null
+          s.activeRarity    = s.activeRarity    ?? null
+          s.activeColor     = s.activeColor     ?? null
+          s.activeSubtype   = s.activeSubtype   ?? null
+          s.activeArtist    = s.activeArtist    ?? null
+          s.onlyAltArt      = s.onlyAltArt      ?? false
         }
         return s as StoreState
       },

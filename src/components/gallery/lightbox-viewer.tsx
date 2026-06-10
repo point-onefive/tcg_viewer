@@ -270,9 +270,49 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   }, [navIndex, flattenWall, wallEntries, filteredCards, openLightbox])
 
   useEffect(() => {
+    document.body.style.overflow = lightboxCardId ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [lightboxCardId])
+
+  // Push a history sentinel when the lightbox opens so the browser
+  // back gesture (iOS swipe-left, Android back button) closes the
+  // overlay instead of navigating away from the page.
+  // The sentinel is a #lightbox hash-only entry — it doesn't cause a
+  // network request and the URL still reads as the same page.
+  // When the user presses/swipes back, popstate fires and we close.
+  // When the user closes via Esc / ×, we manually call history.back()
+  // to consume the sentinel before it would fire popstate again.
+  useEffect(() => {
+    if (!lightboxCardId) return
+    // Only push if we haven't already pushed one (e.g. navigating
+    // between cards inside the lightbox shouldn't stack entries).
+    if (window.location.hash !== '#lightbox') {
+      history.pushState({ lightbox: true }, '', '#lightbox')
+    }
+    const onPopState = () => {
+      // Back gesture consumed the sentinel → just close the lightbox.
+      closeLightbox()
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [lightboxCardId, closeLightbox])
+
+  // Consume the sentinel when the lightbox is closed by any UI action
+  // (Esc, × button, backdrop click) so the history stack stays clean.
+  const closeLightboxAndSentinel = useCallback(() => {
+    if (window.location.hash === '#lightbox') {
+      // history.back() will fire popstate → closeLightbox, so we don't
+      // need to call closeLightbox here — the listener above handles it.
+      history.back()
+    } else {
+      closeLightbox()
+    }
+  }, [closeLightbox])
+
+  useEffect(() => {
     if (!lightboxCardId) return
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'Escape') closeLightboxAndSentinel()
       if (e.key === 'ArrowRight') goNext()
       if (e.key === 'ArrowLeft') goPrev()
       if (e.key === 'ArrowDown') { e.preventDefault(); stepVariant(1) }
@@ -280,12 +320,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [lightboxCardId, closeLightbox, goNext, goPrev, stepVariant])
-
-  useEffect(() => {
-    document.body.style.overflow = lightboxCardId ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [lightboxCardId])
+  }, [lightboxCardId, closeLightboxAndSentinel, goNext, goPrev, stepVariant])
 
   return (
     <AnimatePresence>
@@ -296,7 +331,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          onClick={closeLightbox}
+          onClick={closeLightboxAndSentinel}
           ref={stageRef}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
@@ -380,7 +415,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               })()}
               <button
                 className="lb-hud-btn"
-                onClick={(e) => { e.stopPropagation(); closeLightbox() }}
+                onClick={(e) => { e.stopPropagation(); closeLightboxAndSentinel() }}
                 aria-label="Close"
               >
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
