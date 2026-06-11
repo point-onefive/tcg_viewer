@@ -50,13 +50,21 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
 function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
   return (
     <span
-      className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 text-[11px] font-medium"
       style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        paddingLeft: 8,
+        paddingRight: 4,
+        paddingTop: 3,
+        paddingBottom: 3,
         background: '#E85D2A',
         color: '#fff',
         borderRadius: 5,
+        fontSize: 11,
+        fontWeight: 500,
         letterSpacing: '0.02em',
-        lineHeight: 1.4,
+        lineHeight: 1,
       }}
     >
       {label}
@@ -68,19 +76,22 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: 14, height: 14,
+          width: 14,
+          height: 14,
           borderRadius: '50%',
           background: 'rgba(255,255,255,0.22)',
           color: '#fff',
           cursor: 'pointer',
           border: 'none',
           padding: 0,
+          margin: 0,
           flexShrink: 0,
+          lineHeight: 1,
         }}
       >
-        {/* SVG × so centring isn't affected by font metrics / line-height */}
-        <svg width="7" height="7" viewBox="0 0 8 8" fill="none" aria-hidden>
-          <path d="M1 1l6 6M7 1L1 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+        <svg width="6" height="6" viewBox="0 0 6 6" fill="none" aria-hidden>
+          <line x1="1" y1="1" x2="5" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="5" y1="1" x2="1" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       </button>
     </span>
