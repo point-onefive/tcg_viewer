@@ -64,19 +64,24 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
         type="button"
         onClick={onClear}
         aria-label={`Remove filter: ${label}`}
-        className="inline-flex items-center justify-center rounded-full"
         style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           width: 14, height: 14,
+          borderRadius: '50%',
           background: 'rgba(255,255,255,0.22)',
           color: '#fff',
-          fontSize: 10,
-          lineHeight: 1,
           cursor: 'pointer',
           border: 'none',
           padding: 0,
+          flexShrink: 0,
         }}
       >
-        ×
+        {/* SVG × so centring isn't affected by font metrics / line-height */}
+        <svg width="7" height="7" viewBox="0 0 8 8" fill="none" aria-hidden>
+          <path d="M1 1l6 6M7 1L1 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+        </svg>
       </button>
     </span>
   )
