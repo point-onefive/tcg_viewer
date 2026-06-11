@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import { ChevronRight, X } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Card, CardSet } from '@/lib/types'
 import { useStore, COLLECTIONS } from '@/lib/store'
 import { filterAndBuildWall, sortWallEntries, type WallEntry } from '@/lib/card-filter'
 import { getCardPricingForCollection } from '@/lib/pricing'
-import { COLLECTION_FACETS, facetLabel } from '@/lib/collection-facets'
 import { CardTile } from './card-tile'
 
 // Base gap (px) at normal zoom. The old 14px existed to give the
@@ -32,8 +31,12 @@ const CARD_RATIO = 7 / 5 // height / width
 //
 // card-grid uses this for the spacer below the fixed header and for
 // the virtualizer scrollMargin. Keep in sync if mobile rows change.
+// CHIP_ROW_H is added on top of the base heights when any filter chip
+// is visible — the chip strip now lives in the fixed header (not the
+// scrollable content) so the padding must grow with it.
 export const GALLERY_HEADER_H_MOBILE = 168
 export const GALLERY_HEADER_H_DESKTOP = 88
+const CHIP_ROW_H = 34 // height of the filter-chip row (6px top + 6px bottom + 22px content)
 
 const HEADER_H_MOBILE = GALLERY_HEADER_H_MOBILE
 const HEADER_H_DESKTOP = GALLERY_HEADER_H_DESKTOP
@@ -57,8 +60,9 @@ const MAX_COLUMNS = 30
 // values don't sneak past the cap when the user loads on mobile.
 const MAX_COLUMNS_MOBILE = 14
 
-function headerHeightFor(windowWidth: number): number {
-  return windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
+function headerHeightFor(windowWidth: number, hasChips = false): number {
+  const base = windowWidth >= LG_BREAKPOINT ? HEADER_H_DESKTOP : HEADER_H_MOBILE
+  return base + (hasChips ? CHIP_ROW_H : 0)
 }
 
 // Gap shrinks as the grid densifies — a small seam at default zoom,
@@ -314,12 +318,15 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   }, [])
 
   const columns = zoomToColumns(zoom, windowWidth, windowHeight, activeCollection)
+
+  // True when the chip strip is visible in the fixed header — used to
+  // expand the header height constant so the grid's paddingTop stays flush.
+  const hasChips = !!(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim())
+
   // Pre-compute the active header height once per render - used for
   // the layout spacer below the fixed header, the virtualizer's
-  // scrollMargin, and the column-fitting math (`minColumnsForViewport`
-  // also recomputes it, but cheaply). Depends on collection because
-  // the One Piece facets row adds another 40px on mobile.
-  const headerH = headerHeightFor(windowWidth)
+  // scrollMargin, and the column-fitting math.
+  const headerH = headerHeightFor(windowWidth, hasChips)
 
   // Filter logic lives in @/lib/card-filter so the lightbox viewer
   // can apply the exact same filter on the same inputs - that's what
@@ -579,87 +586,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
             </button>
           )}
         </div>
-        {/* Active filter chips - visible only when at least one filter is on */}
-        {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
-          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-            <span
-              className="text-[10px] tracking-[0.18em] uppercase mr-1"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Filters
-            </span>
-            {activeSet && (
-              <FilterChip label={activeSet} onClear={() => setActiveSet(null)} />
-            )}
-            {activeCardType && (
-              <FilterChip
-                label={facetLabel(COLLECTION_FACETS[activeCollection].cardTypes, activeCardType) || formatCardType(activeCardType)}
-                onClear={() => setActiveCardType(null)}
-              />
-            )}
-            {activeRarity && (
-              <FilterChip
-                label={facetLabel(COLLECTION_FACETS[activeCollection].rarities, activeRarity) || activeRarity}
-                onClear={() => setActiveRarity(null)}
-              />
-            )}
-            {activeColor && (
-              <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />
-            )}
-            {activeSubtype && (
-              <FilterChip
-                label={facetLabel(COLLECTION_FACETS[activeCollection].subtypes ?? [], activeSubtype) || activeSubtype}
-                onClear={() => setActiveSubtype(null)}
-              />
-            )}
-            {activeArtist && (
-              <FilterChip label={activeArtist} onClear={() => setActiveArtist(null)} />
-            )}
-            {onlyAltArt && (
-              <FilterChip
-                label={flattenWall ? 'Alt prints only' : 'Has alt art'}
-                onClear={() => setOnlyAltArt(false)}
-              />
-            )}
-            {onlyErrata && (
-              <FilterChip label="Errata only" onClear={() => setOnlyErrata(false)} />
-            )}
-            {flattenWall && (
-              <FilterChip label="Flattened" onClear={() => setFlattenWall(false)} />
-            )}
-            {searchQuery.trim() && (
-              <FilterChip
-                label={`"${searchQuery.trim()}"`}
-                onClear={() => setSearchQuery('')}
-              />
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveSet(null)
-                setActiveRarity(null)
-                setActiveColor(null)
-                setActiveCardType(null)
-                setActiveSubtype(null)
-                setActiveArtist(null)
-                setOnlyAltArt(false)
-                setOnlyErrata(false)
-                setFlattenWall(false)
-                setSearchQuery('')
-              }}
-              className="footer-btn text-[10px] tracking-[0.14em] uppercase px-2 py-1 ml-1"
-              style={{
-                color: 'var(--text-muted)',
-                background: 'var(--bg)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 6,
-                lineHeight: 1,
-              }}
-            >
-              Clear all
-            </button>
-          </div>
-        )}
+        {/* Filter chip strip moved to the fixed header (header.tsx) so it's
+            always visible while scrolling — no duplicate here. */}
       </div>
 
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
@@ -846,51 +774,5 @@ function SetHeaderRow({
         </div>
       </button>
     </div>
-  )
-}
-
-/**
- * Display label for a Card.cardType filter value. The raw values in
- * the bundle are SHOUTY ("LEADER", "CHARACTER", …) which look harsh
- * inside a chip; we lowercase + capitalise for the UI without
- * changing the source-of-truth value in the store.
- */
-function formatCardType(t: string): string {
-  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
-}
-
-function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 text-[11px] font-medium"
-      style={{
-        background: 'color-mix(in srgb, #E85D2A 14%, transparent)',
-        color: '#E85D2A',
-        border: '1px solid color-mix(in srgb, #E85D2A 45%, transparent)',
-        borderRadius: 4,
-        lineHeight: 1.4,
-      }}
-    >
-      <span className="max-w-[180px] truncate">{label}</span>
-      <button
-        type="button"
-        onClick={onClear}
-        aria-label={`Clear filter ${label}`}
-        className="inline-flex items-center justify-center rounded-sm transition-colors"
-        style={{
-          width: 14,
-          height: 14,
-          color: 'currentColor',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'color-mix(in srgb, #E85D2A 25%, transparent)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-        }}
-      >
-        <X size={10} strokeWidth={2.5} />
-      </button>
-    </span>
   )
 }

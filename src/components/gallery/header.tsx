@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
-import { COLLECTION_FACETS, type FacetOption } from '@/lib/collection-facets'
+import { COLLECTION_FACETS, facetLabel, type FacetOption } from '@/lib/collection-facets'
 // Per-collection facet config lives in `@/lib/collection-facets`.
 // Card type / Rarity / Color values vary by TCG; this header just
 // reads `COLLECTION_FACETS[activeCollection]` and renders generic
@@ -41,6 +41,50 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   { value: 'EN', label: 'EN', description: 'English (Bandai EN + Asia-EN cardlists).' },
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
 ]
+
+/**
+ * Dismissible chip shown in the active-filters strip inside the header.
+ * Identical to the chip in card-grid, co-located here so the strip can
+ * live in the fixed header without a cross-component import.
+ */
+function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 text-[11px] font-medium"
+      style={{
+        background: '#E85D2A',
+        color: '#fff',
+        borderRadius: 5,
+        letterSpacing: '0.02em',
+        lineHeight: 1.4,
+      }}
+    >
+      {label}
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={`Remove filter: ${label}`}
+        className="inline-flex items-center justify-center rounded-full"
+        style={{
+          width: 14, height: 14,
+          background: 'rgba(255,255,255,0.22)',
+          color: '#fff',
+          fontSize: 10,
+          lineHeight: 1,
+          cursor: 'pointer',
+          border: 'none',
+          padding: 0,
+        }}
+      >
+        ×
+      </button>
+    </span>
+  )
+}
+
+function formatCardType(t: string): string {
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
+}
 
 /**
  * Typeahead combobox for the artist filter. Renders a text input that
@@ -1883,6 +1927,71 @@ export function Header({ sets, artists }: HeaderProps) {
             </svg>
             <span>Feedback (@point_onefive)</span>
           </a>
+        </div>
+      )}
+
+      {/* Active-filter chip strip — visible whenever at least one filter
+          is on. Lives in the fixed header (not the scrollable card wall)
+          so the current filter state is always visible while browsing. */}
+      {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
+        <div
+          className="flex flex-wrap items-center gap-1.5 px-4"
+          style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 6, paddingBottom: 6 }}
+        >
+          <span
+            className="text-[10px] tracking-[0.18em] uppercase mr-1 shrink-0"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Filters
+          </span>
+          {activeSet && <FilterChip label={activeSet} onClear={() => setActiveSet(null)} />}
+          {activeCardType && (
+            <FilterChip
+              label={facetLabel(facets.cardTypes, activeCardType) || formatCardType(activeCardType)}
+              onClear={() => setActiveCardType(null)}
+            />
+          )}
+          {activeRarity && (
+            <FilterChip
+              label={facetLabel(facets.rarities, activeRarity) || activeRarity}
+              onClear={() => setActiveRarity(null)}
+            />
+          )}
+          {activeColor && <FilterChip label={activeColor} onClear={() => setActiveColor(null)} />}
+          {activeSubtype && (
+            <FilterChip
+              label={facetLabel(facets.subtypes ?? [], activeSubtype) || activeSubtype}
+              onClear={() => setActiveSubtype(null)}
+            />
+          )}
+          {activeArtist && <FilterChip label={activeArtist} onClear={() => setActiveArtist(null)} />}
+          {onlyAltArt && (
+            <FilterChip
+              label={flattenWall ? 'Alt prints only' : 'Has alt art'}
+              onClear={() => setOnlyAltArt(false)}
+            />
+          )}
+          {onlyErrata && <FilterChip label="Errata only" onClear={() => setOnlyErrata(false)} />}
+          {flattenWall && <FilterChip label="Flattened" onClear={() => setFlattenWall(false)} />}
+          {searchQuery.trim() && (
+            <FilterChip
+              label={`"${searchQuery.trim()}"`}
+              onClear={() => setSearchQuery('')}
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveSet(null); setActiveRarity(null); setActiveColor(null)
+              setActiveCardType(null); setActiveSubtype(null); setActiveArtist(null)
+              setOnlyAltArt(false); setOnlyErrata(false); setFlattenWall(false)
+              setSearchQuery('')
+            }}
+            className="ml-1 text-[10px] tracking-[0.14em] uppercase"
+            style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
+            Clear all
+          </button>
         </div>
       )}
     </header>
