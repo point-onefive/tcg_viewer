@@ -393,6 +393,47 @@ export function HelpPage() {
           <TierListMock />
         </Section>
 
+        <Section title="Tournaments">
+          <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            The <Kbd>Tournaments</Kbd> link in the header opens a self-serve
+            tournament host and runner — built for async, global play.
+          </p>
+          <ul className="space-y-2 text-sm leading-relaxed">
+            <li>
+              <strong>Host:</strong> set a name, game, format (Swiss or single
+              elimination), round length, and optional enrollment deadline. You
+              get a private host link — bookmark it, it&rsquo;s your admin access.
+            </li>
+            <li>
+              <strong>Enroll:</strong> share the tournament code. Players join
+              with just a display name (Discord handle optional). No account
+              needed — each player gets a private link that holds their spot.
+            </li>
+            <li>
+              <strong>Bracket:</strong> when you close enrollment (or the timer
+              ends) seeds and pairings generate automatically, with byes handled
+              for you. Swiss never eliminates anyone early and never repeats a
+              pairing.
+            </li>
+            <li>
+              <strong>Scheduling:</strong> opponents propose times in their own
+              time zone and lock a slot. Everyone sees an{' '}
+              <Kbd>Upcoming matches</Kbd> board in their own local time, so
+              spectators know when to tune into your stream.
+            </li>
+            <li>
+              <strong>Reporting:</strong> both players report their result. If
+              they agree it confirms instantly; if a loser never reports, the
+              winner&rsquo;s result stands automatically after a short window.
+              Conflicting claims flag for the host, who can override any match.
+            </li>
+            <li>
+              Rounds advance on their own as matches resolve. Drop out any time —
+              pairings skip dropped players.
+            </li>
+          </ul>
+        </Section>
+
         <Section title="Theme">
           <p className="text-sm leading-relaxed">
             The sun / moon toggle in the header flips dark and light mode. The

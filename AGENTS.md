@@ -13,6 +13,12 @@ Card data lives in `src/lib/cards-*.json` bundles produced by the
 scripts in `scripts/`. The deployed UI reads these bundles directly
 at build time.
 
+The `/tournaments` feature is the one **stateful** surface: it runs
+on Supabase (Postgres) behind Next.js route handlers rather than the
+static-bundle pattern. See `docs/tournaments.md` for setup +
+architecture. It degrades gracefully (503) when Supabase env vars are
+unset, so the rest of the site is unaffected.
+
 ## Routine operator tasks
 
 | Task                                | Command / playbook                                                       |

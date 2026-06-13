@@ -4,7 +4,7 @@ import { HelpPage } from '@/components/help/help-page'
 export const metadata: Metadata = {
   title: 'How it works · The Card Wall',
   description:
-    'A short reference for filters, sorting, pricing, the lightbox, tier-list maker, and more on The Card Wall.',
+    'A short reference for filters, sorting, pricing, the lightbox, tier-list maker, tournaments, and more on The Card Wall.',
 }
 
 export default function Help() {

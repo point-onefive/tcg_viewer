@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import Link from 'next/link'
-import { Bookmark, HelpCircle, Layers, LineChart, Menu, X, Check, ChevronDown, Package } from 'lucide-react'
+import { Bookmark, HelpCircle, Layers, LineChart, Menu, X, Check, ChevronDown, Package, Trophy } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
@@ -1174,6 +1174,19 @@ export function Header({ sets, artists }: HeaderProps) {
             Chart Race
           </Link>
 
+          {/* Tournaments · host/join a bracket. Sibling destination
+              alongside the other secondary surfaces. */}
+          <Link
+            href="/tournaments"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+            aria-label="Tournaments"
+            title="Tournaments"
+          >
+            <Trophy size={12} strokeWidth={2.25} aria-hidden />
+            Tournaments
+          </Link>
+
           {/* Board trigger · last in the cluster so its variable-
               width count badge grows away from siblings, never into
               them. */}
@@ -1260,6 +1273,16 @@ export function Header({ sets, artists }: HeaderProps) {
             title="Chart Race maker"
           >
             <LineChart size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
+
+          <Link
+            href="/tournaments"
+            className="footer-btn relative inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 32, height: 32 }}
+            aria-label="Tournaments"
+            title="Tournaments"
+          >
+            <Trophy size={14} strokeWidth={2.25} aria-hidden />
           </Link>
 
           {/* Hamburger */}
@@ -1912,6 +1935,17 @@ export function Header({ sets, artists }: HeaderProps) {
           >
             <LineChart size={16} strokeWidth={2.25} aria-hidden />
             <span>Chart Race maker</span>
+          </Link>
+
+          <Link
+            href="/tournaments"
+            onClick={() => setMobileOpen(false)}
+            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            style={{ ...ctrl }}
+            aria-label="Tournaments"
+          >
+            <Trophy size={16} strokeWidth={2.25} aria-hidden />
+            <span>Tournaments</span>
           </Link>
 
           {/* How-it-works link · groups with Feedback so the two
