@@ -138,7 +138,7 @@ const POKEMON: CollectionFacets = {
     'Grass', 'Fire', 'Water', 'Lightning', 'Psychic',
     'Fighting', 'Darkness', 'Metal', 'Dragon', 'Fairy', 'Colorless',
   ].map(colorOpt),
-  // Era / mechanic subtypes — the most-searched `attributes` values.
+  // Era / mechanic subtypes - the most-searched `attributes` values.
   // Ordered from newest SV era backward so recent cards appear first.
   subtypes: [
     { value: 'ex',             label: 'ex (SV)' },

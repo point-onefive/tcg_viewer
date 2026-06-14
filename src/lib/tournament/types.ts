@@ -12,7 +12,7 @@
 // that browser's own URL/localStorage.
 // ─────────────────────────────────────────────────────────────────────────
 
-/** Card games this tool knows about. Kept loose — purely a label. */
+/** Card games this tool knows about. Kept loose - purely a label. */
 export type TournamentGame =
   | 'one-piece'
   | 'pokemon'
@@ -40,7 +40,7 @@ export type RoundStatus = 'active' | 'complete'
  *  - pending:   no result reported yet
  *  - reported:  exactly one side reported; in the confirmation window
  *  - confirmed: both sides agree (or one-sided report stood after window)
- *  - disputed:  both sides claim the win — surfaced to the host
+ *  - disputed:  both sides claim the win - surfaced to the host
  *  - bye:       a player advanced unopposed (no opponent this round)
  */
 export type MatchStatus =
@@ -52,6 +52,20 @@ export type MatchStatus =
 
 /** A player's self-reported outcome for their own match. */
 export type ReportedResult = 'win' | 'loss' | 'draw'
+
+/**
+ * One slot in a tournament's prize pool. `image` is either a (client-
+ * compressed) data URL or an external image URL; null = text-only slot.
+ * Slot order in the array is the placing order (index 0 = 1st place).
+ */
+export interface TournamentPrize {
+  /** Editable heading, e.g. "1st Place" or "Top 8". */
+  title: string
+  /** Free-text describing the prize. */
+  description: string
+  /** Pasted image (data URL) or external URL; null for text-only. */
+  image: string | null
+}
 
 export interface Tournament {
   id: string
@@ -71,13 +85,26 @@ export interface Tournament {
   rules: string | null
   /** Optional Discord invite / X link the host shares for coordination. */
   contactUrl: string | null
+  /** The one public tournament shown at /tournaments when true. */
+  isLive: boolean
+  /** Cap on signups; null = unlimited up to MAX_PLAYERS guard. */
+  maxPlayers: number | null
+  /** Admin-curated prize pool shown publicly; empty = no prizes. */
+  prizes: TournamentPrize[]
   createdAt: string
 }
+
+/** Admin gate before a player enters the bracket. */
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
 
 export interface Player {
   id: string
   tournamentId: string
   displayName: string
+  /** Required X handle - normalized, stored lowercase. */
+  xHandle: string
+  /** Clickable profile: https://x.com/{xHandle} */
+  approvalStatus: ApprovalStatus
   /** Optional Discord handle if the player linked their account. */
   discordHandle: string | null
   /** Swiss seed / single-elim seed (1 = top). Assigned at bracket gen. */
@@ -166,7 +193,7 @@ export interface CreateTournamentInput {
   hostName: string
 }
 
-/** What the create endpoint hands back — includes the secret host token ONCE. */
+/** What the create endpoint hands back - includes the secret host token ONCE. */
 export interface CreateTournamentResult {
   tournament: Tournament
   hostToken: string

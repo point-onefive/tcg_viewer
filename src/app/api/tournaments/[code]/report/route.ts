@@ -11,7 +11,7 @@ interface Body {
   result: ReportedResult
 }
 
-// POST /api/tournaments/:code/report — a player reports their match outcome.
+// POST /api/tournaments/:code/report - a player reports their match outcome.
 // Both-agree → confirmed; conflict → disputed; one-sided → provisional.
 export async function POST(
   request: Request,

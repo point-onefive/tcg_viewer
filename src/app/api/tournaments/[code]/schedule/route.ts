@@ -19,7 +19,7 @@ interface AcceptBody {
 }
 type Body = ProposeBody | AcceptBody
 
-// POST /api/tournaments/:code/schedule — propose UTC slots, or accept one of
+// POST /api/tournaments/:code/schedule - propose UTC slots, or accept one of
 // the opponent's proposed slots. All times stored UTC, rendered local client-side.
 export async function POST(
   request: Request,

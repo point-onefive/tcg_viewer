@@ -32,7 +32,7 @@ const CARD_RATIO = 7 / 5 // height / width
 // card-grid uses this for the spacer below the fixed header and for
 // the virtualizer scrollMargin. Keep in sync if mobile rows change.
 // CHIP_ROW_H is added on top of the base heights when any filter chip
-// is visible — the chip strip now lives in the fixed header (not the
+// is visible - the chip strip now lives in the fixed header (not the
 // scrollable content) so the padding must grow with it.
 export const GALLERY_HEADER_H_MOBILE = 168
 export const GALLERY_HEADER_H_DESKTOP = 88
@@ -65,7 +65,7 @@ function headerHeightFor(windowWidth: number, hasChips = false): number {
   return base + (hasChips ? CHIP_ROW_H : 0)
 }
 
-// Gap shrinks as the grid densifies — a small seam at default zoom,
+// Gap shrinks as the grid densifies - a small seam at default zoom,
 // collapsing to a hairline at stamp-album densities so freed pixels
 // go to card art instead of whitespace.
 function gapForColumns(cols: number): number {
@@ -319,7 +319,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   const columns = zoomToColumns(zoom, windowWidth, windowHeight, activeCollection)
 
-  // True when the chip strip is visible in the fixed header — used to
+  // True when the chip strip is visible in the fixed header - used to
   // expand the header height constant so the grid's paddingTop stays flush.
   const hasChips = !!(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim())
 
@@ -407,7 +407,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // like "nami" doesn't bury its hits behind a stack of 44px collapsed
   // header strips ("OP02 · 1 cards", "OP03 · 1 cards", …). But a set the
   // user EXPLICITLY collapses (tracked in `userToggledSets`) must stay
-  // collapsed even during search — otherwise the collapse chevron looks
+  // collapsed even during search - otherwise the collapse chevron looks
   // broken. So during search we only honor deliberate collapses, not the
   // default-collapsed state. Clearing the query snaps everything back.
   //
@@ -587,7 +587,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
           )}
         </div>
         {/* Filter chip strip moved to the fixed header (header.tsx) so it's
-            always visible while scrolling — no duplicate here. */}
+            always visible while scrolling - no duplicate here. */}
       </div>
 
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>

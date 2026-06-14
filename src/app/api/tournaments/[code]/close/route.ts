@@ -8,7 +8,7 @@ interface Body {
   hostToken: string
 }
 
-// POST /api/tournaments/:code/close — host closes enrollment and generates
+// POST /api/tournaments/:code/close - host closes enrollment and generates
 // round 1 (assigns seeds, builds pairings + byes).
 export async function POST(
   request: Request,

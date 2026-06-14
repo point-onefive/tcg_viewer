@@ -277,7 +277,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // Push a history sentinel when the lightbox opens so the browser
   // back gesture (iOS swipe-left, Android back button) closes the
   // overlay instead of navigating away from the page.
-  // The sentinel is a #lightbox hash-only entry — it doesn't cause a
+  // The sentinel is a #lightbox hash-only entry - it doesn't cause a
   // network request and the URL still reads as the same page.
   // When the user presses/swipes back, popstate fires and we close.
   // When the user closes via Esc / ×, we manually call history.back()
@@ -302,7 +302,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   const closeLightboxAndSentinel = useCallback(() => {
     if (window.location.hash === '#lightbox') {
       // history.back() will fire popstate → closeLightbox, so we don't
-      // need to call closeLightbox here — the listener above handles it.
+      // need to call closeLightbox here - the listener above handles it.
       history.back()
     } else {
       closeLightbox()
@@ -711,7 +711,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               return <PricePanel wallCardId={focusedId} collection={activeCollection} />
             })()}
 
-            {/* Artist credit — shown when the focused print has a known
+            {/* Artist credit - shown when the focused print has a known
                 illustrator. Pokémon carries this on every card (~92%
                 coverage); One Piece only on Limitless-sourced variants. */}
             {images[safeFocused]?.artist && (

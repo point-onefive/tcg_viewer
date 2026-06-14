@@ -1,153 +1,60 @@
 'use client'
 
-import type {
-  CreateTournamentInput,
-  CreateTournamentResult,
-  EnrollResult,
-  ReportedResult,
-  TournamentSnapshot,
-} from './types'
+import type { TournamentSnapshot } from './types'
 
-// ─────────────────────────────────────────────────────────────────────────
-// Browser-side API client + local identity store. The host/player tokens are
-// the only proof of identity, so we persist them in localStorage keyed by the
-// tournament code. Losing localStorage = losing access (by design — it keeps
-// the tool account-free). Tokens are also surfaced as copyable links so a
-// user can re-bookmark them.
-// ─────────────────────────────────────────────────────────────────────────
+const ADMIN_KEY = 'tcw_tournament_admin_key'
 
-export interface StoredIdentity {
-  hostToken?: string
-  playerToken?: string
-  playerId?: string
-  playerName?: string
-}
-
-const KEY = (code: string) => `tcw_tournament_${code.toUpperCase()}`
-
-export function loadIdentity(code: string): StoredIdentity {
-  if (typeof window === 'undefined') return {}
+export function loadAdminKey(): string {
+  if (typeof window === 'undefined') return ''
   try {
-    const raw = localStorage.getItem(KEY(code))
-    return raw ? (JSON.parse(raw) as StoredIdentity) : {}
+    return localStorage.getItem(ADMIN_KEY) ?? ''
   } catch {
-    return {}
+    return ''
   }
 }
 
-export function saveIdentity(code: string, patch: Partial<StoredIdentity>): StoredIdentity {
-  const next = { ...loadIdentity(code), ...patch }
+export function saveAdminKey(key: string): void {
   try {
-    localStorage.setItem(KEY(code), JSON.stringify(next))
+    localStorage.setItem(ADMIN_KEY, key)
   } catch {
-    /* private mode / quota — non-fatal */
+    /* ignore */
   }
-  return next
 }
 
-async function post<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+async function post<T>(url: string, body: unknown, adminKey?: string): Promise<T> {
+  const headers: Record<string, string> = { 'content-type': 'application/json' }
+  if (adminKey) headers.authorization = `Bearer ${adminKey}`
+  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Request failed')
   return data as T
 }
 
-export async function apiCreate(input: CreateTournamentInput): Promise<CreateTournamentResult> {
-  return post('/api/tournaments', input)
-}
-
-export async function apiSnapshot(code: string): Promise<TournamentSnapshot> {
-  const res = await fetch(`/api/tournaments/${encodeURIComponent(code)}`, {
-    cache: 'no-store',
-  })
+export async function apiActiveSnapshot(): Promise<TournamentSnapshot> {
+  const res = await fetch('/api/tournaments/active', { cache: 'no-store' })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Not found')
   return data as TournamentSnapshot
 }
 
-export async function apiEnroll(
-  code: string,
-  displayName: string,
-  discordHandle?: string,
-): Promise<EnrollResult> {
-  return post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, {
-    displayName,
-    discordHandle,
-  })
+/** Live/enrolling probe for the global header badge. Never throws. */
+export async function apiActiveStatus(): Promise<{ live: boolean; status?: string }> {
+  try {
+    const res = await fetch('/api/tournaments/active/status', { cache: 'no-store' })
+    if (!res.ok) return { live: false }
+    return (await res.json()) as { live: boolean; status?: string }
+  } catch {
+    return { live: false }
+  }
 }
 
-export async function apiClose(code: string, hostToken: string): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/close`, { hostToken })
+export async function apiEnrollX(code: string, xHandle: string): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { xHandle })
 }
 
-export async function apiReport(
-  code: string,
-  matchId: string,
-  playerToken: string,
-  result: ReportedResult,
-): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/report`, {
-    matchId,
-    playerToken,
-    result,
-  })
-}
-
-export async function apiOverride(
-  code: string,
-  hostToken: string,
-  matchId: string,
-  winnerId: string | null,
-): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/override`, {
-    hostToken,
-    matchId,
-    winnerId,
-  })
-}
-
-export async function apiProposeSchedule(
-  code: string,
-  matchId: string,
-  playerToken: string,
-  slots: string[],
-): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/schedule`, {
-    action: 'propose',
-    matchId,
-    playerToken,
-    slots,
-  })
-}
-
-export async function apiAcceptSchedule(
-  code: string,
-  matchId: string,
-  playerToken: string,
-  proposalId: string,
-  slot: string,
-): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/schedule`, {
-    action: 'accept',
-    matchId,
-    playerToken,
-    proposalId,
-    slot,
-  })
-}
-
-export async function apiDropSelf(code: string, playerToken: string): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/drop`, { playerToken })
-}
-
-export async function apiHostDrop(
-  code: string,
-  hostToken: string,
-  playerId: string,
-): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/drop`, { hostToken, playerId })
+export async function adminApi(
+  adminKey: string,
+  body: Record<string, unknown>,
+): Promise<{ code?: string; approved?: number; count?: number; ok?: boolean }> {
+  return post('/api/tournaments/admin', body, adminKey)
 }

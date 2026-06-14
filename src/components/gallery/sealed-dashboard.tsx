@@ -32,7 +32,7 @@ const Sparkline = dynamic(
  * (~200px wide → soft/blurry on retina tiles and the detail panel). The
  * same product ID also serves an `_in_1000x1000` original, which Next's
  * image optimizer downscales to crisp WebP at whatever size each spot
- * requests — so a single uniform source covers tiles AND the modal.
+ * requests - so a single uniform source covers tiles AND the modal.
  */
 function hiResBoxImage(url: string | null): string | null {
   if (!url) return url
@@ -53,7 +53,7 @@ function zoomToCols(zoom: number, windowWidth: number): number {
   if (windowWidth < 640) {
     // Phones: compress the 1-11 zoom range into 1-3 columns. The
     // desktop mapping put the default at 5-up, which shrank each box
-    // to ~70px — badges covered the art and prices truncated.
+    // to ~70px - badges covered the art and prices truncated.
     return Math.min(Math.max(Math.ceil(desired / 4), 1), 3)
   }
   const max = windowWidth < 768 ? 6 : 12
@@ -158,7 +158,7 @@ export function SealedDashboard() {
 
   return (
     <div className="sb-page">
-      {/* Row 1 — same brand lockup + nav cluster as the gallery header */}
+      {/* Row 1 - same brand lockup + nav cluster as the gallery header */}
       <header className="sb-header">
         <div className="sb-header__inner">
           <div className="flex items-center gap-2 min-w-0">
@@ -238,7 +238,7 @@ export function SealedDashboard() {
           </div>
         </div>
 
-        {/* Mobile row 2 — full-width zoom scrubber + help. Mirrors the
+        {/* Mobile row 2 - full-width zoom scrubber + help. Mirrors the
             card wall's mobile pattern of giving the zoom its own row. */}
         <div
           className="sm:hidden flex items-center gap-2"
@@ -258,7 +258,7 @@ export function SealedDashboard() {
       </header>
 
       <main className="sb-main">
-        {/* Collection band — mirrors the card wall's set/collection header */}
+        {/* Collection band - mirrors the card wall's set/collection header */}
         <div className="sb-collection-band">
           <div className="sb-collection-band__eyebrow">Sealed product</div>
           <div className="sb-collection-band__row">

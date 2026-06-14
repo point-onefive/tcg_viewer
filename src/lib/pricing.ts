@@ -336,7 +336,7 @@ function loadSlotHistory(collection: string): Promise<PricingHistoryBundle> {
 }
 
 // ---------------------------------------------------------------------------
-// Collection-aware helpers — so callers don't branch on collection themselves
+// Collection-aware helpers - so callers don't branch on collection themselves
 // ---------------------------------------------------------------------------
 
 export function loadPricingForCollection(collection: string): Promise<PricingBundle> {

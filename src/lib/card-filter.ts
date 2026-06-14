@@ -17,7 +17,7 @@ export interface CardFilterState {
   // "Tera", "Stage 1"). Null = no filter. Ignored for non-Pokémon collections
   // since other collections don't have the same attributes vocabulary.
   activeSubtype: string | null
-  // Artist filter — exact match against card.artist.
+  // Artist filter - exact match against card.artist.
   activeArtist: string | null
   onlyAltArt: boolean
   // When true, restrict the wall to the curated list of One Piece
@@ -649,7 +649,7 @@ const RARITY_ORDER: Record<string, number> = {
   SEC: 0, SAR: 1, SP: 2, SR: 3, RR: 4, R: 5, UC: 6, C: 7, L: 8, P: 9,
   // Gundam additions (where not already covered by OP keys above)
   'LR++': 0, 'LR+': 1, LR: 2, U: 6,
-  // Pokémon — prestige order high → low. Mirrors collector/market hierarchy.
+  // Pokémon - prestige order high → low. Mirrors collector/market hierarchy.
   // Gold star spectrum (newest SV era):
   'Hyper Rare':                  0,   // Gold full-art trainer (✦✦✦ equivalent)
   'Special Illustration Rare':   1,   // 2 gold stars / SAR
@@ -687,7 +687,7 @@ const RARITY_ORDER: Record<string, number> = {
   Promo:                         33,
   Uncommon:                      34,
   Common:                        35,
-  // Lorcana — prestige high → low. Shares Rare/Uncommon/Common keys with
+  // Lorcana - prestige high → low. Shares Rare/Uncommon/Common keys with
   // Pokémon above (relative order only matters within one collection).
   Iconic:                        0,
   Enchanted:                     1,

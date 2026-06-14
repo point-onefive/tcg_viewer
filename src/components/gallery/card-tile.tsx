@@ -142,7 +142,7 @@ export function CardTile({ entry, priority = false, showStack = false }: CardTil
     >
       {/* "Has alternates" is signalled by the colored ring that
           `card-tile--has-variants` paints (see globals.css). The old
-          peek-sheet stack divs were removed — their 6-9px sway forced
+          peek-sheet stack divs were removed - their 6-9px sway forced
           generous grid gaps and wasted wall space. */}
       <div className="card-tile__img">
         {!loaded && <div className="card-tile__skeleton" />}

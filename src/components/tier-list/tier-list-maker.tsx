@@ -52,6 +52,7 @@ import {
   downloadBlob,
 } from '@/lib/chart-export'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { BrandLockup } from '@/components/gallery/brand-lockup'
 
 // `TierDef`, `TierCard`, `TierCardKind`, and `defaultTiers()` now
 // live in `@/lib/tier-list-types` so the Zustand store can reference
@@ -212,84 +213,6 @@ function SectionLabel({
         </div>
       )}
     </div>
-  )
-}
-
-/**
- * Brand lockup that exactly mirrors the main nav header lockup
- * (mascot chip · "the" · "Card Wall"). Used both for the tier page top-left
- * brand and as the import to keep visual parity.
- */
-function BrandLockup() {
-  return (
-    <span
-      className="inline-flex items-stretch overflow-hidden"
-      style={{
-        background: 'var(--text-primary)',
-        color: 'var(--bg)',
-        borderRadius: 6,
-        height: 30,
-      }}
-    >
-      <span
-        className="inline-flex items-center justify-center"
-        style={{
-          background: 'var(--bg)',
-          padding: '0 5px',
-          border: '1px solid var(--text-primary)',
-          borderRight: 'none',
-          borderTopLeftRadius: 6,
-          borderBottomLeftRadius: 6,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/site-logo.png"
-          alt=""
-          aria-hidden
-          width={15}
-          height={22}
-          style={{
-            // Explicit width: `auto` resolves to 0px in some Chromium
-            // flex layouts (same bug as the gallery header logo).
-            width: 15,
-            height: 22,
-            flexShrink: 0,
-            imageRendering: 'pixelated',
-            display: 'block',
-          }}
-        />
-      </span>
-      <span
-        className="inline-flex items-center whitespace-nowrap"
-        style={{
-          padding: '0 11px',
-          fontFamily: 'var(--font-display)',
-          fontWeight: 800,
-          fontSize: 16,
-          lineHeight: 1,
-          letterSpacing: '-0.015em',
-          textTransform: 'uppercase',
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            fontSize: 11,
-            fontWeight: 500,
-            fontStyle: 'italic',
-            letterSpacing: '0.02em',
-            textTransform: 'lowercase',
-            opacity: 0.65,
-            marginRight: 5,
-            lineHeight: 1,
-          }}
-        >
-          the
-        </span>
-        <span>Card Wall</span>
-      </span>
-    </span>
   )
 }
 
@@ -1102,7 +1025,7 @@ export function TierListMaker() {
   // shrink down to ~36px; steps above scale up to ~220px.
   const poolThumbW = Math.round(36 + (poolZoom - 1) * (220 - 36) / 12)
   const chartThumbW = Math.round(36 + (chartZoom - 1) * (220 - 36) / 12)
-  // Portrait height derived from chart width (5:7 ratio) — used to
+  // Portrait height derived from chart width (5:7 ratio) - used to
   // set the tier row min-height so empty rows scale with the zoom.
   const chartThumbH = Math.round(chartThumbW * (7 / 5))
 
@@ -1502,16 +1425,17 @@ export function TierListMaker() {
         fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
       }}
     >
-      {/* px-4 lives on the *inner* max-w-6xl div, not the outer
+      {/* px-4 lives on the *inner* maxWidth div, not the outer
           <header>, so the header's horizontal bounds line up
           exactly with the main content wrapper below (which also
-          uses `mx-auto max-w-6xl px-4`). When px-4 sits on the
-          outer element instead, the inner content can grow to
-          the full 1152px max-w-6xl while the main content tops
-          out at 1120px (1152 - 32), leaving the nav buttons 16px
-          further left and right than the chart frame on wide
-          viewports. Same pattern as the main gallery (header.tsx
-          + card-grid.tsx both put px-4 inside the maxWidth). */}
+          uses `mx-auto px-4` capped at the same 1800px). When px-4
+          sits on the outer element instead, the inner content can
+          grow to the full 1800px while the main content tops out
+          16px narrower, leaving the nav buttons further left and
+          right than the content on wide viewports. The 1800px cap
+          matches the gallery + sealed + tournament shells so the
+          nav bar is the same width on every page (header.tsx +
+          card-grid.tsx both put px-4 inside the same maxWidth). */}
       <header
         className="sticky top-0 z-20 py-3"
         style={{
@@ -1521,45 +1445,12 @@ export function TierListMaker() {
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
+        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4" style={{ maxWidth: 1800 }}>
           <div className="flex flex-wrap items-center gap-3">
             {/* Brand cluster: logo + beta tag stay tightly paired (gap-2)
                 so they read as one identity unit, distinct from the page
                 title that follows past the divider. */}
-            <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="group inline-flex"
-                aria-label="The Card Wall - home"
-                style={{
-                  transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                }}
-              >
-                <span className="group-hover:scale-[1.02] transition-transform">
-                  <BrandLockup />
-                </span>
-              </Link>
-              {/* Beta tag, mirrors the main nav for cross-page consistency. */}
-              <span
-                aria-label="Beta release"
-                title="Beta release"
-                className="inline-flex select-none"
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 10,
-                  fontStyle: 'italic',
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'lowercase',
-                  color: '#E85D2A',
-                  opacity: 0.78,
-                  lineHeight: 1,
-                  transform: 'translateY(1px)',
-                }}
-              >
-                beta
-              </span>
-            </div>
+            <BrandLockup />
             {/* Vertical rule separates site identity (brand + beta) from
                 page identity (Tier list maker). Same divider language the
                 main nav uses between filter and zoom controls. */}
@@ -1684,7 +1575,7 @@ export function TierListMaker() {
         </p>
       </section>
 
-      <div className="mx-auto max-w-6xl px-4 pt-6">
+      <div className="mx-auto px-4 pt-6" style={{ maxWidth: 1800 }}>
         {editorOpen && (
           <section
             aria-label="Customize tiers"
@@ -1779,7 +1670,7 @@ export function TierListMaker() {
               label="Pool"
               right={
                 <>
-                  {/* Zoom scrubber — same visual language as card wall */}
+                  {/* Zoom scrubber - same visual language as card wall */}
                   <div
                     className="flex items-center gap-2 px-3 shrink-0"
                     style={{ ...ctrlBase, height: 30 }}
@@ -1913,12 +1804,12 @@ export function TierListMaker() {
             })()}
           </section>
 
-          {/* Assign-to-tier bar — appears below pool when items are selected */}
+          {/* Assign-to-tier bar - appears below pool when items are selected */}
           {selectMode && selectedIds.size > 0 && (
             <div className="pool-assign-bar">
               <span className="pool-assign-bar__label">
                 <CheckSquare size={13} strokeWidth={2.5} aria-hidden />
-                {selectedIds.size} selected — assign to:
+                {selectedIds.size} selected - assign to:
               </span>
               <div className="pool-assign-bar__tiers">
                 {tiers.map((tier) => (

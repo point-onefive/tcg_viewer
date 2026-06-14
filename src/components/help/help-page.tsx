@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, HelpCircle } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { XLogo } from '@/components/gallery/x-logo'
 
 // All in-page illustrative card art is served from the same R2 CDN
 // the main gallery uses, so cards are CDN-cached + WebP-optimized by
@@ -97,7 +98,7 @@ export function HelpPage() {
         <Section title="Quick start">
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
-              Pick a TCG from the <Kbd>Collection</Kbd> picker — One Piece,
+              Pick a TCG from the <Kbd>Collection</Kbd> picker - One Piece,
               Pokémon, Lorcana, Digimon, Dragon Ball Super, and Gundam are all
               here.
             </li>
@@ -111,7 +112,7 @@ export function HelpPage() {
               compose - turn on as many as you want.
             </li>
             <li>
-              Sort the wall with the <Kbd>Sort</Kbd> dropdown — by card cost,
+              Sort the wall with the <Kbd>Sort</Kbd> dropdown - by card cost,
               power / HP, rarity, or price. Sorting always runs within each set
               group.
             </li>
@@ -142,11 +143,11 @@ export function HelpPage() {
               },
               {
                 term: 'Card type / Rarity / Color',
-                desc: 'Every TCG has its own curated vocabulary — Pokémon shows energy types and modern rarity tiers (Common through Special Illustration Rare); Lorcana shows ink colours and its rarity ladder; Digimon and Gundam show their native colour wheels; One Piece keeps Leader / Character / Event / Stage. Switching collection resets these so you don\u2019t carry over irrelevant ones.',
+                desc: 'Every TCG has its own curated vocabulary - Pokémon shows energy types and modern rarity tiers (Common through Special Illustration Rare); Lorcana shows ink colours and its rarity ladder; Digimon and Gundam show their native colour wheels; One Piece keeps Leader / Character / Event / Stage. Switching collection resets these so you don\u2019t carry over irrelevant ones.',
               },
               {
                 term: 'Artist (Pokémon)',
-                desc: 'Type any illustrator name into the Artist field to filter Pokémon cards by the person who drew them. Works as a typeahead — start typing and matching names surface immediately.',
+                desc: 'Type any illustrator name into the Artist field to filter Pokémon cards by the person who drew them. Works as a typeahead - start typing and matching names surface immediately.',
               },
               {
                 term: 'Alt art',
@@ -395,41 +396,24 @@ export function HelpPage() {
 
         <Section title="Tournaments">
           <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            The <Kbd>Tournaments</Kbd> link in the header opens a self-serve
-            tournament host and runner — built for async, global play.
+            The <Kbd>Tournaments</Kbd> link opens the current live Swiss event.
+            One tournament at a time, admin-run.
           </p>
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
-              <strong>Host:</strong> set a name, game, format (Swiss or single
-              elimination), round length, and optional enrollment deadline. You
-              get a private host link — bookmark it, it&rsquo;s your admin access.
+              Sign up with your <strong><XLogo /> handle</strong> while the sign-up timer
+              runs. Every handle links to the real profile in matchups.
             </li>
             <li>
-              <strong>Enroll:</strong> share the tournament code. Players join
-              with just a display name (Discord handle optional). No account
-              needed — each player gets a private link that holds their spot.
+              The admin verifies handles before the bracket posts.
             </li>
             <li>
-              <strong>Bracket:</strong> when you close enrollment (or the timer
-              ends) seeds and pairings generate automatically, with byes handled
-              for you. Swiss never eliminates anyone early and never repeats a
-              pairing.
+              Matchups show clickable @handles - DM your opponent on <XLogo />, play
+              off-site, finish before the round timer.
             </li>
             <li>
-              <strong>Scheduling:</strong> opponents propose times in their own
-              time zone and lock a slot. Everyone sees an{' '}
-              <Kbd>Upcoming matches</Kbd> board in their own local time, so
-              spectators know when to tune into your stream.
-            </li>
-            <li>
-              <strong>Reporting:</strong> both players report their result. If
-              they agree it confirms instantly; if a loser never reports, the
-              winner&rsquo;s result stands automatically after a short window.
-              Conflicting claims flag for the host, who can override any match.
-            </li>
-            <li>
-              Rounds advance on their own as matches resolve. Drop out any time —
-              pairings skip dropped players.
+              In-app win/loss reporting is coming; report results to the admin
+              for now.
             </li>
           </ul>
         </Section>
@@ -451,7 +435,7 @@ export function HelpPage() {
 
         <Section title="Feedback">
           <p className="text-sm leading-relaxed">
-            Built by one person. Suggestions and DMs welcome - find me on X as{' '}
+            Built by one person. Suggestions and DMs welcome - find me on <XLogo /> as{' '}
             <a
               href="https://x.com/point_onefive"
               target="_blank"

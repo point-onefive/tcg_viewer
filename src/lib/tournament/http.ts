@@ -1,6 +1,7 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
 import { SupabaseNotConfiguredError } from './supabase'
+import { AdminAuthError } from './admin-auth'
 import { TournamentError } from './service'
 
 // Shared helpers for the tournament route handlers: a JSON helper and a
@@ -24,6 +25,9 @@ export async function handle(fn: () => Promise<NextResponse>): Promise<NextRespo
         'The tournament backend is not configured on this deployment yet.',
         503,
       )
+    }
+    if (err instanceof AdminAuthError) {
+      return fail('Not authorized.', 401)
     }
     if (err instanceof TournamentError) {
       return fail(err.message, err.status)

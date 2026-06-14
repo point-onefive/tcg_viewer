@@ -5,7 +5,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // Server-only Supabase client for the tournament feature.
 //
 // All tournament reads AND writes funnel through this single service-role
-// client inside Next.js route handlers — the browser never talks to Supabase
+// client inside Next.js route handlers - the browser never talks to Supabase
 // directly. That keeps one clean trust boundary: authorization is enforced in
 // the route handlers by checking host/player tokens, not by RLS.
 //

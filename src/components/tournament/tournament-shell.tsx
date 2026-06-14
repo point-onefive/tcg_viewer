@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Trophy } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { BrandLockup } from '@/components/gallery/brand-lockup'
 
 // Page chrome shared by every tournament screen. Mirrors the tier-list /
 // chart-race header: sticky blurred bar with the brand lockup + beta tag, a
@@ -14,43 +15,6 @@ const ctrlBase: React.CSSProperties = {
   color: 'var(--text-primary)',
   border: '1px solid var(--border-subtle)',
   borderRadius: 6,
-}
-
-function BrandLockup() {
-  return (
-    <span
-      className="inline-flex items-stretch overflow-hidden"
-      style={{ background: 'var(--text-primary)', color: 'var(--bg)', borderRadius: 6, height: 30 }}
-    >
-      <span
-        className="inline-flex items-center justify-center"
-        style={{
-          background: 'var(--bg)',
-          padding: '0 5px',
-          border: '1px solid var(--text-primary)',
-          borderRight: 'none',
-          borderTopLeftRadius: 6,
-          borderBottomLeftRadius: 6,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/site-logo.png"
-          alt=""
-          aria-hidden
-          width={15}
-          height={22}
-          style={{ width: 15, height: 22, flexShrink: 0, imageRendering: 'pixelated', display: 'block' }}
-        />
-      </span>
-      <span
-        className="inline-flex items-center font-display"
-        style={{ padding: '0 9px 0 7px', fontSize: 13, fontWeight: 800, letterSpacing: '0.02em' }}
-      >
-        Card Wall
-      </span>
-    </span>
-  )
 }
 
 export function TournamentShell({
@@ -75,33 +39,9 @@ export function TournamentShell({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
+        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4" style={{ maxWidth: 1800 }}>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Link href="/" className="group inline-flex" aria-label="The Card Wall - home">
-                <span className="transition-transform group-hover:scale-[1.02]">
-                  <BrandLockup />
-                </span>
-              </Link>
-              <span
-                aria-label="Beta release"
-                className="inline-flex select-none"
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 10,
-                  fontStyle: 'italic',
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'lowercase',
-                  color: '#E85D2A',
-                  opacity: 0.78,
-                  lineHeight: 1,
-                  transform: 'translateY(1px)',
-                }}
-              >
-                beta
-              </span>
-            </div>
+            <BrandLockup />
             <div
               aria-hidden
               className="hidden sm:block"
@@ -125,7 +65,7 @@ export function TournamentShell({
         </section>
       )}
 
-      <div className="mx-auto max-w-6xl px-4 pt-6 pb-24">{children}</div>
+      <div className="mx-auto px-4 pt-6 pb-24" style={{ maxWidth: 1800 }}>{children}</div>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { sweep } from '@/lib/tournament/service'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// GET /api/cron/tournament-sweep — hands-off maintenance, run by Vercel Cron
+// GET /api/cron/tournament-sweep - hands-off maintenance, run by Vercel Cron
 // (see vercel.json). Auto-closes enrollment timers, confirms ghosted
 // single-sided reports past the window, and advances rounds.
 //

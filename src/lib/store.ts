@@ -65,7 +65,7 @@ interface StoreState {
   // Pokémon subtype/era filter (ex, VMAX, Tera, Stage 1, etc.)
   activeSubtype: string | null
   setActiveSubtype: (s: string | null) => void
-  // Artist filter — populated for Pokémon; null for all other collections.
+  // Artist filter - populated for Pokémon; null for all other collections.
   activeArtist: string | null
   setActiveArtist: (a: string | null) => void
   // When true, only show cards with at least one variant (alt art).
@@ -365,7 +365,7 @@ export const useStore = create<StoreState>()(
         language: state.language,
         flattenWall: state.flattenWall,
         showTilePrices: state.showTilePrices,
-        // Active filters — persisted so a refresh doesn't clear the
+        // Active filters - persisted so a refresh doesn't clear the
         // user's active search context. Switching collection still
         // resets them via setActiveCollection.
         searchQuery: state.searchQuery,
@@ -378,7 +378,7 @@ export const useStore = create<StoreState>()(
         onlyAltArt: state.onlyAltArt,
         // wallSort is deliberately NOT persisted. A sort picked during one
         // browsing session silently reordering the wall days later reads as
-        // "the cards are broken", not "my old sort is still on" — fresh
+        // "the cards are broken", not "my old sort is still on" - fresh
         // visits should always open in canonical set order.
         tierBoardTiers: state.tierBoardTiers,
         tierBoardTitle: state.tierBoardTitle,
@@ -524,7 +524,7 @@ export const useStore = create<StoreState>()(
         if (fromVersion < 21) {
           // v21 re-clears wallSort on every upgrade path. Older blobs
           // could still carry a wallSort key even after v20 stopped
-          // writing it — zustand merges stored keys on rehydrate, so
+          // writing it - zustand merges stored keys on rehydrate, so
           // a leftover "price-desc" silently reordered the wall for
           // returning visitors (incognito looked fine; regular browser
           // did not).

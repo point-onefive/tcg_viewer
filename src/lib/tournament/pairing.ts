@@ -1,13 +1,13 @@
 import type { Match, Player, StandingRow } from './types'
 
 // ─────────────────────────────────────────────────────────────────────────
-// Pairing engine — pure functions, no DB. Given the current players and the
+// Pairing engine - pure functions, no DB. Given the current players and the
 // history of matches, produce the next round's pairings. Two formats:
 //
-//   swiss        — fixed number of rounds, nobody eliminated. Pair players of
+//   swiss        - fixed number of rounds, nobody eliminated. Pair players of
 //                  similar score, never repeat a pairing, give the bye to the
 //                  lowest-ranked still-unpaired player who hasn't had one.
-//   single-elim  — only winners advance; seeds meet in standard bracket order
+//   single-elim  - only winners advance; seeds meet in standard bracket order
 //                  with byes for the top seeds when N isn't a power of two.
 //
 // A "pairing" is a tuple [player1Id, player2Id|null]; null player2 = a bye
@@ -116,7 +116,7 @@ export function computeStandings(players: Player[], matches: Match[]): StandingR
       : 0
     return {
       playerId: p.id,
-      displayName: byId.get(p.id)?.displayName ?? '—',
+      displayName: byId.get(p.id)?.displayName ?? '-',
       dropped: p.dropped,
       wins: w,
       losses: l,

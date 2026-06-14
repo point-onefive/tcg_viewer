@@ -31,8 +31,11 @@ import type {
   ReportedResult,
   Round,
   Tournament,
+  TournamentFormat,
+  TournamentPrize,
   TournamentSnapshot,
 } from './types'
+import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Service layer: all tournament mutations + reads. Route handlers call these.
@@ -204,41 +207,47 @@ async function fetchPlayerByToken(
 
 export async function enroll(
   code: string,
-  displayName: string,
-  discordHandle?: string | null,
+  xHandleRaw: string,
 ): Promise<EnrollResult> {
   const sb = getServiceClient()
   const row = await fetchTournamentRowByCode(code)
   if (row.status !== 'enrolling') {
-    throw new TournamentError('Enrollment for this tournament is closed.')
+    throw new TournamentError('Sign-ups are closed for this tournament.')
   }
   if (row.enroll_closes_at && new Date(row.enroll_closes_at) <= new Date()) {
-    throw new TournamentError('The enrollment window has ended.')
+    throw new TournamentError('The sign-up window has ended.')
   }
-  const name = displayName?.trim()
-  if (!name) throw new TournamentError('A display name is required to enroll.')
+  const xHandle = normalizeXHandle(xHandleRaw)
+  if (!isValidXHandle(xHandle)) {
+    throw new TournamentError('Enter a valid X handle (letters, numbers, underscore - no @ needed).')
+  }
 
   const players = await fetchPlayers(row.id)
-  if (players.length >= MAX_PLAYERS) {
+  const cap = row.max_players ?? MAX_PLAYERS
+  const activeSignups = players.filter((p) => p.approvalStatus !== 'rejected')
+  if (activeSignups.length >= cap) {
     throw new TournamentError('This tournament is full.')
   }
-  if (players.some((p) => p.displayName.toLowerCase() === name.toLowerCase())) {
-    throw new TournamentError('That display name is already taken in this tournament.')
+  if (players.some((p) => p.xHandle === xHandle && p.approvalStatus !== 'rejected')) {
+    throw new TournamentError('That X handle is already registered.')
   }
 
   const playerToken = generateToken()
+  const label = formatXLabel(xHandle)
   const { data, error } = await sb
     .from('players')
     .insert({
       tournament_id: row.id,
-      display_name: name,
-      discord_handle: discordHandle?.trim() || null,
+      display_name: label,
+      x_handle: xHandle,
+      approval_status: 'pending',
+      discord_handle: null,
       player_token_hash: hashToken(playerToken),
     })
     .select('*')
     .single()
   if (error || !data) {
-    throw new TournamentError(`Could not enroll: ${error?.message ?? 'unknown'}`, 500)
+    throw new TournamentError(`Could not sign up: ${error?.message ?? 'unknown'}`, 500)
   }
   return { player: rowToPlayer(data), playerToken }
 }
@@ -315,9 +324,11 @@ async function generateFirstRound(row: {
     throw new TournamentError('This tournament has already started.')
   }
   const players = await fetchPlayers(row.id)
-  const active = players.filter((p) => !p.dropped)
+  const active = players.filter(
+    (p) => !p.dropped && p.approvalStatus === 'approved',
+  )
   if (active.length < MIN_PLAYERS_TO_START) {
-    throw new TournamentError('Need at least 2 players to start.')
+    throw new TournamentError('Need at least 2 approved players to start.')
   }
 
   // Assign random seeds 1..N.
@@ -420,6 +431,67 @@ export async function reportResult(
   if (upErr) throw new TournamentError(upErr.message, 500)
 
   if (res.resolved) await maybeAdvance(row.id)
+}
+
+/**
+ * Admin declares a match outcome (admin-secret flow; auth enforced at the
+ * route). `result` is which slot won, or a draw (Swiss only). Setting the
+ * final unresolved match in a round triggers `maybeAdvance`, which generates
+ * the next round (Swiss re-pair / single-elim winners) or crowns a champion.
+ * Re-callable to correct a mistake on the current round.
+ */
+export async function adminSetResult(
+  code: string,
+  matchId: string,
+  result: 'p1' | 'p2' | 'draw',
+): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'running') {
+    throw new TournamentError('Results can only be set while the tournament is running.')
+  }
+
+  const { data: mRow, error } = await sb
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .eq('tournament_id', row.id)
+    .maybeSingle()
+  if (error) throw new TournamentError(error.message, 500)
+  if (!mRow) throw new TournamentError('Match not found.', 404)
+  const match = rowToMatch(mRow)
+
+  if (match.status === 'bye') throw new TournamentError('This match is a bye - nothing to report.')
+  if (!match.player2Id) throw new TournamentError('This match has no opponent.')
+
+  let winnerId: string | null
+  if (result === 'draw') {
+    if (row.format === 'single-elim') {
+      throw new TournamentError('Single elimination cannot end in a draw - pick a winner.')
+    }
+    winnerId = null
+  } else if (result === 'p1') {
+    winnerId = match.player1Id
+  } else if (result === 'p2') {
+    winnerId = match.player2Id
+  } else {
+    throw new TournamentError('Invalid result.')
+  }
+
+  const { error: upErr } = await sb
+    .from('matches')
+    .update({
+      status: 'confirmed',
+      winner_id: winnerId,
+      player1_report: result === 'draw' ? 'draw' : result === 'p1' ? 'win' : 'loss',
+      player2_report: result === 'draw' ? 'draw' : result === 'p2' ? 'win' : 'loss',
+      reported_at: match.reportedAt ?? nowIso(),
+      resolved_at: nowIso(),
+    })
+    .eq('id', matchId)
+  if (upErr) throw new TournamentError(upErr.message, 500)
+
+  await maybeAdvance(row.id)
 }
 
 /** Host override: force a result (winner id, or null for a draw). */
@@ -638,6 +710,222 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
   return { tournament, players, rounds, matches, proposals, standings }
 }
 
+// ── Active (live) tournament ───────────────────────────────────────────────
+
+/** The one tournament shown at /tournaments - env override or is_live row. */
+export async function getLiveTournamentRow() {
+  const sb = getServiceClient()
+  const pinned = process.env.TOURNAMENT_ACTIVE_CODE?.trim()
+  if (pinned) return fetchTournamentRowByCode(pinned)
+  const { data, error } = await sb
+    .from('tournaments')
+    .select('*')
+    .eq('is_live', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw new TournamentError(error.message, 500)
+  if (!data) throw new TournamentError('No tournament is live right now.', 404)
+  return data
+}
+
+export async function getActiveSnapshot(): Promise<TournamentSnapshot> {
+  const row = await getLiveTournamentRow()
+  return getSnapshotByCode(row.code)
+}
+
+/**
+ * Tiny status probe for the global header badge. Reads only the live
+ * tournament row (no players/matches/rounds joins) so it's cheap to
+ * poll site-wide. Returns `{ live: false }` instead of throwing when
+ * nothing is on, since "no tournament" is the normal resting state.
+ */
+export async function getActiveStatus(): Promise<{
+  live: boolean
+  status?: string
+  code?: string
+}> {
+  try {
+    const row = await getLiveTournamentRow()
+    const live = row.status === 'enrolling' || row.status === 'running'
+    return { live, status: row.status, code: row.code }
+  } catch (err) {
+    if (err instanceof TournamentError && err.status === 404) return { live: false }
+    throw err
+  }
+}
+
+// ── Admin-only operations (TOURNAMENT_ADMIN_SECRET) ────────────────────────
+
+export async function adminStartFresh(input: {
+  name: string
+  signupMinutes: number
+  roundMinutes: number
+  format?: TournamentFormat
+  maxPlayers?: number | null
+  rules?: string | null
+  contactUrl?: string | null
+}): Promise<{ code: string }> {
+  const sb = getServiceClient()
+  const name = input.name?.trim()
+  if (!name) throw new TournamentError('Tournament name is required.')
+  const format: TournamentFormat = input.format === 'single-elim' ? 'single-elim' : 'swiss'
+
+  await sb.from('tournaments').update({ is_live: false }).eq('is_live', true)
+
+  const hostToken = generateToken()
+  const signupMinutes = Math.max(5, input.signupMinutes || 60)
+  const roundMinutes = Math.max(15, input.roundMinutes || 1440)
+  const enrollClosesAt = addMinutes(nowIso(), signupMinutes)
+
+  let lastErr: unknown = null
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = generateCode('OP')
+    const { data, error } = await sb
+      .from('tournaments')
+      .insert({
+        code,
+        name,
+        game: 'one-piece',
+        format,
+        status: 'enrolling',
+        swiss_rounds: null,
+        round_minutes: roundMinutes,
+        enroll_closes_at: enrollClosesAt,
+        rules: input.rules?.trim() || null,
+        contact_url: input.contactUrl?.trim() || null,
+        host_token_hash: hashToken(hostToken),
+        is_live: true,
+        max_players: input.maxPlayers ?? null,
+      })
+      .select('*')
+      .single()
+    if (!error && data) return { code: data.code }
+    lastErr = error
+    if (error && (error as { code?: string }).code !== '23505') break
+  }
+  throw new TournamentError(
+    `Could not start tournament: ${(lastErr as Error)?.message ?? 'unknown'}`,
+    500,
+  )
+}
+
+export async function adminExtendSignup(code: string, extraMinutes: number): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'enrolling') {
+    throw new TournamentError('Sign-ups are already closed.')
+  }
+  const base = row.enroll_closes_at && new Date(row.enroll_closes_at) > new Date()
+    ? row.enroll_closes_at
+    : nowIso()
+  await sb
+    .from('tournaments')
+    .update({ enroll_closes_at: addMinutes(base, Math.max(1, extraMinutes)) })
+    .eq('id', row.id)
+}
+
+export async function adminCloseSignup(code: string): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'enrolling') return
+  await sb
+    .from('tournaments')
+    .update({ status: 'enrolling', enroll_closes_at: nowIso() })
+    .eq('id', row.id)
+}
+
+export async function adminApprovePlayer(code: string, playerId: string): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  await sb
+    .from('players')
+    .update({ approval_status: 'approved' })
+    .eq('id', playerId)
+    .eq('tournament_id', row.id)
+}
+
+export async function adminRejectPlayer(code: string, playerId: string): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  await sb
+    .from('players')
+    .update({ approval_status: 'rejected' })
+    .eq('id', playerId)
+    .eq('tournament_id', row.id)
+}
+
+/** Hard caps so a pasted image dump can't bloat the polled snapshot. */
+const MAX_PRIZES = 12
+const MAX_PRIZE_IMAGE_CHARS = 1_500_000 // ~1.1MB of base64
+
+/**
+ * Replace a tournament's whole prize pool. The client compresses pasted
+ * images to data URLs before sending; we still guard count + per-image
+ * size here so the public snapshot stays lean.
+ */
+export async function adminSetPrizes(
+  code: string,
+  prizes: unknown,
+): Promise<{ count: number }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+
+  if (!Array.isArray(prizes)) {
+    throw new TournamentError('Prizes must be a list.')
+  }
+  if (prizes.length > MAX_PRIZES) {
+    throw new TournamentError(`At most ${MAX_PRIZES} prize slots.`)
+  }
+
+  const clean: TournamentPrize[] = prizes.map((p, i) => {
+    const obj = (p ?? {}) as Record<string, unknown>
+    const title = typeof obj.title === 'string' ? obj.title.trim().slice(0, 120) : ''
+    const description =
+      typeof obj.description === 'string' ? obj.description.trim().slice(0, 600) : ''
+    let image: string | null = null
+    if (typeof obj.image === 'string' && obj.image.trim()) {
+      const img = obj.image.trim()
+      const looksValid = img.startsWith('data:image/') || /^https?:\/\//i.test(img)
+      if (!looksValid) {
+        throw new TournamentError(`Prize ${i + 1}: image must be a pasted image or a URL.`)
+      }
+      if (img.length > MAX_PRIZE_IMAGE_CHARS) {
+        throw new TournamentError(
+          `Prize ${i + 1}: image is too large - paste a smaller one.`,
+        )
+      }
+      image = img
+    }
+    if (!title && !description && !image) {
+      throw new TournamentError(`Prize ${i + 1} is empty - add a title, description, or image.`)
+    }
+    return { title: title || `Prize ${i + 1}`, description, image }
+  })
+
+  const { error } = await sb.from('tournaments').update({ prizes: clean }).eq('id', row.id)
+  if (error) throw new TournamentError(error.message, 500)
+  return { count: clean.length }
+}
+
+export async function adminApproveAllPending(code: string): Promise<number> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  const { data } = await sb
+    .from('players')
+    .update({ approval_status: 'approved' })
+    .eq('tournament_id', row.id)
+    .eq('approval_status', 'pending')
+    .select('id')
+  return data?.length ?? 0
+}
+
+/** Close sign-ups and generate round 1 from approved players only. */
+export async function adminStartBracket(code: string): Promise<void> {
+  const row = await requireHost(code)
+  await generateFirstRound(row)
+}
+
 // ── Cron sweep ─────────────────────────────────────────────────────────────
 
 /**
@@ -654,27 +942,12 @@ export async function sweep(): Promise<{
   tournamentsAdvanced: number
 }> {
   const sb = getServiceClient()
-  let enrollmentsClosed = 0
   let reportsConfirmed = 0
   const advanced = new Set<string>()
 
-  // 1. Enrollment timers.
-  const { data: enrolling } = await sb
-    .from('tournaments')
-    .select('*')
-    .eq('status', 'enrolling')
-    .not('enroll_closes_at', 'is', null)
-    .lte('enroll_closes_at', nowIso())
-  for (const row of enrolling ?? []) {
-    try {
-      await generateFirstRound(row)
-      enrollmentsClosed++
-    } catch {
-      // Not enough players, etc. — leave it open; host can extend or close.
-    }
-  }
-
-  // 2. Single-sided reports past the confirm window.
+  // Sign-up timers do NOT auto-start brackets - you approve handles and start
+  // manually via adminStartBracket. Cron only resolves ghosted reports and
+  // advances fully-completed rounds.
   const cutoff = addMinutes(nowIso(), -CONFIRM_WINDOW_MINUTES)
   const { data: stale } = await sb
     .from('matches')
@@ -692,7 +965,7 @@ export async function sweep(): Promise<{
     advanced.add(match.tournamentId)
   }
 
-  // 3. Advance affected tournaments.
+  // Advance affected tournaments.
   for (const tid of advanced) {
     try {
       await maybeAdvance(tid)
@@ -702,7 +975,7 @@ export async function sweep(): Promise<{
   }
 
   return {
-    enrollmentsClosed,
+    enrollmentsClosed: 0,
     reportsConfirmed,
     tournamentsAdvanced: advanced.size,
   }

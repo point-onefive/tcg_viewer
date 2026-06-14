@@ -27,6 +27,7 @@ create table if not exists tournaments (
   enroll_closes_at timestamptz,
   rules           text,
   contact_url     text,
+  prizes          jsonb not null default '[]'::jsonb,    -- [{title,description,image}]
   host_token_hash text not null,
   created_at      timestamptz not null default now()
 );

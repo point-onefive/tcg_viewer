@@ -33,7 +33,7 @@ export default function Home() {
     const codesWithCards = new Set(cards.map((c) => c.setCode))
     return rawSets.filter((s) => codesWithCards.has(s.setCode))
   }, [rawSets, cards])
-  // Sorted unique artist list — only collections where cards carry the
+  // Sorted unique artist list - only collections where cards carry the
   // artist field (currently Pokémon). Empty array for all others so
   // the Header can conditionally render the typeahead without importing
   // collection-specific logic.

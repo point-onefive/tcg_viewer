@@ -4,7 +4,7 @@ import { getSnapshotByCode } from '@/lib/tournament/service'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// GET /api/tournaments/:code — public snapshot (bracket, players, standings,
+// GET /api/tournaments/:code - public snapshot (bracket, players, standings,
 // schedule). No tokens are ever included in the response.
 export async function GET(
   _request: Request,

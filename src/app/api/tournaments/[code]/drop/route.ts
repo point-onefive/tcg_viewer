@@ -11,7 +11,7 @@ interface Body {
   playerId?: string
 }
 
-// POST /api/tournaments/:code/drop — a player drops themselves, or the host
+// POST /api/tournaments/:code/drop - a player drops themselves, or the host
 // drops a player. Dropped players are skipped by pairing and stop giving wins.
 export async function POST(
   request: Request,

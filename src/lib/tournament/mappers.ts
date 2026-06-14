@@ -4,6 +4,7 @@ import type {
   Round,
   ScheduleProposal,
   Tournament,
+  TournamentPrize,
   MatchStatus,
   ReportedResult,
   RoundStatus,
@@ -11,6 +12,18 @@ import type {
   TournamentGame,
   TournamentStatus,
 } from './types'
+
+/** Defensively coerce the JSONB `prizes` column into clean domain objects. */
+function rowToPrizes(raw: unknown): TournamentPrize[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((p): p is Record<string, unknown> => Boolean(p) && typeof p === 'object')
+    .map((p) => ({
+      title: typeof p.title === 'string' ? p.title : '',
+      description: typeof p.description === 'string' ? p.description : '',
+      image: typeof p.image === 'string' && p.image ? p.image : null,
+    }))
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // snake_case Postgres rows → camelCase domain objects. Token-hash columns are
@@ -32,15 +45,21 @@ export function rowToTournament(r: any): Tournament {
     enrollClosesAt: r.enroll_closes_at ?? null,
     rules: r.rules ?? null,
     contactUrl: r.contact_url ?? null,
+    isLive: Boolean(r.is_live),
+    maxPlayers: r.max_players ?? null,
+    prizes: rowToPrizes(r.prizes),
     createdAt: r.created_at,
   }
 }
 
 export function rowToPlayer(r: any): Player {
+  const xHandle = r.x_handle ?? r.display_name?.replace(/^@/, '').toLowerCase() ?? ''
   return {
     id: r.id,
     tournamentId: r.tournament_id,
     displayName: r.display_name,
+    xHandle,
+    approvalStatus: (r.approval_status ?? 'approved') as Player['approvalStatus'],
     discordHandle: r.discord_handle ?? null,
     seed: r.seed ?? null,
     dropped: Boolean(r.dropped),

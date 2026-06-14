@@ -5,12 +5,10 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 interface Body {
-  displayName: string
-  discordHandle?: string | null
+  xHandle: string
 }
 
-// POST /api/tournaments/:code/enroll — join an open tournament. Returns the
-// new player and their secret player token (shown once).
+// POST /api/tournaments/:code/enroll - sign up with your X handle
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> },
@@ -18,7 +16,7 @@ export async function POST(
   return handle(async () => {
     const { code } = await params
     const body = await readJson<Body>(request)
-    const result = await enroll(code, body.displayName, body.discordHandle)
+    const result = await enroll(code, body.xHandle)
     return ok(result, 201)
   })
 }

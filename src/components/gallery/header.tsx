@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
+import { BrandLockup } from './brand-lockup'
 import Link from 'next/link'
 import { Bookmark, HelpCircle, Layers, LineChart, Menu, X, Check, ChevronDown, Package, Trophy } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
+import { apiActiveStatus } from '@/lib/tournament/client'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
 import { COLLECTION_FACETS, facetLabel, type FacetOption } from '@/lib/collection-facets'
@@ -100,6 +102,75 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
 
 function formatCardType(t: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
+}
+
+/**
+ * Polls the cheap `/active/status` probe so the nav can flag a live
+ * tournament (enrolling or running) without pulling the full snapshot.
+ * 60s cadence + an on-focus re-check: long enough to be near-free
+ * site-wide, fresh enough that the badge appears shortly after an admin
+ * opens sign-ups. Fails closed (no badge) on any error.
+ */
+function useTournamentLive(): boolean {
+  const [live, setLive] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    const check = async () => {
+      const { live: isLive } = await apiActiveStatus()
+      if (!cancelled) setLive(isLive)
+    }
+    check()
+    const t = window.setInterval(check, 60_000)
+    const onFocus = () => check()
+    window.addEventListener('focus', onFocus)
+    return () => {
+      cancelled = true
+      clearInterval(t)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [])
+  return live
+}
+
+/** Corner heartbeat for icon-only triggers (no room for a word). */
+function LiveDot() {
+  return (
+    <span
+      aria-hidden
+      className="live-dot absolute rounded-full"
+      style={{
+        top: -3,
+        right: -3,
+        width: 9,
+        height: 9,
+        background: '#ef4444',
+        boxShadow: '0 0 0 2px var(--bg)',
+      }}
+    />
+  )
+}
+
+/** "LIVE" pill for the labelled Tournaments triggers. */
+function LivePill() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[9px] font-bold uppercase leading-none"
+      style={{
+        padding: '2px 5px',
+        borderRadius: 4,
+        background: '#ef4444',
+        color: '#fff',
+        letterSpacing: '0.08em',
+      }}
+    >
+      <span
+        aria-hidden
+        className="live-dot rounded-full"
+        style={{ width: 5, height: 5, background: '#fff' }}
+      />
+      Live
+    </span>
+  )
 }
 
 /**
@@ -290,7 +361,7 @@ function FacetPopover({
   menuAlign = 'left',
 }: {
   placeholder: string
-  // Label for the menu's clear/reset row. Defaults to `placeholder` —
+  // Label for the menu's clear/reset row. Defaults to `placeholder` -
   // pass separately when the trigger uses a compact mobile label
   // ("Type") but the menu should still read "All types".
   clearLabel?: string
@@ -476,7 +547,7 @@ function DropdownChevron({ open }: { open: boolean }) {
   )
 }
 
-/** Shared open/close physics + panel chrome — matches the More menu. */
+/** Shared open/close physics + panel chrome - matches the More menu. */
 const HEADER_DROPDOWN_EASE = [0.22, 1, 0.36, 1] as const
 
 const headerDropdownPanelStyle = (
@@ -600,7 +671,7 @@ function HeaderDropdown({
 }
 
 /**
- * Collection switcher — shared between desktop filter bar and mobile
+ * Collection switcher - shared between desktop filter bar and mobile
  * search row so switching TCGs is one tap, not buried in "More".
  */
 function CollectionPicker({
@@ -885,6 +956,24 @@ export function Header({ sets, artists }: HeaderProps) {
     : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
   const altArtAria = altArtTitle
   const [mobileOpen, setMobileOpen] = useState(false)
+  const tournamentLive = useTournamentLive()
+
+  // While the mobile menu overlay is open, lock body scroll and let
+  // Escape close it - reinforces that it's a focused modal layer, not
+  // inline page content. Backdrop click also closes (below).
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [mobileOpen])
 
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
@@ -936,115 +1025,12 @@ export function Header({ sets, artists }: HeaderProps) {
       }}
     >
       <div
-        className="mx-auto flex items-center justify-between gap-6 px-4 md:px-4"
+        className="relative z-[60] nav:z-auto mx-auto flex items-center justify-between gap-6 px-4 md:px-4"
         style={{ maxWidth: 1800, height: 48 }}
       >
-        {/* Brand cluster - lockup + small beta tag sit together on the left.
-           The beta tag mirrors the italic lowercase "the" prefix inside the
-           lockup, so it reads as a stylistic sibling rather than a separate
-           UI chip. Kept tiny, no background, accent orange at low opacity. */}
-        <div className="flex items-center gap-2">
-        <a
-          href="/"
-          className="group inline-flex items-stretch overflow-hidden"
-          aria-label="The Card Wall - home"
-          style={{
-            background: 'var(--text-primary)',
-            color: 'var(--bg)',
-            borderRadius: 6,
-            height: 30,
-            transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
-        >
-          {/* Mascot chip - lighter panel that anchors him inside the mark */}
-          <span
-            className="inline-flex items-center justify-center"
-            style={{
-              background: 'var(--bg)',
-              padding: '0 5px',
-              border: '1px solid var(--text-primary)',
-              borderRight: 'none',
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-            }}
-          >
-            {/* Explicit width — `width: auto` resolved to 0px in some
-                browsers (flex item + attr/CSS sizing conflict), which
-                rendered the chip as an empty sliver. 15x22 matches the
-                source art's 556x834 aspect. */}
-            <img
-              src="/images/site-logo.png"
-              alt=""
-              aria-hidden
-              fetchPriority="high"
-              loading="eager"
-              decoding="async"
-              width={15}
-              height={22}
-              style={{
-                width: 15,
-                height: 22,
-                flexShrink: 0,
-                imageRendering: 'pixelated',
-                display: 'block',
-                transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-              }}
-              className="group-hover:scale-110 group-hover:-rotate-3"
-            />
-          </span>
-          {/* Wordmark */}
-          <span
-            className="inline-flex items-center whitespace-nowrap"
-            style={{
-              padding: '0 11px',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 800,
-              fontSize: 16,
-              lineHeight: 1,
-              letterSpacing: '-0.015em',
-              textTransform: 'uppercase',
-            }}
-          >
-            <span
-              aria-hidden
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                fontStyle: 'italic',
-                letterSpacing: '0.02em',
-                textTransform: 'lowercase',
-                opacity: 0.65,
-                marginRight: 5,
-                lineHeight: 1,
-              }}
-            >
-              the
-            </span>
-            <span>Card Wall</span>
-          </span>
-        </a>
-          <span
-            aria-label="Beta release"
-            title="Beta release"
-            className="inline-flex select-none"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 10,
-              fontStyle: 'italic',
-              fontWeight: 700,
-              letterSpacing: '0.18em',
-              textTransform: 'lowercase',
-              color: '#E85D2A',
-              opacity: 0.78,
-              lineHeight: 1,
-              // Tiny optical lift so the italic descender sits on the
-              // same baseline as the wordmark inside the lockup.
-              transform: 'translateY(1px)',
-            }}
-          >
-            beta
-          </span>
-        </div>
+        {/* Brand cluster - canonical logo lives in BrandLockup so every
+            page renders the identical mark (see brand-lockup.tsx). */}
+        <BrandLockup />
 
         {/* Tagline · shows only on wider viewports to avoid crowding controls */}
         <div
@@ -1136,18 +1122,20 @@ export function Header({ sets, artists }: HeaderProps) {
             )}
           </Link>
 
-          {/* Sealed boxes dashboard. Sits next to Tiers as a sibling
-              destination; both are "secondary surfaces" that operate
-              on the same underlying TCG data. */}
+          {/* Sealed: icon-only at nav, label from xl (same overflow fix). */}
           <Link
             href="/sealed"
-            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-            style={{
-              ...ctrl,
-              height: 30,
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-            }}
+            className="footer-btn inline-flex items-center justify-center xl:hidden"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="Booster box price dashboard"
+            title="Booster box prices"
+          >
+            <Package size={12} strokeWidth={2.25} aria-hidden />
+          </Link>
+          <Link
+            href="/sealed"
+            className="footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
             aria-label="Booster box price dashboard"
             title="Booster box prices"
           >
@@ -1155,18 +1143,21 @@ export function Header({ sets, artists }: HeaderProps) {
             Sealed
           </Link>
 
-          {/* Chart race maker. Sibling secondary surface alongside
-              Tiers + Sealed; a standalone social-content tool for
-              animating a line chart from pasted data. */}
+          {/* Chart race + Tournaments: icon-only at nav to keep the cluster
+              from overflowing 1440–1600px viewports. Full labels from xl. */}
           <Link
             href="/chart-race"
-            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-            style={{
-              ...ctrl,
-              height: 30,
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-            }}
+            className="footer-btn inline-flex items-center justify-center xl:hidden"
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label="Chart Race maker"
+            title="Chart Race maker"
+          >
+            <LineChart size={12} strokeWidth={2.25} aria-hidden />
+          </Link>
+          <Link
+            href="/chart-race"
+            className="footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
             aria-label="Chart Race maker"
             title="Chart Race maker"
           >
@@ -1174,17 +1165,26 @@ export function Header({ sets, artists }: HeaderProps) {
             Chart Race
           </Link>
 
-          {/* Tournaments · host/join a bracket. Sibling destination
-              alongside the other secondary surfaces. */}
           <Link
             href="/tournaments"
-            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+            className={`footer-btn relative inline-flex items-center justify-center xl:hidden${tournamentLive ? ' tournament-live-breathe' : ''}`}
+            style={{ ...ctrl, width: 30, height: 30 }}
+            aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
+            title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
+          >
+            <Trophy size={12} strokeWidth={2.25} aria-hidden />
+            {tournamentLive && <LiveDot />}
+          </Link>
+          <Link
+            href="/tournaments"
+            className={`footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
             style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-            aria-label="Tournaments"
-            title="Tournaments"
+            aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
+            title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
           >
             <Trophy size={12} strokeWidth={2.25} aria-hidden />
             Tournaments
+            {tournamentLive && <LivePill />}
           </Link>
 
           {/* Board trigger · last in the cluster so its variable-
@@ -1215,9 +1215,12 @@ export function Header({ sets, artists }: HeaderProps) {
           </button>
         </div>
 
-        {/* ── Mobile right cluster ── */}
-        <div className="flex nav:hidden items-center gap-2">
-          {/* Board icon - only if pins exist */}
+        {/* ── Mobile right cluster ──
+            Keep this row minimal: Theme + Tiers + hamburger. Sealed,
+            Chart Race, and Tournaments live in the mobile sheet only -
+            six 32px chips overflowed narrow phones once Tournaments
+            landed. Board stays here only when pins exist (actionable). */}
+        <div className="flex nav:hidden items-center gap-1.5 shrink-0">
           {pinnedCount > 0 && (
             <button
               className="footer-btn relative inline-flex items-center justify-center"
@@ -1255,45 +1258,26 @@ export function Header({ sets, artists }: HeaderProps) {
             )}
           </Link>
 
-          <Link
-            href="/sealed"
-            className="footer-btn relative inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 32, height: 32 }}
-            aria-label="Booster box dashboard"
-            title="Booster box prices"
-          >
-            <Package size={14} strokeWidth={2.25} aria-hidden />
-          </Link>
-
-          <Link
-            href="/chart-race"
-            className="footer-btn relative inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 32, height: 32 }}
-            aria-label="Chart Race maker"
-            title="Chart Race maker"
-          >
-            <LineChart size={14} strokeWidth={2.25} aria-hidden />
-          </Link>
-
-          <Link
-            href="/tournaments"
-            className="footer-btn relative inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 32, height: 32 }}
-            aria-label="Tournaments"
-            title="Tournaments"
-          >
-            <Trophy size={14} strokeWidth={2.25} aria-hidden />
-          </Link>
-
-          {/* Hamburger */}
+          {/* Hamburger · Tournaments is sheet-only on mobile, so when an
+              event is live the cue rides the hamburger (the thing that
+              reveals it). Suppressed while the sheet is open - the
+              Tournaments link inside carries its own LIVE pill there. */}
           <button
-            className="footer-btn inline-flex items-center justify-center"
+            className={`footer-btn relative inline-flex items-center justify-center${tournamentLive && !mobileOpen ? ' tournament-live-breathe' : ''}`}
             style={{ ...ctrl, width: 32, height: 32 }}
             onClick={() => setMobileOpen((o) => !o)}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-label={
+              mobileOpen
+                ? 'Close menu'
+                : tournamentLive
+                  ? 'Open menu (tournament live now)'
+                  : 'Open menu'
+            }
             aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-menu"
           >
             {mobileOpen ? <X size={15} /> : <Menu size={15} />}
+            {tournamentLive && !mobileOpen && <LiveDot />}
           </button>
         </div>
       </div>
@@ -1467,7 +1451,7 @@ export function Header({ sets, artists }: HeaderProps) {
       {/* ── Mobile row-4 · Sort + Artist + Zoom slider ─────────────────
           Zoom was the last hamburger-only control. Promoted here so
           the entire filter set is reachable without ever opening the
-          sheet. Sort and the artist typeahead live in this same row —
+          sheet. Sort and the artist typeahead live in this same row -
           secondary controls that fit naturally beside zoom (and keep
           row-3's facet triggers from being crushed into "A…"). */}
       <div
@@ -1477,7 +1461,7 @@ export function Header({ sets, artists }: HeaderProps) {
           borderTop: '1px solid var(--border-subtle)',
         }}
       >
-        {/* Sort — same custom popover as desktop */}
+        {/* Sort - same custom popover as desktop */}
         <FacetPopover
           placeholder="Sort: Default"
           ariaLabel="Sort cards"
@@ -1865,11 +1849,56 @@ export function Header({ sets, artists }: HeaderProps) {
         </div>
       </div>
 
-      {/* ── Mobile filter sheet ── */}
-      {mobileOpen && (
-        <div
-          className="nav:hidden px-4 pb-4 pt-2 flex flex-col gap-3"
-          style={{ borderTop: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
+      {/* ── Mobile nav menu · overlay dropdown ───────────────────────────
+          Renders as a focused modal layer, NOT inline page flow. A
+          backdrop dims + blurs everything below the brand row so the
+          menu reads as a drop-down (the brand row stays crisp at z-60,
+          above the backdrop). Closes on backdrop tap, the X, or Escape;
+          body scroll is locked while open (see effect above). */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            key="mobile-nav-backdrop"
+            className="nav:hidden fixed left-0 right-0 bottom-0"
+            style={{
+              top: 48,
+              zIndex: 55,
+              background: 'color-mix(in srgb, var(--bg) 30%, rgba(0,0,0,0.6))',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: HEADER_DROPDOWN_EASE }}
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {mobileOpen && (
+        <motion.div
+          key="mobile-nav-menu"
+          id="mobile-nav-menu"
+          role="menu"
+          aria-label="Site menu"
+          className="nav:hidden fixed left-0 right-0 px-4 pb-4 pt-3 flex flex-col gap-2.5 overflow-y-auto"
+          style={{
+            top: 48,
+            zIndex: 56,
+            maxHeight: 'calc(100dvh - 48px)',
+            background: 'var(--bg-surface)',
+            borderBottom: '1px solid var(--border-subtle)',
+            borderBottomLeftRadius: 16,
+            borderBottomRightRadius: 16,
+            boxShadow: 'var(--shadow-card)',
+          }}
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.2, ease: HEADER_DROPDOWN_EASE }}
         >
           <select
             value={activeCollection}
@@ -1940,12 +1969,13 @@ export function Header({ sets, artists }: HeaderProps) {
           <Link
             href="/tournaments"
             onClick={() => setMobileOpen(false)}
-            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+            className={`footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
             style={{ ...ctrl }}
-            aria-label="Tournaments"
+            aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
           >
             <Trophy size={16} strokeWidth={2.25} aria-hidden />
             <span>Tournaments</span>
+            {tournamentLive && <LivePill />}
           </Link>
 
           {/* How-it-works link · groups with Feedback so the two
@@ -1977,10 +2007,11 @@ export function Header({ sets, artists }: HeaderProps) {
             </svg>
             <span>Feedback (@point_onefive)</span>
           </a>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Active-filter chip strip — visible whenever at least one filter
+      {/* Active-filter chip strip - visible whenever at least one filter
           is on. Lives in the fixed header (not the scrollable card wall)
           so the current filter state is always visible while browsing. */}
       {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (

@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { BrandLockup } from '@/components/gallery/brand-lockup'
 import { useChartRace } from '@/lib/chart-race-store'
 import {
   normalizeRows,
@@ -106,73 +107,6 @@ async function fileToHeadImage(file: File, size = 96): Promise<string | null> {
   } catch {
     return null
   }
-}
-
-/* ── Brand lockup, mirrored from the tier-list header so the nav
-      identity is byte-for-byte the same across tools. ───────────── */
-function BrandLockup() {
-  return (
-    <span
-      className="inline-flex items-stretch overflow-hidden"
-      style={{
-        background: 'var(--text-primary)',
-        color: 'var(--bg)',
-        borderRadius: 6,
-        height: 30,
-      }}
-    >
-      <span
-        className="inline-flex items-center justify-center"
-        style={{
-          background: 'var(--bg)',
-          padding: '0 5px',
-          border: '1px solid var(--text-primary)',
-          borderRight: 'none',
-          borderTopLeftRadius: 6,
-          borderBottomLeftRadius: 6,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/site-logo.png"
-          alt=""
-          aria-hidden
-          width={22}
-          height={22}
-          style={{ height: 22, width: 'auto', imageRendering: 'pixelated', display: 'block' }}
-        />
-      </span>
-      <span
-        className="inline-flex items-center whitespace-nowrap"
-        style={{
-          padding: '0 11px',
-          fontFamily: 'var(--font-display)',
-          fontWeight: 800,
-          fontSize: 16,
-          lineHeight: 1,
-          letterSpacing: '-0.015em',
-          textTransform: 'uppercase',
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            fontSize: 11,
-            fontWeight: 500,
-            fontStyle: 'italic',
-            letterSpacing: '0.02em',
-            textTransform: 'lowercase',
-            opacity: 0.65,
-            marginRight: 5,
-            lineHeight: 1,
-          }}
-        >
-          the
-        </span>
-        <span>Card Wall</span>
-      </span>
-    </span>
-  )
 }
 
 /* ── Section header (orange icon + tracked wordmark + tapering
@@ -989,39 +923,9 @@ export function ChartRaceMaker() {
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
+        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4" style={{ maxWidth: 1800 }}>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="group inline-flex"
-                aria-label="The Card Wall - home"
-                style={{ transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-              >
-                <span className="group-hover:scale-[1.02] transition-transform">
-                  <BrandLockup />
-                </span>
-              </Link>
-              <span
-                aria-label="Beta release"
-                title="Beta release"
-                className="inline-flex select-none"
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 10,
-                  fontStyle: 'italic',
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'lowercase',
-                  color: BRAND,
-                  opacity: 0.78,
-                  lineHeight: 1,
-                  transform: 'translateY(1px)',
-                }}
-              >
-                beta
-              </span>
-            </div>
+            <BrandLockup />
             <div
               aria-hidden
               className="hidden sm:block"
@@ -1095,7 +999,7 @@ export function ChartRaceMaker() {
         </p>
       </section>
 
-      <div className="mx-auto max-w-6xl px-4 pt-6">
+      <div className="mx-auto px-4 pt-6" style={{ maxWidth: 1800 }}>
         {/* ── Import panel (collapsible) ───────────────────────── */}
         {importOpen && (
           <ImportPanel formId={formId} onClose={closeImport} onAfterLoad={resetPlayhead} />

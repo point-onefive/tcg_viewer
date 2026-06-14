@@ -11,7 +11,7 @@ interface Body {
   winnerId: string | null
 }
 
-// POST /api/tournaments/:code/override — host force-resolves a match
+// POST /api/tournaments/:code/override - host force-resolves a match
 // (disputes, no-shows, manual corrections).
 export async function POST(
   request: Request,

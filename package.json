@@ -44,7 +44,9 @@
     "lorcana:generate": "node scripts/generate-lorcana-bundle.mjs",
     "lorcana:images": "node scripts/download-lorcana-images.mjs",
     "lorcana:all": "npm run lorcana:fetch && npm run lorcana:images && npm run lorcana:generate",
-    "lorcana:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-lorcana --prefix=cards/lorcana --ext=webp"
+    "lorcana:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-lorcana --prefix=cards/lorcana --ext=webp",
+    "tournament:simulate": "node scripts/tournament/simulate-signups.mjs",
+    "tournament:stress": "node scripts/tournament/stress-flow.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

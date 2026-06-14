@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
-import { TournamentHome } from '@/components/tournament/tournament-home'
+import { TournamentLive } from '@/components/tournament/tournament-live'
+import { TournamentGate } from '@/components/tournament/tournament-gate'
 
 export const metadata: Metadata = {
-  title: 'Tournaments · The Card Wall',
-  description:
-    'Host or join a TCG tournament. Open enrollment, automatic Swiss / single-elim brackets, async scheduling across time zones, and self-reported results. Free, no account needed.',
+  title: 'Tournament · The Card Wall',
+  description: 'Sign up with your X handle for the current Card Wall Swiss tournament.',
 }
 
 export default function TournamentsPage() {
-  return <TournamentHome />
+  return (
+    <TournamentGate>
+      <TournamentLive />
+    </TournamentGate>
+  )
 }
