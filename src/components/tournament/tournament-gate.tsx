@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Lock } from 'lucide-react'
 import { TournamentShell } from '@/components/tournament/tournament-shell'
 
 // Soft client-side password gate for the public tournament page. This is a
@@ -78,18 +77,18 @@ export function TournamentGate({ children }: { children: React.ReactNode }) {
     <TournamentShell>
       <div className="flex justify-center" style={{ paddingTop: 'clamp(24px, 10vh, 96px)' }}>
         <div className="w-full max-w-sm p-6 sm:p-7" style={card}>
-          <div
-            className="mx-auto mb-4 flex items-center justify-center"
+          <img
+            src="/shiny-cardboard-icon.png"
+            alt="Shiny Cardboard"
+            className="mx-auto mb-4 block"
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 8,
-              background: 'color-mix(in srgb, #E85D2A 14%, transparent)',
-              border: '1px solid color-mix(in srgb, #E85D2A 40%, var(--border-subtle))',
+              width: 52,
+              height: 52,
+              borderRadius: 10,
+              objectFit: 'cover',
+              border: '1px solid var(--border-subtle)',
             }}
-          >
-            <Lock size={20} style={{ color: '#E85D2A' }} />
-          </div>
+          />
 
           <h2 className="font-display text-xl font-bold text-center tracking-tight">
             Shiny Cardboard Members Only
