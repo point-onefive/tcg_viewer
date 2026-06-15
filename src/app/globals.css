@@ -1597,7 +1597,13 @@ html.lenis, html.lenis body {
   align-items: center;
   justify-content: center;
   perspective: 1200px;
-  overflow: hidden;
+  /* MUST stay visible: the variant fan spreads its sibling cards
+     ±180px+ to the sides of this narrow (70vw) stage. `hidden` here
+     clips the alt-art stack so only the centre card shows. Vertical
+     containment / no-HUD-overlap is handled by the flex layout (HUD is
+     in-flow as .lb-hud, this stage is flex:1 below it) plus the card's
+     own max-height, not by clipping the stage. */
+  overflow: visible;
 }
 
 /* Bottom info bar - reserves the WORST-case height regardless of
@@ -1618,7 +1624,7 @@ html.lenis, html.lenis body {
 }
 @media (max-width: 640px) {
   .lb-bottom-bar {
-    min-height: 330px;
+    min-height: 270px;
   }
 }
 
@@ -1644,7 +1650,7 @@ html.lenis, html.lenis body {
 @media (max-width: 640px) {
   :root {
     /* Mobile bottom bar stacks taller (nav + stacked price strip + chart + artist). */
-    --lb-chrome: calc(52px + env(safe-area-inset-top, 0px) + 330px + 24px);
+    --lb-chrome: calc(52px + env(safe-area-inset-top, 0px) + 270px + 24px);
   }
 
   .lb-card {
