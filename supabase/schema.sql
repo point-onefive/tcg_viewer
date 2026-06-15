@@ -28,6 +28,7 @@ create table if not exists tournaments (
   rules           text,
   contact_url     text,
   prizes          jsonb not null default '[]'::jsonb,    -- [{title,description,image}]
+  poll_open       boolean not null default true,         -- prize-distribution poll accepting votes
   host_token_hash text not null,
   created_at      timestamptz not null default now()
 );

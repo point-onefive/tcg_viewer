@@ -736,6 +736,9 @@ export async function castPollVote(
     throw new TournamentError('Pick one of the available options.')
   }
   const row = await getLiveTournamentRow()
+  if (row.poll_open === false) {
+    throw new TournamentError('Voting for this poll has closed.', 403)
+  }
   const sb = getServiceClient()
   const { error } = await sb
     .from('poll_votes')
@@ -990,6 +993,17 @@ export async function adminApproveAllPending(code: string): Promise<number> {
 export async function adminStartBracket(code: string): Promise<void> {
   const row = await requireHost(code)
   await generateFirstRound(row)
+}
+
+/** Open or close the prize-distribution poll to new votes. */
+export async function adminSetPollOpen(code: string, open: boolean): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  const { error } = await sb
+    .from('tournaments')
+    .update({ poll_open: open })
+    .eq('id', row.id)
+  if (error) throw new TournamentError(`Could not update the poll: ${error.message}`, 500)
 }
 
 // ── Cron sweep ─────────────────────────────────────────────────────────────

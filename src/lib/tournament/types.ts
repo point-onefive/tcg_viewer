@@ -93,6 +93,8 @@ export interface Tournament {
   maxPlayers: number | null
   /** Admin-curated prize pool shown publicly; empty = no prizes. */
   prizes: TournamentPrize[]
+  /** When false, the prize-distribution poll is closed to new votes. */
+  pollOpen: boolean
   createdAt: string
 }
 

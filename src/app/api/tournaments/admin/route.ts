@@ -6,6 +6,7 @@ import {
   adminCloseSignup,
   adminExtendSignup,
   adminRejectPlayer,
+  adminSetPollOpen,
   adminSetPrizes,
   adminSetResult,
   adminStartBracket,
@@ -28,6 +29,7 @@ type Body =
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
   | { action: 'start-bracket'; code: string }
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
+  | { action: 'set-poll'; code: string; open: boolean }
 
 // POST /api/tournaments/admin - admin-only tournament control
 export async function POST(request: Request) {
@@ -66,6 +68,9 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'set-result':
         await adminSetResult(body.code, body.matchId, body.result)
+        return ok({ ok: true })
+      case 'set-poll':
+        await adminSetPollOpen(body.code, body.open)
         return ok({ ok: true })
       default:
         throw new TournamentError('Unknown action.', 400)

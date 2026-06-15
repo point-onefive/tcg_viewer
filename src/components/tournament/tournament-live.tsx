@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { BadgeCheck, CalendarClock, Camera, Check, Gamepad2, Gift, Hash, ListChecks, Loader2, PieChart, ShieldAlert, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { CalendarClock, Check, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -219,26 +219,18 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
   const pengUrl = xProfileUrl('pengpost') ?? 'https://x.com/pengpost'
-  const steps: {
-    icon: React.ComponentType<{ size?: number; strokeWidth?: number; style?: React.CSSProperties }>
-    lead: string
-    body: React.ReactNode
-    danger?: boolean
-  }[] = [
-    { icon: UserPlus, lead: 'Sign up', body: 'Enter a valid X handle before the sign-up timer ends.' },
+  const steps: { lead: string; body: React.ReactNode; danger?: boolean }[] = [
+    { lead: 'Sign up', body: 'Enter a valid X handle before the sign-up timer ends.' },
     {
-      icon: BadgeCheck,
       lead: 'Get verified',
       body: 'An admin approves every handle. Once you\u2019re in, you can vote on the prize split.',
     },
-    { icon: Swords, lead: 'Round 1 posts', body: 'When sign-ups close, the bracket goes live automatically.' },
+    { lead: 'Round 1 posts', body: 'When sign-ups close, the bracket goes live automatically.' },
     {
-      icon: Gamepad2,
       lead: 'Play on OPTCG Sim',
       body: 'Coordinate with your opponent. Each round gets a generous timer for time zones and busy schedules.',
     },
     {
-      icon: Camera,
       lead: 'Report results',
       body: (
         <>
@@ -251,7 +243,6 @@ function HowItWorks() {
       ),
     },
     {
-      icon: ShieldAlert,
       lead: 'Play fair',
       body: 'Any foul play or suspected cheating is a permanent ban.',
       danger: true,
@@ -266,16 +257,15 @@ function HowItWorks() {
           <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
         </div>
         <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-          {steps.map((s) => {
-            const Icon = s.icon
-            const color = s.danger ? '#ef4444' : '#E85D2A'
+          {steps.map((s, i) => {
+            const accent = s.danger ? '#ef4444' : '#E85D2A'
             return (
               <div key={s.lead} className="flex gap-3">
                 <span
-                  className="shrink-0 inline-flex items-center justify-center"
-                  style={{ width: 30, height: 30, borderRadius: 7, background: `color-mix(in srgb, ${color} 13%, transparent)`, color }}
+                  className="shrink-0 inline-flex items-center justify-center font-display text-sm font-bold tabular-nums"
+                  style={{ width: 28, height: 28, borderRadius: 7, background: accent, color: '#fff' }}
                 >
-                  <Icon size={16} strokeWidth={2.2} />
+                  {i + 1}
                 </span>
                 <div className="min-w-0">
                   <div className="font-display text-sm font-bold" style={s.danger ? { color: '#ef4444' } : undefined}>
@@ -304,12 +294,14 @@ function PollCard({
   poll,
   canVote,
   signedUp,
+  pollOpen,
   onVoted,
 }: {
   code: string
   poll: PollResults
   canVote: boolean
   signedUp: boolean
+  pollOpen: boolean
   onVoted: () => void
 }) {
   const [results, setResults] = useState<PollResults>(poll)
@@ -362,9 +354,11 @@ function PollCard({
           ? 'Cast your vote - one per player.'
           : voted
             ? 'Thanks for voting - one vote per player.'
-            : signedUp
-              ? 'Voting is closed for this event.'
-              : 'Sign up for this tournament to vote.'}
+            : !pollOpen
+              ? 'Voting has closed - final results below.'
+              : signedUp
+                ? 'Voting is closed for this event.'
+                : 'Sign up for this tournament to vote.'}
       </p>
 
       <div className="mx-auto grid grid-cols-1 gap-3 sm:grid-cols-3" style={{ maxWidth: 660 }}>
@@ -654,8 +648,9 @@ export function TournamentLive() {
       <PollCard
         code={tournament.code}
         poll={snapshot.poll}
-        canVote={signedUp && tournament.status !== 'complete'}
+        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
         signedUp={signedUp}
+        pollOpen={tournament.pollOpen}
         onVoted={refresh}
       />
 

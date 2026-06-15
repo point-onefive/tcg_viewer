@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, ExternalLink, Gift, ImagePlus, Loader2, LogOut, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
+import { Check, Crown, ExternalLink, Gift, ImagePlus, Loader2, LogOut, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -171,6 +171,7 @@ export function TournamentAdmin() {
   }
 
   const code = snapshot?.tournament.code
+  const pollOpen = snapshot?.tournament.pollOpen ?? true
   const players = snapshot?.players ?? []
   const pending = players.filter((p) => p.approvalStatus === 'pending')
   const approved = players.filter((p) => p.approvalStatus === 'approved')
@@ -228,6 +229,13 @@ export function TournamentAdmin() {
       if (!code) return
       await adminApi(adminKey, { action: 'reject', code, playerId: p.id })
       setMsg(`Rejected @${p.xHandle}`)
+    })
+
+  const setPollOpen = (open: boolean) =>
+    run(async () => {
+      if (!code) return
+      await adminApi(adminKey, { action: 'set-poll', code, open })
+      setMsg(open ? 'Prize-poll voting reopened' : 'Prize-poll voting stopped')
     })
 
   return (
@@ -446,6 +454,22 @@ export function TournamentAdmin() {
                       </span>
                     </div>
                   )}
+
+                  <div
+                    className="mt-4 flex flex-wrap items-center gap-2 px-3 py-2.5"
+                    style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+                  >
+                    <PieChart size={15} style={{ color: '#E85D2A', flexShrink: 0 }} />
+                    <span className="text-sm font-semibold">Prize poll</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {snapshot.poll.totalVotes} vote{snapshot.poll.totalVotes === 1 ? '' : 's'} · {pollOpen ? 'open' : 'closed'}
+                    </span>
+                    <span className="ml-auto">
+                      <AdminBtn disabled={busy} onClick={() => setPollOpen(!pollOpen)}>
+                        {pollOpen ? 'Stop voting' : 'Reopen voting'}
+                      </AdminBtn>
+                    </span>
+                  </div>
 
                   {msg && <p className="mt-3 text-sm" style={{ color: '#22c55e' }}>{msg}</p>}
                   {error && (
