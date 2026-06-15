@@ -263,25 +263,24 @@ function HowItWorks() {
           <ListChecks size={18} style={{ color: '#E85D2A' }} />
           <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
         </div>
-        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2.5">
           {steps.map((s, i) => {
             const accent = s.danger ? '#ef4444' : '#E85D2A'
             return (
-              <div key={i} className="flex gap-3">
+              <div key={i} className="flex items-start gap-2.5">
                 <span
-                  className="shrink-0 inline-flex items-center justify-center font-display text-sm font-bold tabular-nums"
-                  style={{ width: 28, height: 28, borderRadius: 7, background: accent, color: '#fff' }}
+                  className="shrink-0 inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                  style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: '#fff', marginTop: 1 }}
                 >
                   {i + 1}
                 </span>
-                <div className="min-w-0">
-                  <div className="font-display text-sm font-bold" style={s.danger ? { color: '#ef4444' } : undefined}>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <span className="font-display font-bold" style={{ color: s.danger ? '#ef4444' : 'var(--text-primary)' }}>
                     {s.lead}
-                  </div>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                    {s.body}
-                  </p>
-                </div>
+                  </span>
+                  <span className="mx-1.5" style={{ color: 'var(--text-muted)' }}>·</span>
+                  {s.body}
+                </p>
               </div>
             )
           })}
