@@ -387,6 +387,13 @@ export function TournamentAdmin() {
                   )}
 
                   {msg && <p className="mt-3 text-sm" style={{ color: '#22c55e' }}>{msg}</p>}
+                  {error && (
+                    <p className="mt-3 text-sm font-semibold" style={{ color: '#ef4444' }} role="alert">
+                      {/Not authorized/i.test(error)
+                        ? 'Not authorized - your admin password is wrong. Re-enter it exactly as set in Vercel (watch for trailing spaces).'
+                        : error}
+                    </p>
+                  )}
                 </div>
 
                 {activeRound && activeMatches.length > 0 && (
