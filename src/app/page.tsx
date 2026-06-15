@@ -9,6 +9,7 @@ import { LightboxViewer } from '@/components/gallery/lightbox-viewer'
 import { BoardPanel } from '@/components/gallery/board-panel'
 import { Footer } from '@/components/gallery/footer'
 import { applyLanguageFilter } from '@/lib/card-filter'
+import { COLLECTION_FACETS } from '@/lib/collection-facets'
 
 export default function Home() {
   const activeCollection = useStore((s) => s.activeCollection)
@@ -44,6 +45,21 @@ export default function Home() {
     }
     return [...seen].sort((a, b) => a.localeCompare(b))
   }, [cards])
+  // Sorted unique character/leader names for the multi-select picker.
+  // Only collections whose facet config declares `characterTypes` (One
+  // Piece today) produce a non-empty list; the Header hides the picker
+  // otherwise. Derived from the live, language-filtered card view so the
+  // roster always matches what's actually on the wall.
+  const characters = useMemo(() => {
+    const types = COLLECTION_FACETS[activeCollection].characterTypes
+    if (!types || types.length === 0) return []
+    const typeSet = new Set(types)
+    const seen = new Set<string>()
+    for (const c of cards) {
+      if (c.cardType && typeSet.has(c.cardType) && c.name) seen.add(c.name)
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b))
+  }, [cards, activeCollection])
   const ready = hasData(activeCollection)
 
   // The old first-visit OnboardingTour was removed in favour of a
@@ -54,7 +70,7 @@ export default function Home() {
   // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
-      <Header sets={sets} artists={artists} />
+      <Header sets={sets} artists={artists} characters={characters} />
       {ready ? (
         <>
           <CardGrid cards={cards} sets={sets} />

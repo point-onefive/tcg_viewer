@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import { BrandLockup } from './brand-lockup'
 import Link from 'next/link'
@@ -21,6 +21,10 @@ import { COLLECTION_FACETS, facetLabel, type FacetOption } from '@/lib/collectio
 interface HeaderProps {
   sets: CardSet[]
   artists: string[]
+  // Distinct character/leader names for the active collection (empty
+  // unless the collection declares `characterTypes`). Feeds the
+  // multi-select character picker.
+  characters: string[]
 }
 
 /**
@@ -67,9 +71,19 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
         fontWeight: 500,
         letterSpacing: '0.02em',
         lineHeight: 1,
+        flexShrink: 0,
       }}
     >
-      {label}
+      <span
+        style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: 180,
+        }}
+      >
+        {label}
+      </span>
       <button
         type="button"
         onClick={onClear}
@@ -333,6 +347,167 @@ function ArtistTypeahead({
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+/**
+ * Multi-select character picker. A search-driven checklist of card
+ * names (One Piece roster: "Monkey.D.Luffy", combo prints like
+ * "Ace & Sabo & Luffy", …). Selecting several applies an OR filter so
+ * the wall shows every card belonging to any picked character - the
+ * "pick a few at once instead of typing names one by one" ask.
+ *
+ * Shares HeaderDropdown's shell/physics with the other pickers. The
+ * search input is pinned at the top; only the option list scrolls, so
+ * a 700-name roster never blows past the viewport.
+ */
+function CharacterPicker({
+  characters,
+  selected,
+  onToggle,
+  onClear,
+  ctrl,
+  ctrlActive,
+  fluid = false,
+  menuAlign = 'left',
+}: {
+  characters: string[]
+  selected: string[]
+  onToggle: (name: string) => void
+  onClear: () => void
+  ctrl: React.CSSProperties
+  ctrlActive: React.CSSProperties
+  fluid?: boolean
+  menuAlign?: 'left' | 'right'
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+  const count = selected.length
+  const isActive = count > 0
+
+  // Focus the search on open; clear the query when it closes so the
+  // next open starts fresh.
+  useEffect(() => {
+    if (!open) {
+      setQuery('')
+      return
+    }
+    const id = window.setTimeout(() => inputRef.current?.focus(), 20)
+    return () => clearTimeout(id)
+  }, [open])
+
+  const selectedSet = useMemo(() => new Set(selected), [selected])
+
+  // Selected names float to the top (so they're always togglable even
+  // when a search would otherwise hide them), then matches in roster
+  // order. Cap the rendered rows so the DOM stays light - the search
+  // is how users reach the long tail, not endless scrolling.
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const matches = q
+      ? characters.filter((n) => n.toLowerCase().includes(q))
+      : characters
+    const head = selected.filter((n) => !q || n.toLowerCase().includes(q))
+    const rest = matches.filter((n) => !selectedSet.has(n))
+    return [...head, ...rest].slice(0, 80)
+  }, [characters, query, selected, selectedSet])
+
+  const triggerLabel =
+    count === 0 ? 'Characters' : count === 1 ? selected[0] : `${count} characters`
+
+  return (
+    <HeaderDropdown
+      ariaLabel={count > 0 ? `Characters (${count} selected)` : 'Filter by character'}
+      align={menuAlign}
+      minWidth={240}
+      open={open}
+      onOpenChange={setOpen}
+      wrapperClassName={fluid ? 'relative flex-1 min-w-0 overflow-visible' : 'relative shrink-0 overflow-visible'}
+      triggerClassName={`footer-btn inline-flex items-center text-xs font-medium outline-none whitespace-nowrap ${fluid ? 'w-full gap-1 px-2' : 'gap-1.5 px-3'}`}
+      triggerStyle={{ ...(isActive ? ctrlActive : ctrl), ...(fluid ? null : { maxWidth: 180 }) }}
+      triggerChildren={
+        <>
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+              ...(fluid ? { flex: 1, textAlign: 'left' } : null),
+            }}
+          >
+            {triggerLabel}
+          </span>
+          {count > 1 && (
+            <span
+              aria-hidden
+              className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+              style={{
+                minWidth: 16,
+                height: 16,
+                padding: '0 4px',
+                borderRadius: 999,
+                background: 'var(--bg)',
+                color: 'var(--text-primary)',
+                flexShrink: 0,
+              }}
+            >
+              {count}
+            </span>
+          )}
+          <DropdownChevron open={open} />
+        </>
+      }
+    >
+      <div className="flex flex-col" style={{ minWidth: 0 }}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search characters…"
+          aria-label="Search characters"
+          autoComplete="off"
+          className="text-xs font-medium outline-none"
+          style={{
+            height: 32,
+            padding: '0 8px',
+            marginBottom: 4,
+            borderRadius: 5,
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg)',
+            color: 'var(--text-primary)',
+          }}
+        />
+        {count > 0 && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="w-full flex items-center justify-between px-2.5 text-[11px] font-semibold uppercase tracking-wide text-left"
+            style={{ height: 26, borderRadius: 5, color: 'var(--text-muted)', background: 'transparent', cursor: 'pointer' }}
+          >
+            <span>Clear ({count})</span>
+          </button>
+        )}
+        <div style={{ maxHeight: 300, overflowY: 'auto', overflowX: 'hidden' }}>
+          {visible.length === 0 ? (
+            <div className="px-2.5 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+              No characters match.
+            </div>
+          ) : (
+            visible.map((name) => (
+              <FacetOptionRow
+                key={name}
+                label={name}
+                selected={selectedSet.has(name)}
+                onClick={() => onToggle(name)}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </HeaderDropdown>
   )
 }
 
@@ -892,7 +1067,7 @@ function MobileMoreFiltersMenu({
   )
 }
 
-export function Header({ sets, artists }: HeaderProps) {
+export function Header({ sets, artists, characters }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
@@ -901,6 +1076,7 @@ export function Header({ sets, artists }: HeaderProps) {
     activeCardType, setActiveCardType,
     activeSubtype, setActiveSubtype,
     activeArtist, setActiveArtist,
+    activeCharacters, toggleCharacter, clearCharacters,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -1483,6 +1659,18 @@ export function Header({ sets, artists }: HeaderProps) {
           />
         )}
 
+        {characters.length > 0 && (
+          <CharacterPicker
+            characters={characters}
+            selected={activeCharacters}
+            onToggle={toggleCharacter}
+            onClear={clearCharacters}
+            ctrl={ctrl}
+            ctrlActive={ctrlActive}
+            fluid
+          />
+        )}
+
         <div
           className="flex items-center gap-2 flex-1 px-3"
           style={{ ...ctrl, height: 30 }}
@@ -1631,6 +1819,16 @@ export function Header({ sets, artists }: HeaderProps) {
               value={activeArtist}
               onChange={setActiveArtist}
               artists={artists}
+              ctrl={ctrl}
+              ctrlActive={ctrlActive}
+            />
+          )}
+          {characters.length > 0 && (
+            <CharacterPicker
+              characters={characters}
+              selected={activeCharacters}
+              onToggle={toggleCharacter}
+              onClear={clearCharacters}
               ctrl={ctrl}
               ctrlActive={ctrlActive}
             />
@@ -2014,9 +2212,9 @@ export function Header({ sets, artists }: HeaderProps) {
       {/* Active-filter chip strip - visible whenever at least one filter
           is on. Lives in the fixed header (not the scrollable card wall)
           so the current filter state is always visible while browsing. */}
-      {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
+      {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || activeCharacters.length > 0 || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
         <div
-          className="flex flex-wrap items-center gap-1.5 px-4"
+          className="flex items-center gap-1.5 px-4"
           style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 6, paddingBottom: 6 }}
         >
           <span
@@ -2025,6 +2223,12 @@ export function Header({ sets, artists }: HeaderProps) {
           >
             Filters
           </span>
+          {/* Chips scroll horizontally in a single row. Wrapping to a
+              second row would make the real header taller than the
+              fixed height the card grid budgets (CHIP_ROW_H), sliding
+              the wall under the header - worse now that the character
+              picker can add many chips at once. */}
+          <div className="no-scrollbar flex items-center gap-1.5 min-w-0 flex-1" style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           {activeSet && <FilterChip label={activeSet} onClear={() => setActiveSet(null)} />}
           {activeCardType && (
             <FilterChip
@@ -2046,6 +2250,9 @@ export function Header({ sets, artists }: HeaderProps) {
             />
           )}
           {activeArtist && <FilterChip label={activeArtist} onClear={() => setActiveArtist(null)} />}
+          {activeCharacters.map((name) => (
+            <FilterChip key={name} label={name} onClear={() => toggleCharacter(name)} />
+          ))}
           {onlyAltArt && (
             <FilterChip
               label={flattenWall ? 'Alt prints only' : 'Has alt art'}
@@ -2060,15 +2267,17 @@ export function Header({ sets, artists }: HeaderProps) {
               onClear={() => setSearchQuery('')}
             />
           )}
+          </div>
           <button
             type="button"
             onClick={() => {
               setActiveSet(null); setActiveRarity(null); setActiveColor(null)
               setActiveCardType(null); setActiveSubtype(null); setActiveArtist(null)
+              clearCharacters()
               setOnlyAltArt(false); setOnlyErrata(false); setFlattenWall(false)
               setSearchQuery('')
             }}
-            className="ml-1 text-[10px] tracking-[0.14em] uppercase"
+            className="ml-1 text-[10px] tracking-[0.14em] uppercase shrink-0"
             style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             Clear all

@@ -19,6 +19,13 @@ export interface CardFilterState {
   activeSubtype: string | null
   // Artist filter - exact match against card.artist.
   activeArtist: string | null
+  // Multi-select character filter (One Piece). Each entry is an exact
+  // `card.name` of a Character/Leader print; matching is OR across the
+  // list, so picking several names shows every card belonging to any of
+  // them. Combo prints (e.g. "Ace & Sabo & Luffy") are their own
+  // selectable names. Empty array = no filter. Ignored by collections
+  // that don't surface the picker.
+  activeCharacters: string[]
   onlyAltArt: boolean
   // When true, restrict the wall to the curated list of One Piece
   // cards that have received an official errata. List lives in
@@ -413,6 +420,10 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   if (f.activeArtist) {
     const a = f.activeArtist
     result = result.filter((c) => c.artist === a)
+  }
+  if (f.activeCharacters.length > 0) {
+    const picked = new Set(f.activeCharacters)
+    result = result.filter((c) => picked.has(c.name))
   }
   if (f.onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
   if (f.onlyErrata) result = result.filter((c) => ONE_PIECE_ERRATA_CODES.has(c.code))

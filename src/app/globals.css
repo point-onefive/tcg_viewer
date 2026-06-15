@@ -1540,6 +1540,18 @@ html.lenis, html.lenis body {
   font-weight: 600;
 }
 
+/* Utility: hide scrollbars while keeping scroll behaviour. Used by the
+   single-row active-filter chip strip so a long run of chips scrolls
+   horizontally instead of wrapping (which would desync the fixed
+   header height the card grid budgets for). */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

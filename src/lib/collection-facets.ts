@@ -41,6 +41,15 @@ export type CollectionFacets = {
    */
   subtypes?: ReadonlyArray<FacetOption>
   /**
+   * Card-type values whose `card.name` is a named character/leader, used
+   * to build the multi-select character picker. The picker derives its
+   * option list from the live bundle (one entry per distinct name on a
+   * card of one of these types), so it stays in sync as new prints land.
+   * Undefined (or empty) hides the picker for that collection. Currently
+   * One Piece only - the franchise whose roster users asked to filter by.
+   */
+  characterTypes?: ReadonlyArray<string>
+  /**
    * Does this collection's bundle ship alt-art / parallel `variants`?
    * Gates the Alt art and Flatten toggles in the header - Pokémon
    * treats each parallel as its own card (no nested variants), so
@@ -103,6 +112,11 @@ const ONE_PIECE: CollectionFacets = {
     { value: 'P',   label: 'P · Promo' },
   ],
   colors: ['Red', 'Green', 'Blue', 'Purple', 'Black', 'Yellow'].map(colorOpt),
+  // Leaders and Characters carry the roster names users filter by
+  // ("Monkey.D.Luffy", "Roronoa.Zoro", combo prints like "Ace & Sabo
+  // & Luffy"). Events/Stages are excluded - their `name` is a card
+  // title, not a character.
+  characterTypes: ['LEADER', 'CHARACTER'],
   hasVariants: true,
 }
 

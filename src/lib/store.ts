@@ -68,6 +68,13 @@ interface StoreState {
   // Artist filter - populated for Pokémon; null for all other collections.
   activeArtist: string | null
   setActiveArtist: (a: string | null) => void
+  // Multi-select character filter (One Piece). Holds the exact card
+  // names the user has picked; the wall shows any card matching one of
+  // them (OR). toggleCharacter flips a single name on/off;
+  // clearCharacters empties the selection.
+  activeCharacters: string[]
+  toggleCharacter: (name: string) => void
+  clearCharacters: () => void
   // When true, only show cards with at least one variant (alt art).
   // In stacked mode: hide cards with zero variants. In flatten mode:
   // hide base prints and show variant tiles only (see buildWallEntries).
@@ -209,6 +216,7 @@ export const useStore = create<StoreState>()(
           activeCardType: null,
           activeSubtype: null,
           activeArtist: null,
+          activeCharacters: [],
           onlyAltArt: false,
           onlyErrata: false,
           flattenWall: false,
@@ -229,6 +237,14 @@ export const useStore = create<StoreState>()(
       setActiveSubtype: (activeSubtype) => set({ activeSubtype }),
       activeArtist: null,
       setActiveArtist: (activeArtist) => set({ activeArtist }),
+      activeCharacters: [],
+      toggleCharacter: (name) =>
+        set((s) => ({
+          activeCharacters: s.activeCharacters.includes(name)
+            ? s.activeCharacters.filter((n) => n !== name)
+            : [...s.activeCharacters, name],
+        })),
+      clearCharacters: () => set({ activeCharacters: [] }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
       onlyErrata: false,
@@ -375,6 +391,7 @@ export const useStore = create<StoreState>()(
         activeColor: state.activeColor,
         activeSubtype: state.activeSubtype,
         activeArtist: state.activeArtist,
+        activeCharacters: state.activeCharacters,
         onlyAltArt: state.onlyAltArt,
         // wallSort is deliberately NOT persisted. A sort picked during one
         // browsing session silently reordering the wall days later reads as
@@ -389,7 +406,7 @@ export const useStore = create<StoreState>()(
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
       }),
-      version: 22,
+      version: 23,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -543,6 +560,12 @@ export const useStore = create<StoreState>()(
           s.activeSubtype   = s.activeSubtype   ?? null
           s.activeArtist    = s.activeArtist    ?? null
           s.onlyAltArt      = s.onlyAltArt      ?? false
+        }
+        if (fromVersion < 23) {
+          // v23 adds the multi-select character filter (One Piece).
+          // Coerce to an array so a pre-v23 blob (no key) doesn't leave
+          // it undefined when merged against initialState.
+          s.activeCharacters = Array.isArray(s.activeCharacters) ? s.activeCharacters : []
         }
         return s as StoreState
       },
