@@ -287,7 +287,7 @@ function PollCard({
               : 'Sign up for this tournament to vote.'}
       </p>
 
-      <div className="mx-auto flex flex-col gap-2.5" style={{ maxWidth: 520 }}>
+      <div className="mx-auto grid grid-cols-1 gap-3 sm:grid-cols-3" style={{ maxWidth: 660 }}>
         {POLL_OPTIONS.map((opt) => {
           const count = results.counts[opt.id] ?? 0
           const pct = total > 0 ? Math.round((count / total) * 100) : 0
@@ -296,57 +296,57 @@ function PollCard({
 
           const inner = (
             <>
-              {/* Result fill bar (behind the content). */}
+              {/* Share-of-vote fill anchored to the bottom edge of the card. */}
               {showResults && (
                 <span
                   aria-hidden
                   style={{
                     position: 'absolute',
-                    inset: 0,
+                    left: 0,
+                    bottom: 0,
+                    height: 4,
                     width: `${pct}%`,
-                    background: mine
-                      ? 'color-mix(in srgb, #E85D2A 22%, transparent)'
-                      : 'color-mix(in srgb, var(--text-primary) 8%, transparent)',
-                    transition: 'width 240ms ease',
+                    background: mine ? '#E85D2A' : 'color-mix(in srgb, var(--text-primary) 22%, transparent)',
+                    transition: 'width 260ms ease',
                   }}
                 />
               )}
-              <span className="relative flex min-w-0 flex-col">
-                <span className="inline-flex items-center gap-1.5 font-display text-sm font-bold">
-                  {opt.label}
-                  {mine && <Check size={13} strokeWidth={3} style={{ color: '#E85D2A' }} />}
-                </span>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <div className="relative flex flex-1 flex-col gap-1.5">
+                <div className="flex items-start justify-between gap-1.5">
+                  <span className="font-display text-sm font-bold leading-tight">{opt.label}</span>
+                  {mine && <Check size={14} strokeWidth={3} style={{ color: '#E85D2A', flexShrink: 0 }} />}
+                </div>
+                <span className="flex-1 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.35 }}>
                   {opt.blurb}
                 </span>
-              </span>
-              <span className="relative shrink-0 pl-3 text-right">
-                {loading ? (
-                  <Loader2 size={15} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
-                ) : showResults ? (
-                  <>
-                    <span className="font-display text-sm font-bold tabular-nums">{pct}%</span>
-                    <span className="block text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                      {count} {count === 1 ? 'vote' : 'votes'}
+                <div className="flex items-end justify-between gap-1.5">
+                  {loading ? (
+                    <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
+                  ) : showResults ? (
+                    <>
+                      <span className="font-display text-2xl font-bold leading-none tabular-nums">{pct}%</span>
+                      <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                        {count} {count === 1 ? 'vote' : 'votes'}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#E85D2A' }}>
+                      Vote
                     </span>
-                  </>
-                ) : (
-                  <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#E85D2A' }}>
-                    Vote
-                  </span>
-                )}
-              </span>
+                  )}
+                </div>
+              </div>
             </>
           )
 
           const baseStyle: React.CSSProperties = {
             position: 'relative',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
             overflow: 'hidden',
-            padding: '12px 14px',
-            borderRadius: 6,
+            padding: 14,
+            minHeight: 128,
+            borderRadius: 8,
             background: 'var(--bg)',
             border: `1px solid ${mine ? 'color-mix(in srgb, #E85D2A 55%, transparent)' : 'var(--border-subtle)'}`,
             textAlign: 'left',
