@@ -1,9 +1,17 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarClock, Check, Gift, Hash, Loader2, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { CalendarClock, Check, Gift, Hash, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { apiActiveSnapshot, apiEnrollX } from '@/lib/tournament/client'
+import {
+  apiActiveSnapshot,
+  apiCastVote,
+  apiEnrollX,
+  loadVotedChoice,
+  loadVoterId,
+  saveVotedChoice,
+} from '@/lib/tournament/client'
+import { POLL_OPTIONS, type PollResults } from '@/lib/tournament/poll'
 import { XLogo } from '@/components/gallery/x-logo'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings } from '@/lib/tournament/pairing'
@@ -208,6 +216,177 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
   )
 }
 
+/**
+ * Prize-distribution poll. Phase C eligibility: any browser that signed up for
+ * the live event can cast one vote (deduped server-side per browser). Results
+ * are read from the live snapshot, so they refresh on the page's normal poll.
+ */
+function PollCard({
+  code,
+  poll,
+  canVote,
+  signedUp,
+  onVoted,
+}: {
+  code: string
+  poll: PollResults
+  canVote: boolean
+  signedUp: boolean
+  onVoted: () => void
+}) {
+  const [results, setResults] = useState<PollResults>(poll)
+  const [voted, setVoted] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // Keep tallies in sync with the latest snapshot poll between local updates.
+  useEffect(() => setResults(poll), [poll])
+  useEffect(() => setVoted(loadVotedChoice(code)), [code])
+
+  const total = results.totalVotes
+  const showResults = total > 0 || voted != null || !canVote
+
+  async function handleVote(choice: string) {
+    if (!canVote || voted || busy) return
+    setBusy(choice)
+    setError(null)
+    try {
+      const updated = await apiCastVote(loadVoterId(), choice)
+      setResults(updated)
+      setVoted(choice)
+      saveVotedChoice(code, choice)
+      onVoted()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Could not record your vote.'
+      // If the server says we already voted, lock the UI accordingly.
+      if (/already voted/i.test(msg)) {
+        setVoted(choice)
+        saveVotedChoice(code, choice)
+      }
+      setError(msg)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const interactive = canVote && !voted
+
+  return (
+    <div className="mb-6 p-5" style={card}>
+      <div className="flex items-center justify-center gap-2 mb-1.5">
+        <PieChart size={18} style={{ color: '#E85D2A' }} />
+        <h3 className="font-display text-lg font-bold tracking-tight">How should the prize be split?</h3>
+      </div>
+      <p className="mb-4 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+        {interactive
+          ? 'Cast your vote - one per player.'
+          : voted
+            ? 'Thanks for voting - one vote per player.'
+            : signedUp
+              ? 'Voting is closed for this event.'
+              : 'Sign up for this tournament to vote.'}
+      </p>
+
+      <div className="mx-auto flex flex-col gap-2.5" style={{ maxWidth: 520 }}>
+        {POLL_OPTIONS.map((opt) => {
+          const count = results.counts[opt.id] ?? 0
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0
+          const mine = voted === opt.id
+          const loading = busy === opt.id
+
+          const inner = (
+            <>
+              {/* Result fill bar (behind the content). */}
+              {showResults && (
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: `${pct}%`,
+                    background: mine
+                      ? 'color-mix(in srgb, #E85D2A 22%, transparent)'
+                      : 'color-mix(in srgb, var(--text-primary) 8%, transparent)',
+                    transition: 'width 240ms ease',
+                  }}
+                />
+              )}
+              <span className="relative flex min-w-0 flex-col">
+                <span className="inline-flex items-center gap-1.5 font-display text-sm font-bold">
+                  {opt.label}
+                  {mine && <Check size={13} strokeWidth={3} style={{ color: '#E85D2A' }} />}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {opt.blurb}
+                </span>
+              </span>
+              <span className="relative shrink-0 pl-3 text-right">
+                {loading ? (
+                  <Loader2 size={15} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
+                ) : showResults ? (
+                  <>
+                    <span className="font-display text-sm font-bold tabular-nums">{pct}%</span>
+                    <span className="block text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                      {count} {count === 1 ? 'vote' : 'votes'}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#E85D2A' }}>
+                    Vote
+                  </span>
+                )}
+              </span>
+            </>
+          )
+
+          const baseStyle: React.CSSProperties = {
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            padding: '12px 14px',
+            borderRadius: 6,
+            background: 'var(--bg)',
+            border: `1px solid ${mine ? 'color-mix(in srgb, #E85D2A 55%, transparent)' : 'var(--border-subtle)'}`,
+            textAlign: 'left',
+            width: '100%',
+          }
+
+          if (interactive) {
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleVote(opt.id)}
+                disabled={busy != null}
+                className="footer-btn"
+                style={{ ...baseStyle, cursor: busy ? 'wait' : 'pointer' }}
+              >
+                {inner}
+              </button>
+            )
+          }
+          return (
+            <div key={opt.id} style={baseStyle}>
+              {inner}
+            </div>
+          )
+        })}
+      </div>
+
+      {error && (
+        <p className="mt-3 text-center text-sm" style={{ color: '#ef4444' }}>
+          {error}
+        </p>
+      )}
+      <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--text-muted)' }}>
+        {total} total {total === 1 ? 'vote' : 'votes'}
+      </p>
+    </div>
+  )
+}
+
 export function TournamentLive() {
   const [snapshot, setSnapshot] = useState<TournamentSnapshot | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -376,6 +555,14 @@ export function TournamentLive() {
       </div>
 
       {tournament.prizes.length > 0 && <PrizePool prizes={tournament.prizes} />}
+
+      <PollCard
+        code={tournament.code}
+        poll={snapshot.poll}
+        canVote={signedUp && tournament.status !== 'complete'}
+        signedUp={signedUp}
+        onVoted={refresh}
+      />
 
       <div className={signupOpen ? 'grid gap-6 lg:grid-cols-[1fr_1.2fr]' : ''}>
         {/* Sign up */}

@@ -88,11 +88,31 @@ create table if not exists schedule_proposals (
 );
 create index if not exists proposals_match_idx on schedule_proposals(match_id);
 
+-- ── poll_votes ──────────────────────────────────────────────────────────────
+-- Prize-distribution poll. One row per vote, scoped to a tournament so the
+-- tally resets automatically when a new tournament goes live (no rows yet).
+--
+-- `voter_id` is the dedupe key. Phase C (current): a random per-browser id, so
+-- the unique constraint enforces one vote per browser per tournament. Phase A
+-- (later): swap in the per-player token's player id - same column, same
+-- constraint, stronger guarantee. `choice` is validated in the app layer
+-- against the poll option list.
+create table if not exists poll_votes (
+  id            uuid primary key default gen_random_uuid(),
+  tournament_id uuid not null references tournaments(id) on delete cascade,
+  voter_id      text not null,
+  choice        text not null,
+  created_at    timestamptz not null default now(),
+  unique (tournament_id, voter_id)
+);
+create index if not exists poll_votes_tournament_idx on poll_votes(tournament_id);
+
 -- ── Lock everything down to the app layer ───────────────────────────────────
 alter table tournaments        enable row level security;
 alter table players            enable row level security;
 alter table rounds             enable row level security;
 alter table matches            enable row level security;
 alter table schedule_proposals enable row level security;
+alter table poll_votes         enable row level security;
 -- No policies on purpose: anon/auth roles get nothing; service role bypasses
 -- RLS and is the only path in, via our Next.js route handlers.

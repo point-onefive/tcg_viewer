@@ -1,8 +1,11 @@
 'use client'
 
 import type { TournamentSnapshot } from './types'
+import type { PollResults } from './poll'
 
 const ADMIN_KEY = 'tcw_tournament_admin_key'
+const VOTER_ID_KEY = 'tcw_tournament_voter_id'
+const VOTED_PREFIX = 'tcw_tournament_voted_'
 
 export function loadAdminKey(): string {
   if (typeof window === 'undefined') return ''
@@ -65,4 +68,51 @@ export async function adminApi(
   body: Record<string, unknown>,
 ): Promise<{ code?: string; approved?: number; count?: number; ok?: boolean }> {
   return post('/api/tournaments/admin', body, adminKey)
+}
+
+// ── Prize-distribution poll ────────────────────────────────────────────────
+
+/**
+ * Stable, per-browser anonymous id used to dedupe poll votes (phase C). Minted
+ * once and reused across tournaments - dedupe is per (tournament, voter), so
+ * the same browser can vote again on the next event.
+ */
+export function loadVoterId(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    let id = localStorage.getItem(VOTER_ID_KEY)
+    if (!id) {
+      id =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`
+      localStorage.setItem(VOTER_ID_KEY, id)
+    }
+    return id
+  } catch {
+    return ''
+  }
+}
+
+/** Which option this browser already voted for in a given tournament, if any. */
+export function loadVotedChoice(code: string): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return localStorage.getItem(VOTED_PREFIX + code)
+  } catch {
+    return null
+  }
+}
+
+export function saveVotedChoice(code: string, choice: string): void {
+  try {
+    localStorage.setItem(VOTED_PREFIX + code, choice)
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function apiCastVote(voterId: string, choice: string): Promise<PollResults> {
+  const data = await post<{ poll: PollResults }>('/api/tournaments/poll', { voterId, choice })
+  return data.poll
 }

@@ -12,6 +12,8 @@
 // that browser's own URL/localStorage.
 // ─────────────────────────────────────────────────────────────────────────
 
+import type { PollResults } from './poll'
+
 /** Card games this tool knows about. Kept loose - purely a label. */
 export type TournamentGame =
   | 'one-piece'
@@ -212,4 +214,6 @@ export interface TournamentSnapshot {
   matches: Match[]
   proposals: ScheduleProposal[]
   standings: StandingRow[]
+  /** Prize-distribution poll tallies for the live tournament. */
+  poll: PollResults
 }

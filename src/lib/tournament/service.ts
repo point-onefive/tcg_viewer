@@ -36,6 +36,7 @@ import type {
   TournamentSnapshot,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
+import { emptyPollResults, isPollChoice, type PollResults } from './poll'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Service layer: all tournament mutations + reads. Route handlers call these.
@@ -685,15 +686,80 @@ export async function maybeAdvance(tournamentId: string): Promise<void> {
   await insertRoundWithMatches(tournament, current.number + 1, next)
 }
 
+// ── Prize-distribution poll ────────────────────────────────────────────────
+
+/**
+ * Aggregate poll tallies for one tournament. Resilient by design: if the
+ * `poll_votes` table hasn't been created yet (migration not run), it returns
+ * an empty result instead of throwing, so the rest of the snapshot still
+ * loads. Votes are scoped to `tournament_id`, so a new tournament starts the
+ * poll fresh with no extra work.
+ */
+async function fetchPollResults(tournamentId: string): Promise<PollResults> {
+  const results = emptyPollResults()
+  try {
+    const sb = getServiceClient()
+    const { data, error } = await sb
+      .from('poll_votes')
+      .select('choice')
+      .eq('tournament_id', tournamentId)
+    if (error || !data) return results
+    for (const r of data) {
+      const choice = (r as { choice?: string }).choice
+      if (choice && choice in results.counts) {
+        results.counts[choice] += 1
+        results.totalVotes += 1
+      }
+    }
+  } catch {
+    /* table missing or transient error → empty poll, never break the page */
+  }
+  return results
+}
+
+/**
+ * Record one vote for the live tournament. Phase C (per-browser): the caller
+ * passes a random per-browser `voterId`; a unique (tournament_id, voter_id)
+ * constraint enforces one vote per browser per event. Switching to secure
+ * per-player tokens later means resolving the token to a player here and
+ * using the player id as the voter id — the rest stays identical.
+ */
+export async function castPollVote(
+  voterIdRaw: string,
+  choice: string,
+): Promise<PollResults> {
+  const voterId = (voterIdRaw ?? '').trim()
+  if (!voterId || voterId.length > 128) {
+    throw new TournamentError('Could not identify your browser - try refreshing.')
+  }
+  if (!isPollChoice(choice)) {
+    throw new TournamentError('Pick one of the available options.')
+  }
+  const row = await getLiveTournamentRow()
+  const sb = getServiceClient()
+  const { error } = await sb
+    .from('poll_votes')
+    .insert({ tournament_id: row.id, voter_id: voterId, choice })
+  if (error) {
+    // 23505 = unique_violation → this browser already voted in this poll.
+    if ((error as { code?: string }).code === '23505') {
+      throw new TournamentError('You have already voted in this poll.', 409)
+    }
+    throw new TournamentError(`Could not record your vote: ${error.message}`, 500)
+  }
+  return fetchPollResults(row.id)
+}
+
 // ── Snapshot (public read) ──────────────────────────────────────────────--
 
 export async function getSnapshotByCode(code: string): Promise<TournamentSnapshot> {
   const row = await fetchTournamentRowByCode(code)
   const tournament = rowToTournament(row)
-  const [players, rounds, matches] = await Promise.all([
+  const [players, rounds, matches, poll] = await Promise.all([
     fetchPlayers(tournament.id),
     fetchRounds(tournament.id),
     fetchMatches(tournament.id),
+    fetchPollResults(tournament.id),
   ])
   const sb = getServiceClient()
   const matchIds = matches.map((m) => m.id)
@@ -707,7 +773,7 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     proposals = (data ?? []).map(rowToProposal)
   }
   const standings = computeStandings(players, matches)
-  return { tournament, players, rounds, matches, proposals, standings }
+  return { tournament, players, rounds, matches, proposals, standings, poll }
 }
 
 // ── Active (live) tournament ───────────────────────────────────────────────
