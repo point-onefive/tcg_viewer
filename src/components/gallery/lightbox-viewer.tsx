@@ -328,7 +328,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     <AnimatePresence>
       {card && (
         <motion.div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
+          className="fixed inset-0 z-[100] flex flex-col items-center lb-shell"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -358,8 +358,8 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
 
           {/* Top HUD: counter left, pin+close right */}
           <div
-            className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 md:px-6"
-            style={{ height: 60, pointerEvents: 'none' }}
+            className="lb-hud shrink-0 z-20 flex items-center justify-between px-4 md:px-6 w-full"
+            style={{ pointerEvents: 'none' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Counter */}

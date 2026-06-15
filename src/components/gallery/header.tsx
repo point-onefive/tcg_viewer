@@ -382,15 +382,16 @@ function CharacterPicker({
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [activeLetter, setActiveLetter] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const count = selected.length
   const isActive = count > 0
 
-  // Focus the search on open; clear the query when it closes so the
-  // next open starts fresh.
+  // Focus the search on open; clear query + letter when it closes.
   useEffect(() => {
     if (!open) {
       setQuery('')
+      setActiveLetter(null)
       return
     }
     const id = window.setTimeout(() => inputRef.current?.focus(), 20)
@@ -399,22 +400,57 @@ function CharacterPicker({
 
   const selectedSet = useMemo(() => new Set(selected), [selected])
 
-  // Selected names float to the top (so they're always togglable even
-  // when a search would otherwise hide them), then matches in roster
-  // order. Cap the rendered rows so the DOM stays light - the search
-  // is how users reach the long tail, not endless scrolling.
+  // Bucket the roster by first letter so browse mode can paginate A–Z
+  // instead of dumping the first 80 names and stopping mid-alphabet.
+  const { letterIndex, letters } = useMemo(() => {
+    const map = new Map<string, string[]>()
+    for (const name of characters) {
+      const ch = name[0]?.toUpperCase() ?? ''
+      const letter = /[A-Z]/.test(ch) ? ch : '#'
+      const bucket = map.get(letter)
+      if (bucket) bucket.push(name)
+      else map.set(letter, [name])
+    }
+    const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter((l) => map.has(l))
+    if (map.has('#')) alpha.push('#')
+    return { letterIndex: map, letters: alpha }
+  }, [characters])
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const matches = q
-      ? characters.filter((n) => n.toLowerCase().includes(q))
-      : characters
     const head = selected.filter((n) => !q || n.toLowerCase().includes(q))
-    const rest = matches.filter((n) => !selectedSet.has(n))
-    return [...head, ...rest].slice(0, 80)
-  }, [characters, query, selected, selectedSet])
 
-  const triggerLabel =
-    count === 0 ? 'Characters' : count === 1 ? selected[0] : `${count} characters`
+    if (q) {
+      // Search mode: show every match (typically a short list).
+      const rest = characters.filter(
+        (n) => n.toLowerCase().includes(q) && !selectedSet.has(n),
+      )
+      return [...head, ...rest]
+    }
+
+    if (activeLetter) {
+      const bucket = letterIndex.get(activeLetter) ?? []
+      const rest = bucket.filter((n) => !selectedSet.has(n))
+      return [...head.filter((n) => {
+        const ch = n[0]?.toUpperCase() ?? ''
+        const letter = /[A-Z]/.test(ch) ? ch : '#'
+        return letter === activeLetter
+      }), ...rest]
+    }
+
+    // No search, no letter: only show current selections (if any).
+    return head
+  }, [characters, query, selected, selectedSet, activeLetter, letterIndex])
+
+  // Mobile/fluid row: keep the trigger label short and static so a
+  // long name or "N characters" never collides with the count badge.
+  const triggerLabel = fluid
+    ? 'Chars'
+    : count === 0
+      ? 'Characters'
+      : count === 1
+        ? selected[0]
+        : `${count} characters`
 
   return (
     <HeaderDropdown
@@ -439,7 +475,7 @@ function CharacterPicker({
           >
             {triggerLabel}
           </span>
-          {count > 1 && (
+          {count > 0 && (
             <span
               aria-hidden
               className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
@@ -448,8 +484,8 @@ function CharacterPicker({
                 height: 16,
                 padding: '0 4px',
                 borderRadius: 999,
-                background: 'var(--bg)',
-                color: 'var(--text-primary)',
+                background: fluid ? 'var(--text-primary)' : 'var(--bg)',
+                color: fluid ? 'var(--bg)' : 'var(--text-primary)',
                 flexShrink: 0,
               }}
             >
@@ -465,7 +501,10 @@ function CharacterPicker({
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            if (e.target.value.trim()) setActiveLetter(null)
+          }}
           placeholder="Search characters…"
           aria-label="Search characters"
           autoComplete="off"
@@ -490,21 +529,64 @@ function CharacterPicker({
             <span>Clear ({count})</span>
           </button>
         )}
+        {/* Letter strip — browse by initial when not searching */}
+        {!query.trim() && letters.length > 0 && (
+          <div
+            className="no-scrollbar flex flex-wrap gap-1 px-1 pb-2"
+            role="tablist"
+            aria-label="Browse characters by letter"
+          >
+            {letters.map((letter) => {
+              const picked = activeLetter === letter
+              return (
+                <button
+                  key={letter}
+                  type="button"
+                  role="tab"
+                  aria-selected={picked}
+                  onClick={() => setActiveLetter(picked ? null : letter)}
+                  className="inline-flex items-center justify-center text-[10px] font-bold"
+                  style={{
+                    minWidth: 22,
+                    height: 22,
+                    padding: '0 5px',
+                    borderRadius: 4,
+                    border: '1px solid var(--border-subtle)',
+                    background: picked ? 'var(--text-primary)' : 'transparent',
+                    color: picked ? 'var(--bg)' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {letter}
+                </button>
+              )
+            })}
+          </div>
+        )}
         <div style={{ maxHeight: 300, overflowY: 'auto', overflowX: 'hidden' }}>
-          {visible.length === 0 ? (
+          {!query.trim() && !activeLetter && count === 0 && (
+            <div className="px-2.5 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Search or pick a letter to browse.
+            </div>
+          )}
+          {!query.trim() && !activeLetter && count > 0 && visible.length === count && (
+            <div className="px-2.5 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Selected above · pick a letter or search for more.
+            </div>
+          )}
+          {visible.length === 0 && (query.trim() || activeLetter) && (
             <div className="px-2.5 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               No characters match.
             </div>
-          ) : (
-            visible.map((name) => (
-              <FacetOptionRow
-                key={name}
-                label={name}
-                selected={selectedSet.has(name)}
-                onClick={() => onToggle(name)}
-              />
-            ))
           )}
+          {visible.map((name) => (
+            <FacetOptionRow
+              key={name}
+              label={name}
+              selected={selectedSet.has(name)}
+              onClick={() => onToggle(name)}
+            />
+          ))}
         </div>
       </div>
     </HeaderDropdown>
@@ -1668,6 +1750,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             ctrl={ctrl}
             ctrlActive={ctrlActive}
             fluid
+            menuAlign="right"
           />
         )}
 

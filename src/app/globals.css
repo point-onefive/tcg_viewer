@@ -1571,17 +1571,33 @@ html.lenis, html.lenis body {
 }
 
 /* ─── Lightbox: pure visual variant fan-out ─────────────────── */
+.lb-shell {
+  /* dvh tracks the visible viewport on mobile browsers whose URL
+     bar slides in/out; 100vh alone lets the card stage extend under
+     the absolute HUD on short screens. */
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.lb-hud {
+  height: calc(52px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  flex-shrink: 0;
+}
+
 .lb-stage {
   position: relative;
   /* Constrain so arrows stay adjacent to the card */
   width: min(440px, 70vw);
   flex-shrink: 0;
   height: 100%;
+  max-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   perspective: 1200px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* Bottom info bar - reserves the WORST-case height regardless of
@@ -1608,19 +1624,12 @@ html.lenis, html.lenis body {
 
 .lb-card {
   position: absolute;
-  /* Vertical-space reservation derived from the fixed bottom bar
-     footprint:
-        -  60px  top HUD
-        - 210px  bottom info bar (min-height - reserves worst case so
-                  the stage above it is constant regardless of variant)
-        - ~16px  stage padding-bottom + breathing gap to caption
-        ≈ 286px reserved on desktop
-     The card's height is constrained by aspect-ratio 5:7 off whichever
-     width term is smallest. max-height clamps to the actual stage
-     allotment so short viewports don't overflow. */
-  width: min(480px, 74vw, calc((100vh - 286px) * 5 / 7));
+  /* Vertical-space reservation derived from the fixed HUD + bottom bar
+     footprint (see .lb-hud and .lb-bottom-bar). Card height clamps to
+     the stage allotment so short viewports never bleed into the HUD. */
+  width: min(480px, 74vw, calc((100dvh - var(--lb-chrome, 286px)) * 5 / 7));
   aspect-ratio: 5 / 7;
-  max-height: calc(100vh - 286px);
+  max-height: calc(100dvh - var(--lb-chrome, 286px));
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--lb-card-shadow);
@@ -1628,12 +1637,19 @@ html.lenis, html.lenis body {
   will-change: transform, opacity;
 }
 
+:root {
+  --lb-chrome: 286px; /* 52 HUD + 210 bottom bar + ~24 padding */
+}
+
 @media (max-width: 640px) {
+  :root {
+    /* Mobile bottom bar stacks taller; HUD includes safe-area inset. */
+    --lb-chrome: calc(52px + env(safe-area-inset-top, 0px) + 270px + 24px);
+  }
+
   .lb-card {
-    /* Mobile strip stacks vertically (2-cell -> 2-row); worst-case
-       bottom bar is 270 vs 210. */
-    width: min(84vw, calc((100vh - 346px) * 5 / 7));
-    max-height: calc(100vh - 346px);
+    width: min(84vw, calc((100dvh - var(--lb-chrome)) * 5 / 7));
+    max-height: calc(100dvh - var(--lb-chrome));
   }
 }
 
