@@ -349,11 +349,11 @@ export function TournamentAdmin() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <PositiveIntInput label="Sign-up hours" value={signupHours} onChange={setSignupHours} placeholder="24" />
                 <PositiveIntInput label="Round hours" value={roundHours} onChange={setRoundHours} placeholder="48" />
-                <PositiveIntInput label="Max players" value={maxPlayers} onChange={setMaxPlayers} placeholder="32" />
               </div>
+              <PlayerCapPicker value={maxPlayers} onChange={setMaxPlayers} format={format} />
               {formError && (
                 <p className="text-sm" style={{ color: '#ef4444' }} role="alert">{formError}</p>
               )}
@@ -805,6 +805,99 @@ function PrizeSlotCard({
           />
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Player-cap picker. Replaces a freeform number with "ideal" bracket sizes
+ * (powers of two = no byes for single-elim, clean round counts for Swiss).
+ * The cap is a target/ceiling - the admin can always close sign-ups early and
+ * run with fewer. A "Custom" escape hatch keeps full flexibility.
+ */
+const CAP_PRESETS = [8, 16, 32, 64]
+
+function PlayerCapPicker({
+  value,
+  onChange,
+  format,
+}: {
+  value: string
+  onChange: (v: string) => void
+  format: 'swiss' | 'single-elim'
+}) {
+  const num = parseInt(value, 10)
+  const [custom, setCustom] = useState(() => !CAP_PRESETS.includes(num))
+
+  // Both formats run ceil(log2 N) rounds at these sizes (Swiss floored at 3).
+  const roundsFor = (size: number) =>
+    Math.max(format === 'swiss' ? 3 : 1, Math.ceil(Math.log2(Math.max(2, size))))
+
+  return (
+    <div>
+      <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+        Player cap (target)
+      </span>
+      <div className="flex flex-wrap gap-2">
+        {CAP_PRESETS.map((size) => {
+          const active = !custom && num === size
+          return (
+            <button
+              key={size}
+              type="button"
+              aria-pressed={active}
+              onClick={() => {
+                setCustom(false)
+                onChange(String(size))
+              }}
+              className="text-center transition-colors"
+              style={{
+                flex: '1 1 64px',
+                minWidth: 64,
+                padding: '7px 10px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                background: active ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
+                border: `1px solid ${active ? '#E85D2A' : 'var(--border-subtle)'}`,
+              }}
+            >
+              <span className="block font-display text-base font-bold leading-none">{size}</span>
+              <span className="block text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                {roundsFor(size)} rounds
+              </span>
+            </button>
+          )
+        })}
+        <button
+          type="button"
+          aria-pressed={custom}
+          onClick={() => setCustom(true)}
+          className="text-center transition-colors"
+          style={{
+            flex: '1 1 64px',
+            minWidth: 64,
+            padding: '7px 10px',
+            borderRadius: 6,
+            cursor: 'pointer',
+            background: custom ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
+            border: `1px solid ${custom ? '#E85D2A' : 'var(--border-subtle)'}`,
+          }}
+        >
+          <span className="block font-display text-base font-bold leading-none">∙∙∙</span>
+          <span className="block text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Custom
+          </span>
+        </button>
+      </div>
+      {custom && (
+        <div className="mt-2">
+          <PositiveIntInput label="Custom cap" value={value} onChange={onChange} placeholder="e.g. 24" />
+        </div>
+      )}
+      <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+        A ceiling, not a requirement — close sign-ups early to run with fewer. 8 / 16 / 32 are the
+        cleanest fields (no byes for single elim, even Swiss rounds).
+      </p>
     </div>
   )
 }
