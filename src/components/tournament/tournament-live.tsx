@@ -245,6 +245,8 @@ function PollCard({
 
   const total = results.totalVotes
   const showResults = total > 0 || voted != null || !canVote
+  // Highest vote count, so we can glow the leading option(s).
+  const leadCount = total > 0 ? Math.max(...POLL_OPTIONS.map((o) => results.counts[o.id] ?? 0)) : 0
 
   async function handleVote(choice: string) {
     if (!canVote || voted || busy) return
@@ -293,6 +295,7 @@ function PollCard({
           const pct = total > 0 ? Math.round((count / total) * 100) : 0
           const mine = voted === opt.id
           const loading = busy === opt.id
+          const winning = showResults && leadCount > 0 && count === leadCount
 
           const inner = (
             <>
@@ -306,7 +309,11 @@ function PollCard({
                     bottom: 0,
                     height: 4,
                     width: `${pct}%`,
-                    background: mine ? '#E85D2A' : 'color-mix(in srgb, var(--text-primary) 22%, transparent)',
+                    background: mine
+                      ? '#E85D2A'
+                      : winning
+                        ? '#22c55e'
+                        : 'color-mix(in srgb, var(--text-primary) 22%, transparent)',
                     transition: 'width 260ms ease',
                   }}
                 />
@@ -348,7 +355,17 @@ function PollCard({
             minHeight: 128,
             borderRadius: 8,
             background: 'var(--bg)',
-            border: `1px solid ${mine ? 'color-mix(in srgb, #E85D2A 55%, transparent)' : 'var(--border-subtle)'}`,
+            border: `1px solid ${
+              winning
+                ? '#22c55e'
+                : mine
+                  ? 'color-mix(in srgb, #E85D2A 55%, transparent)'
+                  : 'var(--border-subtle)'
+            }`,
+            boxShadow: winning
+              ? '0 0 0 1px #22c55e, 0 0 16px color-mix(in srgb, #22c55e 38%, transparent)'
+              : undefined,
+            transition: 'box-shadow 260ms ease, border-color 260ms ease',
             textAlign: 'left',
             width: '100%',
           }
