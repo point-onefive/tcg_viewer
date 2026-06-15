@@ -1618,7 +1618,7 @@ html.lenis, html.lenis body {
 }
 @media (max-width: 640px) {
   .lb-bottom-bar {
-    min-height: 270px;
+    min-height: 330px;
   }
 }
 
@@ -1643,8 +1643,8 @@ html.lenis, html.lenis body {
 
 @media (max-width: 640px) {
   :root {
-    /* Mobile bottom bar stacks taller; HUD includes safe-area inset. */
-    --lb-chrome: calc(52px + env(safe-area-inset-top, 0px) + 270px + 24px);
+    /* Mobile bottom bar stacks taller (nav + stacked price strip + chart + artist). */
+    --lb-chrome: calc(52px + env(safe-area-inset-top, 0px) + 330px + 24px);
   }
 
   .lb-card {
