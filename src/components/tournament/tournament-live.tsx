@@ -219,7 +219,7 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
   const pengUrl = xProfileUrl('pengpost') ?? 'https://x.com/pengpost'
-  const steps: { lead: string; body: React.ReactNode; danger?: boolean }[] = [
+  const steps: { lead: React.ReactNode; body: React.ReactNode; danger?: boolean }[] = [
     { lead: 'Sign up', body: 'Enter a valid X handle before the sign-up timer ends.' },
     {
       lead: 'Get verified',
@@ -227,7 +227,14 @@ function HowItWorks() {
     },
     { lead: 'Round 1 posts', body: 'When sign-ups close, the bracket goes live automatically.' },
     {
-      lead: 'Play on OPTCG Sim',
+      lead: (
+        <>
+          Play on{' '}
+          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#E85D2A' }}>
+            OPTCG Sim
+          </a>
+        </>
+      ),
       body: 'Coordinate with your opponent. Each round gets a generous timer for time zones and busy schedules.',
     },
     {
@@ -260,7 +267,7 @@ function HowItWorks() {
           {steps.map((s, i) => {
             const accent = s.danger ? '#ef4444' : '#E85D2A'
             return (
-              <div key={s.lead} className="flex gap-3">
+              <div key={i} className="flex gap-3">
                 <span
                   className="shrink-0 inline-flex items-center justify-center font-display text-sm font-bold tabular-nums"
                   style={{ width: 28, height: 28, borderRadius: 7, background: accent, color: '#fff' }}
