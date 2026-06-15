@@ -235,17 +235,17 @@ function HowItWorks() {
           </a>
         </>
       ),
-      body: 'Coordinate with your opponent and always play the most recent ruleset. Each round gets a generous timer for time zones and busy schedules.',
+      body: 'Coordinate with your opponent and always play the most recent ruleset. Each round gets a generous timer for completion.',
     },
     {
       lead: 'Report results',
       body: (
         <>
-          Screenshot the game and send it to{' '}
+          Screenshot game results and share in the player&rsquo;s chat + tag{' '}
           <a href={pengUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#E85D2A', fontWeight: 700 }}>
             @pengpost
           </a>{' '}
-          before the timer runs out. One screenshot settles it.
+          before the timer runs out.
         </>
       ),
     },
