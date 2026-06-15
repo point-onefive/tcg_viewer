@@ -107,7 +107,7 @@ export function TournamentAdmin() {
     adminApi(saved, { action: 'ping' })
       .then(() => setUnlocked(true))
       .catch(() => {
-        // Stored key is stale/wrong — clear it and drop back to login.
+        // Stored key is stale/wrong, so clear it and drop back to login.
         clearAdminKey()
         setAdminKey('')
       })
@@ -163,7 +163,7 @@ export function TournamentAdmin() {
       setUnlocked(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Verification failed'
-      setUnlockError(/not authorized/i.test(msg) ? 'Wrong password — try again.' : msg)
+      setUnlockError(/not authorized/i.test(msg) ? 'Wrong password. Try again.' : msg)
       setAdminKey('')
     } finally {
       setUnlockBusy(false)
@@ -769,7 +769,7 @@ function PrizeSlotCard({
         ) : (
           <div className="flex flex-col gap-1.5 self-start">
             {/* Focusable paste target: click it to focus, then ⌘V. It no
-                longer opens the file dialog on click — upload is its own
+                longer opens the file dialog on click. Upload is its own
                 button below so the two flows don't fight each other. */}
             <div
               tabIndex={0}
@@ -919,7 +919,7 @@ function PlayerCapPicker({
         </div>
       )}
       <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
-        A ceiling, not a requirement — close sign-ups early to run with fewer. 8 / 16 / 32 are the
+        A ceiling, not a requirement. Close sign-ups early to run with fewer. 8 / 16 / 32 are the
         cleanest fields (no byes for single elim, even Swiss rounds).
       </p>
     </div>

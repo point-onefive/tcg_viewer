@@ -722,7 +722,7 @@ async function fetchPollResults(tournamentId: string): Promise<PollResults> {
  * passes a random per-browser `voterId`; a unique (tournament_id, voter_id)
  * constraint enforces one vote per browser per event. Switching to secure
  * per-player tokens later means resolving the token to a player here and
- * using the player id as the voter id — the rest stays identical.
+ * using the player id as the voter id; the rest stays identical.
  */
 export async function castPollVote(
   voterIdRaw: string,

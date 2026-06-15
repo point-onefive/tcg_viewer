@@ -238,7 +238,7 @@ function HowItWorks() {
           <a href={pengUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#E85D2A', fontWeight: 700 }}>
             @pengpost
           </a>{' '}
-          before the timer runs out &mdash; one screenshot settles it.
+          before the timer runs out. One screenshot settles it.
         </>
       ),
     },

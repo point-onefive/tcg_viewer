@@ -1,0 +1,25 @@
+---
+description: Never use em dashes or en dashes in prose
+alwaysApply: true
+---
+
+# Never use em dashes
+
+Do NOT use em dashes (—) or the `&mdash;` entity ANYWHERE: chat replies,
+code, comments, commit messages, UI copy, or docs. This is a hard rule with
+no exceptions.
+
+Instead, do one of:
+
+- Split into two sentences with a period. (preferred)
+- Use a spaced hyphen `" - "` when a short connector is needed.
+- Use a colon or parentheses where they fit.
+
+Also avoid en dashes (–) in prose. Use a hyphen, or write "to" for numeric
+ranges (e.g. "1 to 12", not "1–12").
+
+<example>
+BAD:  Voting has closed — results below.
+GOOD: Voting has closed. Results below.
+GOOD: Voting has closed - results below.
+</example>

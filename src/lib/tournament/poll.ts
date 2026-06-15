@@ -9,7 +9,7 @@
 // the live event may cast one vote, deduped per-browser server-side via a
 // random voter id. This is intentionally lightweight; switching to secure
 // per-player tokens (phase A) later only changes WHAT we put in `voter_id`
-// and the eligibility check in the service — the table, the API shape, and
+// and the eligibility check in the service; the table, the API shape, and
 // the UI below all stay the same.
 //
 // The option list is deliberately data-driven so the three choices can be
