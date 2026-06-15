@@ -6,19 +6,19 @@
 
   /* Custom breakpoint for the gallery header's inline filter row.
      Default `lg` (1024) and `xl` (1280) are both too narrow - the
-     full One Piece toolbar (Collection + Set + Card type + Rarity +
-     Color + Alt art + Flatten + Errata + Prices + Language + 224px
-     search + zoom) measures ~1300px at rest, ~1400px with the
-     longest set name selected ("ST24 · Starter - Green Jewelry
-     Bonney" clamps to the 180px set-trigger cap), and an extra
-     ~30px while the search input is focused (it expands from w-56
-     to w-72). At anything below ~1400 the language pill collapses
-     to ~16px and the search input gets squished to a few dozen
-     pixels - the bug this breakpoint exists to prevent.
+     full One Piece toolbar (Collection + Set + facets + Characters +
+     View menu + Language + Sort + 224px search + zoom) measures
+     ~1300px at rest, ~1400px with the longest set name selected
+     ("ST24 · Starter - Green Jewelry Bonney" clamps to the 180px
+     set-trigger cap), and an extra ~64px while the search input is
+     focused (w-56 → w-72). Secondary toggles (Alt art, Flatten,
+     Errata, Prices) live in the View menu so the language pill keeps
+     a fixed 72px width and never flex-crushes.
 
      1440 picked as the cutoff to leave ~40px of breathing room
-     above the "longest set selected" worst case, so neither the
-     language pill nor the search input ever has to flex-shrink.
+     above the "longest set selected" worst case; the row also
+     scrolls horizontally (`overflow-x: auto`) as a last resort on
+     edge-case widths without shrinking controls.
 
      This extra breakpoint exists primarily for the very common
      "single-screen multitasker" case: a user with a 1440-2560px

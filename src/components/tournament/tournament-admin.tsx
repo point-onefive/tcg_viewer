@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, Gift, ImagePlus, Loader2, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
+import { Check, Crown, ExternalLink, Gift, ImagePlus, Loader2, LogOut, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
   adminApi,
   apiActiveSnapshot,
+  clearAdminKey,
   loadAdminKey,
   saveAdminKey,
 } from '@/lib/tournament/client'
@@ -73,6 +74,8 @@ export function TournamentAdmin() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
+  const [unlockError, setUnlockError] = useState<string | null>(null)
+  const [unlockBusy, setUnlockBusy] = useState(false)
 
   // Start fresh form - strings so typing "24" doesn't fight number-input quirks
   const [name, setName] = useState('')
@@ -86,12 +89,29 @@ export function TournamentAdmin() {
   // approve/reject never makes a row vanish - it just restyles in place.
   const [tab, setTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
 
+  const doLogout = useCallback(() => {
+    clearAdminKey()
+    setUnlocked(false)
+    setAdminKey('')
+    setSnapshot(null)
+    setError(null)
+    setMsg(null)
+  }, [])
+
+  // On mount, verify any stored key against the server before auto-unlocking.
   useEffect(() => {
     const saved = loadAdminKey()
-    if (saved) {
-      setAdminKey(saved)
-      setUnlocked(true)
-    }
+    if (!saved) return
+    setAdminKey(saved)
+    setUnlockBusy(true)
+    adminApi(saved, { action: 'ping' })
+      .then(() => setUnlocked(true))
+      .catch(() => {
+        // Stored key is stale/wrong — clear it and drop back to login.
+        clearAdminKey()
+        setAdminKey('')
+      })
+      .finally(() => setUnlockBusy(false))
   }, [])
 
   const refresh = useCallback(async (key: string) => {
@@ -120,17 +140,34 @@ export function TournamentAdmin() {
       await fn()
       await refresh(adminKey)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Action failed')
+      const msg = err instanceof Error ? err.message : 'Action failed'
+      if (/not authorized/i.test(msg)) {
+        doLogout()
+        return
+      }
+      setError(msg)
     } finally {
       setBusy(false)
     }
   }
 
-  function unlock(e: React.FormEvent) {
+  async function unlock(e: React.FormEvent) {
     e.preventDefault()
-    if (!adminKey.trim()) return
-    saveAdminKey(adminKey.trim())
-    setUnlocked(true)
+    const key = adminKey.trim()
+    if (!key) return
+    setUnlockBusy(true)
+    setUnlockError(null)
+    try {
+      await adminApi(key, { action: 'ping' })
+      saveAdminKey(key)
+      setUnlocked(true)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Verification failed'
+      setUnlockError(/not authorized/i.test(msg) ? 'Wrong password — try again.' : msg)
+      setAdminKey('')
+    } finally {
+      setUnlockBusy(false)
+    }
   }
 
   const code = snapshot?.tournament.code
@@ -201,25 +238,49 @@ export function TournamentAdmin() {
           <h2 className="font-display text-xl font-bold">Tournament admin</h2>
         </div>
 
-        {!unlocked ? (
+        {unlockBusy && !unlocked ? (
+          <div className="flex justify-center py-8 gap-2" style={{ color: 'var(--text-muted)' }}>
+            <Loader2 size={18} className="animate-spin" /> Verifying…
+          </div>
+        ) : !unlocked ? (
           <form onSubmit={unlock} className="p-5 flex flex-col gap-3" style={card}>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               Enter your admin secret (same value as <code>TOURNAMENT_ADMIN_SECRET</code> in Vercel).
             </p>
             <input
               type="password"
-              style={inputStyle}
+              style={{ ...inputStyle, borderColor: unlockError ? '#ef4444' : 'var(--border-subtle)' }}
               value={adminKey}
-              onChange={(e) => setAdminKey(e.target.value)}
+              onChange={(e) => { setAdminKey(e.target.value); if (unlockError) setUnlockError(null) }}
               placeholder="Admin secret"
               autoComplete="off"
+              disabled={unlockBusy}
             />
-            <button type="submit" className="footer-btn py-2 text-sm font-bold" style={{ background: '#E85D2A', color: '#fff', borderRadius: 6 }}>
-              Unlock
+            {unlockError && (
+              <p className="text-sm" style={{ color: '#ef4444' }} role="alert">{unlockError}</p>
+            )}
+            <button
+              type="submit"
+              disabled={!adminKey.trim() || unlockBusy}
+              className="footer-btn py-2 text-sm font-bold inline-flex items-center justify-center gap-2"
+              style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: !adminKey.trim() || unlockBusy ? 0.6 : 1 }}
+            >
+              {unlockBusy && <Loader2 size={14} className="animate-spin" />}
+              {unlockBusy ? 'Verifying…' : 'Unlock'}
             </button>
           </form>
         ) : (
           <>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={doLogout}
+                className="footer-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+                style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+              >
+                <LogOut size={13} /> Log out
+              </button>
+            </div>
             {error && !snapshot && (
               <div className="p-4 text-sm" style={{ ...card, color: '#ef4444' }}>{error}</div>
             )}
@@ -389,9 +450,7 @@ export function TournamentAdmin() {
                   {msg && <p className="mt-3 text-sm" style={{ color: '#22c55e' }}>{msg}</p>}
                   {error && (
                     <p className="mt-3 text-sm font-semibold" style={{ color: '#ef4444' }} role="alert">
-                      {/Not authorized/i.test(error)
-                        ? 'Not authorized - your admin password is wrong. Re-enter it exactly as set in Vercel (watch for trailing spaces).'
-                        : error}
+                      {error}
                     </p>
                   )}
                 </div>
@@ -1079,8 +1138,9 @@ function ParticipantRow({
       }}
     >
       <div className="flex items-center gap-2 min-w-0">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold truncate" style={{ color: '#E85D2A' }}>
-          {formatXLabel(player.xHandle)} ↗
+        <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-semibold truncate" style={{ color: '#E85D2A' }}>
+          {formatXLabel(player.xHandle)}
+          <ExternalLink size={11} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.7 }} />
         </a>
         <span
           className="shrink-0 text-[10px] font-bold uppercase tracking-wide"

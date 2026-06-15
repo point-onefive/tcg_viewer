@@ -18,6 +18,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 type Body =
+  | { action: 'ping' }
   | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string }
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
@@ -34,6 +35,8 @@ export async function POST(request: Request) {
     assertAdmin(request)
     const body = await readJson<Body>(request)
     switch (body.action) {
+      case 'ping':
+        return ok({ ok: true })
       case 'start-fresh': {
         const result = await adminStartFresh(body)
         return ok(result, 201)

@@ -21,6 +21,14 @@ export function saveAdminKey(key: string): void {
   }
 }
 
+export function clearAdminKey(): void {
+  try {
+    localStorage.removeItem(ADMIN_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
 async function post<T>(url: string, body: unknown, adminKey?: string): Promise<T> {
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (adminKey) headers.authorization = `Bearer ${adminKey}`

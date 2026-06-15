@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'motion/react'
 import { ThemeToggle } from './theme-toggle'
 import { BrandLockup } from './brand-lockup'
 import Link from 'next/link'
 import { Bookmark, HelpCircle, Layers, LineChart, Menu, X, Check, ChevronDown, Package, Trophy } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type Collection } from '@/lib/store'
 import { apiActiveStatus } from '@/lib/tournament/client'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
@@ -47,6 +48,61 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   { value: 'EN', label: 'EN', description: 'English (Bandai EN + Asia-EN cardlists).' },
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
 ]
+
+/** EN/JP pill group — fixed width + shrink-0 so flex siblings never
+    crush JP off the edge of the pill (overflow:hidden was clipping it). */
+function LanguageToggle({
+  language,
+  setLanguage,
+  ctrl,
+  fullWidth = false,
+}: {
+  language: LanguagePickerValue
+  setLanguage: (v: LanguagePickerValue) => void
+  ctrl: React.CSSProperties
+  /** Full-width variant for menus (mobile More → Language section). */
+  fullWidth?: boolean
+}) {
+  return (
+    <div
+      className={`inline-flex items-center shrink-0 ${fullWidth ? 'w-full' : ''}`}
+      style={{
+        ...ctrl,
+        height: 30,
+        padding: 2,
+        minWidth: fullWidth ? undefined : 72,
+        flexShrink: 0,
+      }}
+      role="radiogroup"
+      aria-label="Language"
+    >
+      {LANGUAGE_OPTIONS.map((opt) => {
+        const selected = language === opt.value
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => setLanguage(opt.value)}
+            className="inline-flex flex-1 items-center justify-center text-[11px] font-semibold outline-none"
+            style={{
+              height: 24,
+              borderRadius: 4,
+              minWidth: 32,
+              background: selected ? 'var(--text-primary)' : 'transparent',
+              color: selected ? 'var(--bg)' : 'var(--text-primary)',
+              transition: 'background 0.18s ease, color 0.18s ease',
+            }}
+            title={opt.description}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 /**
  * Dismissible chip shown in the active-filters strip inside the header.
@@ -459,11 +515,10 @@ function CharacterPicker({
       minWidth={240}
       open={open}
       onOpenChange={setOpen}
-      fitViewport
       flexShell
-      wrapperClassName={fluid ? 'relative flex-1 min-w-0 overflow-visible' : 'relative shrink-0 overflow-visible'}
-      triggerClassName={`footer-btn inline-flex items-center text-xs font-medium outline-none whitespace-nowrap ${fluid ? 'w-full gap-1 px-2' : 'gap-1.5 px-3'}`}
-      triggerStyle={{ ...(isActive ? ctrlActive : ctrl), ...(fluid ? null : { maxWidth: 180 }) }}
+      wrapperClassName="relative shrink-0 overflow-visible"
+      triggerClassName="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+      triggerStyle={{ ...(isActive ? ctrlActive : ctrl) }}
       triggerChildren={
         <>
           <span
@@ -472,7 +527,7 @@ function CharacterPicker({
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               minWidth: 0,
-              ...(fluid ? { flex: 1, textAlign: 'left' } : null),
+              maxWidth: 160,
             }}
           >
             {triggerLabel}
@@ -500,7 +555,7 @@ function CharacterPicker({
     >
       <div
         className="flex flex-col min-h-0"
-        style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}
+        style={{ minWidth: 0, flex: 1, overflow: 'hidden', padding: '6px 6px 0' }}
       >
         <input
           ref={inputRef}
@@ -517,7 +572,7 @@ function CharacterPicker({
           style={{
             height: 32,
             padding: '0 8px',
-            marginBottom: 4,
+            marginBottom: 10,
             borderRadius: 5,
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg)',
@@ -538,7 +593,7 @@ function CharacterPicker({
             A–Z grid doesn't eat half the viewport before the list. */}
         {!query.trim() && letters.length > 0 && (
           <div
-            className={`no-scrollbar flex gap-1 px-1 pb-2 shrink-0 ${fluid ? 'flex-nowrap overflow-x-auto' : 'flex-wrap'}`}
+            className={`no-scrollbar flex gap-1 px-1 pt-1 pb-3 shrink-0 ${fluid ? 'flex-nowrap overflow-x-auto' : 'flex-wrap'}`}
             role="tablist"
             aria-label="Browse characters by letter"
           >
@@ -818,9 +873,7 @@ const HEADER_DROPDOWN_EASE = [0.22, 1, 0.36, 1] as const
 
 const headerDropdownPanelStyle = (
   align: 'left' | 'right',
-  minWidth: number,
-  maxWidth: string,
-  maxHeight?: number,
+  maxHeight: number | undefined,
   /** When true the panel is a flex column shell; inner regions scroll
    *  themselves (used by CharacterPicker so search + letters stay
    *  pinned while only the name list scrolls). */
@@ -835,10 +888,7 @@ const headerDropdownPanelStyle = (
   borderBottomLeftRadius: 8,
   borderBottomRightRadius: 8,
   boxShadow: 'var(--shadow-card)',
-  zIndex: 61,
   padding: 4,
-  minWidth,
-  maxWidth,
   ...(flexShell
     ? {
         display: 'flex',
@@ -851,13 +901,23 @@ const headerDropdownPanelStyle = (
       : { overflow: 'hidden' }),
 })
 
+type PanelPos = { top: number; left: number; width: number; maxHeight: number }
+
+/**
+ * Header dropdown shell. The panel is rendered through a portal to
+ * `document.body` with `position: fixed`, positioned from the trigger's
+ * viewport rect and hard-clamped to the viewport. This is the only
+ * reliable way to keep it on-screen: the triggers live inside
+ * `overflow-x-auto` filter bars, and an absolutely-positioned descendant
+ * of an overflow ancestor gets clipped/scrolled by it. Fixed + portal
+ * escapes every clipping context, so the menu always fits on mobile.
+ */
 function HeaderDropdown({
   ariaLabel,
   ariaHaspopup = 'listbox',
   align = 'left',
   minWidth = 180,
   maxHeight,
-  maxWidth = 'calc(100vw - 24px)',
   wrapperClassName = 'relative shrink-0 overflow-visible',
   triggerClassName = 'footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap',
   triggerStyle,
@@ -865,7 +925,6 @@ function HeaderDropdown({
   onOpenChange,
   triggerChildren,
   children,
-  fitViewport = false,
   flexShell = false,
 }: {
   ariaLabel: string
@@ -873,7 +932,6 @@ function HeaderDropdown({
   align?: 'left' | 'right'
   minWidth?: number
   maxHeight?: number
-  maxWidth?: string
   wrapperClassName?: string
   triggerClassName?: string
   triggerStyle: React.CSSProperties
@@ -881,53 +939,57 @@ function HeaderDropdown({
   onOpenChange: (open: boolean) => void
   triggerChildren: React.ReactNode
   children: React.ReactNode
-  /** Cap panel height to the space below the trigger inside the
-   *  visible viewport (uses visualViewport when available). */
-  fitViewport?: boolean
   /** Flex-column shell; children manage their own scroll regions. */
   flexShell?: boolean
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const [viewportMax, setViewportMax] = useState<number | undefined>()
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<PanelPos | null>(null)
 
+  // Measure the trigger and place the fixed panel within the viewport.
+  // Recomputed on open and on any scroll/resize while open.
   useLayoutEffect(() => {
-    if (!open || !fitViewport) {
-      setViewportMax(undefined)
+    if (!open) {
+      setPos(null)
       return
     }
-    const measure = () => {
+    const compute = () => {
       const trigger = wrapperRef.current?.querySelector('button')
       if (!trigger) return
-      const rect = trigger.getBoundingClientRect()
+      const r = trigger.getBoundingClientRect()
+      const vw = window.visualViewport?.width ?? window.innerWidth
       const vh = window.visualViewport?.height ?? window.innerHeight
-      // Keep a small gutter above the home indicator / browser chrome.
-      const available = vh - rect.bottom - 12
-      setViewportMax(Math.max(140, Math.floor(available)))
+      const GUTTER = 8
+      const maxAllowedW = Math.max(160, vw - GUTTER * 2)
+      const width = Math.min(maxAllowedW, Math.max(minWidth, r.width))
+      let left = align === 'right' ? r.right - width : r.left
+      left = Math.min(left, vw - GUTTER - width)
+      left = Math.max(GUTTER, left)
+      const top = r.bottom
+      const cap = Math.max(140, Math.floor(vh - top - GUTTER))
+      const resolvedMaxHeight = maxHeight != null ? Math.min(maxHeight, cap) : cap
+      setPos({ top, left, width, maxHeight: resolvedMaxHeight })
     }
-    measure()
-    window.visualViewport?.addEventListener('resize', measure)
-    window.visualViewport?.addEventListener('scroll', measure)
-    window.addEventListener('resize', measure)
+    compute()
+    window.addEventListener('scroll', compute, true)
+    window.addEventListener('resize', compute)
+    window.visualViewport?.addEventListener('resize', compute)
+    window.visualViewport?.addEventListener('scroll', compute)
     return () => {
-      window.visualViewport?.removeEventListener('resize', measure)
-      window.visualViewport?.removeEventListener('scroll', measure)
-      window.removeEventListener('resize', measure)
+      window.removeEventListener('scroll', compute, true)
+      window.removeEventListener('resize', compute)
+      window.visualViewport?.removeEventListener('resize', compute)
+      window.visualViewport?.removeEventListener('scroll', compute)
     }
-  }, [open, fitViewport])
-
-  const resolvedMax =
-    fitViewport && viewportMax != null
-      ? maxHeight != null
-        ? Math.min(maxHeight, viewportMax)
-        : viewportMax
-      : maxHeight
+  }, [open, align, minWidth, maxHeight])
 
   useEffect(() => {
     if (!open) return
     const onClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        onOpenChange(false)
-      }
+      const t = e.target as Node
+      if (wrapperRef.current?.contains(t)) return
+      if (panelRef.current?.contains(t)) return
+      onOpenChange(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onOpenChange(false) }
     const id = window.setTimeout(() => document.addEventListener('click', onClick), 0)
@@ -967,22 +1029,33 @@ function HeaderDropdown({
         {triggerChildren}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role={ariaHaspopup}
-            aria-label={ariaLabel}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.14, ease: HEADER_DROPDOWN_EASE }}
-            className={`absolute top-full ${align === 'right' ? 'right-0' : 'left-0'}`}
-            style={headerDropdownPanelStyle(align, minWidth, maxWidth, resolvedMax, flexShell)}
-          >
-            {children}
-          </motion.div>
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {open && pos && (
+              <motion.div
+                ref={panelRef}
+                role={ariaHaspopup}
+                aria-label={ariaLabel}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.14, ease: HEADER_DROPDOWN_EASE }}
+                style={{
+                  position: 'fixed',
+                  top: pos.top,
+                  left: pos.left,
+                  width: pos.width,
+                  zIndex: 80,
+                  ...headerDropdownPanelStyle(align, pos.maxHeight, flexShell),
+                }}
+              >
+                {children}
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </div>
   )
 }
@@ -1053,11 +1126,13 @@ function CollectionPicker({
 }
 
 /**
- * Mobile-only overflow menu for secondary filters (Alt art, Flatten,
- * Errata, Prices, Language). Collection switching lives in its own
- * picker on the search row so it stays one tap away.
+ * Overflow menu for secondary view toggles (Alt art, Flatten, Errata,
+ * Prices) and optionally Language. Mobile uses label "More" with
+ * language inside; desktop uses label "View" with language kept inline.
  */
-function MobileMoreFiltersMenu({
+function ViewFiltersMenu({
+  label = 'More',
+  includeLanguage = true,
   showVariantToggles,
   isOnePiece,
   onlyAltArt,
@@ -1074,6 +1149,8 @@ function MobileMoreFiltersMenu({
   ctrl,
   ctrlActive,
 }: {
+  label?: string
+  includeLanguage?: boolean
   showVariantToggles: boolean
   isOnePiece: boolean
   onlyAltArt: boolean
@@ -1098,10 +1175,11 @@ function MobileMoreFiltersMenu({
     (onlyErrata ? 1 : 0) +
     (showTilePrices ? 1 : 0)
   const isActive = activeCount > 0
+  const menuName = label === 'View' ? 'View options' : 'More filters'
 
   return (
     <HeaderDropdown
-      ariaLabel={activeCount > 0 ? `More filters (${activeCount} active)` : 'More filters'}
+      ariaLabel={activeCount > 0 ? `${menuName} (${activeCount} active)` : menuName}
       ariaHaspopup="menu"
       align="right"
       open={open}
@@ -1109,7 +1187,7 @@ function MobileMoreFiltersMenu({
       triggerStyle={isActive ? ctrlActive : ctrl}
       triggerChildren={
         <>
-          More
+          {label}
           {activeCount > 0 && (
             <span
               className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
@@ -1157,7 +1235,7 @@ function MobileMoreFiltersMenu({
           onClick={() => setShowTilePrices(!showTilePrices)}
         />
       )}
-      {isOnePiece && (
+      {includeLanguage && isOnePiece && (
         <div
           className="px-2.5 py-2"
           style={{ borderTop: '1px solid var(--border-subtle)' }}
@@ -1168,41 +1246,12 @@ function MobileMoreFiltersMenu({
           >
             Language
           </div>
-          <div
-            className="inline-flex items-center w-full"
-            style={{
-              ...ctrl,
-              height: 30,
-              padding: 2,
-              overflow: 'hidden',
-            }}
-            role="radiogroup"
-            aria-label="Language"
-          >
-            {LANGUAGE_OPTIONS.map((opt) => {
-              const selected = language === opt.value
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setLanguage(opt.value)}
-                  className="inline-flex flex-1 items-center justify-center text-[11px] font-semibold outline-none"
-                  style={{
-                    height: 24,
-                    borderRadius: 4,
-                    background: selected ? 'var(--text-primary)' : 'transparent',
-                    color: selected ? 'var(--bg)' : 'var(--text-primary)',
-                    transition: 'background 0.18s ease, color 0.18s ease',
-                  }}
-                  title={opt.description}
-                >
-                  {opt.label}
-                </button>
-              )
-            })}
-          </div>
+          <LanguageToggle
+            language={language}
+            setLanguage={setLanguage}
+            ctrl={ctrl}
+            fullWidth
+          />
         </div>
       )}
     </HeaderDropdown>
@@ -1269,10 +1318,6 @@ export function Header({ sets, artists, characters }: HeaderProps) {
       : []),
     ...(hasPricing ? [{ value: 'price-desc', label: 'Price ↓' }] : []),
   ]
-  const altArtTitle = flattenWall
-    ? (onlyAltArt ? 'Showing alt prints only (no base cards)' : 'Show alt prints only on the flattened wall')
-    : (onlyAltArt ? 'Showing only cards with alt art' : 'Show only cards with alt art')
-  const altArtAria = altArtTitle
   const [mobileOpen, setMobileOpen] = useState(false)
   const tournamentLive = useTournamentLive()
 
@@ -1747,7 +1792,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             menuAlign="right"
           />
         )}
-        <MobileMoreFiltersMenu
+        <ViewFiltersMenu
           showVariantToggles={showVariantToggles}
           isOnePiece={isOnePiece}
           onlyAltArt={onlyAltArt}
@@ -1853,13 +1898,11 @@ export function Header({ sets, artists, characters }: HeaderProps) {
 
           Gated on the custom `nav` breakpoint (1440px) rather than
           Tailwind's `lg`/`xl` defaults because the full inline row
-          (Collection + Set + 3 facets + 4 toggles + language +
-          search + zoom) needs ~1300-1400px of fixed-width content
-          (the upper bound includes the worst-case set name "ST24 ·
-          Starter - Green Jewelry Bonney" which clamps the Set
-          trigger to its 180px cap), and gets clipped or has its
-          shrinkable items (language pill, search) crushed at
-          anything narrower. Below 1440 the same controls live in
+          (Collection + Set + facets + Characters + View menu +
+          Language + Sort + search + zoom) needs ~1300-1400px at rest.
+          Secondary toggles (Alt art, Flatten, Errata, Prices) live
+          in the View menu so the language pill and search input are
+          never flex-crushed. Below 1440 the same controls live in
           three persistent mobile rows below. See --breakpoint-nav
           in globals.css for the rationale. */}
       <div
@@ -1867,7 +1910,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
         style={{ borderTop: '1px solid var(--border-subtle)' }}
       >
         <div
-          className="mx-auto flex items-center gap-2 px-4 overflow-visible"
+          className="mx-auto flex items-center gap-2 px-4 min-w-0 overflow-x-auto no-scrollbar"
           style={{ maxWidth: 1800, height: 40 }}
         >
           <CollectionPicker
@@ -1976,114 +2019,33 @@ export function Header({ sets, artists, characters }: HeaderProps) {
               ctrlActive={ctrlActive}
             />
           )}
-          {showVariantToggles && (
-            <>
-              <button
-                type="button"
-                onClick={() => setOnlyAltArt(!onlyAltArt)}
-                className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
-                style={{ ...(onlyAltArt ? ctrlActive : ctrl), height: 30 }}
-                aria-pressed={onlyAltArt}
-                aria-label={altArtAria}
-                title={altArtTitle}
-              >
-                Alt art
-              </button>
-              <button
-                type="button"
-                onClick={() => setFlattenWall(!flattenWall)}
-                className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
-                style={{ ...(flattenWall ? ctrlActive : ctrl), height: 30 }}
-                aria-pressed={flattenWall}
-                aria-label={flattenWall ? 'Flattened wall: each print is its own tile' : 'Flatten wall: show each alt art as its own tile'}
-                title={flattenWall ? 'Each print is its own tile on the wall' : 'Break out every alt art as its own tile'}
-              >
-                Flatten
-              </button>
-            </>
+          {(showVariantToggles || isOnePiece || hasPricing) && (
+            <ViewFiltersMenu
+              label="View"
+              includeLanguage={false}
+              showVariantToggles={showVariantToggles}
+              isOnePiece={isOnePiece}
+              onlyAltArt={onlyAltArt}
+              setOnlyAltArt={setOnlyAltArt}
+              flattenWall={flattenWall}
+              setFlattenWall={setFlattenWall}
+              onlyErrata={onlyErrata}
+              setOnlyErrata={setOnlyErrata}
+              showTilePrices={showTilePrices}
+              setShowTilePrices={setShowTilePrices}
+              hasPricing={hasPricing}
+              language={language}
+              setLanguage={setLanguage}
+              ctrl={ctrl}
+              ctrlActive={ctrlActive}
+            />
           )}
           {isOnePiece && (
-            <button
-              type="button"
-              onClick={() => setOnlyErrata(!onlyErrata)}
-              className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
-              style={{ ...(onlyErrata ? ctrlActive : ctrl), height: 30 }}
-              aria-pressed={onlyErrata}
-              aria-label={onlyErrata ? 'Showing only cards with an official errata' : 'Show only cards with an official errata'}
-              title={
-                onlyErrata
-                  ? 'Showing only cards whose text has been officially corrected by Bandai'
-                  : 'Show only cards whose text has been officially corrected by Bandai (errata)'
-              }
-            >
-              Errata
-            </button>
-          )}
-          {hasPricing && (
-            <button
-              type="button"
-              onClick={() => setShowTilePrices(!showTilePrices)}
-              className="footer-btn shrink-0 inline-flex items-center whitespace-nowrap px-3 text-xs font-medium outline-none"
-              style={{ ...(showTilePrices ? ctrlActive : ctrl), height: 30 }}
-              aria-pressed={showTilePrices}
-              aria-label={showTilePrices ? 'Hide market prices on tiles' : 'Show market prices on tiles'}
-              title={
-                showTilePrices
-                  ? 'Hide market prices on tile thumbnails'
-                  : isGundam
-                    ? 'Overlay eBay active listing prices on each tile'
-                    : 'Overlay TCGPlayer market price on each tile thumbnail'
-              }
-            >
-              Prices
-            </button>
-          )}
-          {isOnePiece && (
-            <>
-              {/* Language picker (desktop). Single-select pill group
-                  with two options. EN | JP do two things in one
-                  motion: (1) trim the wall to cards Bandai publishes
-                  in that region, (2) swap every image URL to the
-                  matching localized scan. CN was removed in v13 -
-                  Bandai's TC/TW CDNs hot-link the JP file so the CN
-                  pill shipped duplicate JP scans. See
-                  samples/jp-cn-compare/. */}
-              <div
-                className="inline-flex items-center"
-                style={{
-                  ...ctrl,
-                  height: 30,
-                  padding: 2,
-                  overflow: 'hidden',
-                }}
-                role="radiogroup"
-                aria-label="Language"
-              >
-                {LANGUAGE_OPTIONS.map((opt) => {
-                  const selected = language === opt.value
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => setLanguage(opt.value)}
-                      className="inline-flex items-center justify-center gap-1 px-2.5 text-[11px] font-semibold outline-none"
-                      style={{
-                        height: 24,
-                        borderRadius: 4,
-                        background: selected ? 'var(--text-primary)' : 'transparent',
-                        color: selected ? 'var(--bg)' : 'var(--text-primary)',
-                        transition: 'background 0.18s ease, color 0.18s ease',
-                      }}
-                      title={opt.description}
-                    >
-                      {opt.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </>
+            <LanguageToggle
+              language={language}
+              setLanguage={setLanguage}
+              ctrl={ctrl}
+            />
           )}
 
           {/* Sort picker · same custom popover as the facet filters so it
@@ -2091,7 +2053,8 @@ export function Header({ sets, artists, characters }: HeaderProps) {
               highlights when a non-default sort is active (the old native
               select gave no hint that a sticky sort was applied). */}
           <FacetPopover
-            placeholder="Sort: Default"
+            placeholder="Sort"
+            clearLabel="Sort: Default"
             ariaLabel="Sort cards"
             value={wallSort === 'default' ? null : wallSort}
             onChange={(v) => setWallSort((v ?? 'default') as typeof wallSort)}
@@ -2115,7 +2078,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
               without the placeholder ever appearing truncated at
               rest. */}
           <div
-            className="relative w-56 transition-[width] duration-300 focus-within:w-72"
+            className="relative shrink-0 w-56 transition-[width] duration-300 focus-within:w-72"
             style={{ height: 30 }}
           >
             <input
