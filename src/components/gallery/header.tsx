@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import { BrandLockup } from './brand-lockup'
 import Link from 'next/link'
@@ -459,6 +459,8 @@ function CharacterPicker({
       minWidth={240}
       open={open}
       onOpenChange={setOpen}
+      fitViewport
+      flexShell
       wrapperClassName={fluid ? 'relative flex-1 min-w-0 overflow-visible' : 'relative shrink-0 overflow-visible'}
       triggerClassName={`footer-btn inline-flex items-center text-xs font-medium outline-none whitespace-nowrap ${fluid ? 'w-full gap-1 px-2' : 'gap-1.5 px-3'}`}
       triggerStyle={{ ...(isActive ? ctrlActive : ctrl), ...(fluid ? null : { maxWidth: 180 }) }}
@@ -496,7 +498,10 @@ function CharacterPicker({
         </>
       }
     >
-      <div className="flex flex-col" style={{ minWidth: 0 }}>
+      <div
+        className="flex flex-col min-h-0"
+        style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}
+      >
         <input
           ref={inputRef}
           type="text"
@@ -508,7 +513,7 @@ function CharacterPicker({
           placeholder="Search characters…"
           aria-label="Search characters"
           autoComplete="off"
-          className="text-xs font-medium outline-none"
+          className="text-xs font-medium outline-none shrink-0"
           style={{
             height: 32,
             padding: '0 8px',
@@ -523,16 +528,17 @@ function CharacterPicker({
           <button
             type="button"
             onClick={onClear}
-            className="w-full flex items-center justify-between px-2.5 text-[11px] font-semibold uppercase tracking-wide text-left"
+            className="w-full flex items-center justify-between px-2.5 text-[11px] font-semibold uppercase tracking-wide text-left shrink-0"
             style={{ height: 26, borderRadius: 5, color: 'var(--text-muted)', background: 'transparent', cursor: 'pointer' }}
           >
             <span>Clear ({count})</span>
           </button>
         )}
-        {/* Letter strip — browse by initial when not searching */}
+        {/* Letter strip — one horizontal row on mobile (fluid) so the
+            A–Z grid doesn't eat half the viewport before the list. */}
         {!query.trim() && letters.length > 0 && (
           <div
-            className="no-scrollbar flex flex-wrap gap-1 px-1 pb-2"
+            className={`no-scrollbar flex gap-1 px-1 pb-2 shrink-0 ${fluid ? 'flex-nowrap overflow-x-auto' : 'flex-wrap'}`}
             role="tablist"
             aria-label="Browse characters by letter"
           >
@@ -545,7 +551,7 @@ function CharacterPicker({
                   role="tab"
                   aria-selected={picked}
                   onClick={() => setActiveLetter(picked ? null : letter)}
-                  className="inline-flex items-center justify-center text-[10px] font-bold"
+                  className="inline-flex items-center justify-center text-[10px] font-bold shrink-0"
                   style={{
                     minWidth: 22,
                     height: 22,
@@ -563,7 +569,10 @@ function CharacterPicker({
             })}
           </div>
         )}
-        <div style={{ maxHeight: 300, overflowY: 'auto', overflowX: 'hidden' }}>
+        <div
+          className="min-h-0 flex-1"
+          style={{ overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}
+        >
           {!query.trim() && !activeLetter && count === 0 && (
             <div className="px-2.5 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               Search or pick a letter to browse.
@@ -812,6 +821,10 @@ const headerDropdownPanelStyle = (
   minWidth: number,
   maxWidth: string,
   maxHeight?: number,
+  /** When true the panel is a flex column shell; inner regions scroll
+   *  themselves (used by CharacterPicker so search + letters stay
+   *  pinned while only the name list scrolls). */
+  flexShell = false,
 ): React.CSSProperties => ({
   transformOrigin: align === 'right' ? 'top right' : 'top left',
   background: 'var(--bg-surface)',
@@ -826,9 +839,16 @@ const headerDropdownPanelStyle = (
   padding: 4,
   minWidth,
   maxWidth,
-  ...(maxHeight
-    ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' }
-    : { overflow: 'hidden' }),
+  ...(flexShell
+    ? {
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        ...(maxHeight ? { maxHeight } : null),
+      }
+    : maxHeight
+      ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' }
+      : { overflow: 'hidden' }),
 })
 
 function HeaderDropdown({
@@ -845,6 +865,8 @@ function HeaderDropdown({
   onOpenChange,
   triggerChildren,
   children,
+  fitViewport = false,
+  flexShell = false,
 }: {
   ariaLabel: string
   ariaHaspopup?: 'listbox' | 'menu'
@@ -859,8 +881,46 @@ function HeaderDropdown({
   onOpenChange: (open: boolean) => void
   triggerChildren: React.ReactNode
   children: React.ReactNode
+  /** Cap panel height to the space below the trigger inside the
+   *  visible viewport (uses visualViewport when available). */
+  fitViewport?: boolean
+  /** Flex-column shell; children manage their own scroll regions. */
+  flexShell?: boolean
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const [viewportMax, setViewportMax] = useState<number | undefined>()
+
+  useLayoutEffect(() => {
+    if (!open || !fitViewport) {
+      setViewportMax(undefined)
+      return
+    }
+    const measure = () => {
+      const trigger = wrapperRef.current?.querySelector('button')
+      if (!trigger) return
+      const rect = trigger.getBoundingClientRect()
+      const vh = window.visualViewport?.height ?? window.innerHeight
+      // Keep a small gutter above the home indicator / browser chrome.
+      const available = vh - rect.bottom - 12
+      setViewportMax(Math.max(140, Math.floor(available)))
+    }
+    measure()
+    window.visualViewport?.addEventListener('resize', measure)
+    window.visualViewport?.addEventListener('scroll', measure)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.visualViewport?.removeEventListener('resize', measure)
+      window.visualViewport?.removeEventListener('scroll', measure)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open, fitViewport])
+
+  const resolvedMax =
+    fitViewport && viewportMax != null
+      ? maxHeight != null
+        ? Math.min(maxHeight, viewportMax)
+        : viewportMax
+      : maxHeight
 
   useEffect(() => {
     if (!open) return
@@ -917,7 +977,7 @@ function HeaderDropdown({
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.14, ease: HEADER_DROPDOWN_EASE }}
             className={`absolute top-full ${align === 'right' ? 'right-0' : 'left-0'}`}
-            style={headerDropdownPanelStyle(align, minWidth, maxWidth, maxHeight)}
+            style={headerDropdownPanelStyle(align, minWidth, maxWidth, resolvedMax, flexShell)}
           >
             {children}
           </motion.div>
