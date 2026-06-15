@@ -235,7 +235,7 @@ function HowItWorks() {
           </a>
         </>
       ),
-      body: 'Coordinate with your opponent. Each round gets a generous timer for time zones and busy schedules.',
+      body: 'Coordinate with your opponent and always play the most recent ruleset. Each round gets a generous timer for time zones and busy schedules.',
     },
     {
       lead: 'Report results',
