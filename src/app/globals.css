@@ -903,70 +903,46 @@ html.lenis, html.lenis body {
   opacity: 0.35;
 }
 
-.sb-tile__metrics {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  z-index: 4;
+.sb-tile__market-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  min-height: 28px;
-  padding: 4px 10px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--bg) 90%, transparent);
-  border: 1px solid color-mix(in srgb, var(--text-primary) 14%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.sb-tile__metrics-trend {
-  font-size: 10px;
+.sb-tile__market-price {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.sb-tile__market-price--na {
+  color: var(--text-muted);
+}
+
+.sb-tile__market-change {
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   line-height: 1;
   white-space: nowrap;
 }
-.sb-tile__metrics-trend--up { color: #22c55e; }
-.sb-tile__metrics-trend--down { color: #ef4444; }
+.sb-tile__market-change--up { color: #22c55e; }
+.sb-tile__market-change--down { color: #ef4444; }
 
-.sb-tile__metrics--price-only {
-  justify-content: flex-end;
+.sb-grid--dense .sb-tile__market-row {
+  padding-bottom: 4px;
+  margin-bottom: 1px;
 }
-
-.sb-tile__metrics-price {
-  margin-left: auto;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  line-height: 1;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
-/* Dense grid (tiles < ~150px): hide trend, compact the price chip. */
-.sb-grid--dense .sb-tile__metrics {
-  top: 5px;
-  left: 5px;
-  right: 5px;
-  min-height: 22px;
-  padding: 3px 7px;
-  border-radius: 5px;
-}
-.sb-grid--dense .sb-tile__metrics-trend { display: none; }
-.sb-grid--dense .sb-tile__metrics-price {
-  margin-left: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 10px;
-}
+.sb-grid--dense .sb-tile__market-price { font-size: 12px; }
+.sb-grid--dense .sb-tile__market-change { font-size: 10px; }
 .sb-grid--dense .sb-tile__spark { height: 20px; }
 
 .sb-tile__foot {

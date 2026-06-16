@@ -361,27 +361,26 @@ function BoxTile({
           )}
         </div>
         <div className="sb-tile__shine" aria-hidden />
+      </div>
+
+      <div className="sb-tile__foot">
         {(box.market != null || trend) && (
-          <div
-            className={`sb-tile__metrics${trend ? '' : ' sb-tile__metrics--price-only'}`}
-            aria-hidden
-          >
-            {trend && (
+          <div className="sb-tile__market-row">
+            {box.market != null ? (
+              <span className="sb-tile__market-price">{formatUsd(box.market)}</span>
+            ) : (
+              <span className="sb-tile__market-price sb-tile__market-price--na">—</span>
+            )}
+            {trend ? (
               <span
-                className={`sb-tile__metrics-trend sb-tile__metrics-trend--${trend.delta >= 0 ? 'up' : 'down'}`}
+                className={`sb-tile__market-change sb-tile__market-change--${trend.delta >= 0 ? 'up' : 'down'}`}
                 title={`${trend.delta >= 0 ? '+' : ''}${trend.delta.toFixed(1)}% over ${box.history.length} snapshots`}
               >
                 {trend.delta >= 0 ? '▲' : '▼'} {Math.abs(trend.delta).toFixed(1)}%
               </span>
-            )}
-            {box.market != null && (
-              <span className="sb-tile__metrics-price">{formatUsd(box.market)}</span>
-            )}
+            ) : null}
           </div>
         )}
-      </div>
-
-      <div className="sb-tile__foot">
         <span className="sb-tile__set">{box.setAbbr}</span>
         <div className="sb-tile__name">{shortName || box.name}</div>
         {box.listings ? (

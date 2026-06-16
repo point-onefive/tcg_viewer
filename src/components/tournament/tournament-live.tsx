@@ -13,6 +13,7 @@ import {
 } from '@/lib/tournament/client'
 import { POLL_OPTIONS, type PollResults } from '@/lib/tournament/poll'
 import { XLogo } from '@/components/gallery/x-logo'
+import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot } from '@/lib/tournament/types'
@@ -219,6 +220,7 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
   const pengUrl = xProfileUrl('pengpost') ?? 'https://x.com/pengpost'
+  const discordUrl = 'https://discord.gg/9meqsjre'
   const steps: { lead: React.ReactNode; body: React.ReactNode; danger?: boolean }[] = [
     { lead: 'Sign up', body: 'Enter a valid X handle before the sign-up timer ends.' },
     {
@@ -284,6 +286,37 @@ function HowItWorks() {
               </div>
             )
           })}
+        </div>
+        <div
+          className="mt-4 pt-4"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <a
+            href={discordUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-3 rounded-md px-3 py-2.5 transition-opacity hover:opacity-90"
+            style={{
+              background: 'color-mix(in srgb, #5865F2 10%, var(--bg))',
+              border: '1px solid color-mix(in srgb, #5865F2 22%, transparent)',
+            }}
+          >
+            <DiscordLogo size={20} style={{ color: '#5865F2', marginTop: 1 }} />
+            <span className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              <span
+                className="font-display text-[10px] font-bold uppercase tracking-wider"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Optional
+              </span>
+              <span className="block mt-0.5">
+                <span className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>
+                  Discord
+                </span>{' '}
+                is available if you want to screenshare, spectate, or chat during your match. Not required.
+              </span>
+            </span>
+          </a>
         </div>
       </div>
     </div>
