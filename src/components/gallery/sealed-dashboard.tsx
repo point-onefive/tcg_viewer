@@ -361,16 +361,23 @@ function BoxTile({
           )}
         </div>
         <div className="sb-tile__shine" aria-hidden />
-        {box.market != null && (
-          <span className="sb-tile__price-badge">{formatUsd(box.market)}</span>
-        )}
-        {trend && (
-          <span
-            className={`sb-tile__trend sb-tile__trend--${trend.delta >= 0 ? 'up' : 'down'}`}
-            title={`${trend.delta >= 0 ? '+' : ''}${trend.delta.toFixed(1)}% over ${box.history.length} snapshots`}
+        {(box.market != null || trend) && (
+          <div
+            className={`sb-tile__metrics${trend ? '' : ' sb-tile__metrics--price-only'}`}
+            aria-hidden
           >
-            {trend.delta >= 0 ? '▲' : '▼'} {Math.abs(trend.delta).toFixed(1)}%
-          </span>
+            {trend && (
+              <span
+                className={`sb-tile__metrics-trend sb-tile__metrics-trend--${trend.delta >= 0 ? 'up' : 'down'}`}
+                title={`${trend.delta >= 0 ? '+' : ''}${trend.delta.toFixed(1)}% over ${box.history.length} snapshots`}
+              >
+                {trend.delta >= 0 ? '▲' : '▼'} {Math.abs(trend.delta).toFixed(1)}%
+              </span>
+            )}
+            {box.market != null && (
+              <span className="sb-tile__metrics-price">{formatUsd(box.market)}</span>
+            )}
+          </div>
         )}
       </div>
 
