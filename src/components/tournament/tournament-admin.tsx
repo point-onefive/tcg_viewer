@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, ExternalLink, Gift, ImagePlus, Loader2, LogOut, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
+import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, Loader2, LogOut, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -89,6 +89,13 @@ export function TournamentAdmin() {
   // approve/reject never makes a row vanish - it just restyles in place.
   const [tab, setTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
 
+  // Next-event waitlist (people queued for the NEXT tournament, separate from
+  // the current event's sign-ups). Auto-converted into pending sign-ups when a
+  // fresh tournament is started.
+  const [waitlist, setWaitlist] = useState<
+    { id: string; xHandle: string; walletAddress: string; createdAt: string }[]
+  >([])
+
   const doLogout = useCallback(() => {
     clearAdminKey()
     setUnlocked(false)
@@ -122,6 +129,14 @@ export function TournamentAdmin() {
     } catch (err) {
       setSnapshot(null)
       setError(err instanceof Error ? err.message : 'Load failed')
+    }
+    // Pull the next-event waitlist too. Best-effort: a missing table (migration
+    // not yet applied) just leaves the list empty, never blocks the panel.
+    try {
+      const r = await adminApi(key, { action: 'list-waitlist' })
+      setWaitlist(r.entries ?? [])
+    } catch {
+      setWaitlist([])
     }
   }, [])
 
@@ -370,6 +385,58 @@ export function TournamentAdmin() {
               </button>
             </form>
 
+            {/* Next event waitlist - queued profiles, NOT current sign-ups */}
+            <div className="p-5" style={card}>
+              <div className="flex items-center gap-2">
+                <Hourglass size={16} style={{ color: '#E85D2A' }} />
+                <h3 className="font-display font-bold">Next event waitlist</h3>
+                <span
+                  className="ml-auto text-xs font-bold tabular-nums px-2 py-0.5"
+                  style={{
+                    background: 'color-mix(in srgb, #E85D2A 12%, var(--bg))',
+                    border: '1px solid color-mix(in srgb, #E85D2A 22%, transparent)',
+                    borderRadius: 999,
+                    color: '#E85D2A',
+                  }}
+                >
+                  {waitlist.length} waiting
+                </span>
+              </div>
+              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                Wallet profiles queued for the <strong>next</strong> tournament (not the current
+                one). When you start a fresh event above, everyone here is auto-added to it as a
+                <strong> pending</strong> sign-up for you to approve or decline, then this list clears.
+              </p>
+              {waitlist.length === 0 ? (
+                <p className="mt-3 text-sm py-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                  Nobody on the waitlist yet.
+                </p>
+              ) : (
+                <ul className="mt-3 flex flex-col gap-1.5">
+                  {waitlist.map((w) => (
+                    <li
+                      key={w.id}
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+                    >
+                      <a
+                        href={xProfileUrl(w.xHandle)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold hover:underline"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {w.xHandle}
+                      </a>
+                      <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                        {new Date(w.createdAt).toLocaleDateString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             {snapshot && code && (
               <>
                 <div className="p-5" style={card}>
@@ -513,7 +580,7 @@ export function TournamentAdmin() {
 
                 <div className="p-5" style={card}>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>
-                    Participants
+                    Current tournament sign-ups
                   </h3>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">

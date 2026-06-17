@@ -103,7 +103,13 @@ export async function apiWaitlistStatus(): Promise<{
 export async function adminApi(
   adminKey: string,
   body: Record<string, unknown>,
-): Promise<{ code?: string; approved?: number; count?: number; ok?: boolean }> {
+): Promise<{
+  code?: string
+  approved?: number
+  count?: number
+  ok?: boolean
+  entries?: { id: string; xHandle: string; walletAddress: string; createdAt: string }[]
+}> {
   return post('/api/tournaments/admin', body, adminKey)
 }
 
