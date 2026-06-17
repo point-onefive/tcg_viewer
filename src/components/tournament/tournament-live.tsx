@@ -279,7 +279,15 @@ function HowItWorks() {
               <div key={i} className="flex items-start gap-2.5">
                 <span
                   className="shrink-0 inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
-                  style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: '#fff', marginTop: 1 }}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
+                    background: `color-mix(in srgb, ${accent} 12%, var(--bg))`,
+                    border: `1px solid color-mix(in srgb, ${accent} 28%, transparent)`,
+                    color: accent,
+                    marginTop: 1,
+                  }}
                 >
                   {i + 1}
                 </span>

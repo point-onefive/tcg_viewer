@@ -47,16 +47,26 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
             </h3>
           </div>
           {count > 0 && (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold"
-              style={{
-                background: 'color-mix(in srgb, #E85D2A 12%, var(--bg))',
-                border: '1px solid color-mix(in srgb, #E85D2A 22%, transparent)',
-                borderRadius: 999,
-                color: '#E85D2A',
-              }}
-            >
-              {count} in line
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                style={{
+                  minWidth: 22,
+                  height: 22,
+                  padding: '0 6px',
+                  background: '#E85D2A',
+                  color: '#fff',
+                  borderRadius: 6,
+                }}
+              >
+                {count}
+              </span>
+              <span
+                className="text-xs font-semibold uppercase tracking-wide"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                in line
+              </span>
             </span>
           )}
         </div>

@@ -390,16 +390,26 @@ export function TournamentAdmin() {
               <div className="flex items-center gap-2">
                 <Hourglass size={16} style={{ color: '#E85D2A' }} />
                 <h3 className="font-display font-bold">Next event waitlist</h3>
-                <span
-                  className="ml-auto text-xs font-bold tabular-nums px-2 py-0.5"
-                  style={{
-                    background: 'color-mix(in srgb, #E85D2A 12%, var(--bg))',
-                    border: '1px solid color-mix(in srgb, #E85D2A 22%, transparent)',
-                    borderRadius: 999,
-                    color: '#E85D2A',
-                  }}
-                >
-                  {waitlist.length} waiting
+                <span className="ml-auto inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                    style={{
+                      minWidth: 22,
+                      height: 22,
+                      padding: '0 6px',
+                      background: '#E85D2A',
+                      color: '#fff',
+                      borderRadius: 6,
+                    }}
+                  >
+                    {waitlist.length}
+                  </span>
+                  <span
+                    className="text-xs font-semibold uppercase tracking-wide"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    waiting
+                  </span>
                 </span>
               </div>
               <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
