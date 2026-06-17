@@ -316,6 +316,22 @@ export async function linkPlayersByXHandle(
     .is('wallet_address', null)
     .select('id')
   if (error) throw new Error(`linkPlayersByXHandle: ${error.message}`)
+
+  // Also claim any prizes that were awarded to this handle before the wallet
+  // existed. The awarded-prizes snapshot is frozen at award time, so its
+  // wallet_address may be null even though the matching player row is now
+  // linked; stamping it here makes the prize appear on the wallet's profile.
+  // Best-effort: a missing table (migration 007 not applied) is ignored.
+  try {
+    await supabase
+      .from('tournament_awarded_prizes')
+      .update({ wallet_address: addr })
+      .eq('x_handle', handle)
+      .is('wallet_address', null)
+  } catch (err) {
+    console.error('linkPlayersByXHandle: prize backfill failed', err)
+  }
+
   return (data ?? []).length
 }
 
