@@ -55,9 +55,16 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Nothing earned (or still loading the first time): render nothing so the
-  // profile stays clean for players with no podium finishes.
-  if (!badges || badges.length === 0) return null
+  // Still loading the first time: render nothing (avoids a flash).
+  if (!badges) return null
+
+  // Nothing earned. In production we render nothing so the profile stays clean
+  // for players with no podium finishes. In development we show a faint shell
+  // so the layout can be previewed before any tournament has completed.
+  if (badges.length === 0) {
+    if (process.env.NODE_ENV === 'production') return null
+    return <BadgesEmptyPreview />
+  }
 
   // Cap how many show at once so a prolific winner doesn't blow out the modal;
   // the rest are one tap away.
@@ -121,6 +128,36 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
       )}
 
       {open && <BadgeResultModal badge={open} onClose={() => setOpen(null)} />}
+    </div>
+  )
+}
+
+// ── Dev-only empty preview: the shell, with no real data ─────────────────────
+// Only rendered when NODE_ENV !== 'production', so prod profiles with no
+// podium finishes still render nothing.
+function BadgesEmptyPreview() {
+  return (
+    <div className="mt-6">
+      <div
+        className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        Trophy case
+      </div>
+      <div
+        className="inline-flex items-center gap-2 px-3 py-2"
+        style={{
+          background: 'var(--bg)',
+          border: '1px dashed var(--border-subtle)',
+          borderRadius: 8,
+          opacity: 0.7,
+        }}
+      >
+        <Medal size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+        <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+          No medals yet - top-3 finishes show here
+        </span>
+      </div>
     </div>
   )
 }

@@ -50,9 +50,16 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Render nothing for players who have not won anything, so the profile stays
-  // clean.
-  if (!prizes || prizes.length === 0) return null
+  // Still loading the first time: render nothing (avoids a flash).
+  if (!prizes) return null
+
+  // Nothing won. In production we render nothing so the profile stays clean. In
+  // development we show a faint shell so the layout can be previewed before any
+  // tournament has handed out prizes.
+  if (prizes.length === 0) {
+    if (process.env.NODE_ENV === 'production') return null
+    return <PrizesEmptyPreview />
+  }
 
   // Cap the shelf so a big winner doesn't blow out the modal; the rest are one
   // tap away.
@@ -86,6 +93,43 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
           {expanded ? 'Show less' : `Show ${hiddenCount} more`}
         </button>
       )}
+    </div>
+  )
+}
+
+// ── Dev-only empty preview: the shell, with no real data ─────────────────────
+// Only rendered when NODE_ENV !== 'production', so prod profiles with no prizes
+// still render nothing.
+function PrizesEmptyPreview() {
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <Gift size={13} style={{ color: '#E85D2A' }} />
+        <span
+          className="text-[11px] font-bold uppercase tracking-wider"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Prizes won
+        </span>
+      </div>
+      <div className="flex items-center gap-2.5">
+        <div
+          className="flex flex-col items-center justify-center"
+          style={{
+            width: 84,
+            height: 88,
+            background: 'var(--bg)',
+            border: '1px dashed var(--border-subtle)',
+            borderRadius: 8,
+            opacity: 0.7,
+          }}
+        >
+          <Gift size={22} style={{ color: 'var(--text-muted)' }} />
+        </div>
+        <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+          No prizes yet - awards show here
+        </span>
+      </div>
     </div>
   )
 }
