@@ -26,6 +26,16 @@ export function resolveAvatarUrl(source: AvatarSource): string | null {
   return null
 }
 
+/**
+ * True when a URL points at one of our own R2-hosted avatar snapshots
+ * (mirrored on save by snapshotAvatarToR2). Client-safe: matches the
+ * `/avatars/<wallet>` key shape rather than reading server-only env.
+ */
+export function isManagedAvatarUrl(url: string | null | undefined): boolean {
+  if (!url) return false
+  return /^https:\/\/[^/]+\/avatars\//i.test(url)
+}
+
 /** Initials shown when no avatar image is available. */
 export function avatarInitials(source: { username?: string | null; walletAddress?: string }): string {
   const name = source.username?.trim()

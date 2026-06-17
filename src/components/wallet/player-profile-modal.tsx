@@ -8,6 +8,7 @@ import { X, User, Check, Loader2, AlertCircle } from 'lucide-react'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { XLogo } from '@/components/gallery/x-logo'
 import { PlayerAvatar } from './player-avatar'
+import { isManagedAvatarUrl } from '@/lib/wallet/avatar'
 import { ModalPortal } from '@/components/ui/modal-portal'
 
 function shortAddress(addr: string): string {
@@ -35,7 +36,13 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
 
   const [username, setUsername] = useState(profile?.username ?? '')
   const [xHandle, setXHandle] = useState(profile?.xHandle ?? '')
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl ?? '')
+  // The custom-URL field only ever holds a URL the *user* pasted. Our own R2
+  // snapshots (managed avatars) are auto-generated from the X handle on save,
+  // so we never echo them back into the input - that would expose an internal
+  // CDN URL and make the field look pre-filled.
+  const [avatarUrl, setAvatarUrl] = useState(
+    profile?.avatarUrl && !isManagedAvatarUrl(profile.avatarUrl) ? profile.avatarUrl : '',
+  )
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [fieldError, setFieldError] = useState<string | null>(null)
@@ -45,7 +52,9 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
     if (profile) {
       setUsername(profile.username ?? '')
       setXHandle(profile.xHandle ?? '')
-      setAvatarUrl(profile.avatarUrl ?? '')
+      setAvatarUrl(
+        profile.avatarUrl && !isManagedAvatarUrl(profile.avatarUrl) ? profile.avatarUrl : '',
+      )
     }
   }, [profile])
 
@@ -71,6 +80,17 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
   }
 
   if (!profile) return null
+
+  // Avatar preview. We deliberately do NOT pass the live-typed X handle to the
+  // avatar, because that would build an unavatar URL and fire a network request
+  // on every keystroke. The real picture is fetched server-side once, on save.
+  // Until then we preview a pasted custom URL or the already-saved snapshot.
+  const typedHandle = xHandle.trim().replace(/^@/, '').toLowerCase()
+  const savedHandle = (profile.xHandle ?? '').toLowerCase()
+  const hasSavedSnapshot = isManagedAvatarUrl(profile.avatarUrl)
+  const handleUnchanged = typedHandle !== '' && typedHandle === savedHandle
+  const previewAvatarUrl =
+    avatarUrl.trim() || (hasSavedSnapshot && handleUnchanged ? profile.avatarUrl : null)
 
   return (
     <ModalPortal onClose={onClose} label="Edit player profile" maxWidth={420}>
@@ -202,22 +222,24 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                   Avatar
                 </label>
 
-                {/* Live preview - uses the X avatar automatically when a handle
-                    is set, or the custom URL override below. */}
+                {/* Live preview. Shows a pasted custom URL or the already-saved
+                    X picture - it never fetches unavatar while you type. The
+                    X picture is fetched and stored once when you hit Save. */}
                 <div className="flex items-center gap-3 mb-2">
                   <PlayerAvatar
                     username={username}
-                    xHandle={xHandle}
-                    avatarUrl={avatarUrl}
+                    avatarUrl={previewAvatarUrl}
                     walletAddress={profile.walletAddress}
                     size={44}
                   />
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     {avatarUrl.trim()
                       ? 'Using your custom image.'
-                      : xHandle.trim()
-                        ? 'Pulled from your X profile automatically.'
-                        : 'Add an X handle above to show your X profile picture.'}
+                      : !xHandle.trim()
+                        ? 'Add an X handle above to use your X profile picture.'
+                        : handleUnchanged && hasSavedSnapshot
+                          ? 'Using your saved X profile picture.'
+                          : 'Your X profile picture is fetched and saved when you hit Save.'}
                   </span>
                 </div>
 
