@@ -4,7 +4,7 @@ import { TournamentGate } from '@/components/tournament/tournament-gate'
 
 export const metadata: Metadata = {
   title: 'Tournament · The Card Wall',
-  description: 'Sign up with your X handle for the current Card Wall Swiss tournament.',
+  description: 'Sign in with your wallet and link your X handle for the current Card Wall tournament.',
 }
 
 export default function TournamentsPage() {

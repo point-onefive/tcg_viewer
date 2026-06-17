@@ -5,6 +5,20 @@ const nextConfig = {
   // running dev server. Default unchanged — only set when explicitly
   // overriding for performance measurements.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
+
+  // Webpack customizations.
+  webpack(config) {
+    // wagmi v3's tempoWallet/porto connectors use a dynamic import('accounts')
+    // with a .catch() fallback - it's optional at runtime but webpack's static
+    // analysis trips over the unresolvable specifier. Tell webpack to treat
+    // 'accounts' as an empty/null module so the bundle doesn't fail at compile
+    // time. The connector handles the missing dep gracefully at runtime.
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      accounts: false,
+    }
+    return config
+  },
   images: {
     // Serve WebP from the optimizer. Source PNGs (especially One Piece) are
     // large; WebP cuts payload ~30-60% and the optimizer caches results.

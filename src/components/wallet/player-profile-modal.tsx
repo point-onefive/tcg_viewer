@@ -1,0 +1,290 @@
+'use client'
+
+// PlayerProfileModal - edit username, X handle, and avatar URL.
+// Shown when the user clicks "Edit profile" in the WalletConnectButton menu.
+
+import { useState, useEffect } from 'react'
+import { X, User, Check, Loader2, AlertCircle } from 'lucide-react'
+import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
+import { XLogo } from '@/components/gallery/x-logo'
+import { PlayerAvatar } from './player-avatar'
+import { ModalPortal } from '@/components/ui/modal-portal'
+
+function shortAddress(addr: string): string {
+  if (addr.length < 10) return addr
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+}
+
+const inputStyle: React.CSSProperties = {
+  background: 'var(--bg)',
+  color: 'var(--text-primary)',
+  border: '1px solid var(--border-subtle)',
+  borderRadius: 6,
+  padding: '9px 12px',
+  fontSize: 14,
+  width: '100%',
+  outline: 'none',
+}
+
+interface PlayerProfileModalProps {
+  onClose: () => void
+}
+
+export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
+  const { profile, saveProfile, refreshProfile } = useWalletAuth()
+
+  const [username, setUsername] = useState(profile?.username ?? '')
+  const [xHandle, setXHandle] = useState(profile?.xHandle ?? '')
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl ?? '')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [fieldError, setFieldError] = useState<string | null>(null)
+
+  // Sync form if profile changes while modal is open.
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username ?? '')
+      setXHandle(profile.xHandle ?? '')
+      setAvatarUrl(profile.avatarUrl ?? '')
+    }
+  }, [profile])
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFieldError(null)
+    setSaving(true)
+    try {
+      await saveProfile({
+        username: username.trim() || null,
+        xHandle: xHandle.trim() || null,
+        avatarUrl: avatarUrl.trim() || null,
+      })
+      await refreshProfile()
+      setSaved(true)
+      // Briefly show the "Saved" confirmation, then close the modal.
+      setTimeout(() => onClose(), 650)
+    } catch (err) {
+      setFieldError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!profile) return null
+
+  return (
+    <ModalPortal onClose={onClose} label="Edit player profile" maxWidth={420}>
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 16px',
+          borderBottom: '1px solid var(--border-subtle)',
+          flexShrink: 0,
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <User size={16} style={{ color: '#E85D2A' }} />
+          <span className="font-display font-bold text-base">Player profile</span>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                color: 'var(--text-muted)',
+                display: 'flex',
+              }}
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Wallet address (read-only) */}
+          <div
+            style={{
+              padding: '10px 16px',
+              background: 'var(--bg)',
+              borderBottom: '1px solid var(--border-subtle)',
+              fontSize: 12,
+              color: 'var(--text-muted)',
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Wallet </span>
+            <span style={{ fontFamily: 'monospace' }}>{shortAddress(profile.walletAddress)}</span>
+            <span style={{ marginLeft: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>
+              {profile.wins}W / {profile.losses}L
+              {profile.draws > 0 ? ` / ${profile.draws}D` : ''}
+            </span>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSave} style={{ padding: '16px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
+            <div className="flex flex-col gap-4">
+              {/* Username */}
+              <div>
+                <label
+                  htmlFor="wp-username"
+                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Username
+                </label>
+                <input
+                  id="wp-username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. CardShark42"
+                  maxLength={20}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  style={inputStyle}
+                />
+                <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  3-20 characters. Letters, numbers, _ or -. Unique across all players.
+                </p>
+              </div>
+
+              {/* X handle */}
+              <div>
+                <label
+                  htmlFor="wp-xhandle"
+                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  X (Twitter) handle
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--text-muted)',
+                      pointerEvents: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <XLogo size={13} />
+                  </span>
+                  <input
+                    id="wp-xhandle"
+                    type="text"
+                    value={xHandle}
+                    onChange={(e) => setXHandle(e.target.value.replace(/^@/, ''))}
+                    placeholder="your_handle"
+                    maxLength={15}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    style={{ ...inputStyle, paddingLeft: 30 }}
+                  />
+                </div>
+              </div>
+
+              {/* Avatar */}
+              <div>
+                <label
+                  htmlFor="wp-avatar"
+                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Avatar
+                </label>
+
+                {/* Live preview - uses the X avatar automatically when a handle
+                    is set, or the custom URL override below. */}
+                <div className="flex items-center gap-3 mb-2">
+                  <PlayerAvatar
+                    username={username}
+                    xHandle={xHandle}
+                    avatarUrl={avatarUrl}
+                    walletAddress={profile.walletAddress}
+                    size={44}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {avatarUrl.trim()
+                      ? 'Using your custom image.'
+                      : xHandle.trim()
+                        ? 'Pulled from your X profile automatically.'
+                        : 'Add an X handle above to show your X profile picture.'}
+                  </span>
+                </div>
+
+                <input
+                  id="wp-avatar"
+                  type="url"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="Optional: custom image URL (https://...)"
+                  style={inputStyle}
+                />
+                <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Leave blank to use your X avatar. Paste an https:// URL to override it.
+                </p>
+              </div>
+
+              {/* Error message */}
+              {fieldError && (
+                <div
+                  className="flex items-center gap-2 text-sm p-3 rounded-md"
+                  style={{
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.3)',
+                    color: '#ef4444',
+                  }}
+                  role="alert"
+                >
+                  <AlertCircle size={14} />
+                  {fieldError}
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={saving}
+                className="footer-btn py-2.5 text-sm font-bold transition-opacity"
+                style={{
+                  background: saved ? '#22c55e' : '#E85D2A',
+                  color: '#fff',
+                  borderRadius: 6,
+                  border: 'none',
+                  cursor: saving ? 'default' : 'pointer',
+                  opacity: saving ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  width: '100%',
+                }}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                    Saving...
+                  </>
+                ) : saved ? (
+                  <>
+                    <Check size={14} />
+                    Saved
+                  </>
+                ) : (
+                  'Save profile'
+                )}
+              </button>
+            </div>
+          </form>
+    </ModalPortal>
+  )
+}
