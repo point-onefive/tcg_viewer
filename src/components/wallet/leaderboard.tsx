@@ -1,15 +1,16 @@
 'use client'
 
 // Leaderboard - global ranking by wins across all Card Wall tournaments.
-// Shown at the top of the tournaments page. Each row links to that player's
-// public profile (/players/<username>).
+// Shown at the top of the tournaments page. Each row opens that player's
+// profile in a gentle popup (PlayerProfileView) - same styling as the wallet
+// menu's "View profile" modal - rather than navigating to a new page.
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Loader2, Medal, ChevronDown } from 'lucide-react'
 import { fetchLeaderboard } from '@/lib/wallet/api-client'
 import type { WalletStanding } from '@/lib/wallet/db'
 import { PlayerAvatar } from './player-avatar'
+import { PlayerProfileView } from './player-profile-view'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -53,17 +54,28 @@ function RankBadge({ rank }: { rank: number }) {
   )
 }
 
-function LeaderboardRow({ standing, rank }: { standing: WalletStanding; rank: number }) {
+function LeaderboardRow({
+  standing,
+  rank,
+  onSelect,
+}: {
+  standing: WalletStanding
+  rank: number
+  onSelect: (standing: WalletStanding) => void
+}) {
   const username = standing.username ?? ''
   return (
-    <Link
-      href={`/players/${encodeURIComponent(username)}`}
-      className="flex items-center gap-3 px-3 sm:px-4 transition-colors"
+    <button
+      type="button"
+      onClick={() => onSelect(standing)}
+      className="flex items-center gap-3 px-3 sm:px-4 transition-colors w-full text-left"
       style={{
         height: 52,
         borderTop: rank === 1 ? 'none' : '1px solid var(--border-subtle)',
         color: 'var(--text-primary)',
-        textDecoration: 'none',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -93,7 +105,7 @@ function LeaderboardRow({ standing, rank }: { standing: WalletStanding; rank: nu
           </>
         )}
       </span>
-    </Link>
+    </button>
   )
 }
 
@@ -101,6 +113,7 @@ export function Leaderboard() {
   const [standings, setStandings] = useState<WalletStanding[] | null>(null)
   const [error, setError] = useState(false)
   const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT)
+  const [selected, setSelected] = useState<WalletStanding | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -147,7 +160,7 @@ export function Leaderboard() {
       ) : (
         <>
           {visible.map((s, i) => (
-            <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} />
+            <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} onSelect={setSelected} />
           ))}
           {(canShowMore || canShowLess) && (
             <div className="flex" style={{ borderTop: '1px solid var(--border-subtle)' }}>
@@ -193,6 +206,10 @@ export function Leaderboard() {
             </div>
           )}
         </>
+      )}
+
+      {selected && (
+        <PlayerProfileView standing={selected} onClose={() => setSelected(null)} />
       )}
     </section>
   )
