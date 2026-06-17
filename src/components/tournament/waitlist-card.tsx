@@ -14,7 +14,7 @@
 // migration 005 is applied - safe to ship ahead of the table existing.
 
 import { useEffect, useState } from 'react'
-import { BellRing, Check, Loader2, Wallet } from 'lucide-react'
+import { BellRing, Check, Loader2 } from 'lucide-react'
 import { apiJoinWaitlist, apiWaitlistStatus } from '@/lib/tournament/client'
 import { XLogo } from '@/components/gallery/x-logo'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
@@ -112,7 +112,7 @@ export function WaitlistCard() {
 
   const intro = (
     <p
-      className="mt-2 text-sm"
+      className="mt-2 text-sm text-center"
       style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}
     >
       Sign-ups for the current event are closed. Join the waitlist and you&rsquo;ll
@@ -182,15 +182,8 @@ export function WaitlistCard() {
     return (
       <Shell count={count}>
         {intro}
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div
-            className="flex items-center gap-2 text-sm"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            <Wallet size={15} style={{ color: '#E85D2A' }} />
-            Connect your wallet to join.
-          </div>
-          <WalletConnectButton />
+        <div className="mt-4 flex justify-center">
+          <WalletConnectButton idleLabel="Connect Wallet to join" />
         </div>
       </Shell>
     )
@@ -225,7 +218,7 @@ export function WaitlistCard() {
   return (
     <Shell count={count}>
       {intro}
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-4 flex justify-center">
         <button
           onClick={join}
           disabled={busy}
@@ -251,7 +244,7 @@ export function WaitlistCard() {
         </button>
       </div>
       {error && (
-        <p className="mt-2 text-sm" style={{ color: '#ef4444' }}>
+        <p className="mt-2 text-sm text-center" style={{ color: '#ef4444' }}>
           {error}
         </p>
       )}

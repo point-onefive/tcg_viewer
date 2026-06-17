@@ -27,6 +27,8 @@ function shortAddress(addr: string): string {
 interface WalletConnectButtonProps {
   /** If true, renders a compact icon-only version for tight layouts. */
   compact?: boolean
+  /** Label for the idle "connect" button. Defaults to "Connect Wallet". */
+  idleLabel?: string
   /** Called after a successful sign-in. */
   onSignedIn?: () => void
   /** Called after sign-out. */
@@ -37,6 +39,7 @@ interface WalletConnectButtonProps {
 
 export function WalletConnectButton({
   compact = false,
+  idleLabel = 'Connect Wallet',
   onSignedIn,
   onSignedOut,
   onProfileClick,
@@ -229,7 +232,7 @@ export function WalletConnectButton({
         <Wallet size={15} />
         {!compact && (
           <span>
-            {status === 'error' ? 'Try again' : 'Connect Wallet'}
+            {status === 'error' ? 'Try again' : idleLabel}
           </span>
         )}
       </button>
