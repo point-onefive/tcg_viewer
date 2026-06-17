@@ -65,20 +65,38 @@ export async function apiEnrollX(code: string, xHandle: string): Promise<void> {
 
 // ── Next-event waitlist ─────────────────────────────────────────────────────
 
-/** Join the frictionless next-event waitlist with just an X handle. */
-export async function apiJoinWaitlist(xHandle: string): Promise<{ alreadyOnList: boolean }> {
-  return post('/api/tournaments/waitlist', { xHandle })
+/**
+ * Join the next-event waitlist. Wallet-backed: the server reads the signed-in
+ * wallet's X handle from its profile, so there is no payload to send.
+ */
+export async function apiJoinWaitlist(): Promise<{ alreadyOnList: boolean }> {
+  return post('/api/tournaments/waitlist', {})
 }
 
-/** Public count of people waiting for the next event. Never throws. */
-export async function apiWaitlistStatus(): Promise<{ available: boolean; count: number }> {
+/**
+ * Public waitlist status: whether the backend is live, how many are waiting,
+ * and whether the signed-in wallet is already on the list. Never throws.
+ */
+export async function apiWaitlistStatus(): Promise<{
+  available: boolean
+  count: number
+  joined: boolean
+}> {
   try {
     const res = await fetch('/api/tournaments/waitlist', { cache: 'no-store' })
-    if (!res.ok) return { available: false, count: 0 }
-    const data = (await res.json()) as { available?: boolean; count?: number }
-    return { available: data.available ?? false, count: data.count ?? 0 }
+    if (!res.ok) return { available: false, count: 0, joined: false }
+    const data = (await res.json()) as {
+      available?: boolean
+      count?: number
+      joined?: boolean
+    }
+    return {
+      available: data.available ?? false,
+      count: data.count ?? 0,
+      joined: data.joined ?? false,
+    }
   } catch {
-    return { available: false, count: 0 }
+    return { available: false, count: 0, joined: false }
   }
 }
 

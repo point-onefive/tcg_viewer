@@ -2,31 +2,40 @@
 -- (after 004_wallet_profiles.sql). MUST run on the SAME project as the
 -- tournament tables.
 --
--- Adds a lightweight, frictionless waitlist so people can register interest in
--- the NEXT event while a tournament is already running (or between events).
--- A waitlist entry is just an X handle - no wallet, no password - so the barrier
--- to "notify me next time" is as low as possible. The operator pulls the list
--- when opening the next tournament.
+-- Adds a wallet-backed waitlist so people can register interest in the NEXT
+-- event while a tournament is already running (or between events). Joining is
+-- one tap once a wallet is connected - the X handle is pulled straight from the
+-- wallet profile, so there is nothing to retype. When the operator opens the
+-- next tournament, every pending waitlist entry is auto-converted into a
+-- PENDING player sign-up for that event (still subject to admin approval), and
+-- the entry is stamped converted_at so it leaves the waitlist.
 --
 -- Security model: same as the rest of the schema. All reads/writes go through
--- Next.js route handlers using the SERVICE ROLE key; RLS is enabled with no
+-- Next.js route handlers using the SERVICE ROLE key; the wallet_address is
+-- verified server-side via SIWE before any insert. RLS is enabled with no
 -- permissive policies so the public anon key gets nothing.
 
 -- ── tournament_waitlist ────────────────────────────────────────────────────
 -- Global (not tied to a tournament id, because the next event does not exist
--- yet). `converted_at` is stamped when the operator rolls an entry into a real
--- sign-up, which also releases the handle from the dedupe index so the same
--- person can waitlist again for a future event.
+-- yet). One row per wallet while pending. `converted_at` is stamped when the
+-- entry is rolled into a real sign-up, which also releases the wallet + handle
+-- from the dedupe indexes so the same person can waitlist again next time.
 create table if not exists tournament_waitlist (
   id              uuid primary key default gen_random_uuid(),
-  x_handle        text not null,                 -- lowercase, stored without @ prefix
-  wallet_address  text,                          -- optional: set if they were signed in
+  wallet_address  text not null,                 -- lowercase 0x-prefixed EVM address
+  x_handle        text not null,                 -- lowercase, without @, copied from profile
   created_at      timestamptz not null default now(),
-  converted_at    timestamptz                    -- null = still waiting
+  converted_at    timestamptz,                   -- null = still waiting
+  converted_tournament_id uuid                   -- which event absorbed this entry
+    references tournaments(id) on delete set null
 );
 
--- One pending entry per handle. Partial unique index so a handle can reappear
--- after it has been converted for a past event.
+-- One pending entry per wallet, and per handle. Partial unique indexes so the
+-- same wallet/handle can reappear after a past entry has been converted.
+create unique index if not exists tournament_waitlist_pending_wallet_idx
+  on tournament_waitlist (wallet_address)
+  where converted_at is null;
+
 create unique index if not exists tournament_waitlist_pending_handle_idx
   on tournament_waitlist (lower(x_handle))
   where converted_at is null;

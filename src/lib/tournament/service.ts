@@ -164,6 +164,11 @@ export async function createTournament(
       .select('*')
       .single()
     if (!error && data) {
+      // Auto-populate the new event from the waitlist (pending sign-ups).
+      // Best-effort: never blocks creation. Dynamic import avoids a static
+      // import cycle (waitlist.ts imports TournamentError from this module).
+      const { convertWaitlistToTournament } = await import('./waitlist')
+      await convertWaitlistToTournament(data.id, { maxPlayers: data.max_players ?? null })
       return { tournament: rowToTournament(data), hostToken }
     }
     lastErr = error
@@ -869,7 +874,14 @@ export async function adminStartFresh(input: {
       })
       .select('*')
       .single()
-    if (!error && data) return { code: data.code }
+    if (!error && data) {
+      // Auto-populate the fresh event from the waitlist (pending sign-ups).
+      // Best-effort: never blocks creation. Dynamic import avoids a static
+      // import cycle (waitlist.ts imports TournamentError from this module).
+      const { convertWaitlistToTournament } = await import('./waitlist')
+      await convertWaitlistToTournament(data.id, { maxPlayers: data.max_players ?? null })
+      return { code: data.code }
+    }
     lastErr = error
     if (error && (error as { code?: string }).code !== '23505') break
   }
