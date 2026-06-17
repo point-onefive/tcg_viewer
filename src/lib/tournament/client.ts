@@ -48,6 +48,14 @@ export async function apiActiveSnapshot(): Promise<TournamentSnapshot> {
   return data as TournamentSnapshot
 }
 
+/** Public snapshot for any tournament by code (used by finalist badges). */
+export async function apiSnapshotByCode(code: string): Promise<TournamentSnapshot> {
+  const res = await fetch(`/api/tournaments/${encodeURIComponent(code)}`, { cache: 'no-store' })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error((data as { error?: string }).error || 'Not found')
+  return data as TournamentSnapshot
+}
+
 /** Live/enrolling probe for the global header badge. Never throws. */
 export async function apiActiveStatus(): Promise<{ live: boolean; status?: string }> {
   try {

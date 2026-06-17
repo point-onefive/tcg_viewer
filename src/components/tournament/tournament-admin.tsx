@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, Loader2, LogOut, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
+import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -445,6 +445,28 @@ export function TournamentAdmin() {
                   ))}
                 </ul>
               )}
+            </div>
+
+            {/* Maintenance - backfill finalist badges for past events */}
+            <div className="p-5" style={card}>
+              <div className="flex items-center gap-2">
+                <Medal size={16} style={{ color: '#f5b301' }} />
+                <h3 className="font-display font-bold">Finalist badges</h3>
+              </div>
+              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                New tournaments record final placements automatically when they finish. Run this
+                once to backfill gold/silver/bronze badges for events that completed before this
+                feature. Safe to run anytime.
+              </p>
+              <AdminBtn
+                disabled={busy}
+                onClick={() => run(async () => {
+                  const r = await adminApi(adminKey, { action: 'recompute-placements' })
+                  setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
+                })}
+              >
+                Recompute placements
+              </AdminBtn>
             </div>
 
             {snapshot && code && (

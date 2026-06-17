@@ -184,6 +184,58 @@ export async function getLeaderboard(limit = 50): Promise<WalletStanding[]> {
   return (data ?? []).map((r) => rowToStanding(r as Record<string, unknown>))
 }
 
+// ── Finalist badges ─────────────────────────────────────────────────────────
+
+/** One podium finish (gold / silver / bronze) earned in a completed event. */
+export interface TournamentBadge {
+  /** Tournament code, used to open the event's final standings. */
+  tournamentCode: string
+  tournamentName: string
+  game: string
+  /** 1 = gold, 2 = silver, 3 = bronze. */
+  rank: number
+  /** Field size the bracket finished with (for "2nd of 16"). */
+  playersCount: number
+  /** When the event was created (used only for ordering, newest first). */
+  awardedAt: string
+}
+
+/**
+ * All podium (top-3) finishes for one wallet, newest first. `final_rank` is only
+ * ever set on completed tournaments, so it doubles as the "this event finished"
+ * flag - no status join needed. Resilient: a missing placements column
+ * (migration 006 not yet applied) returns an empty list rather than throwing,
+ * so profiles still render.
+ */
+export async function getBadges(walletAddress: string): Promise<TournamentBadge[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('players')
+    .select('final_rank, final_players, tournaments(code, name, game, created_at)')
+    .eq('wallet_address', walletAddress.toLowerCase())
+    .not('final_rank', 'is', null)
+    .lte('final_rank', 3)
+  if (error) return []
+  const badges: TournamentBadge[] = []
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    // Supabase returns the embedded relation as an object (or array on some
+    // driver versions); normalize to a single record.
+    const traw = row.tournaments
+    const t = (Array.isArray(traw) ? traw[0] : traw) as Record<string, unknown> | null
+    if (!t?.code) continue
+    badges.push({
+      tournamentCode: t.code as string,
+      tournamentName: (t.name as string) ?? 'Tournament',
+      game: (t.game as string) ?? '',
+      rank: Number(row.final_rank),
+      playersCount: Number(row.final_players ?? 0),
+      awardedAt: (t.created_at as string) ?? '',
+    })
+  }
+  badges.sort((a, b) => (a.awardedAt < b.awardedAt ? 1 : a.awardedAt > b.awardedAt ? -1 : a.rank - b.rank))
+  return badges
+}
+
 // ── Backfill: link existing tournament players to a wallet ──────────────────
 //
 // Players who signed up before wallet auth (or who enrolled with just their X

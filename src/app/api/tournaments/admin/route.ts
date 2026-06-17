@@ -11,6 +11,7 @@ import {
   adminSetResult,
   adminStartBracket,
   adminStartFresh,
+  recomputeAllPlacements,
   TournamentError,
 } from '@/lib/tournament/service'
 import { listWaitlist } from '@/lib/tournament/waitlist'
@@ -32,6 +33,7 @@ type Body =
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
   | { action: 'set-poll'; code: string; open: boolean }
   | { action: 'list-waitlist' }
+  | { action: 'recompute-placements' }
 
 // POST /api/tournaments/admin - admin-only tournament control
 export async function POST(request: Request) {
@@ -77,6 +79,10 @@ export async function POST(request: Request) {
       case 'list-waitlist': {
         const entries = await listWaitlist()
         return ok({ ok: true, entries, count: entries.length })
+      }
+      case 'recompute-placements': {
+        const count = await recomputeAllPlacements()
+        return ok({ ok: true, count })
       }
       default:
         throw new TournamentError('Unknown action.', 400)

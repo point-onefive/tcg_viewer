@@ -645,6 +645,51 @@ function roundFullyResolved(matches: Match[]): boolean {
 }
 
 /**
+ * Persist each bracket player's final finishing position so wallet profiles can
+ * show finalist badges later. Uses the same player set the live standings view
+ * does (seeded + not rejected) and the same computeStandings ranking, so a
+ * stored placement always matches what the bracket showed. Best-effort by
+ * design: callers wrap this so a placement hiccup never blocks completion.
+ */
+async function persistFinalStandings(
+  tournamentId: string,
+  players: Player[],
+  allMatches: Match[],
+): Promise<void> {
+  const sb = getServiceClient()
+  const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
+  if (inBracket.length === 0) return
+  const standings = computeStandings(inBracket, allMatches)
+  const total = standings.length
+  await Promise.all(
+    standings.map((row) =>
+      sb
+        .from('players')
+        .update({ final_rank: row.rank, final_players: total })
+        .eq('id', row.playerId),
+    ),
+  )
+}
+
+/**
+ * Mark a tournament complete and record its final placements in one step.
+ * Placement writes are best-effort: completion must succeed even if they fail.
+ */
+async function finalizeTournament(
+  tournamentId: string,
+  players: Player[],
+  allMatches: Match[],
+): Promise<void> {
+  const sb = getServiceClient()
+  await sb.from('tournaments').update({ status: 'complete' }).eq('id', tournamentId)
+  try {
+    await persistFinalStandings(tournamentId, players, allMatches)
+  } catch {
+    // Never block completion on a placement write.
+  }
+}
+
+/**
  * If the current (latest) round is fully resolved, mark it complete and either
  * generate the next round or finalize the tournament. Safe to call repeatedly.
  */
@@ -670,7 +715,7 @@ export async function maybeAdvance(tournamentId: string): Promise<void> {
   if (tournament.format === 'single-elim') {
     const next = pairSingleElimNext(roundMatches)
     if (!next || next.length === 0) {
-      await sb.from('tournaments').update({ status: 'complete' }).eq('id', tournamentId)
+      await finalizeTournament(tournamentId, players, allMatches)
       return
     }
     await insertRoundWithMatches(tournament, current.number + 1, next)
@@ -680,15 +725,36 @@ export async function maybeAdvance(tournamentId: string): Promise<void> {
   // Swiss
   const totalRounds = tournament.swissRounds ?? recommendedSwissRounds(players.filter((p) => !p.dropped).length)
   if (current.number >= totalRounds) {
-    await sb.from('tournaments').update({ status: 'complete' }).eq('id', tournamentId)
+    await finalizeTournament(tournamentId, players, allMatches)
     return
   }
   const next = pairSwiss(players, allMatches)
   if (next.length === 0) {
-    await sb.from('tournaments').update({ status: 'complete' }).eq('id', tournamentId)
+    await finalizeTournament(tournamentId, players, allMatches)
     return
   }
   await insertRoundWithMatches(tournament, current.number + 1, next)
+}
+
+/**
+ * Backfill final placements for every completed tournament. Idempotent: it just
+ * recomputes standings and overwrites final_rank, so it is safe to run anytime
+ * (used once after the placements migration to seed pre-existing events).
+ * Returns how many tournaments were processed.
+ */
+export async function recomputeAllPlacements(): Promise<number> {
+  const sb = getServiceClient()
+  const { data, error } = await sb
+    .from('tournaments')
+    .select('id')
+    .eq('status', 'complete')
+  if (error) throw new TournamentError(error.message, 500)
+  const ids = (data ?? []).map((r) => r.id as string)
+  for (const id of ids) {
+    const [players, matches] = await Promise.all([fetchPlayers(id), fetchMatches(id)])
+    await persistFinalStandings(id, players, matches)
+  }
+  return ids.length
 }
 
 // ── Prize-distribution poll ────────────────────────────────────────────────

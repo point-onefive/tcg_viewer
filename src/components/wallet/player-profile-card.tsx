@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Trophy } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
+import { ProfileBadges } from './profile-badges'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
 import type { WalletStanding } from '@/lib/wallet/db'
@@ -102,6 +103,9 @@ export function PlayerProfileCard({ standing }: { standing: WalletStanding }) {
                 </span>
               )}
             </div>
+
+            {/* Trophy case: gold/silver/bronze medals from past events */}
+            <ProfileBadges walletAddress={standing.walletAddress} />
           </div>
         </div>
       </div>
