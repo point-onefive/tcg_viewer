@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarClock, Check, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { CalendarClock, Check, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -14,6 +14,12 @@ import {
 import { POLL_OPTIONS, type PollResults } from '@/lib/tournament/poll'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
+import { Leaderboard } from '@/components/wallet/leaderboard'
+import { ModalPortal } from '@/components/ui/modal-portal'
+import {
+  TournamentPasswordModal,
+  isTournamentUnlocked,
+} from '@/components/tournament/tournament-password-modal'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot } from '@/lib/tournament/types'
@@ -521,6 +527,12 @@ export function TournamentLive() {
   const [xHandle, setXHandle] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  // Whether the "Why connect a wallet?" explainer modal is open.
+  const [showWalletInfo, setShowWalletInfo] = useState(false)
+  // Sign-up is gated behind a members-only password popup (the page itself is
+  // public). Track the unlock + whether the prompt is showing.
+  const [signupUnlocked, setSignupUnlocked] = useState(false)
+  const [showSignupPassword, setShowSignupPassword] = useState(false)
   // Which tournament code this browser has signed up for. Scoping to the code
   // (and persisting it) means a *new* tournament correctly shows the sign-up
   // form again instead of a stale "you're in the queue" from a past event.
@@ -532,6 +544,7 @@ export function TournamentLive() {
     } catch {
       /* ignore unavailable storage */
     }
+    setSignupUnlocked(isTournamentUnlocked())
   }, [])
 
   const refresh = useCallback(async () => {
@@ -571,8 +584,7 @@ export function TournamentLive() {
 
   const signedUp = Boolean(tournament && signedUpCode === tournament.code)
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault()
+  async function doEnroll() {
     if (!tournament || !xHandle.trim()) return
     setBusy(true)
     setActionError(null)
@@ -593,6 +605,17 @@ export function TournamentLive() {
     }
   }
 
+  function handleSignup(e: React.FormEvent) {
+    e.preventDefault()
+    if (!tournament || !xHandle.trim()) return
+    // Gate the first sign-up behind the members-only password popup.
+    if (!signupUnlocked) {
+      setShowSignupPassword(true)
+      return
+    }
+    void doEnroll()
+  }
+
   const lede = (
     <>
       <p
@@ -606,13 +629,80 @@ export function TournamentLive() {
         }}
       >
         <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>“</span>
-        Sign up with your <XLogo /> handle - coordinate matches off-site
+        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: '#E85D2A' }} aria-label="wallet" />, link your <XLogo /> handle for authenticity
         <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>”</span>
       </p>
-      <p className="mt-3 text-xs uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
-        {tournament ? `${tournament.format === 'single-elim' ? 'Single elim' : 'Swiss'} format · ` : ''}
-        Admin-verified sign-ups
-      </p>
+
+      <button
+        type="button"
+        onClick={() => setShowWalletInfo(true)}
+        className="inline-flex items-center gap-1 mt-3 text-xs font-semibold transition-opacity hover:opacity-80"
+        style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+      >
+        <Wallet size={12} aria-hidden style={{ opacity: 0.8 }} />
+        Why connect a wallet?
+      </button>
+
+      {showWalletInfo && (
+        <ModalPortal onClose={() => setShowWalletInfo(false)} label="Why connect a wallet?" maxWidth={400}>
+          {/* Close button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
+            <button
+              onClick={() => setShowWalletInfo(false)}
+              aria-label="Close"
+              style={{
+                background: 'var(--bg)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '50%',
+                width: 30,
+                height: 30,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                margin: '0 auto 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'color-mix(in srgb, #E85D2A 16%, var(--bg))',
+                color: '#E85D2A',
+              }}
+            >
+              <Wallet size={24} aria-hidden />
+            </div>
+            <h2
+              className="font-display"
+              style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.01em', textAlign: 'center', marginBottom: 12 }}
+            >
+              Why connect a wallet?
+            </h2>
+            <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-secondary)', textAlign: 'left' }}>
+              Think of it as a username you already own. Connecting your wallet just
+              proves it&apos;s you, then you sign a quick message to confirm. It&apos;s
+              completely free, never touches a blockchain, and there&apos;s no payment
+              or gas fee, ever.
+            </p>
+            <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-secondary)', textAlign: 'left', marginTop: 12 }}>
+              We only use it to keep your win/loss record tied to you across events.
+              Linking your <XLogo size="0.9em" /> handle on top just adds a familiar
+              face so opponents know who they&apos;re playing.
+            </p>
+          </div>
+        </ModalPortal>
+      )}
     </>
   )
 
@@ -643,6 +733,20 @@ export function TournamentLive() {
   return (
     <TournamentShell lede={lede}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
+      {/* Global leaderboard across all tournaments */}
+      <Leaderboard />
+
+      {showSignupPassword && (
+        <TournamentPasswordModal
+          onClose={() => setShowSignupPassword(false)}
+          onUnlock={() => {
+            setSignupUnlocked(true)
+            setShowSignupPassword(false)
+            void doEnroll()
+          }}
+        />
+      )}
+
       {/* Event hero */}
       <div className="mb-6 overflow-hidden" style={card}>
         <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
@@ -660,6 +764,7 @@ export function TournamentLive() {
                   {visiblePlayers.length}
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''} signed up
                 </MetaChip>
+                <MetaChip icon={Check}>Admin-verified</MetaChip>
               </div>
             </div>
             {signupOpen && <CountdownStat label="Sign-ups close in" value={signupCountdown} />}

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Trophy } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { BrandLockup } from '@/components/gallery/brand-lockup'
+import { WalletHeaderWidget } from '@/components/wallet/wallet-header-widget'
 
 // Page chrome shared by every tournament screen. Mirrors the tier-list /
 // chart-race header: sticky blurred bar with the brand lockup + beta tag, a
@@ -54,6 +55,7 @@ export function TournamentShell({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {right}
+            <WalletHeaderWidget />
             <ThemeToggle />
           </div>
         </div>
