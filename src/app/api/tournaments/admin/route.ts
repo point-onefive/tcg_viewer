@@ -13,6 +13,7 @@ import {
   adminStartFresh,
   TournamentError,
 } from '@/lib/tournament/service'
+import { listWaitlist } from '@/lib/tournament/waitlist'
 import type { TournamentPrize } from '@/lib/tournament/types'
 
 export const runtime = 'nodejs'
@@ -30,6 +31,7 @@ type Body =
   | { action: 'start-bracket'; code: string }
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
   | { action: 'set-poll'; code: string; open: boolean }
+  | { action: 'list-waitlist' }
 
 // POST /api/tournaments/admin - admin-only tournament control
 export async function POST(request: Request) {
@@ -72,6 +74,10 @@ export async function POST(request: Request) {
       case 'set-poll':
         await adminSetPollOpen(body.code, body.open)
         return ok({ ok: true })
+      case 'list-waitlist': {
+        const entries = await listWaitlist()
+        return ok({ ok: true, entries, count: entries.length })
+      }
       default:
         throw new TournamentError('Unknown action.', 400)
     }

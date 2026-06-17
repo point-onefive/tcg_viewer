@@ -63,6 +63,25 @@ export async function apiEnrollX(code: string, xHandle: string): Promise<void> {
   await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { xHandle })
 }
 
+// ── Next-event waitlist ─────────────────────────────────────────────────────
+
+/** Join the frictionless next-event waitlist with just an X handle. */
+export async function apiJoinWaitlist(xHandle: string): Promise<{ alreadyOnList: boolean }> {
+  return post('/api/tournaments/waitlist', { xHandle })
+}
+
+/** Public count of people waiting for the next event. Never throws. */
+export async function apiWaitlistStatus(): Promise<{ available: boolean; count: number }> {
+  try {
+    const res = await fetch('/api/tournaments/waitlist', { cache: 'no-store' })
+    if (!res.ok) return { available: false, count: 0 }
+    const data = (await res.json()) as { available?: boolean; count?: number }
+    return { available: data.available ?? false, count: data.count ?? 0 }
+  } catch {
+    return { available: false, count: 0 }
+  }
+}
+
 export async function adminApi(
   adminKey: string,
   body: Record<string, unknown>,

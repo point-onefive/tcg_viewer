@@ -16,6 +16,7 @@ import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
+import { WaitlistCard } from '@/components/tournament/waitlist-card'
 import {
   TournamentPasswordModal,
   isTournamentUnlocked,
@@ -709,12 +710,15 @@ export function TournamentLive() {
   if (loadError && !snapshot) {
     return (
       <TournamentShell lede={lede}>
-        <div className="mx-auto max-w-md p-8 text-center" style={card}>
-          <Trophy size={32} style={{ color: '#E85D2A', margin: '0 auto 12px' }} />
-          <p className="font-display text-lg font-bold">No active tournament</p>
-          <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {loadError.includes('No tournament') ? 'Check back when the next event opens.' : loadError}
-          </p>
+        <div className="mx-auto" style={{ maxWidth: 1080 }}>
+          <div className="mx-auto mb-6 max-w-md p-8 text-center" style={card}>
+            <Trophy size={32} style={{ color: '#E85D2A', margin: '0 auto 12px' }} />
+            <p className="font-display text-lg font-bold">No active tournament</p>
+            <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {loadError.includes('No tournament') ? 'Check back when the next event opens, or get in line below.' : loadError}
+            </p>
+          </div>
+          <WaitlistCard />
         </div>
       </TournamentShell>
     )
@@ -788,6 +792,10 @@ export function TournamentLive() {
       </div>
 
       {tournament.prizes.length > 0 && <PrizePool prizes={tournament.prizes} />}
+
+      {/* Next-event waitlist. Shown only when the current event is not actively
+          enrolling, so it never competes with the live sign-up form below. */}
+      {!signupOpen && <WaitlistCard />}
 
       <PollCard
         code={tournament.code}
