@@ -740,6 +740,10 @@ export function TournamentLive() {
       {/* Global leaderboard across all tournaments */}
       <Leaderboard />
 
+      {/* Next-event waitlist. Shown only when the current event is not actively
+          enrolling, so it never competes with the live sign-up form below. */}
+      {!signupOpen && <WaitlistCard />}
+
       {showSignupPassword && (
         <TournamentPasswordModal
           onClose={() => setShowSignupPassword(false)}
@@ -792,10 +796,6 @@ export function TournamentLive() {
       </div>
 
       {tournament.prizes.length > 0 && <PrizePool prizes={tournament.prizes} />}
-
-      {/* Next-event waitlist. Shown only when the current event is not actively
-          enrolling, so it never competes with the live sign-up form below. */}
-      {!signupOpen && <WaitlistCard />}
 
       <PollCard
         code={tournament.code}
