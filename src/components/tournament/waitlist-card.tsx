@@ -155,7 +155,8 @@ export function WaitlistCard() {
               You&rsquo;re on the list
               {profile?.xHandle ? ` as @${profile.xHandle}` : ''}.
             </span>{' '}
-            We&rsquo;ll drop you into the next tournament automatically.
+            We&rsquo;ll add you to the next tournament&rsquo;s sign-ups automatically,
+            pending admin approval.
           </p>
         </div>
       </Shell>
