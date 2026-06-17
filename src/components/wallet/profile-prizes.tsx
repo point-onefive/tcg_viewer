@@ -32,6 +32,7 @@ function medalColor(rank: number | null): string | null {
 
 export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
   const [prizes, setPrizes] = useState<WonPrize[] | null>(null)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!walletAddress) return
@@ -53,6 +54,12 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
   // clean.
   if (!prizes || prizes.length === 0) return null
 
+  // Cap the shelf so a big winner doesn't blow out the modal; the rest are one
+  // tap away.
+  const CAP = 8
+  const visible = expanded ? prizes : prizes.slice(0, CAP)
+  const hiddenCount = prizes.length - visible.length
+
   return (
     <div className="mt-6">
       <div className="flex items-center gap-1.5 mb-2.5">
@@ -65,10 +72,20 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
         </span>
       </div>
       <div className="flex flex-wrap gap-2.5">
-        {prizes.map((p) => (
+        {visible.map((p) => (
           <PrizeBadge key={p.id} prize={p} />
         ))}
       </div>
+
+      {prizes.length > CAP && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 text-[11px] font-bold uppercase tracking-wider transition-opacity hover:opacity-80"
+          style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
+        >
+          {expanded ? 'Show less' : `Show ${hiddenCount} more`}
+        </button>
+      )}
     </div>
   )
 }

@@ -37,6 +37,7 @@ function medalFor(rank: number) {
 export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
   const [badges, setBadges] = useState<TournamentBadge[] | null>(null)
   const [open, setOpen] = useState<TournamentBadge | null>(null)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!walletAddress) return
@@ -58,6 +59,12 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
   // profile stays clean for players with no podium finishes.
   if (!badges || badges.length === 0) return null
 
+  // Cap how many show at once so a prolific winner doesn't blow out the modal;
+  // the rest are one tap away.
+  const CAP = 6
+  const visible = expanded ? badges : badges.slice(0, CAP)
+  const hiddenCount = badges.length - visible.length
+
   return (
     <div className="mt-6">
       <div
@@ -67,7 +74,7 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
         Trophy case
       </div>
       <div className="flex flex-wrap gap-2">
-        {badges.map((b) => {
+        {visible.map((b) => {
           const m = medalFor(b.rank)
           return (
             <button
@@ -102,6 +109,16 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
           )
         })}
       </div>
+
+      {badges.length > CAP && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 text-[11px] font-bold uppercase tracking-wider transition-opacity hover:opacity-80"
+          style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
+        >
+          {expanded ? 'Show less' : `Show ${hiddenCount} more`}
+        </button>
+      )}
 
       {open && <BadgeResultModal badge={open} onClose={() => setOpen(null)} />}
     </div>
