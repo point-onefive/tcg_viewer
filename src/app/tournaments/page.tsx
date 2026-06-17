@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { TournamentLive } from '@/components/tournament/tournament-live'
-import { TournamentGate } from '@/components/tournament/tournament-gate'
 
 export const metadata: Metadata = {
   title: 'Tournament · The Card Wall',
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function TournamentsPage() {
-  return (
-    <TournamentGate>
-      <TournamentLive />
-    </TournamentGate>
-  )
+  return <TournamentLive />
 }

@@ -19,6 +19,8 @@ const card: React.CSSProperties = {
 }
 
 const COLLAPSED_COUNT = 5
+// How many extra rows each "Show more" click reveals.
+const STEP = 10
 
 function medalColor(rank: number): string | null {
   if (rank === 1) return '#f5b301'
@@ -98,7 +100,7 @@ function LeaderboardRow({ standing, rank }: { standing: WalletStanding; rank: nu
 export function Leaderboard() {
   const [standings, setStandings] = useState<WalletStanding[] | null>(null)
   const [error, setError] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT)
 
   useEffect(() => {
     let cancelled = false
@@ -111,8 +113,12 @@ export function Leaderboard() {
   // Hide the whole section only if the feature is unavailable (API error).
   if (error) return null
 
-  const visible = expanded ? standings ?? [] : (standings ?? []).slice(0, COLLAPSED_COUNT)
-  const hasMore = (standings?.length ?? 0) > COLLAPSED_COUNT
+  const total = standings?.length ?? 0
+  const visible = (standings ?? []).slice(0, visibleCount)
+  const remaining = total - visibleCount
+  const canShowMore = remaining > 0
+  const canShowLess = visibleCount > COLLAPSED_COUNT
+  const nextStep = Math.min(STEP, remaining)
   const isEmpty = standings !== null && standings.length === 0
 
   return (
@@ -143,23 +149,48 @@ export function Leaderboard() {
           {visible.map((s, i) => (
             <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} />
           ))}
-          {hasMore && (
-            <button
-              onClick={() => setExpanded((v) => !v)}
-              className="flex items-center justify-center gap-1.5 w-full py-2.5 text-xs font-bold transition-colors"
-              style={{
-                borderTop: '1px solid var(--border-subtle)',
-                color: 'var(--text-secondary)',
-                background: 'transparent',
-                cursor: 'pointer',
-              }}
-            >
-              {expanded ? 'Show less' : `Show all ${standings.length}`}
-              <ChevronDown
-                size={14}
-                style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
-              />
-            </button>
+          {(canShowMore || canShowLess) && (
+            <div className="flex" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              {canShowMore && (
+                <button
+                  onClick={() => setVisibleCount((c) => Math.min(c + STEP, total))}
+                  className="flex items-center justify-center gap-1.5 flex-1 py-2.5 text-xs font-bold transition-colors"
+                  style={{ color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
+                >
+                  Show {nextStep} more
+                  <ChevronDown size={14} />
+                </button>
+              )}
+              {canShowMore && remaining > STEP && (
+                <button
+                  onClick={() => setVisibleCount(total)}
+                  className="flex items-center justify-center flex-1 py-2.5 text-xs font-bold transition-colors"
+                  style={{
+                    color: 'var(--text-secondary)',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    borderLeft: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  Show all {total}
+                </button>
+              )}
+              {canShowLess && (
+                <button
+                  onClick={() => setVisibleCount(COLLAPSED_COUNT)}
+                  className="flex items-center justify-center gap-1.5 flex-1 py-2.5 text-xs font-bold transition-colors"
+                  style={{
+                    color: 'var(--text-muted)',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    borderLeft: canShowMore ? '1px solid var(--border-subtle)' : 'none',
+                  }}
+                >
+                  Show less
+                  <ChevronDown size={14} style={{ transform: 'rotate(180deg)' }} />
+                </button>
+              )}
+            </div>
           )}
         </>
       )}

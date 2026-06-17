@@ -16,6 +16,7 @@ import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { WalletConnectModal } from './wallet-connect-modal'
 import { friendlyWalletError } from './wallet-icons'
 import { PlayerAvatar } from './player-avatar'
+import { PlayerProfileView } from './player-profile-view'
 
 // Short display for a 0x address: 0x1234...abcd
 function shortAddress(addr: string): string {
@@ -45,6 +46,7 @@ export function WalletConnectButton({
 
   const [showPicker, setShowPicker] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const [pendingId, setPendingId] = useState<string | null>(null)
 
   const handleConnect = async (connectorId: string) => {
@@ -167,14 +169,13 @@ export function WalletConnectButton({
 
               {/* Menu items */}
               {profile.username && (
-                <a
-                  href={`/players/${encodeURIComponent(profile.username)}`}
-                  onClick={() => setShowMenu(false)}
-                  style={{ ...menuItemStyle, textDecoration: 'none' }}
+                <button
+                  onClick={() => { setShowMenu(false); setShowProfile(true) }}
+                  style={menuItemStyle}
                 >
                   <ExternalLink size={14} />
                   View profile
-                </a>
+                </button>
               )}
               <button
                 onClick={() => { setShowMenu(false); onProfileClick?.() }}
@@ -189,6 +190,10 @@ export function WalletConnectButton({
               </button>
             </div>
           </>
+        )}
+
+        {showProfile && (
+          <PlayerProfileView standing={profile} onClose={() => setShowProfile(false)} />
         )}
       </div>
     )
