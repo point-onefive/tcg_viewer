@@ -3,6 +3,7 @@ import { assertAdmin } from '@/lib/tournament/admin-auth'
 import {
   adminApproveAllPending,
   adminApprovePlayer,
+  adminAwardPrizes,
   adminCloseSignup,
   adminExtendSignup,
   adminRejectPlayer,
@@ -29,6 +30,7 @@ type Body =
   | { action: 'reject'; code: string; playerId: string }
   | { action: 'approve-all'; code: string }
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
+  | { action: 'award-prizes'; code: string; assignments: { slotIndex: number; playerIds: string[] }[] }
   | { action: 'start-bracket'; code: string }
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
   | { action: 'set-poll'; code: string; open: boolean }
@@ -65,6 +67,10 @@ export async function POST(request: Request) {
       }
       case 'set-prizes': {
         const res = await adminSetPrizes(body.code, body.prizes)
+        return ok({ ok: true, ...res })
+      }
+      case 'award-prizes': {
+        const res = await adminAwardPrizes(body.code, body.assignments)
         return ok({ ok: true, ...res })
       }
       case 'start-bracket':

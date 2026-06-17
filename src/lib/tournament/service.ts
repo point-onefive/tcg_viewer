@@ -34,6 +34,7 @@ import type {
   TournamentFormat,
   TournamentPrize,
   TournamentSnapshot,
+  AwardedPrize,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { emptyPollResults, isPollChoice, type PollResults } from './poll'
@@ -687,6 +688,146 @@ async function finalizeTournament(
   } catch {
     // Never block completion on a placement write.
   }
+  try {
+    await autoAwardPrizesOnComplete(tournamentId, players, allMatches)
+  } catch {
+    // Never block completion on a prize-award write.
+  }
+}
+
+// ── Awarded prizes (frozen at completion) ──────────────────────────────────
+
+/** Row shape returned from the awarded-prizes table. */
+function rowToAwardedPrize(r: Record<string, unknown>): AwardedPrize {
+  return {
+    id: r.id as string,
+    slotIndex: Number(r.slot_index ?? 0),
+    rank: r.rank == null ? null : Number(r.rank),
+    title: (r.title as string) ?? '',
+    description: (r.description as string) ?? '',
+    image: (r.image as string | null) ?? null,
+    playerId: (r.player_id as string | null) ?? null,
+    walletAddress: (r.wallet_address as string | null) ?? null,
+    xHandle: (r.x_handle as string | null) ?? null,
+    displayName: (r.display_name as string | null) ?? null,
+    awardedAt: (r.awarded_at as string) ?? '',
+  }
+}
+
+/**
+ * All prizes handed out in one tournament, in slot order then placement order.
+ * Resilient: if the awarded-prizes table is missing (migration 007 not yet
+ * applied) it returns an empty list rather than throwing, so the snapshot still
+ * loads.
+ */
+async function fetchAwardedPrizes(tournamentId: string): Promise<AwardedPrize[]> {
+  const sb = getServiceClient()
+  const { data, error } = await sb
+    .from('tournament_awarded_prizes')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('slot_index', { ascending: true })
+    .order('rank', { ascending: true, nullsFirst: false })
+  if (error) return []
+  return (data ?? []).map((r) => rowToAwardedPrize(r as Record<string, unknown>))
+}
+
+/** One winner assigned to a prize slot. */
+interface PrizeAssignment {
+  slotIndex: number
+  playerIds: string[]
+}
+
+/**
+ * Replace the awarded-prize rows for a tournament from a set of assignments.
+ * Each prize slot is SNAPSHOT (title/description/image) from the live pool and
+ * copied onto every assigned winner, alongside that winner's identity + final
+ * placement. Deletes then re-inserts so re-awarding is idempotent.
+ */
+async function persistAwardedPrizes(
+  tournamentId: string,
+  prizes: TournamentPrize[],
+  assignments: PrizeAssignment[],
+): Promise<number> {
+  const sb = getServiceClient()
+
+  // Gather the winners we need identity snapshots for, in one read.
+  const allIds = Array.from(new Set(assignments.flatMap((a) => a.playerIds))).filter(Boolean)
+  const byId = new Map<string, Record<string, unknown>>()
+  if (allIds.length > 0) {
+    const { data } = await sb
+      .from('players')
+      .select('id, display_name, x_handle, wallet_address, final_rank')
+      .in('id', allIds)
+    for (const r of (data ?? []) as Record<string, unknown>[]) {
+      byId.set(r.id as string, r)
+    }
+  }
+
+  const rows: Record<string, unknown>[] = []
+  for (const a of assignments) {
+    const prize = prizes[a.slotIndex]
+    if (!prize) continue
+    for (const pid of a.playerIds) {
+      const p = byId.get(pid)
+      const wallet = (p?.wallet_address as string | null) ?? null
+      rows.push({
+        tournament_id: tournamentId,
+        player_id: pid || null,
+        wallet_address: wallet ? wallet.toLowerCase() : null,
+        x_handle: (p?.x_handle as string | null) ?? null,
+        display_name: (p?.display_name as string | null) ?? null,
+        rank: p?.final_rank == null ? null : Number(p.final_rank),
+        slot_index: a.slotIndex,
+        title: prize.title,
+        description: prize.description ?? '',
+        image: prize.image ?? null,
+      })
+    }
+  }
+
+  // Re-award is destructive-then-rebuild: wipe this event's old rows first.
+  const del = await sb.from('tournament_awarded_prizes').delete().eq('tournament_id', tournamentId)
+  if (del.error) throw new TournamentError(del.error.message, 500)
+  if (rows.length > 0) {
+    const ins = await sb.from('tournament_awarded_prizes').insert(rows)
+    if (ins.error) throw new TournamentError(ins.error.message, 500)
+  }
+  await sb.from('tournaments').update({ prizes_awarded_at: nowIso() }).eq('id', tournamentId)
+  return rows.length
+}
+
+/**
+ * Default prize -> winner mapping used when an event auto-finishes: slot i goes
+ * to the i-th ranked finalist (slot 0 -> 1st place, slot 1 -> 2nd, ...). Only
+ * runs if the event has prizes AND has not already been awarded, so a manual
+ * admin re-award is never clobbered by a later sweep.
+ */
+async function autoAwardPrizesOnComplete(
+  tournamentId: string,
+  players: Player[],
+  allMatches: Match[],
+): Promise<void> {
+  const sb = getServiceClient()
+  const { data: tRow } = await sb
+    .from('tournaments')
+    .select('prizes, prizes_awarded_at')
+    .eq('id', tournamentId)
+    .maybeSingle()
+  if (!tRow) return
+  if (tRow.prizes_awarded_at) return // already resolved (manual award) - don't touch
+  const prizes = rowToTournament({ ...tRow, prizes: tRow.prizes }).prizes
+  if (prizes.length === 0) return
+
+  const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
+  const standings = computeStandings(inBracket, allMatches)
+  const assignments: PrizeAssignment[] = []
+  prizes.forEach((_, i) => {
+    const winner = standings[i]
+    if (winner) assignments.push({ slotIndex: i, playerIds: [winner.playerId] })
+  })
+  if (assignments.length === 0) return
+  await persistAwardedPrizes(tournamentId, prizes, assignments)
 }
 
 /**
@@ -829,11 +970,12 @@ export async function castPollVote(
 export async function getSnapshotByCode(code: string): Promise<TournamentSnapshot> {
   const row = await fetchTournamentRowByCode(code)
   const tournament = rowToTournament(row)
-  const [players, rounds, matches, poll] = await Promise.all([
+  const [players, rounds, matches, poll, awardedPrizes] = await Promise.all([
     fetchPlayers(tournament.id),
     fetchRounds(tournament.id),
     fetchMatches(tournament.id),
     fetchPollResults(tournament.id),
+    fetchAwardedPrizes(tournament.id),
   ])
   const sb = getServiceClient()
   const matchIds = matches.map((m) => m.id)
@@ -847,7 +989,7 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     proposals = (data ?? []).map(rowToProposal)
   }
   const standings = computeStandings(players, matches)
-  return { tournament, players, rounds, matches, proposals, standings, poll }
+  return { tournament, players, rounds, matches, proposals, standings, poll, awardedPrizes }
 }
 
 // ── Active (live) tournament ───────────────────────────────────────────────
@@ -1053,6 +1195,43 @@ export async function adminSetPrizes(
   const { error } = await sb.from('tournaments').update({ prizes: clean }).eq('id', row.id)
   if (error) throw new TournamentError(error.message, 500)
   return { count: clean.length }
+}
+
+/**
+ * Admin: resolve the (now frozen) prize pool to its winners and lock it in.
+ * Only valid once the event is complete - prizes change right up to the end,
+ * so we never freeze a still-running pool. `assignments` is one entry per prize
+ * slot listing the winning player ids (one slot can have many winners, e.g.
+ * "Top 8"). Re-running overwrites the previous award. The live pool itself is
+ * NOT modified; we only snapshot it onto the winners.
+ */
+export async function adminAwardPrizes(
+  code: string,
+  assignments: unknown,
+): Promise<{ count: number }> {
+  const row = await requireHost(code)
+  const tournament = rowToTournament(row)
+  if (tournament.status !== 'complete') {
+    throw new TournamentError('Prizes can only be awarded once the tournament is complete.')
+  }
+  if (!Array.isArray(assignments)) {
+    throw new TournamentError('Assignments must be a list.')
+  }
+  const clean: PrizeAssignment[] = []
+  for (const a of assignments) {
+    const obj = (a ?? {}) as Record<string, unknown>
+    const slotIndex = Number(obj.slotIndex)
+    if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= tournament.prizes.length) {
+      continue
+    }
+    const ids = Array.isArray(obj.playerIds)
+      ? (obj.playerIds.filter((x) => typeof x === 'string' && x) as string[])
+      : []
+    if (ids.length === 0) continue
+    clean.push({ slotIndex, playerIds: Array.from(new Set(ids)) })
+  }
+  const count = await persistAwardedPrizes(tournament.id, tournament.prizes, clean)
+  return { count }
 }
 
 export async function adminApproveAllPending(code: string): Promise<number> {

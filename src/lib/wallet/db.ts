@@ -236,6 +236,58 @@ export async function getBadges(walletAddress: string): Promise<TournamentBadge[
   return badges
 }
 
+// ── Prizes won ───────────────────────────────────────────────────────────────
+
+/** One prize a wallet was actually awarded in a completed event. */
+export interface WonPrize {
+  id: string
+  tournamentCode: string
+  tournamentName: string
+  game: string
+  /** Final placement the prize was awarded for (1 = champion); null if unranked. */
+  rank: number | null
+  /** Prize title, e.g. "1st Place" or "Top 8". */
+  title: string
+  /** Context an image alone can't convey (shown on hover). */
+  description: string
+  /** Prize image (data URL / external URL); null for text-only prizes. */
+  image: string | null
+  awardedAt: string
+}
+
+/**
+ * Every prize one wallet has won, newest first. Reads the immutable
+ * awarded-prizes snapshot (never the live, still-changing pool). Resilient: a
+ * missing table (migration 007 not yet applied) returns [] rather than
+ * throwing, so profiles still render.
+ */
+export async function getPrizesWon(walletAddress: string): Promise<WonPrize[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('tournament_awarded_prizes')
+    .select('id, rank, title, description, image, awarded_at, tournaments(code, name, game)')
+    .eq('wallet_address', walletAddress.toLowerCase())
+    .order('awarded_at', { ascending: false })
+  if (error) return []
+  const prizes: WonPrize[] = []
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    const traw = row.tournaments
+    const t = (Array.isArray(traw) ? traw[0] : traw) as Record<string, unknown> | null
+    prizes.push({
+      id: row.id as string,
+      tournamentCode: (t?.code as string) ?? '',
+      tournamentName: (t?.name as string) ?? 'Tournament',
+      game: (t?.game as string) ?? '',
+      rank: row.rank == null ? null : Number(row.rank),
+      title: (row.title as string) ?? '',
+      description: (row.description as string) ?? '',
+      image: (row.image as string | null) ?? null,
+      awardedAt: (row.awarded_at as string) ?? '',
+    })
+  }
+  return prizes
+}
+
 // ── Backfill: link existing tournament players to a wallet ──────────────────
 //
 // Players who signed up before wallet auth (or who enrolled with just their X

@@ -13,7 +13,7 @@ import {
 } from '@/lib/tournament/client'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
-import type { Match, Player, TournamentPrize, TournamentSnapshot } from '@/lib/tournament/types'
+import type { Match, Player, StandingRow, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -662,6 +662,32 @@ export function TournamentAdmin() {
                     }
                   }}
                 />
+
+                {snapshot.tournament.status === 'complete' && snapshot.tournament.prizes.length > 0 && (
+                  <PrizeAwardEditor
+                    key={`award-${code}`}
+                    prizes={snapshot.tournament.prizes}
+                    standings={snapshot.standings}
+                    awarded={snapshot.awardedPrizes}
+                    busy={busy}
+                    onSave={async (assignments) => {
+                      setBusy(true)
+                      setMsg(null)
+                      setError(null)
+                      try {
+                        const r = await adminApi(adminKey, { action: 'award-prizes', code, assignments })
+                        setMsg(`Awarded ${r.count ?? 0} prize${(r.count ?? 0) === 1 ? '' : 's'}`)
+                        await refresh(adminKey)
+                        return true
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'Could not award prizes')
+                        return false
+                      } finally {
+                        setBusy(false)
+                      }
+                    }}
+                  />
+                )}
               </>
             )}
 
@@ -930,6 +956,186 @@ function PrizeSlotCard({
       </div>
     </div>
   )
+}
+
+/**
+ * Prize-award editor. Shown only once an event is complete. Each prize slot is
+ * matched to its winner(s); a single prize can go to several finalists (e.g.
+ * "Top 8"). Pre-filled from the existing award if there is one, otherwise from
+ * the final standings by position (slot 1 -> 1st, slot 2 -> 2nd, ...). Saving
+ * snapshots the prize onto each winner and locks it into history.
+ */
+function PrizeAwardEditor({
+  prizes,
+  standings,
+  awarded,
+  busy,
+  onSave,
+}: {
+  prizes: TournamentPrize[]
+  standings: StandingRow[]
+  awarded: AwardedPrize[]
+  busy: boolean
+  onSave: (assignments: { slotIndex: number; playerIds: string[] }[]) => Promise<boolean>
+}) {
+  // Finalists, ordered by placement, as the pool of selectable winners.
+  const finalists = useMemo(
+    () => standings.map((s) => ({ id: s.playerId, label: `${ordinal(s.rank)} - ${s.displayName}` })),
+    [standings],
+  )
+  const nameById = useMemo(() => new Map(finalists.map((f) => [f.id, f.label])), [finalists])
+
+  const buildInitial = useCallback((): Record<number, string[]> => {
+    const out: Record<number, string[]> = {}
+    if (awarded.length > 0) {
+      for (const a of awarded) {
+        if (!a.playerId) continue
+        out[a.slotIndex] = [...(out[a.slotIndex] ?? []), a.playerId]
+      }
+    } else {
+      // Positional default: slot i -> i-th ranked finalist.
+      prizes.forEach((_, i) => {
+        const winner = standings[i]
+        if (winner) out[i] = [winner.playerId]
+      })
+    }
+    return out
+  }, [awarded, prizes, standings])
+
+  const [assignments, setAssignments] = useState<Record<number, string[]>>(buildInitial)
+  const [dirty, setDirty] = useState(false)
+
+  const initialKey = JSON.stringify(awarded.map((a) => [a.slotIndex, a.playerId]))
+  useEffect(() => {
+    if (!dirty) setAssignments(buildInitial())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialKey])
+
+  const setSlot = (slotIndex: number, ids: string[]) => {
+    setAssignments((prev) => ({ ...prev, [slotIndex]: ids }))
+    setDirty(true)
+  }
+  const addWinner = (slotIndex: number, id: string) => {
+    if (!id) return
+    const cur = assignments[slotIndex] ?? []
+    if (cur.includes(id)) return
+    setSlot(slotIndex, [...cur, id])
+  }
+  const removeWinner = (slotIndex: number, id: string) => {
+    setSlot(slotIndex, (assignments[slotIndex] ?? []).filter((x) => x !== id))
+  }
+
+  const alreadyAwarded = awarded.length > 0
+
+  const save = async () => {
+    const payload = prizes
+      .map((_, i) => ({ slotIndex: i, playerIds: assignments[i] ?? [] }))
+      .filter((a) => a.playerIds.length > 0)
+    const okSave = await onSave(payload)
+    if (okSave) setDirty(false)
+  }
+
+  return (
+    <div className="p-5" style={card}>
+      <div className="flex items-center gap-2 mb-1">
+        <Medal size={16} style={{ color: '#f5b301' }} />
+        <h3 className="font-display font-bold">Award prizes</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+        Match each prize to its winner(s). Pre-filled by placing - adjust for
+        multi-winner prizes (e.g. Top 8), then lock it in. This publishes the
+        prizes to each winner&rsquo;s profile and the event history.
+        {alreadyAwarded && ' Prizes are already awarded; saving re-awards them.'}
+      </p>
+
+      {finalists.length === 0 ? (
+        <p className="text-sm py-3 text-center" style={{ color: 'var(--text-muted)' }}>
+          No finalists to award to yet.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {prizes.map((prize, i) => {
+            const winners = assignments[i] ?? []
+            const medal = i === 0 ? '#f5b301' : i === 1 ? '#c4cad3' : i === 2 ? '#cd7f32' : null
+            const available = finalists.filter((f) => !winners.includes(f.id))
+            return (
+              <div
+                key={i}
+                className="p-3"
+                style={{
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border-subtle)',
+                  borderLeft: `3px solid ${medal ?? 'var(--border-subtle)'}`,
+                  borderRadius: 6,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="inline-flex items-center justify-center font-display text-[11px] font-bold"
+                    style={{ minWidth: 20, height: 20, borderRadius: 5, background: medal ?? 'color-mix(in srgb, var(--text-primary) 14%, transparent)', color: medal ? '#1a1a1a' : 'var(--text-primary)' }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="font-display font-bold text-sm">{prize.title}</span>
+                  {prize.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={prize.image} alt="" style={{ width: 26, height: 26, objectFit: 'contain', borderRadius: 4, marginLeft: 'auto' }} />
+                  )}
+                </div>
+
+                {winners.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {winners.map((id) => (
+                      <span
+                        key={id}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-semibold"
+                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 5 }}
+                      >
+                        {nameById.get(id) ?? 'Player'}
+                        <button
+                          type="button"
+                          onClick={() => removeWinner(i, id)}
+                          disabled={busy}
+                          aria-label="Remove winner"
+                          style={{ display: 'inline-flex', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <select
+                  value=""
+                  disabled={busy || available.length === 0}
+                  onChange={(e) => addWinner(i, e.target.value)}
+                  style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+                >
+                  <option value="">{available.length === 0 ? 'All finalists added' : '+ Add winner…'}</option>
+                  {available.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )
+          })}
+
+          <AdminBtn disabled={busy || !dirty} onClick={save}>
+            {alreadyAwarded ? 'Re-award prizes' : 'Lock in prizes'}
+          </AdminBtn>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`
 }
 
 /**

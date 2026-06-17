@@ -48,6 +48,7 @@ export function rowToTournament(r: any): Tournament {
     isLive: Boolean(r.is_live),
     maxPlayers: r.max_players ?? null,
     prizes: rowToPrizes(r.prizes),
+    prizesAwardedAt: r.prizes_awarded_at ?? null,
     // Default open when the column is absent (pre-migration) or null.
     pollOpen: r.poll_open ?? true,
     createdAt: r.created_at,

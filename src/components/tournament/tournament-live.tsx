@@ -19,7 +19,7 @@ import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings } from '@/lib/tournament/pairing'
-import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot } from '@/lib/tournament/types'
+import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const POLL_MS = 12_000
 const SIGNED_UP_KEY = 'tcw_tournament_signed_up'
@@ -211,6 +211,108 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
                     {prize.description}
                   </p>
                 )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Public, read-only history of the prizes that were actually handed out, shown
+ * only once an event is complete and its prizes have been resolved to winners.
+ * Reads the frozen award snapshot (never the live pool), grouped by prize slot
+ * so a single prize split across several winners renders as one card.
+ */
+function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
+  // Group by slot so one prize with many winners is a single card.
+  const groups = useMemo(() => {
+    const bySlot = new Map<number, AwardedPrize[]>()
+    for (const a of awarded) {
+      const arr = bySlot.get(a.slotIndex) ?? []
+      arr.push(a)
+      bySlot.set(a.slotIndex, arr)
+    }
+    return Array.from(bySlot.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([slotIndex, winners]) => ({ slotIndex, winners }))
+  }, [awarded])
+
+  if (groups.length === 0) return null
+
+  return (
+    <div className="mb-6 p-5" style={card}>
+      <div className="flex items-center justify-center gap-2 mb-1.5">
+        <Trophy size={18} style={{ color: '#f5b301' }} />
+        <h3 className="font-display text-lg font-bold tracking-tight">Prizes awarded</h3>
+      </div>
+      <p className="text-center text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+        Final results - the prizes handed out for this event.
+      </p>
+      <div className="flex flex-wrap justify-center" style={{ gap: 16, maxWidth: 820, margin: '0 auto' }}>
+        {groups.map(({ slotIndex, winners }) => {
+          const medal = medalColor(slotIndex)
+          const sample = winners[0]
+          return (
+            <div
+              key={slotIndex}
+              className="flex flex-col overflow-hidden"
+              style={{
+                width: 'min(100%, 240px)',
+                flex: '0 0 auto',
+                background: 'var(--bg)',
+                border: '1px solid var(--border-subtle)',
+                borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
+                borderRadius: 6,
+                boxShadow: medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
+              }}
+            >
+              {sample.image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={sample.image}
+                  alt={sample.title}
+                  style={{
+                    width: '100%',
+                    maxHeight: 160,
+                    objectFit: 'contain',
+                    display: 'block',
+                    background: 'var(--bg-surface)',
+                    borderBottom: '1px solid var(--border-subtle)',
+                  }}
+                />
+              )}
+              <div className="flex flex-col gap-2 p-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-flex items-center justify-center font-display text-[11px] font-bold"
+                    style={{ minWidth: 22, height: 22, borderRadius: 5, background: placeAccent(slotIndex).bg, color: placeAccent(slotIndex).fg }}
+                  >
+                    {slotIndex + 1}
+                  </span>
+                  <span className="font-display font-bold text-sm">{sample.title}</span>
+                </div>
+                {sample.description && (
+                  <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                    {sample.description}
+                  </p>
+                )}
+                <div className="flex flex-col gap-1 pt-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <span className="text-[10px] uppercase tracking-wide font-bold" style={{ color: 'var(--text-muted)' }}>
+                    {winners.length > 1 ? 'Winners' : 'Winner'}
+                  </span>
+                  {winners.map((w) => (
+                    <span key={w.id} className="text-xs font-semibold">
+                      {w.xHandle ? (
+                        <XProfileLink handle={w.xHandle} />
+                      ) : (
+                        <span style={{ color: 'var(--text-primary)' }}>{w.displayName ?? 'Player'}</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           )
@@ -881,6 +983,13 @@ export function TournamentLive() {
           players={snapshot.players}
           activeRound={activeRound}
         />
+      )}
+
+      {/* Prize history - only after the event is complete + prizes resolved */}
+      {tournament.status === 'complete' && snapshot.awardedPrizes.length > 0 && (
+        <div className="mt-6">
+          <AwardedPrizesHistory awarded={snapshot.awardedPrizes} />
+        </div>
       )}
       </div>
     </TournamentShell>

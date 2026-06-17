@@ -93,6 +93,8 @@ export interface Tournament {
   maxPlayers: number | null
   /** Admin-curated prize pool shown publicly; empty = no prizes. */
   prizes: TournamentPrize[]
+  /** When prizes were resolved to winners (ISO); null = not awarded yet. */
+  prizesAwardedAt: string | null
   /** When false, the prize-distribution poll is closed to new votes. */
   pollOpen: boolean
   createdAt: string
@@ -182,6 +184,32 @@ export interface StandingRow {
   rank: number
 }
 
+/**
+ * An immutable record of one prize handed to one winner when an event finished.
+ * The title/description/image are SNAPSHOTS taken at award time, so later edits
+ * to the live prize pool never rewrite history. A prize split across several
+ * winners is several rows sharing the same `slotIndex`/`title`/`image`.
+ */
+export interface AwardedPrize {
+  id: string
+  /** Which prize slot (0-based) in the live pool this came from. */
+  slotIndex: number
+  /** The winner's final placement (1 = champion); null if unranked. */
+  rank: number | null
+  /** Prize title snapshot, e.g. "1st Place" or "Top 8". */
+  title: string
+  /** Prize description snapshot - the context an image alone can't convey. */
+  description: string
+  /** Prize image snapshot (data URL / external URL); null for text-only. */
+  image: string | null
+  /** Winner identity snapshots. walletAddress is null for X-handle-only players. */
+  playerId: string | null
+  walletAddress: string | null
+  xHandle: string | null
+  displayName: string | null
+  awardedAt: string
+}
+
 // ── API payloads ───────────────────────────────────────────────────────────
 
 export interface CreateTournamentInput {
@@ -218,4 +246,6 @@ export interface TournamentSnapshot {
   standings: StandingRow[]
   /** Prize-distribution poll tallies for the live tournament. */
   poll: PollResults
+  /** Prizes resolved to winners; empty until the event completes + is awarded. */
+  awardedPrizes: AwardedPrize[]
 }

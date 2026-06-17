@@ -8,6 +8,7 @@
 import { Trophy, X } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
 import { ProfileBadges } from './profile-badges'
+import { ProfilePrizes } from './profile-prizes'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
 import { ModalPortal } from '@/components/ui/modal-portal'
@@ -121,6 +122,9 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
 
         {/* Trophy case: gold/silver/bronze medals from past events */}
         <ProfileBadges walletAddress={standing.walletAddress} />
+
+        {/* Prize shelf: the actual prizes won (image badges, hover for context) */}
+        <ProfilePrizes walletAddress={standing.walletAddress} />
       </div>
     </ModalPortal>
   )
