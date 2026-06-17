@@ -17,10 +17,6 @@ import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
-import {
-  TournamentPasswordModal,
-  isTournamentUnlocked,
-} from '@/components/tournament/tournament-password-modal'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot } from '@/lib/tournament/types'
@@ -538,10 +534,6 @@ export function TournamentLive() {
   const [actionError, setActionError] = useState<string | null>(null)
   // Whether the "Why connect a wallet?" explainer modal is open.
   const [showWalletInfo, setShowWalletInfo] = useState(false)
-  // Sign-up is gated behind a members-only password popup (the page itself is
-  // public). Track the unlock + whether the prompt is showing.
-  const [signupUnlocked, setSignupUnlocked] = useState(false)
-  const [showSignupPassword, setShowSignupPassword] = useState(false)
   // Which tournament code this browser has signed up for. Scoping to the code
   // (and persisting it) means a *new* tournament correctly shows the sign-up
   // form again instead of a stale "you're in the queue" from a past event.
@@ -553,7 +545,6 @@ export function TournamentLive() {
     } catch {
       /* ignore unavailable storage */
     }
-    setSignupUnlocked(isTournamentUnlocked())
   }, [])
 
   const refresh = useCallback(async () => {
@@ -617,11 +608,6 @@ export function TournamentLive() {
   function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     if (!tournament || !xHandle.trim()) return
-    // Gate the first sign-up behind the members-only password popup.
-    if (!signupUnlocked) {
-      setShowSignupPassword(true)
-      return
-    }
     void doEnroll()
   }
 
@@ -751,17 +737,6 @@ export function TournamentLive() {
       {/* Next-event waitlist. Shown only when the current event is not actively
           enrolling, so it never competes with the live sign-up form below. */}
       {!signupOpen && <WaitlistCard />}
-
-      {showSignupPassword && (
-        <TournamentPasswordModal
-          onClose={() => setShowSignupPassword(false)}
-          onUnlock={() => {
-            setSignupUnlocked(true)
-            setShowSignupPassword(false)
-            void doEnroll()
-          }}
-        />
-      )}
 
       {/* Event hero */}
       <div className="mb-6 overflow-hidden" style={card}>
