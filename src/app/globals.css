@@ -1507,6 +1507,30 @@ html.lenis, html.lenis body {
   }
 }
 
+/* Active round label in a bracket (e.g. the orange "FINAL" / "Round 3"
+   column header, or the selected round tab): a soft opacity breathe so the
+   round currently being played gently draws the eye. Opacity only -- no
+   transform -- so it never shifts neighbouring headers. */
+@keyframes round-active-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.round-active-breathe {
+  animation: round-active-breathe 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .round-active-breathe {
+    animation: none;
+  }
+}
+
 /* ─── Zoom slider ──────────────────────────────────────────────── */
 /* Zoom slider */
 .zoom-slider {

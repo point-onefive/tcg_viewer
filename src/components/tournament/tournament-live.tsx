@@ -1194,7 +1194,7 @@ function SwissBoard({
                 >
                   Round {r.number}
                   {r.status === 'active' && (
-                    <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: on ? 'var(--bg)' : '#E85D2A' }} />
+                    <span className="round-active-breathe inline-block w-1.5 h-1.5 rounded-full" style={{ background: on ? 'var(--bg)' : '#E85D2A' }} />
                   )}
                 </button>
               )
@@ -1363,7 +1363,9 @@ function ElimBracket({
             {columns.map((col) => (
               <div key={col.roundNum} className="flex flex-col" style={{ flex: '1 0 210px', minWidth: 210 }}>
                 <div
-                  className="text-center text-[10px] font-bold uppercase tracking-widest mb-2 pb-2"
+                  className={`text-center text-[10px] font-bold uppercase tracking-widest mb-2 pb-2${
+                    col.round?.status === 'active' ? ' round-active-breathe' : ''
+                  }`}
                   style={{ color: col.round?.status === 'active' ? '#E85D2A' : 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)' }}
                 >
                   {col.label}
