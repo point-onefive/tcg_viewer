@@ -449,30 +449,6 @@ export function TournamentAdmin() {
               )}
             </div>
 
-            {/* Maintenance - backfill finalist badges for past events */}
-            <div className="p-5" style={card}>
-              <div className="flex items-center gap-2">
-                <Medal size={16} style={{ color: '#f5b301' }} />
-                <h3 className="font-display font-bold">Finalist badges</h3>
-              </div>
-              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                New tournaments record final placements automatically when they finish. Run this
-                once to backfill gold/silver/bronze badges for events that completed before this
-                feature. Safe to run anytime.
-              </p>
-              <div className="mt-4 flex justify-center">
-                <AdminBtn
-                  disabled={busy}
-                  onClick={() => run(async () => {
-                    const r = await adminApi(adminKey, { action: 'recompute-placements' })
-                    setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
-                  })}
-                >
-                  Recompute placements
-                </AdminBtn>
-              </div>
-            </div>
-
             {snapshot && code && (
               <>
                 <div className="p-5" style={card}>
@@ -694,6 +670,31 @@ export function TournamentAdmin() {
                 )}
               </>
             )}
+
+            {/* Maintenance - backfill finalist badges for past events. Rarely
+                run, so it lives at the bottom of the panel. */}
+            <div className="p-5" style={card}>
+              <div className="flex items-center gap-2">
+                <Medal size={16} style={{ color: '#f5b301' }} />
+                <h3 className="font-display font-bold">Finalist badges</h3>
+              </div>
+              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                New tournaments record final placements automatically when they finish. Run this
+                once to backfill gold/silver/bronze badges for events that completed before this
+                feature. Safe to run anytime.
+              </p>
+              <div className="mt-4 flex justify-center">
+                <AdminBtn
+                  disabled={busy}
+                  onClick={() => run(async () => {
+                    const r = await adminApi(adminKey, { action: 'recompute-placements' })
+                    setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
+                  })}
+                >
+                  Recompute placements
+                </AdminBtn>
+              </div>
+            </div>
 
             {error && snapshot && (
               <div className="p-4 text-sm" style={{ ...card, color: '#ef4444' }}>{error}</div>
