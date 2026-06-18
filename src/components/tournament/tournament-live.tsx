@@ -7,6 +7,7 @@ import {
   apiActiveSnapshot,
   apiCastVote,
   apiEnroll,
+  apiReportResult,
   loadVotedChoice,
   loadVoterId,
   saveVotedChoice,
@@ -328,6 +329,205 @@ function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
   )
 }
 
+/** Win / Loss (/ Draw for Swiss) report buttons shared across card states. */
+function ReportButtons({
+  busy,
+  onReport,
+  allowDraw,
+}: {
+  busy: 'win' | 'loss' | 'draw' | null
+  onReport: (r: 'win' | 'loss' | 'draw') => void
+  allowDraw: boolean
+}) {
+  const btn = (
+    result: 'win' | 'loss' | 'draw',
+    label: string,
+    accent: string,
+  ) => (
+    <button
+      type="button"
+      disabled={busy !== null}
+      onClick={() => onReport(result)}
+      className="footer-btn inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-bold"
+      style={{
+        flex: 1,
+        minWidth: 96,
+        borderRadius: 8,
+        background: `color-mix(in srgb, ${accent} 12%, var(--bg-surface))`,
+        border: `1px solid color-mix(in srgb, ${accent} 32%, transparent)`,
+        color: accent,
+        opacity: busy !== null && busy !== result ? 0.5 : 1,
+        cursor: busy !== null ? 'default' : 'pointer',
+      }}
+    >
+      {busy === result ? <Loader2 size={15} className="animate-spin" /> : null}
+      {label}
+    </button>
+  )
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {btn('win', 'I won', '#22c55e')}
+      {btn('loss', 'I lost', '#ef4444')}
+      {allowDraw && btn('draw', 'Draw', '#a3a3a3')}
+    </div>
+  )
+}
+
+/**
+ * Player-facing result reporting for the signed-in player's current match.
+ * Both players self-report; matching verdicts auto-confirm and advance the
+ * bracket, a conflict flags the match for admin review, and a single report
+ * holds provisionally until the opponent confirms.
+ */
+function MyMatchCard({
+  code,
+  match,
+  myPlayerId,
+  opponent,
+  format,
+  onReported,
+}: {
+  code: string
+  match: Match
+  myPlayerId: string
+  opponent: Player | null
+  format: Tournament['format']
+  onReported: () => Promise<void> | void
+}) {
+  const [busy, setBusy] = useState<'win' | 'loss' | 'draw' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const isP1 = match.player1Id === myPlayerId
+  const myReport = isP1 ? match.player1Report : match.player2Report
+  const theirReport = isP1 ? match.player2Report : match.player1Report
+  const oppLabel = opponent ? formatXLabel(opponent.xHandle) : 'your opponent'
+
+  const report = useCallback(
+    async (result: 'win' | 'loss' | 'draw') => {
+      setBusy(result)
+      setError(null)
+      try {
+        await apiReportResult(code, match.id, result)
+        await onReported()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not report result')
+      } finally {
+        setBusy(null)
+      }
+    },
+    [code, match.id, onReported],
+  )
+
+  const shell = (accent: string, children: React.ReactNode) => (
+    <div className="mb-6 overflow-hidden" style={card}>
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, ${accent} 35%, transparent))` }} />
+      <div className="p-5 sm:p-6">{children}</div>
+    </div>
+  )
+
+  const header = (
+    <div className="flex items-center gap-2 mb-1">
+      <Swords size={18} style={{ color: '#E85D2A' }} />
+      <h3 className="font-display text-lg font-bold tracking-tight">Your match</h3>
+    </div>
+  )
+
+  const vsLine = (
+    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+      vs{' '}
+      {opponent ? (
+        <XProfileLink handle={opponent.xHandle} className="font-semibold" />
+      ) : (
+        <span className="font-semibold">{oppLabel}</span>
+      )}
+    </p>
+  )
+
+  // Bye - nothing to report.
+  if (!match.player2Id || match.status === 'bye') {
+    return shell('#22c55e', (
+      <>
+        {header}
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          You have a bye this round and advance automatically.
+        </p>
+      </>
+    ))
+  }
+
+  // Finalized.
+  if (match.status === 'confirmed') {
+    const draw = match.winnerId === null
+    const iWon = match.winnerId === myPlayerId
+    const accent = draw ? '#a3a3a3' : iWon ? '#22c55e' : '#ef4444'
+    const label = draw ? 'Draw' : iWon ? 'You won' : 'You lost'
+    return shell(accent, (
+      <>
+        {header}
+        {vsLine}
+        <div className="mt-3 inline-flex items-center gap-2 rounded-md px-3 py-2"
+          style={{ background: `color-mix(in srgb, ${accent} 12%, var(--bg))`, border: `1px solid color-mix(in srgb, ${accent} 28%, transparent)` }}>
+          <Check size={16} style={{ color: accent }} />
+          <span className="font-display font-bold text-sm" style={{ color: accent }}>{label}</span>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>· result confirmed</span>
+        </div>
+      </>
+    ))
+  }
+
+  // Reports conflict - admin review.
+  if (match.status === 'disputed') {
+    return shell('#f59e0b', (
+      <>
+        {header}
+        {vsLine}
+        <p className="mt-3 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          Your reports don&rsquo;t match, so an admin will review and finalize this
+          match. No further action needed for now.
+        </p>
+      </>
+    ))
+  }
+
+  // I already reported - waiting on my opponent.
+  if (myReport) {
+    const mine = myReport === 'win' ? 'a win' : myReport === 'loss' ? 'a loss' : 'a draw'
+    return shell('#E85D2A', (
+      <>
+        {header}
+        {vsLine}
+        <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <Loader2 size={15} className="animate-spin" style={{ color: '#E85D2A' }} />
+          You reported {mine}. Waiting for {oppLabel} to confirm.
+        </div>
+        <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+          Made a mistake? Re-report below to correct it.
+        </p>
+        <ReportButtons busy={busy} onReport={report} allowDraw={format === 'swiss'} />
+        {error && <p className="mt-2 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
+      </>
+    ))
+  }
+
+  // Default: opponent may have reported; show the buttons.
+  return shell('#E85D2A', (
+    <>
+      {header}
+      {vsLine}
+      {theirReport && (
+        <p className="mt-3 rounded-md px-3 py-2 text-xs" style={{ background: 'color-mix(in srgb, #E85D2A 8%, var(--bg))', border: '1px solid color-mix(in srgb, #E85D2A 22%, transparent)', color: 'var(--text-secondary)' }}>
+          {oppLabel} reported {theirReport === 'win' ? 'a win' : theirReport === 'loss' ? 'a loss' : 'a draw'}. Report your result to confirm - if it matches, the bracket advances right away.
+        </p>
+      )}
+      <p className="mt-3 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+        How did your match go?
+      </p>
+      <ReportButtons busy={busy} onReport={report} allowDraw={format === 'swiss'} />
+      {error && <p className="mt-2 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
+    </>
+  ))
+}
+
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
   const discordUrl = 'https://discord.gg/9meqsjre'
@@ -358,7 +558,7 @@ function HowItWorks() {
     },
     {
       lead: 'Report results',
-      body: 'A new results-reporting flow is on the way. Details coming soon.',
+      body: 'After your match, both players tap Win or Loss on the "Your match" card. If you agree, it logs instantly and the bracket advances. If you disagree, an admin reviews it.',
     },
     {
       lead: 'Play fair',
@@ -766,6 +966,41 @@ export function TournamentLive() {
         )),
   )
 
+  // Resolve the signed-in wallet to its player row (by X handle), then find
+  // that player's match in the active round so we can surface a "report your
+  // result" card right at the top while the event is running.
+  const playerById = useMemo(() => {
+    const m = new Map<string, Player>()
+    for (const p of snapshot?.players ?? []) m.set(p.id, p)
+    return m
+  }, [snapshot?.players])
+
+  const myPlayer = useMemo(() => {
+    if (!profile?.xHandle) return null
+    const h = profile.xHandle.toLowerCase()
+    return visiblePlayers.find((p) => p.xHandle.toLowerCase() === h) ?? null
+  }, [profile?.xHandle, visiblePlayers])
+
+  const myActiveMatch = useMemo(() => {
+    if (!myPlayer || !activeRound) return null
+    return (
+      (snapshot?.matches ?? []).find(
+        (m) =>
+          m.roundId === activeRound.id &&
+          (m.player1Id === myPlayer.id || m.player2Id === myPlayer.id),
+      ) ?? null
+    )
+  }, [myPlayer, activeRound, snapshot?.matches])
+
+  const myOpponent = useMemo(() => {
+    if (!myPlayer || !myActiveMatch) return null
+    const oppId =
+      myActiveMatch.player1Id === myPlayer.id
+        ? myActiveMatch.player2Id
+        : myActiveMatch.player1Id
+    return oppId ? playerById.get(oppId) ?? null : null
+  }, [myPlayer, myActiveMatch, playerById])
+
   async function doEnroll() {
     if (!tournament) return
     setBusy(true)
@@ -957,6 +1192,17 @@ export function TournamentLive() {
       </div>
 
       {tournament.prizes.length > 0 && <PrizePool prizes={tournament.prizes} />}
+
+      {tournament.status === 'running' && myPlayer && myActiveMatch && (
+        <MyMatchCard
+          code={tournament.code}
+          match={myActiveMatch}
+          myPlayerId={myPlayer.id}
+          opponent={myOpponent}
+          format={tournament.format}
+          onReported={refresh}
+        />
+      )}
 
       <PollCard
         code={tournament.code}

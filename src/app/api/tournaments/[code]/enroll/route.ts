@@ -30,7 +30,7 @@ export async function POST(
         422,
       )
     }
-    const result = await enroll(code, profile.xHandle)
+    const result = await enroll(code, profile.xHandle, session.address)
     return ok(result, 201)
   })
 }

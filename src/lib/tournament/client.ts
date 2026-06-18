@@ -171,3 +171,17 @@ export async function apiCastVote(voterId: string, choice: string): Promise<Poll
   const data = await post<{ poll: PollResults }>('/api/tournaments/poll', { voterId, choice })
   return data.poll
 }
+
+/**
+ * Report your own match result. Wallet-backed: the server identifies you from
+ * the signed-in wallet session, so only the match id and result are sent. When
+ * both players agree the match auto-confirms; a conflict flags it for admin
+ * review.
+ */
+export async function apiReportResult(
+  code: string,
+  matchId: string,
+  result: 'win' | 'loss' | 'draw',
+): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/report`, { matchId, result })
+}
