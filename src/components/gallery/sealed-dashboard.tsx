@@ -47,17 +47,21 @@ const BoxLineChart = dynamic(
   { ssr: false, loading: () => <div className="sb-detail-chart-skeleton" /> },
 )
 
-// zoom 1 = 2 cols (big), 12 = ~13 cols (small). Same feel as card wall.
+// The zoom scrubber maps one notch to exactly one column, so every notch on the
+// track produces a visible change (no dead notches where scrubbing does
+// nothing). Each breakpoint exposes only the column counts that actually fit:
+// phones top out at 3 columns, small tablets at 6, desktop at 12.
+function colRangeForWidth(windowWidth: number): { min: number; max: number } {
+  if (windowWidth < 640) return { min: 1, max: 3 } // phones
+  if (windowWidth < 768) return { min: 2, max: 6 } // small tablets
+  return { min: 2, max: 12 } // desktop
+}
+
+// Resolve the live column count: the chosen zoom (which IS the column count)
+// clamped into whatever range the current viewport supports.
 function zoomToCols(zoom: number, windowWidth: number): number {
-  const desired = zoom + 1
-  if (windowWidth < 640) {
-    // Phones: compress the 1-11 zoom range into 1-3 columns. The
-    // desktop mapping put the default at 5-up, which shrank each box
-    // to ~70px - badges covered the art and prices truncated.
-    return Math.min(Math.max(Math.ceil(desired / 4), 1), 3)
-  }
-  const max = windowWidth < 768 ? 6 : 12
-  return Math.min(Math.max(desired, 1), max)
+  const { min, max } = colRangeForWidth(windowWidth)
+  return Math.min(Math.max(Math.round(zoom), min), max)
 }
 
 // Row gap runs larger than column gap so the foot (name · listings ·
@@ -70,16 +74,23 @@ function gapForCols(cols: number): { col: number; row: number } {
 }
 
 /** Card-wall-style zoom scrubber. `fluid` stretches the track to fill
- *  its flex slot (mobile row); otherwise it's a fixed 90px desktop pill. */
+ *  its flex slot (mobile row); otherwise it's a fixed 90px desktop pill.
+ *  `min`/`max` come from the active breakpoint so every notch maps to a
+ *  distinct column count (no dead notches). `value` is the live, clamped
+ *  column count so the thumb always sits within the track. */
 function ZoomScrubber({
-  zoom,
+  value,
   setZoom,
+  min,
+  max,
   ctrl,
   className,
   fluid = false,
 }: {
-  zoom: number
+  value: number
   setZoom: (z: number) => void
+  min: number
+  max: number
   ctrl: React.CSSProperties
   className?: string
   fluid?: boolean
@@ -96,7 +107,7 @@ function ZoomScrubber({
         <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
       </svg>
       <input
-        type="range" min={1} max={11} step={1} value={zoom}
+        type="range" min={min} max={max} step={1} value={value}
         onChange={(e) => setZoom(Number(e.target.value))}
         className="zoom-slider" aria-label="Zoom level"
         style={fluid ? { width: '100%' } : { width: 90 }}
@@ -114,7 +125,11 @@ function ZoomScrubber({
 export function SealedDashboard() {
   const ready = useEnsureBoxesLoaded()
   const tierPoolCount = useStore((s) => s.tierPool.length)
-  const [zoom, setZoom] = useState(4)
+  // Zoom IS the desired column count. Phones default to 2-up (roomy box art),
+  // larger screens to 5-up; each is then clamped to the breakpoint's range.
+  const [zoom, setZoom] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 640 ? 2 : 5,
+  )
   const [windowWidth, setWindowWidth] = useState(1200)
 
   useEffect(() => {
@@ -125,6 +140,7 @@ export function SealedDashboard() {
   }, [])
 
   const columns = zoomToCols(zoom, windowWidth)
+  const zoomRange = colRangeForWidth(windowWidth)
 
   const boxes = useMemo(() => {
     if (!ready) return []
@@ -196,7 +212,7 @@ export function SealedDashboard() {
             {/* Zoom + help live in row 1 on desktop only; on phones they
                 move to the dedicated second row below so the brand
                 lockup never gets crushed out of its own row. */}
-            <ZoomScrubber zoom={zoom} setZoom={setZoom} ctrl={ctrl} className="hidden sm:flex" />
+            <ZoomScrubber value={columns} setZoom={setZoom} min={zoomRange.min} max={zoomRange.max} ctrl={ctrl} className="hidden sm:flex" />
             <Link
               href="/help"
               className="footer-btn hidden sm:inline-flex items-center justify-center"
@@ -244,7 +260,7 @@ export function SealedDashboard() {
           className="sm:hidden flex items-center gap-2"
           style={{ padding: '0 16px 9px' }}
         >
-          <ZoomScrubber zoom={zoom} setZoom={setZoom} ctrl={ctrl} fluid />
+          <ZoomScrubber value={columns} setZoom={setZoom} min={zoomRange.min} max={zoomRange.max} ctrl={ctrl} fluid />
           <Link
             href="/help"
             className="footer-btn inline-flex items-center justify-center shrink-0"
