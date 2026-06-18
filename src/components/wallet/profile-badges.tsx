@@ -94,15 +94,19 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
                 border: `1px solid color-mix(in srgb, ${m.color} 38%, transparent)`,
                 borderRadius: 8,
                 cursor: 'pointer',
+                // Uniform width so chips line up evenly when they wrap next to
+                // each other (independent of event-name length); caps at 100%
+                // so a single chip still fits a narrow mobile column.
+                width: 200,
                 maxWidth: '100%',
               }}
               title={`${m.place} of ${b.playersCount} - ${b.tournamentName}`}
             >
               <Medal size={18} style={{ color: m.color, flexShrink: 0 }} />
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span
                   className="block font-display text-xs font-bold leading-tight truncate"
-                  style={{ color: 'var(--text-primary)', maxWidth: 180 }}
+                  style={{ color: 'var(--text-primary)' }}
                 >
                   {b.tournamentName}
                 </span>
