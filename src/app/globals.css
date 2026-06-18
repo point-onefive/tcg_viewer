@@ -1470,6 +1470,28 @@ html.lenis, html.lenis body {
   }
 }
 
+/* "Round in progress" status pill: a slow green breathing glow so the live
+   round reads as active without being noisy. */
+@keyframes status-pill-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+  }
+}
+
+.status-pill-breathe {
+  animation: status-pill-breathe 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-pill-breathe {
+    animation: none;
+  }
+}
+
 /* ─── Zoom slider ──────────────────────────────────────────────── */
 /* Zoom slider */
 .zoom-slider {

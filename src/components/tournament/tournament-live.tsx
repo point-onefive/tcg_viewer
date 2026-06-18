@@ -84,14 +84,15 @@ function XProfileLink({ handle, className }: { handle: string; className?: strin
 }
 
 function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { bg: string; fg: string; label: string }> = {
+  const map: Record<string, { bg: string; fg: string; label: string; breathe?: boolean }> = {
     enrolling: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Sign-ups open' },
-    running: { bg: 'rgba(232,93,42,0.15)', fg: '#E85D2A', label: 'Round in progress' },
+    running: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Round in progress', breathe: true },
     complete: { bg: 'rgba(120,120,120,0.18)', fg: 'var(--text-secondary)', label: 'Complete' },
   }
   const s = map[status] ?? map.complete
   return (
     <span
+      className={s.breathe ? 'status-pill-breathe' : undefined}
       style={{
         background: s.bg,
         color: s.fg,
@@ -769,7 +770,9 @@ export function TournamentLive() {
         }}
       >
         <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>“</span>
-        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: '#E85D2A' }} aria-label="wallet" />, link your <XLogo /> handle for authenticity
+        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: '#E85D2A' }} aria-label="wallet" />,{' '}
+        <br className="sm:hidden" />
+        link your <XLogo /> handle for authenticity
         <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>”</span>
       </p>
 
@@ -890,7 +893,7 @@ export function TournamentLive() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{tournament.name}</h2>
+                <h2 className="font-display text-2xl font-bold leading-none tracking-tight sm:text-3xl">{tournament.name}</h2>
                 <StatusPill status={tournament.status} />
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">

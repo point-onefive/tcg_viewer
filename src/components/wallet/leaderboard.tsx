@@ -145,7 +145,7 @@ export function Leaderboard() {
         }}
       >
         <Medal size={16} style={{ color: '#E85D2A' }} />
-        <h2 className="font-display" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: '#E85D2A' }}>
+        <h2 className="font-display" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
           All-time leaderboard
         </h2>
         <span style={{ fontSize: 11, color: 'color-mix(in srgb, #E85D2A 55%, var(--text-muted))', fontWeight: 600 }}>wins across all events</span>
