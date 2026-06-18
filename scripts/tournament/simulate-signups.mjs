@@ -8,11 +8,29 @@
  *
  * Creates fake X handles (sim_user_001 …). Clean them up from Supabase
  * admin panel or SQL after testing.
+ *
+ * The public /:code/enroll endpoint is wallet-gated, so sign-ups are seeded
+ * through the admin add-player action (reads TOURNAMENT_ADMIN_SECRET from
+ * .env.local), which routes through the same enroll service underneath.
  */
+import fs from 'node:fs'
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000'
 const countArg = process.argv.find((a) => a.startsWith('--count='))
 const COUNT = countArg ? Number(countArg.split('=')[1]) : 10
+
+const env = Object.fromEntries(
+  fs
+    .readFileSync(new URL('../../.env.local', import.meta.url), 'utf8')
+    .split('\n')
+    .filter((l) => l && !l.startsWith('#') && l.includes('='))
+    .map((l) => {
+      const i = l.indexOf('=')
+      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
+    }),
+)
+const ADMIN = env.TOURNAMENT_ADMIN_SECRET
+if (!ADMIN) throw new Error('TOURNAMENT_ADMIN_SECRET missing from .env.local')
 
 async function main() {
   console.log(`Base: ${BASE}`)
@@ -30,10 +48,10 @@ async function main() {
   let fail = 0
   for (let i = 1; i <= COUNT; i++) {
     const handle = `sim_user_${String(i).padStart(3, '0')}`
-    const res = await fetch(`${BASE}/api/tournaments/${encodeURIComponent(code)}/enroll`, {
+    const res = await fetch(`${BASE}/api/tournaments/admin`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ xHandle: handle }),
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${ADMIN}` },
+      body: JSON.stringify({ action: 'add-player', code, xHandle: handle }),
     })
     if (res.ok) {
       ok++

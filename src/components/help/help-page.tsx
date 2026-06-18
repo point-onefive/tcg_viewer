@@ -424,8 +424,16 @@ export function HelpPage() {
           </p>
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
-              Sign up with your <strong><XLogo /> handle</strong> while the sign-up timer
-              runs. Every handle links to the real profile in matchups.
+              <strong>Connect your wallet to sign up</strong> while the sign-up
+              timer runs. It&rsquo;s free, never touches a blockchain, and just
+              proves who you are. Sign-up, the waitlist, and your profile all use
+              the same one-tap wallet sign-in.
+            </li>
+            <li>
+              Your <strong><XLogo /> handle</strong> comes straight from your
+              profile, so there&rsquo;s nothing to retype and nothing to spoof.
+              Every handle links to the real profile in matchups. Haven&rsquo;t
+              added one yet? The sign-up card prompts you to set it first.
             </li>
             <li>
               The admin verifies handles before the bracket posts.
@@ -437,9 +445,9 @@ export function HelpPage() {
               round timer runs out.
             </li>
             <li>
-              Connect a wallet to claim your <strong>profile</strong>: your
-              trophy case (gold / silver / bronze finishes), any prizes you
-              won, and your all-time record across every event.
+              Your wallet <strong>profile</strong> carries your trophy case
+              (gold / silver / bronze finishes), any prizes you won, and your
+              all-time record across every event.
             </li>
             <li>
               The <Kbd>All-time leaderboard</Kbd> ranks every player by wins
@@ -461,8 +469,9 @@ export function HelpPage() {
             Browsing needs no account and no tracking. Pins, the tier-list
             queue, theme, zoom, language, and flatten preference all live in
             your browser&rsquo;s local storage. Clearing site data clears all of
-            it. The one opt-in exception is Tournaments, where signing up shares
-            the <XLogo /> handle you enter so opponents can find you.
+            it. The one opt-in exception is Tournaments, where connecting your
+            wallet to sign up shares the <XLogo /> handle on your profile so
+            opponents can find you.
           </p>
         </Section>
 

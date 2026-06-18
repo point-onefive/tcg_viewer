@@ -67,8 +67,12 @@ export async function apiActiveStatus(): Promise<{ live: boolean; status?: strin
   }
 }
 
-export async function apiEnrollX(code: string, xHandle: string): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { xHandle })
+/**
+ * Sign up for a tournament. Wallet-backed: the server reads the signed-in
+ * wallet's X handle from its profile, so there is no payload to send.
+ */
+export async function apiEnroll(code: string): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, {})
 }
 
 // ── Next-event waitlist ─────────────────────────────────────────────────────

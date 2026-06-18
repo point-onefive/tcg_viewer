@@ -12,6 +12,7 @@ import {
   adminSetResult,
   adminStartBracket,
   adminStartFresh,
+  enroll,
   recomputeAllPlacements,
   TournamentError,
 } from '@/lib/tournament/service'
@@ -24,6 +25,7 @@ export const dynamic = 'force-dynamic'
 type Body =
   | { action: 'ping' }
   | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string }
+  | { action: 'add-player'; code: string; xHandle: string }
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
   | { action: 'approve'; code: string; playerId: string }
@@ -47,6 +49,13 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'start-fresh': {
         const result = await adminStartFresh(body)
+        return ok(result, 201)
+      }
+      case 'add-player': {
+        // Operator path for seeding / walk-in entries (the public
+        // /:code/enroll endpoint is wallet-gated). Routes through the
+        // same enroll service so all window / cap / dup guards still apply.
+        const result = await enroll(body.code, body.xHandle)
         return ok(result, 201)
       }
       case 'extend-signup':

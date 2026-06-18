@@ -64,12 +64,9 @@ async function admin(body) {
 }
 
 async function enrollRaw(code, handle) {
-  const res = await fetch(`${BASE}/api/tournaments/${encodeURIComponent(code)}/enroll`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ xHandle: handle }),
-  })
-  return { status: res.status, json: await res.json().catch(() => ({})) }
+  // The public /:code/enroll endpoint is wallet-gated; seed players through
+  // the admin add-player action instead (same enroll service underneath).
+  return adminRaw({ action: 'add-player', code, xHandle: handle })
 }
 
 async function snapshot() {

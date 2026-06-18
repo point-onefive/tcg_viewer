@@ -6,7 +6,7 @@ import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
   apiCastVote,
-  apiEnrollX,
+  apiEnroll,
   loadVotedChoice,
   loadVoterId,
   saveVotedChoice,
@@ -17,6 +17,9 @@ import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
+import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
+import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
+import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
@@ -33,17 +36,6 @@ const card: React.CSSProperties = {
   border: '1px solid var(--border-subtle)',
   borderRadius: 6,
   boxShadow: 'var(--shadow-card)',
-}
-
-const inputStyle: React.CSSProperties = {
-  background: 'var(--bg)',
-  color: 'var(--text-primary)',
-  border: '1px solid var(--border-subtle)',
-  borderRadius: 6,
-  padding: '10px 12px',
-  fontSize: 14,
-  width: '100%',
-  outline: 'none',
 }
 
 function fmtCountdown(iso: string | null): string {
@@ -643,13 +635,16 @@ function PollCard({
 }
 
 export function TournamentLive() {
+  const { status: walletStatus, profile } = useWalletAuth()
   const [snapshot, setSnapshot] = useState<TournamentSnapshot | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [xHandle, setXHandle] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   // Whether the "Why connect a wallet?" explainer modal is open.
   const [showWalletInfo, setShowWalletInfo] = useState(false)
+  // Whether the profile editor modal is open (for adding an X handle before
+  // sign-up). Mirrors the waitlist card's add-handle flow.
+  const [editingProfile, setEditingProfile] = useState(false)
   // Which tournament code this browser has signed up for. Scoping to the code
   // (and persisting it) means a *new* tournament correctly shows the sign-up
   // form again instead of a stale "you're in the queue" from a past event.
@@ -761,33 +756,36 @@ export function TournamentLive() {
     [rosterCols],
   )
 
-  const signedUp = Boolean(tournament && signedUpCode === tournament.code)
+  // Signed up if this browser recorded it for the current event, OR the
+  // signed-in wallet's X handle already appears in the roster. The second
+  // check makes "you're in" survive across devices and cleared storage now
+  // that sign-up is wallet-backed.
+  const signedUp = Boolean(
+    (tournament && signedUpCode === tournament.code) ||
+      (profile?.xHandle &&
+        visiblePlayers.some(
+          (p) => p.xHandle.toLowerCase() === profile.xHandle!.toLowerCase(),
+        )),
+  )
 
   async function doEnroll() {
-    if (!tournament || !xHandle.trim()) return
+    if (!tournament) return
     setBusy(true)
     setActionError(null)
     try {
-      await apiEnrollX(tournament.code, xHandle.trim())
+      await apiEnroll(tournament.code)
       setSignedUpCode(tournament.code)
       try {
         localStorage.setItem(SIGNED_UP_KEY, tournament.code)
       } catch {
         /* ignore unavailable storage */
       }
-      setXHandle('')
       await refresh()
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Sign-up failed')
     } finally {
       setBusy(false)
     }
-  }
-
-  function handleSignup(e: React.FormEvent) {
-    e.preventDefault()
-    if (!tournament || !xHandle.trim()) return
-    void doEnroll()
   }
 
   const lede = (
@@ -983,39 +981,61 @@ export function TournamentLive() {
             </div>
             {signedUp ? (
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                You&rsquo;re in the queue. Your handle will be verified before the bracket is posted.
+                You&rsquo;re in the queue
+                {profile?.xHandle ? ` as @${profile.xHandle}` : ''}. Your handle
+                will be verified before the bracket is posted.
               </p>
+            ) : walletStatus === 'loading' ? (
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                <Loader2 size={15} className="animate-spin" /> Checking your wallet…
+              </div>
+            ) : walletStatus !== 'signed-in' || !profile ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Connect your wallet to sign up. It links your <XLogo /> handle so
+                  matchups are verified and your record follows you across events.
+                </p>
+                <WalletConnectButton idleLabel="Connect Wallet to sign up" />
+              </div>
+            ) : !profile.xHandle ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Add your <XLogo /> handle to your profile, then sign up with one tap.
+                  It becomes a clickable link in matchups.
+                </p>
+                <button
+                  onClick={() => setEditingProfile(true)}
+                  className="footer-btn py-2.5 text-sm font-bold"
+                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6 }}
+                >
+                  Add X handle
+                </button>
+              </div>
             ) : (
-              <form onSubmit={handleSignup} className="flex flex-col gap-3">
-                <label className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
-                  Your <XLogo /> handle
-                </label>
-                <div className="flex gap-2">
-                  <span className="flex items-center px-3 text-sm" style={{ ...inputStyle, width: 'auto', color: 'var(--text-muted)' }}>@</span>
-                  <input
-                    style={inputStyle}
-                    value={xHandle}
-                    onChange={(e) => setXHandle(e.target.value.replace(/^@/, ''))}
-                    placeholder="yourhandle"
-                    autoComplete="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    required
-                  />
-                </div>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Must match your real <XLogo /> profile - it becomes a clickable link in matchups.
+              <div className="flex flex-col gap-3">
+                <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  Signing up as <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>@{profile.xHandle}</span>{' '}
+                  - your <XLogo /> handle becomes a clickable link in matchups.
                 </p>
                 {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                 <button
-                  type="submit"
+                  onClick={() => void doEnroll()}
                   disabled={busy}
                   className="footer-btn py-2.5 text-sm font-bold"
-                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1 }}
+                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
-                  {busy ? 'Submitting…' : 'Join tournament'}
+                  {busy ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" /> Submitting…
+                    </>
+                  ) : (
+                    `Join tournament as @${profile.xHandle}`
+                  )}
                 </button>
-              </form>
+              </div>
+            )}
+            {editingProfile && (
+              <PlayerProfileModal onClose={() => setEditingProfile(false)} />
             )}
           </div>
         )}
