@@ -17,6 +17,7 @@ const card: React.CSSProperties = {
   border: '1px solid var(--border-subtle)',
   borderRadius: 8,
   boxShadow: 'var(--shadow-card)',
+  overflow: 'hidden',
 }
 
 const COLLAPSED_COUNT = 5
@@ -138,13 +139,16 @@ export function Leaderboard() {
     <section aria-label="All-time leaderboard" className="mb-6" style={card}>
       <div
         className="flex items-center gap-2 px-4 py-3"
-        style={{ borderBottom: '1px solid var(--border-subtle)' }}
+        style={{
+          borderBottom: '1px solid color-mix(in srgb, #E85D2A 25%, var(--border-subtle))',
+          background: 'color-mix(in srgb, #E85D2A 8%, var(--bg-surface))',
+        }}
       >
         <Medal size={16} style={{ color: '#E85D2A' }} />
-        <h2 className="font-display" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>
+        <h2 className="font-display" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: '#E85D2A' }}>
           All-time leaderboard
         </h2>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>wins across all events</span>
+        <span style={{ fontSize: 11, color: 'color-mix(in srgb, #E85D2A 55%, var(--text-muted))', fontWeight: 600 }}>wins across all events</span>
       </div>
 
       {standings === null ? (

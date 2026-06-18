@@ -114,7 +114,7 @@ export function WalletConnectButton({
       <div style={{ position: 'relative' }}>
         <button
           onClick={() => setShowMenu((v) => !v)}
-          style={{ ...btnBase, padding: compact ? '4px' : '5px 12px 5px 6px', background: 'var(--bg-surface)', borderColor: '#E85D2A' }}
+          style={{ ...btnBase, padding: compact ? '4px' : '5px 12px 5px 6px', background: 'var(--bg-surface)' }}
           aria-label="Profile menu"
           aria-expanded={showMenu}
         >
