@@ -95,6 +95,8 @@ export function HelpPage() {
 
         <HeroMosaic />
 
+        <Contents />
+
         <Section title="Quick start">
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
@@ -515,14 +517,104 @@ function Lede({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * Section titles in document order. Single source of truth for the
+ * table-of-contents nav: the list below renders the jump links and
+ * each `<Section title=...>` below derives its anchor id from the
+ * same string, so adding or renaming a section here (and on its
+ * Section) keeps the two in lockstep with no manual id wiring.
+ */
+const HELP_SECTIONS = [
+  'Quick start',
+  'Filters',
+  'The card wall',
+  'Lightbox',
+  'Pricing',
+  'Booster boxes',
+  'Pin board',
+  'Tier list maker',
+  'Tournaments',
+  'Theme',
+  'Privacy',
+  'Feedback',
+] as const
+
+/**
+ * Compact "jump to" nav rendered just under the hero. A flex-wrapped
+ * pill cluster rather than a sticky side rail: it reflows cleanly
+ * from a single column on phones to a few rows on desktop with zero
+ * layout math, and never competes with the centered prose column for
+ * horizontal space. Smooth-scrolls to the target and updates the hash
+ * without a hard jump; `scroll-mt-24` on each Section keeps the
+ * landing heading clear of the sticky header.
+ */
+function Contents() {
+  function handleJump(e: React.MouseEvent<HTMLAnchorElement>, id: string) {
+    e.preventDefault()
+    const el = document.getElementById(id)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    history.replaceState(null, '', `#${id}`)
+  }
+
+  return (
+    <nav aria-label="On this page" className="mb-10">
+      <div
+        className="mb-3 font-display"
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--text-muted)',
+        }}
+      >
+        On this page
+      </div>
+      <ul className="flex flex-wrap gap-2">
+        {HELP_SECTIONS.map((title) => (
+          <li key={title}>
+            <a
+              href={`#${slugify(title)}`}
+              onClick={(e) => handleJump(e, slugify(title))}
+              className="help-toc-link inline-flex items-center text-xs font-medium"
+              style={{
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-surface)',
+                border: '1px solid color-mix(in srgb, var(--text-primary) 12%, transparent)',
+                borderRadius: 999,
+                padding: '5px 11px',
+                lineHeight: 1,
+              }}
+            >
+              {title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+/**
  * Section wrapper with the brand-orange accent treatment on the
  * header rule. Sections are visually separated by spacing + the
  * coloured rule rather than heavy dividers, so the page reads as
  * one continuous document rather than a stack of cards.
+ *
+ * The id (derived from the title) is the jump target for the
+ * table-of-contents nav; `scroll-mt-24` keeps the heading clear of
+ * the sticky page header when you land on it.
  */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-10">
+    <section id={slugify(title)} className="mb-10 scroll-mt-24">
       <div className="mb-3 flex items-center gap-3">
         <h2
           className="font-display"

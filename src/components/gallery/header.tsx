@@ -49,7 +49,7 @@ const LANGUAGE_OPTIONS: ReadonlyArray<{
   { value: 'JP', label: 'JP', description: 'Japanese (Bandai Japan cardlist; richest promo coverage).' },
 ]
 
-/** EN/JP pill group — fixed width + shrink-0 so flex siblings never
+/** EN/JP pill group - fixed width + shrink-0 so flex siblings never
     crush JP off the edge of the pill (overflow:hidden was clipping it). */
 function LanguageToggle({
   language,
@@ -589,8 +589,8 @@ function CharacterPicker({
             <span>Clear ({count})</span>
           </button>
         )}
-        {/* Letter strip — one horizontal row on mobile (fluid) so the
-            A–Z grid doesn't eat half the viewport before the list. */}
+        {/* Letter strip - one horizontal row on mobile (fluid) so the
+            A-Z grid doesn't eat half the viewport before the list. */}
         {!query.trim() && letters.length > 0 && (
           <div
             className={`no-scrollbar flex gap-1 px-1 pt-1 pb-3 shrink-0 ${fluid ? 'flex-nowrap overflow-x-auto' : 'flex-wrap'}`}

@@ -2321,3 +2321,20 @@ html.lenis, html.lenis body {
   box-shadow: none;
 }
 
+/* Help page "On this page" table-of-contents pills. Subtle by
+   default so the nav reads as a quiet utility under the hero, then
+   lights up in brand orange on hover/focus to signal it's a live
+   jump link. Keyboard focus mirrors hover so the cluster is fully
+   navigable with the Tab key. */
+.help-toc-link {
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.help-toc-link:hover,
+.help-toc-link:focus-visible {
+  color: #e85d2a;
+  border-color: color-mix(in srgb, #e85d2a 45%, transparent) !important;
+  background: color-mix(in srgb, #e85d2a 8%, transparent) !important;
+  outline: none;
+}
+
+

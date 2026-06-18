@@ -517,7 +517,7 @@ function BoxTile({
             {box.market != null ? (
               <span className="sb-tile__market-price">{formatUsd(box.market)}</span>
             ) : (
-              <span className="sb-tile__market-price sb-tile__market-price--na">—</span>
+              <span className="sb-tile__market-price sb-tile__market-price--na">-</span>
             )}
             {trend ? (
               <span
