@@ -1445,6 +1445,31 @@ html.lenis, html.lenis body {
   }
 }
 
+/* ─── Bracket horizontal-scroll hint ───────────────────────────────
+   Wide single-elim brackets scroll sideways. A soft right-edge fade +
+   a small chevron pill signals "there's more to the right". The chevron
+   nudges gently so the cue is noticeable without being loud; it fades
+   out entirely once the user reaches the end of the scroll. */
+@keyframes scroll-hint-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+
+.scroll-hint-chevron {
+  animation: scroll-hint-nudge 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint-chevron {
+    animation: none;
+  }
+}
+
 /* ─── Zoom slider ──────────────────────────────────────────────── */
 /* Zoom slider */
 .zoom-slider {

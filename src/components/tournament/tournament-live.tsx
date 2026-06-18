@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarClock, Check, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { CalendarClock, Check, ChevronRight, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -1325,7 +1325,7 @@ function ElimBracket({
           DM your opponent on <XLogo /> to schedule. The admin records each result and winners advance automatically.
         </p>
 
-        <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+        <BracketScroller>
           <div className="flex" style={{ minWidth: 'min-content' }}>
             {columns.map((col) => (
               <div key={col.roundNum} className="flex flex-col" style={{ flex: '1 0 210px', minWidth: 210 }}>
@@ -1350,7 +1350,92 @@ function ElimBracket({
               </div>
             ))}
           </div>
-        </div>
+        </BracketScroller>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Horizontally scrollable bracket wrapper that hints "there's more to the
+ * right". Shows a soft right-edge fade + a gently nudging chevron pill while
+ * the content overflows and the user has not yet scrolled to the end; both
+ * fade out once they reach the last round (or if it all fits with no scroll).
+ */
+function BracketScroller({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [showStart, setShowStart] = useState(false)
+  const [showEnd, setShowEnd] = useState(false)
+
+  const update = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    setShowStart(el.scrollLeft > 4)
+    setShowEnd(max > 4 && el.scrollLeft < max - 4)
+  }, [])
+
+  useEffect(() => {
+    update()
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    window.addEventListener('resize', update)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [update])
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        className="overflow-x-auto pb-2"
+        style={{ scrollbarWidth: 'thin' }}
+        onScroll={update}
+      >
+        {children}
+      </div>
+
+      {/* Left fade once scrolled in, so the start edge reads as "more left". */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 transition-opacity duration-300"
+        style={{
+          bottom: 8,
+          width: 36,
+          opacity: showStart ? 1 : 0,
+          background: 'linear-gradient(270deg, transparent, var(--bg-surface) 82%)',
+        }}
+      />
+
+      {/* Right fade + nudging chevron: the core "scroll right" cue. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 flex items-center justify-end transition-opacity duration-300"
+        style={{
+          bottom: 8,
+          width: 64,
+          opacity: showEnd ? 1 : 0,
+          background: 'linear-gradient(90deg, transparent, var(--bg-surface) 70%)',
+        }}
+      >
+        <span
+          className="scroll-hint-chevron flex items-center justify-center"
+          style={{
+            width: 28,
+            height: 28,
+            marginRight: 2,
+            borderRadius: '50%',
+            background: 'var(--bg)',
+            border: '1px solid color-mix(in srgb, #E85D2A 45%, var(--border-subtle))',
+            boxShadow: 'var(--shadow-card)',
+          }}
+        >
+          <ChevronRight size={16} style={{ color: '#E85D2A' }} />
+        </span>
       </div>
     </div>
   )
