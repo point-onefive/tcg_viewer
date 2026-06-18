@@ -437,7 +437,10 @@ export function SealedDashboard() {
             // box art stays legible at high zoom-out.
             className={`sb-grid${windowWidth / columns < 150 ? ' sb-grid--dense' : ''}`}
             style={{
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
+              // minmax(0, 1fr) lets columns shrink below their content's
+              // intrinsic width (a plain 1fr refuses to, which pushed the last
+              // column off-screen at 4-up on narrow phones).
+              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
               gap: `${gapForCols(columns).row}px ${gapForCols(columns).col}px`,
             }}
           >

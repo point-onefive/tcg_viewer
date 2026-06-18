@@ -1033,6 +1033,12 @@ html.lenis, html.lenis body {
   letter-spacing: -0.02em;
   line-height: 1;
   color: var(--text-primary);
+  /* Allow the price to shrink/truncate before it shoves the % badge
+     off the tile edge on very narrow (4-up phone) columns. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sb-tile__market-price--na {
   color: var(--text-muted);
@@ -1045,6 +1051,7 @@ html.lenis, html.lenis body {
   letter-spacing: 0.01em;
   line-height: 1;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .sb-tile__market-change--up { color: #22c55e; }
 .sb-tile__market-change--down { color: #ef4444; }
@@ -1052,10 +1059,12 @@ html.lenis, html.lenis body {
 .sb-grid--dense .sb-tile__market-row {
   padding-bottom: 4px;
   margin-bottom: 1px;
+  gap: 4px;
 }
 .sb-grid--dense .sb-tile__market-price { font-size: 12px; }
 .sb-grid--dense .sb-tile__market-change { font-size: 10px; }
 .sb-grid--dense .sb-tile__spark { height: 20px; }
+.sb-grid--dense .sb-tile__foot { padding: 0 1px; }
 
 .sb-tile__foot {
   display: flex;
