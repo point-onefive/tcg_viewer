@@ -145,7 +145,6 @@ function BadgesSkeleton() {
       </div>
       <div className="flex flex-wrap gap-2">
         <div className="profile-skel" style={{ width: 158, height: 46 }} />
-        <div className="profile-skel" style={{ width: 132, height: 46 }} />
       </div>
     </div>
   )

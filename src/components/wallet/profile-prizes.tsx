@@ -113,8 +113,6 @@ function PrizesSkeleton() {
       </div>
       <div className="flex flex-wrap gap-2.5">
         <div className="profile-skel" style={{ width: 84, height: 88 }} />
-        <div className="profile-skel" style={{ width: 84, height: 88 }} />
-        <div className="profile-skel" style={{ width: 84, height: 88 }} />
       </div>
     </div>
   )
