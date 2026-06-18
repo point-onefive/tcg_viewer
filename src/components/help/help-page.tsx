@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, HelpCircle } from 'lucide-react'
+import { ArrowLeft, HelpCircle, Medal } from 'lucide-react'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { XLogo } from '@/components/gallery/x-logo'
 
@@ -335,14 +335,34 @@ export function HelpPage() {
         </Section>
 
         <Section title="Booster boxes">
-          <p className="text-sm leading-relaxed">
-            The <Kbd>Sealed</Kbd> link in the header opens a dedicated
+          <p className="mb-3 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            The <Kbd>Sealed</Kbd> link (One Piece only) opens a dedicated
             booster-box dashboard. Same daily TCGPlayer feed as singles, but
-            rolled up at the box level with a per-box price history chart.
-            New One Piece sets (and their booster boxes) are picked up
-            automatically the first sync after Bandai publishes them, so the
-            dashboard stays current without manual edits.
+            rolled up at the box level with a per-box price-history chart.
+            New sets and their boxes are picked up automatically the first
+            sync after Bandai publishes them, so the dashboard stays current
+            without manual edits.
           </p>
+          <BoosterBoxMock />
+          <ul className="mt-4 space-y-2 text-sm leading-relaxed">
+            <li>
+              <Kbd>Search</Kbd> filters boxes by set code or name as you type
+              (e.g. <Kbd>op05</Kbd> or <Kbd>awakening</Kbd>).
+            </li>
+            <li>
+              <Kbd>Sort</Kbd> reorders by release date, biggest gainers /
+              losers, price, or name - handy for spotting what&rsquo;s moving.
+            </li>
+            <li>
+              Each tile shows the live market price, the percent move across
+              the tracked window (green up / red down), and a sparkline. Click
+              one to expand its full history chart.
+            </li>
+            <li>
+              The <Kbd>Zoom</Kbd> scrubber tunes how many boxes fill each row,
+              same as the card wall.
+            </li>
+          </ul>
         </Section>
 
         <Section title="Pin board">
@@ -396,8 +416,9 @@ export function HelpPage() {
 
         <Section title="Tournaments">
           <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            The <Kbd>Tournaments</Kbd> link opens the current live Swiss event.
-            One tournament at a time, admin-run.
+            The <Kbd>Tournaments</Kbd> link (One Piece only) opens the current
+            live Swiss / single-elim event. One tournament at a time,
+            admin-run.
           </p>
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>
@@ -408,14 +429,22 @@ export function HelpPage() {
               The admin verifies handles before the bracket posts.
             </li>
             <li>
-              Matchups show clickable @handles - DM your opponent on <XLogo />, play
-              off-site, finish before the round timer.
+              Follow the live bracket as rounds advance - the in-progress round
+              gently pulses, and matchups show clickable @handles so you can DM
+              your opponent on <XLogo />, play off-site, and report before the
+              round timer runs out.
             </li>
             <li>
-              In-app win/loss reporting is coming; report results to the admin
-              for now.
+              Connect a wallet to claim your <strong>profile</strong>: your
+              trophy case (gold / silver / bronze finishes), any prizes you
+              won, and your all-time record across every event.
+            </li>
+            <li>
+              The <Kbd>All-time leaderboard</Kbd> ranks every player by wins
+              across all events, so the regulars rise to the top.
             </li>
           </ul>
+          <TournamentPodium />
         </Section>
 
         <Section title="Theme">
@@ -427,9 +456,11 @@ export function HelpPage() {
 
         <Section title="Privacy">
           <p className="text-sm leading-relaxed">
-            No accounts, no signup, no tracking. Pins, the tier-list queue,
-            theme, zoom, language, and flatten preference all live in your
-            browser&rsquo;s local storage. Clearing site data clears all of it.
+            Browsing needs no account and no tracking. Pins, the tier-list
+            queue, theme, zoom, language, and flatten preference all live in
+            your browser&rsquo;s local storage. Clearing site data clears all of
+            it. The one opt-in exception is Tournaments, where signing up shares
+            the <XLogo /> handle you enter so opponents can find you.
           </p>
         </Section>
 
@@ -784,6 +815,161 @@ function TierListMock() {
                 />
               </div>
             ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Booster-box dashboard preview. Mirrors the real `.sb-tile` layout (box
+// shot in a stage, then a foot row with live price + percent-move chip) so
+// the reader recognises the Sealed page on sight. Box art comes straight
+// from the same TCGPlayer CDN the live dashboard uses; the numbers are a
+// representative snapshot, not a live feed. Decorative + `aria-hidden`
+// because the bullet list below it explains every control in words.
+// ---------------------------------------------------------------------------
+
+const BOX_CDN = 'https://tcgplayer-cdn.tcgplayer.com/product'
+
+type MockBox = { id: string; set: string; price: string; pct: number }
+
+const BOOSTER_BOX_MOCK: MockBox[] = [
+  { id: '532106', set: 'OP07', price: '$339.96', pct: 10.7 },
+  { id: '563834', set: 'OP09', price: '$666.55', pct: 5.7 },
+  { id: '689336', set: 'OP16', price: '$216.01', pct: -16.8 },
+]
+
+function BoosterBoxMock() {
+  return (
+    <div
+      aria-hidden
+      className="grid grid-cols-3 gap-2 sm:gap-3"
+    >
+      {BOOSTER_BOX_MOCK.map((box) => {
+        const up = box.pct >= 0
+        const chip = up ? '#22c55e' : '#ef4444'
+        return (
+          <div
+            key={box.id}
+            className="overflow-hidden"
+            style={{
+              borderRadius: 10,
+              border: '1px solid color-mix(in srgb, var(--text-primary) 12%, transparent)',
+              background: 'var(--bg-surface)',
+              boxShadow: 'var(--shadow-card)',
+            }}
+          >
+            <div
+              className="relative"
+              style={{
+                aspectRatio: '1 / 1',
+                background: 'color-mix(in srgb, var(--text-primary) 4%, transparent)',
+              }}
+            >
+              <Image
+                src={`${BOX_CDN}/${box.id}_in_1000x1000.jpg`}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 30vw, 200px"
+                style={{ objectFit: 'contain', padding: 6 }}
+              />
+            </div>
+            <div
+              className="flex items-center justify-between gap-1 px-2 py-1.5"
+              style={{
+                borderTop: '1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)',
+              }}
+            >
+              <span
+                className="font-display"
+                style={{
+                  fontSize: 'clamp(10px, 2.6vw, 13px)',
+                  fontWeight: 700,
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {box.price}
+              </span>
+              <span
+                className="font-display shrink-0"
+                style={{
+                  fontSize: 'clamp(9px, 2.4vw, 12px)',
+                  fontWeight: 800,
+                  color: chip,
+                }}
+              >
+                {up ? '+' : ''}
+                {box.pct.toFixed(1)}%
+              </span>
+            </div>
+            <div
+              className="px-2 pb-1.5 font-display"
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              {box.set}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Tournament podium. A wordless stand-in for the trophy case + leaderboard:
+// gold / silver / bronze medals on a 1-2-3 podium, using the same medal
+// palette the real profile badges use. Decorative + `aria-hidden`.
+// ---------------------------------------------------------------------------
+
+type PodiumStep = { place: string; color: string; height: number }
+
+const PODIUM_STEPS: PodiumStep[] = [
+  { place: '2nd', color: '#c4cad3', height: 44 },
+  { place: '1st', color: '#f5b301', height: 64 },
+  { place: '3rd', color: '#cd7f32', height: 32 },
+]
+
+function TournamentPodium() {
+  return (
+    <div
+      aria-hidden
+      className="mt-4 flex items-end justify-center gap-3"
+      style={{
+        borderRadius: 10,
+        border: '1px solid color-mix(in srgb, var(--text-primary) 12%, transparent)',
+        background: 'var(--bg-surface)',
+        boxShadow: 'var(--shadow-card)',
+        padding: '20px 16px 0',
+      }}
+    >
+      {PODIUM_STEPS.map((step) => (
+        <div key={step.place} className="flex flex-col items-center">
+          <Medal size={26} style={{ color: step.color }} strokeWidth={2} />
+          <div
+            className="mt-2 flex w-[58px] items-start justify-center font-display sm:w-[72px]"
+            style={{
+              height: step.height,
+              borderRadius: '6px 6px 0 0',
+              background: `linear-gradient(to bottom, color-mix(in srgb, ${step.color} 34%, transparent), color-mix(in srgb, ${step.color} 10%, transparent))`,
+              borderTop: `2px solid ${step.color}`,
+              paddingTop: 6,
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              color: 'var(--text-primary)',
+            }}
+          >
+            {step.place}
           </div>
         </div>
       ))}
