@@ -201,6 +201,21 @@ html.lenis, html.lenis body {
   50% { opacity: 0.5; }
 }
 
+/* Placeholder block for the profile trophy case / prize shelf while they fetch,
+   so the modal reserves the space instead of popping content in late. */
+.profile-skel {
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-skel {
+    animation: none;
+  }
+}
+
 .card-tile__image {
   object-fit: cover;
   transition: opacity 0.4s ease, transform 0.4s ease;

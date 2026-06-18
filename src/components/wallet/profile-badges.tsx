@@ -55,8 +55,9 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Still loading the first time: render nothing (avoids a flash).
-  if (!badges) return null
+  // Still loading the first time: show a skeleton in the trophy-case shape so
+  // the modal reserves the space instead of popping the medals in late.
+  if (!badges) return <BadgesSkeleton />
 
   // Nothing earned. In production we render nothing so the profile stays clean
   // for players with no podium finishes. In development we show a faint shell
@@ -128,6 +129,24 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
       )}
 
       {open && <BadgeResultModal badge={open} onClose={() => setOpen(null)} />}
+    </div>
+  )
+}
+
+// ── Loading skeleton: trophy-case shaped placeholder while badges fetch ──────
+function BadgesSkeleton() {
+  return (
+    <div className="mt-6">
+      <div
+        className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        Trophy case
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <div className="profile-skel" style={{ width: 158, height: 46 }} />
+        <div className="profile-skel" style={{ width: 132, height: 46 }} />
+      </div>
     </div>
   )
 }

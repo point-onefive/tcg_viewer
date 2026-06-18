@@ -50,8 +50,9 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Still loading the first time: render nothing (avoids a flash).
-  if (!prizes) return null
+  // Still loading the first time: show a skeleton in the prize-shelf shape so
+  // the modal reserves the space instead of popping the tiles in late.
+  if (!prizes) return <PrizesSkeleton />
 
   // Nothing won. In production we render nothing so the profile stays clean. In
   // development we show a faint shell so the layout can be previewed before any
@@ -93,6 +94,28 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
           {expanded ? 'Show less' : `Show ${hiddenCount} more`}
         </button>
       )}
+    </div>
+  )
+}
+
+// ── Loading skeleton: prize-shelf shaped placeholder while prizes fetch ──────
+function PrizesSkeleton() {
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <Gift size={13} style={{ color: '#E85D2A' }} />
+        <span
+          className="text-[11px] font-bold uppercase tracking-wider"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Prizes won
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2.5">
+        <div className="profile-skel" style={{ width: 84, height: 88 }} />
+        <div className="profile-skel" style={{ width: 84, height: 88 }} />
+        <div className="profile-skel" style={{ width: 84, height: 88 }} />
+      </div>
     </div>
   )
 }
