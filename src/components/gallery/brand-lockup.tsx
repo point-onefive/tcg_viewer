@@ -11,8 +11,16 @@
  * The clickable logo (links home) plus the beta tag, wrapped together so
  * they read as one identity unit. Drop it straight into a header's left
  * cluster; it renders its own `flex items-center gap-2` wrapper.
+ *
+ * `mobileCompact` collapses the lockup to just the mascot chip below the
+ * `sm` breakpoint (the wordmark + beta tag hide), so a cramped mobile
+ * header (e.g. the tournaments bar) stays on a single row.
  */
-export function BrandLockup() {
+export function BrandLockup({ mobileCompact = false }: { mobileCompact?: boolean }) {
+  // When compact, the wordmark + beta only appear at >= sm; below that the
+  // mark is the mascot chip alone.
+  const wordmarkCls = mobileCompact ? 'hidden sm:inline-flex' : 'inline-flex'
+  const betaCls = mobileCompact ? 'hidden select-none sm:inline-flex' : 'inline-flex select-none'
   return (
     <div className="flex items-center gap-2">
       <a
@@ -66,7 +74,7 @@ export function BrandLockup() {
         </span>
         {/* Wordmark */}
         <span
-          className="inline-flex items-center whitespace-nowrap"
+          className={`${wordmarkCls} items-center whitespace-nowrap`}
           style={{
             padding: '0 11px',
             fontFamily: 'var(--font-display)',
@@ -98,7 +106,7 @@ export function BrandLockup() {
       <span
         aria-label="Beta release"
         title="Beta release"
-        className="inline-flex select-none"
+        className={betaCls}
         style={{
           fontFamily: 'var(--font-display)',
           fontSize: 10,

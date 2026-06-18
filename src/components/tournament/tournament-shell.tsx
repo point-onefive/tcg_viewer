@@ -40,9 +40,9 @@ export function TournamentShell({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4" style={{ maxWidth: 1800 }}>
-          <div className="flex flex-wrap items-center gap-3">
-            <BrandLockup />
+        <div className="mx-auto flex flex-wrap items-center justify-between gap-2 px-4 sm:gap-3" style={{ maxWidth: 1800 }}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <BrandLockup mobileCompact />
             <div
               aria-hidden
               className="hidden sm:block"
@@ -53,7 +53,7 @@ export function TournamentShell({
               <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">Tournaments</h1>
             </Link>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             {right}
             <WalletHeaderWidget />
             <ThemeToggle />

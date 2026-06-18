@@ -23,6 +23,8 @@ import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, To
 
 const POLL_MS = 12_000
 const SIGNED_UP_KEY = 'tcw_tournament_signed_up'
+// How many competitors show before the "Load more" toggle.
+const ROSTER_CAP = 5
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -113,13 +115,22 @@ function placeAccent(i: number): { bg: string; fg: string } {
 }
 
 /** Small labeled fact chip used in the event hero meta row. */
-function MetaChip({ icon: Icon, children }: { icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>; children: React.ReactNode }) {
+function MetaChip({
+  icon: Icon,
+  children,
+  hideOnMobile = false,
+}: {
+  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>
+  children: React.ReactNode
+  /** Drop the chip below `sm` so the meta row stays on one mobile line. */
+  hideOnMobile?: boolean
+}) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold"
+      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1 px-2 py-0.5 text-[11px] font-semibold sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs`}
       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 5, color: 'var(--text-secondary)' }}
     >
-      <Icon size={13} style={{ color: 'var(--text-muted)' }} />
+      <Icon size={12} style={{ color: 'var(--text-muted)' }} />
       {children}
     </span>
   )
@@ -129,7 +140,7 @@ function MetaChip({ icon: Icon, children }: { icon: React.ComponentType<{ size?:
 function CountdownStat({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="shrink-0 px-4 py-2.5 text-center"
+      className="w-full shrink-0 px-4 py-2.5 text-center sm:w-auto"
       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, minWidth: 132 }}
     >
       <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
@@ -640,6 +651,9 @@ export function TournamentLive() {
   // (and persisting it) means a *new* tournament correctly shows the sign-up
   // form again instead of a stale "you're in the queue" from a past event.
   const [signedUpCode, setSignedUpCode] = useState<string | null>(null)
+  // Roster starts capped (top N) with a "Load more" so a big field doesn't
+  // dominate the page; one tap reveals everyone.
+  const [rosterExpanded, setRosterExpanded] = useState(false)
 
   useEffect(() => {
     try {
@@ -855,9 +869,10 @@ export function TournamentLive() {
                 <MetaChip icon={Swords}>{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
                 <MetaChip icon={Users}>
                   {visiblePlayers.length}
-                  {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''} signed up
+                  {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
+                  <span className="hidden sm:inline"> signed up</span>
                 </MetaChip>
-                <MetaChip icon={Check}>Admin-verified</MetaChip>
+                <MetaChip icon={Check} hideOnMobile>Admin-verified</MetaChip>
               </div>
             </div>
             {signupOpen && <CountdownStat label="Sign-ups close in" value={signupCountdown} />}
@@ -958,18 +973,38 @@ export function TournamentLive() {
           {visiblePlayers.length === 0 ? (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No sign-ups yet.</p>
           ) : (
-            <ul
-              className="grid gap-1.5"
-              style={
-                signupOpen
-                  ? { gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }
-                  : { gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }
-              }
-            >
-              {visiblePlayers.map((p, i) => (
-                <PlayerRow key={p.id} player={p} index={i} />
-              ))}
-            </ul>
+            <>
+              <ul
+                className="grid gap-1.5"
+                style={
+                  signupOpen
+                    ? { gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }
+                    : { gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }
+                }
+              >
+                {(rosterExpanded ? visiblePlayers : visiblePlayers.slice(0, ROSTER_CAP)).map((p, i) => (
+                  <PlayerRow key={p.id} player={p} index={i} />
+                ))}
+              </ul>
+              {visiblePlayers.length > ROSTER_CAP && (
+                <button
+                  type="button"
+                  onClick={() => setRosterExpanded((v) => !v)}
+                  className="mt-3 w-full py-2 text-xs font-bold uppercase tracking-wider transition-colors"
+                  style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 6,
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {rosterExpanded
+                    ? 'Show less'
+                    : `Load ${visiblePlayers.length - ROSTER_CAP} more`}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
