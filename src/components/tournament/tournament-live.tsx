@@ -1282,6 +1282,10 @@ function StandingsTable({ standings, nameById, complete }: { standings: Standing
 }
 
 const ELIM_LINE = 'color-mix(in srgb, var(--text-primary) 18%, transparent)'
+// Connector colour for the path a winner travelled: a decided match lights its
+// incoming + outgoing bracket lines green, so a run of wins traces a continuous
+// green path toward the final.
+const ELIM_LINE_WIN = 'color-mix(in srgb, #22c55e 70%, transparent)'
 
 function elimRoundLabel(roundNum: number, totalRounds: number): string {
   const fromEnd = totalRounds - roundNum
@@ -1489,10 +1493,15 @@ function ElimCell({
   hasNext: boolean
   topOfPair: boolean
 }) {
-  const stubH: React.CSSProperties = { position: 'absolute', top: '50%', height: 2, width: 22, background: ELIM_LINE, transform: 'translateY(-50%)' }
+  // A decided match lights its connector lines green: the incoming stub (the
+  // winner arrived here) and the outgoing stub + vertical (the winner advances
+  // out). Chained across rounds this traces a continuous green winner's path.
+  const won = Boolean(match?.winnerId)
+  const lineColor = won ? ELIM_LINE_WIN : ELIM_LINE
+  const stubH: React.CSSProperties = { position: 'absolute', top: '50%', height: 2, width: 22, background: lineColor, transform: 'translateY(-50%)' }
   const vertical: React.CSSProperties = topOfPair
-    ? { position: 'absolute', right: 0, top: '50%', height: '50%', width: 2, background: ELIM_LINE }
-    : { position: 'absolute', right: 0, bottom: '50%', height: '50%', width: 2, background: ELIM_LINE }
+    ? { position: 'absolute', right: 0, top: '50%', height: '50%', width: 2, background: lineColor }
+    : { position: 'absolute', right: 0, bottom: '50%', height: '50%', width: 2, background: lineColor }
 
   return (
     <div className="relative flex items-center" style={{ flex: 1, minHeight: 70, padding: '6px 0' }}>
