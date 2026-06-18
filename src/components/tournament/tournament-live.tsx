@@ -683,11 +683,44 @@ export function TournamentLive() {
     }
   }, [])
 
+  // A finished or cancelled tournament's snapshot is immutable, so once we've
+  // seen the final state there's nothing left to poll for.
+  const isFinished =
+    snapshot?.tournament.status === 'complete' || snapshot?.tournament.status === 'cancelled'
+
   useEffect(() => {
+    // Always fetch once on mount / when completion state flips.
     refresh()
-    const t = setInterval(refresh, POLL_MS)
-    return () => clearInterval(t)
-  }, [refresh])
+    // Nothing more will ever change for a finished event: stop polling.
+    if (isFinished) return
+
+    let timer: ReturnType<typeof setInterval> | null = null
+    const start = () => {
+      if (timer == null) timer = setInterval(refresh, POLL_MS)
+    }
+    const stop = () => {
+      if (timer != null) {
+        clearInterval(timer)
+        timer = null
+      }
+    }
+    // Don't burn requests while nobody's looking: pause polling when the tab is
+    // hidden and resume (with an immediate catch-up refresh) when it returns.
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        stop()
+      } else {
+        refresh()
+        start()
+      }
+    }
+    if (document.visibilityState === 'visible') start()
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [refresh, isFinished])
 
   const tournament = snapshot?.tournament
   const signupCountdown = useCountdown(
