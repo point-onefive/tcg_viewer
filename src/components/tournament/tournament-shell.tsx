@@ -56,7 +56,7 @@ export function TournamentShell({
           <div className="flex items-center gap-2">
             {right}
             <WalletHeaderWidget />
-            <ThemeToggle />
+            <ThemeToggle size={38} />
           </div>
         </div>
       </header>

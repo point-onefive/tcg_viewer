@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   title: 'The Card Wall',
   description: "Find something you didn't know existed.",
   metadataBase: new URL('https://thecardwall.com'),
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Card Wall',
+    statusBarStyle: 'black-translucent',
+  },
   icons: {
     icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
     apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
@@ -48,6 +54,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+  ],
 }
 
 export default function RootLayout({

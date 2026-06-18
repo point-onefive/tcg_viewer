@@ -76,6 +76,7 @@ export function WalletConnectButton({
     alignItems: 'center',
     gap: 8,
     padding: compact ? '7px 10px' : '8px 14px',
+    minHeight: 38,
     borderRadius: 8,
     fontSize: 13,
     fontWeight: 700,
