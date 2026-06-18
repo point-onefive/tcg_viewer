@@ -23,8 +23,10 @@ import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, To
 
 const POLL_MS = 12_000
 const SIGNED_UP_KEY = 'tcw_tournament_signed_up'
-// How many competitors show before the "Load more" toggle.
-const ROSTER_CAP = 5
+// Minimum competitors to reveal before the "Load more" toggle. The actual
+// cap is rounded UP from this to a whole number of grid rows (see useRosterCap)
+// so the collapsed roster never leaves an orphaned, half-empty last row.
+const ROSTER_MIN_VISIBLE = 5
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -654,6 +656,12 @@ export function TournamentLive() {
   // Roster starts capped (top N) with a "Load more" so a big field doesn't
   // dominate the page; one tap reveals everyone.
   const [rosterExpanded, setRosterExpanded] = useState(false)
+  // The roster is a responsive auto-fill grid, so its column count changes
+  // with the viewport. We measure the live column count and round the visible
+  // cap up to a whole number of rows, so the collapsed view always fills
+  // complete rows (no ugly trailing blanks like a lone card after a full row).
+  const rosterListRef = useRef<HTMLUListElement>(null)
+  const [rosterCols, setRosterCols] = useState(1)
 
   useEffect(() => {
     try {
@@ -696,6 +704,27 @@ export function TournamentLive() {
     tournament?.status === 'enrolling' &&
       tournament.enrollClosesAt &&
       new Date(tournament.enrollClosesAt) > new Date(),
+  )
+
+  useEffect(() => {
+    const el = rosterListRef.current
+    if (!el) return
+    const measure = () => {
+      const cols = getComputedStyle(el)
+        .gridTemplateColumns.split(' ')
+        .filter(Boolean).length
+      setRosterCols(cols > 0 ? cols : 1)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+    // Re-attach when the list mounts (players load) or its grid template
+    // changes (sign-up vs competitors uses a different minmax).
+  }, [visiblePlayers.length, signupOpen])
+  const rosterCap = useMemo(
+    () => Math.ceil(ROSTER_MIN_VISIBLE / rosterCols) * rosterCols,
+    [rosterCols],
   )
 
   const signedUp = Boolean(tournament && signedUpCode === tournament.code)
@@ -975,6 +1004,7 @@ export function TournamentLive() {
           ) : (
             <>
               <ul
+                ref={rosterListRef}
                 className="grid gap-1.5"
                 style={
                   signupOpen
@@ -982,11 +1012,11 @@ export function TournamentLive() {
                     : { gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }
                 }
               >
-                {(rosterExpanded ? visiblePlayers : visiblePlayers.slice(0, ROSTER_CAP)).map((p, i) => (
+                {(rosterExpanded ? visiblePlayers : visiblePlayers.slice(0, rosterCap)).map((p, i) => (
                   <PlayerRow key={p.id} player={p} index={i} />
                 ))}
               </ul>
-              {visiblePlayers.length > ROSTER_CAP && (
+              {visiblePlayers.length > rosterCap && (
                 <button
                   type="button"
                   onClick={() => setRosterExpanded((v) => !v)}
@@ -1001,7 +1031,7 @@ export function TournamentLive() {
                 >
                   {rosterExpanded
                     ? 'Show less'
-                    : `Load ${visiblePlayers.length - ROSTER_CAP} more`}
+                    : `Load ${visiblePlayers.length - rosterCap} more`}
                 </button>
               )}
             </>
