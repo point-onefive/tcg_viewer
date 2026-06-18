@@ -3,7 +3,7 @@
 // WalletConnectModal - centered, OpenSea-style wallet picker.
 // Shows the CW favicon, official wallet logos, and "Installed" badges.
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import type { Connector } from 'wagmi'
 import { ConnectorIcon, connectorLabel, friendlyWalletError } from './wallet-icons'
@@ -20,22 +20,37 @@ interface WalletConnectModalProps {
 /**
  * Dedupe + order connectors for display:
  *  - Drop the generic `injected` ("Browser Wallet") when specific EIP-6963
- *    wallets are detected (avoids the janky duplicate).
+ *    wallets are detected (avoids the janky duplicate) OR when the browser
+ *    exposes no injected provider at all. The latter is the mobile-normal-
+ *    browser case: tapping "Injected" there just throws "Provider not found",
+ *    so we hide it rather than offer a dead button.
  *  - Surface EIP-6963 wallets (the ones that carry their own icon) first.
  */
 function useDisplayConnectors(connectors: readonly Connector[]): Connector[] {
+  // window.ethereum is only meaningful client-side; gate so SSR + first paint
+  // agree (both false) and we never flash the broken row.
+  const [hasInjectedProvider, setHasInjectedProvider] = useState(false)
+  useEffect(() => {
+    setHasInjectedProvider(
+      typeof window !== 'undefined' &&
+        Boolean((window as unknown as { ethereum?: unknown }).ethereum),
+    )
+  }, [])
+
   return useMemo(() => {
     const hasDiscovered = connectors.some(
       (c) => c.id !== 'injected' && (c as Connector & { icon?: string }).icon,
     )
-    const filtered = connectors.filter((c) => !(c.id === 'injected' && hasDiscovered))
+    const filtered = connectors.filter(
+      (c) => !(c.id === 'injected' && (hasDiscovered || !hasInjectedProvider)),
+    )
     // Stable sort: wallets with an icon (installed/discovered) first.
     return [...filtered].sort((a, b) => {
       const ai = (a as Connector & { icon?: string }).icon ? 0 : 1
       const bi = (b as Connector & { icon?: string }).icon ? 0 : 1
       return ai - bi
     })
-  }, [connectors])
+  }, [connectors, hasInjectedProvider])
 }
 
 /** A connector is "installed" if it self-reported an EIP-6963 icon/provider. */
