@@ -1485,29 +1485,35 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             )}
           </Link>
 
-          {/* Sealed: icon-only at nav, label from xl (same overflow fix). */}
-          <Link
-            href="/sealed"
-            className="footer-btn inline-flex items-center justify-center xl:hidden"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="Booster box price dashboard"
-            title="Booster box prices"
-          >
-            <Package size={12} strokeWidth={2.25} aria-hidden />
-          </Link>
-          <Link
-            href="/sealed"
-            className="footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-            style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-            aria-label="Booster box price dashboard"
-            title="Booster box prices"
-          >
-            <Package size={12} strokeWidth={2.25} aria-hidden />
-            Sealed
-          </Link>
+          {/* Sealed: icon-only at nav, label from xl (same overflow fix).
+              Booster boxes are a One-Piece-only product surface, so the
+              trigger only appears while the One Piece collection is active. */}
+          {isOnePiece && (
+            <>
+              <Link
+                href="/sealed"
+                className="footer-btn inline-flex items-center justify-center xl:hidden"
+                style={{ ...ctrl, width: 30, height: 30 }}
+                aria-label="Booster box price dashboard"
+                title="Booster box prices"
+              >
+                <Package size={12} strokeWidth={2.25} aria-hidden />
+              </Link>
+              <Link
+                href="/sealed"
+                className="footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium"
+                style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+                aria-label="Booster box price dashboard"
+                title="Booster box prices"
+              >
+                <Package size={12} strokeWidth={2.25} aria-hidden />
+                Sealed
+              </Link>
+            </>
+          )}
 
-          {/* Chart race + Tournaments: icon-only at nav to keep the cluster
-              from overflowing 1440–1600px viewports. Full labels from xl. */}
+          {/* Chart race: icon-only at nav to keep the cluster from
+              overflowing 1440–1600px viewports. Full label from xl. */}
           <Link
             href="/chart-race"
             className="footer-btn inline-flex items-center justify-center xl:hidden"
@@ -1528,27 +1534,33 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             Chart Race
           </Link>
 
-          <Link
-            href="/tournaments"
-            className={`footer-btn relative inline-flex items-center justify-center xl:hidden${tournamentLive ? ' tournament-live-breathe' : ''}`}
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
-            title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
-          >
-            <Trophy size={12} strokeWidth={2.25} aria-hidden />
-            {tournamentLive && <LiveDot />}
-          </Link>
-          <Link
-            href="/tournaments"
-            className={`footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
-            style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-            aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
-            title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
-          >
-            <Trophy size={12} strokeWidth={2.25} aria-hidden />
-            Tournaments
-            {tournamentLive && <LivePill />}
-          </Link>
+          {/* Tournaments: One-Piece-only event surface, so the trigger
+              only appears while the One Piece collection is active. */}
+          {isOnePiece && (
+            <>
+              <Link
+                href="/tournaments"
+                className={`footer-btn relative inline-flex items-center justify-center xl:hidden${tournamentLive ? ' tournament-live-breathe' : ''}`}
+                style={{ ...ctrl, width: 30, height: 30 }}
+                aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
+                title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
+              >
+                <Trophy size={12} strokeWidth={2.25} aria-hidden />
+                {tournamentLive && <LiveDot />}
+              </Link>
+              <Link
+                href="/tournaments"
+                className={`footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
+                style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+                aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
+                title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
+              >
+                <Trophy size={12} strokeWidth={2.25} aria-hidden />
+                Tournaments
+                {tournamentLive && <LivePill />}
+              </Link>
+            </>
+          )}
 
           {/* Board trigger · last in the cluster so its variable-
               width count badge grows away from siblings, never into
@@ -2237,7 +2249,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             aria-label={tierPoolCount > 0 ? `Open tier list maker (${tierPoolCount} queued)` : 'Open tier list maker'}
           >
             <Layers size={16} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
-            <span>Tier list maker</span>
+            <span>Tier List Maker</span>
             {tierPoolCount > 0 && (
               <span
                 className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
@@ -2248,16 +2260,20 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             )}
           </Link>
 
-          <Link
-            href="/sealed"
-            onClick={() => setMobileOpen(false)}
-            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
-            style={{ ...ctrl }}
-            aria-label="Booster box dashboard"
-          >
-            <Package size={16} strokeWidth={2.25} aria-hidden />
-            <span>Booster boxes</span>
-          </Link>
+          {/* Booster boxes are One-Piece-only, so this link only shows
+              while the One Piece collection is active. */}
+          {isOnePiece && (
+            <Link
+              href="/sealed"
+              onClick={() => setMobileOpen(false)}
+              className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
+              style={{ ...ctrl }}
+              aria-label="Booster box dashboard"
+            >
+              <Package size={16} strokeWidth={2.25} aria-hidden />
+              <span>Booster Boxes</span>
+            </Link>
+          )}
 
           <Link
             href="/chart-race"
@@ -2267,20 +2283,24 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             aria-label="Chart Race maker"
           >
             <LineChart size={16} strokeWidth={2.25} aria-hidden />
-            <span>Chart Race maker</span>
+            <span>Chart Race Maker</span>
           </Link>
 
-          <Link
-            href="/tournaments"
-            onClick={() => setMobileOpen(false)}
-            className={`footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
-            style={{ ...ctrl }}
-            aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
-          >
-            <Trophy size={16} strokeWidth={2.25} aria-hidden />
-            <span>Tournaments</span>
-            {tournamentLive && <LivePill />}
-          </Link>
+          {/* Tournaments are One-Piece-only, so this link only shows
+              while the One Piece collection is active. */}
+          {isOnePiece && (
+            <Link
+              href="/tournaments"
+              onClick={() => setMobileOpen(false)}
+              className={`footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
+              style={{ ...ctrl }}
+              aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
+            >
+              <Trophy size={16} strokeWidth={2.25} aria-hidden />
+              <span>Tournaments</span>
+              {tournamentLive && <LivePill />}
+            </Link>
+          )}
 
           {/* How-it-works link · groups with Feedback so the two
               "meta" actions sit at the bottom of the mobile sheet,
