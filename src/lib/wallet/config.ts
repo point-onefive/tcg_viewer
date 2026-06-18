@@ -17,11 +17,38 @@ import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
 import { http } from 'viem'
 import { mainnet } from 'viem/chains'
 
+// Canonical production origin, used as the SSR fallback for WalletConnect
+// metadata. On the client we always prefer the live origin (handles preview
+// deploys, www vs apex, and localhost) so the dapp url matches exactly.
+const FALLBACK_ORIGIN = 'https://thecardwall.com'
+
+// WalletConnect requires dapp metadata whose `url` matches the live origin so
+// that mobile wallets can deep-link back to the browser after the user
+// approves. Without it, iOS Safari's native browser frequently fails to
+// return from the wallet app, which is the only connect path on mobile (there
+// is no injected provider there). Desktop is unaffected because it uses the
+// injected extension connector instead.
+function walletConnectMetadata() {
+  const origin = typeof window !== 'undefined' ? window.location.origin : FALLBACK_ORIGIN
+  return {
+    name: 'The Card Wall',
+    description: 'Trading card gallery and tournaments.',
+    url: origin,
+    icons: [`${origin}/icon.svg`],
+  }
+}
+
 const connectors = [
   injected(),
   coinbaseWallet({ appName: 'The Card Wall' }),
   ...(process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
-    ? [walletConnect({ projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID })]
+    ? [
+        walletConnect({
+          projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+          showQrModal: true,
+          metadata: walletConnectMetadata(),
+        }),
+      ]
     : []),
 ]
 
