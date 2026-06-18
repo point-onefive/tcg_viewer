@@ -98,7 +98,9 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
   )
 }
 
-// ── Loading skeleton: prize-shelf shaped placeholder while prizes fetch ──────
+// ── Loading skeleton: identical footprint to the empty/filled prize shelf, so
+// when the fetch resolves only the inner content swaps (shimmer -> tile/text)
+// and the box never resizes. One tile only: zero flicker.
 function PrizesSkeleton() {
   return (
     <div className="mt-6">
@@ -111,8 +113,11 @@ function PrizesSkeleton() {
           Prizes won
         </span>
       </div>
-      <div className="flex flex-wrap gap-2.5">
+      <div className="flex items-center gap-2.5">
         <div className="profile-skel" style={{ width: 84, height: 88 }} />
+        <span className="text-[11px] font-semibold" style={{ color: 'transparent' }}>
+          No prizes yet - awards show here
+        </span>
       </div>
     </div>
   )

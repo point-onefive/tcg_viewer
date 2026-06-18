@@ -133,7 +133,9 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
   )
 }
 
-// ── Loading skeleton: trophy-case shaped placeholder while badges fetch ──────
+// ── Loading skeleton: identical footprint to the empty/filled trophy-case
+// chip, so when the fetch resolves only the inner content swaps (shimmer ->
+// medal/text) and the box never resizes. One chip only: zero flicker.
 function BadgesSkeleton() {
   return (
     <div className="mt-6">
@@ -143,8 +145,14 @@ function BadgesSkeleton() {
       >
         Trophy case
       </div>
-      <div className="flex flex-wrap gap-2">
-        <div className="profile-skel" style={{ width: 158, height: 46 }} />
+      <div
+        className="profile-skel inline-flex items-center gap-2 px-3 py-2"
+        style={{ borderRadius: 8 }}
+      >
+        <Medal size={18} style={{ color: 'transparent', flexShrink: 0 }} />
+        <span className="text-[11px] font-semibold" style={{ color: 'transparent' }}>
+          No medals yet - top-3 finishes show here
+        </span>
       </div>
     </div>
   )
