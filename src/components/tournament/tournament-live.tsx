@@ -330,10 +330,16 @@ function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
 
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
-  const pengUrl = xProfileUrl('pengpost') ?? 'https://x.com/pengpost'
   const discordUrl = 'https://discord.gg/9meqsjre'
   const steps: { lead: React.ReactNode; body: React.ReactNode; danger?: boolean }[] = [
-    { lead: 'Sign up', body: 'Enter a valid X handle before the sign-up timer ends.' },
+    {
+      lead: 'Join the waitlist',
+      body: 'Between events, connect your wallet to claim a spot for the next one. When it opens you are dropped in automatically, so there is no timer to watch.',
+    },
+    {
+      lead: 'Sign up',
+      body: 'When an event is live, connect your wallet during the sign-up window to enter. Your X handle is pulled straight from your profile, so there is nothing to retype.',
+    },
     {
       lead: 'Get verified',
       body: 'An admin approves every handle. Once you\u2019re in, you can vote on the prize split.',
@@ -352,15 +358,7 @@ function HowItWorks() {
     },
     {
       lead: 'Report results',
-      body: (
-        <>
-          Screenshot game results and share in the player&rsquo;s chat + tag{' '}
-          <a href={pengUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#E85D2A', fontWeight: 700 }}>
-            @pengpost
-          </a>{' '}
-          before the timer runs out.
-        </>
-      ),
+      body: 'A new results-reporting flow is on the way. Details coming soon.',
     },
     {
       lead: 'Play fair',
