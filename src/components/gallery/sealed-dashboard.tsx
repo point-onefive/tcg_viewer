@@ -8,7 +8,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { HelpCircle, Layers, Package } from 'lucide-react'
+import { ArrowUpDown, HelpCircle, Layers, Package, Search, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { Footer } from '@/components/gallery/footer'
@@ -50,9 +50,9 @@ const BoxLineChart = dynamic(
 // The zoom scrubber maps one notch to exactly one column, so every notch on the
 // track produces a visible change (no dead notches where scrubbing does
 // nothing). Each breakpoint exposes only the column counts that actually fit:
-// phones top out at 3 columns, small tablets at 6, desktop at 12.
+// phones top out at 4 columns, small tablets at 6, desktop at 12.
 function colRangeForWidth(windowWidth: number): { min: number; max: number } {
-  if (windowWidth < 640) return { min: 1, max: 3 } // phones
+  if (windowWidth < 640) return { min: 1, max: 4 } // phones
   if (windowWidth < 768) return { min: 2, max: 6 } // small tablets
   return { min: 2, max: 12 } // desktop
 }
@@ -71,6 +71,76 @@ function gapForCols(cols: number): { col: number; row: number } {
   if (cols >= 10) return { col: 8, row: 14 }
   if (cols >= 7)  return { col: 10, row: 18 }
   return { col: 14, row: 26 }
+}
+
+// Percent move across a box's whole tracked window (first snapshot -> latest).
+// Shared by the tile badge and the gainers/losers sort so they always agree.
+function boxTrendPct(box: BoxPricing): number | null {
+  if (box.history.length < 2) return null
+  const first = box.history[0][1]
+  const last = box.history[box.history.length - 1][1]
+  if (!first) return null
+  return ((last - first) / first) * 100
+}
+
+// Sort modes offered in the toolbar. `release` uses scoreSetAbbr (set order is
+// a faithful proxy for release order: OP01 -> OP02 -> ...); the rest sort on
+// live price / movement / name. Boxes missing the relevant value sink to the
+// bottom so a half-tracked print never outranks one with real data.
+type SortMode =
+  | 'release-desc'
+  | 'release-asc'
+  | 'gainers'
+  | 'losers'
+  | 'price-desc'
+  | 'price-asc'
+  | 'name'
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: 'release-desc', label: 'Release: newest' },
+  { value: 'release-asc', label: 'Release: oldest' },
+  { value: 'gainers', label: 'Biggest gainers' },
+  { value: 'losers', label: 'Biggest losers' },
+  { value: 'price-desc', label: 'Price: high to low' },
+  { value: 'price-asc', label: 'Price: low to high' },
+  { value: 'name', label: 'Name: A to Z' },
+]
+
+// Sink nullish values to the end regardless of sort direction.
+function nullsLast(value: number | null, descending: boolean): number {
+  if (value == null || Number.isNaN(value)) return descending ? -Infinity : Infinity
+  return value
+}
+
+function sortBoxes(boxes: BoxPricing[], mode: SortMode): BoxPricing[] {
+  const out = [...boxes]
+  switch (mode) {
+    case 'release-desc':
+      return out.sort((a, b) => scoreSetAbbr(b.setAbbr) - scoreSetAbbr(a.setAbbr) || a.name.localeCompare(b.name))
+    case 'release-asc':
+      return out.sort((a, b) => scoreSetAbbr(a.setAbbr) - scoreSetAbbr(b.setAbbr) || a.name.localeCompare(b.name))
+    case 'gainers':
+      return out.sort((a, b) => nullsLast(boxTrendPct(b), true) - nullsLast(boxTrendPct(a), true))
+    case 'losers':
+      return out.sort((a, b) => nullsLast(boxTrendPct(a), false) - nullsLast(boxTrendPct(b), false))
+    case 'price-desc':
+      return out.sort((a, b) => nullsLast(b.market, true) - nullsLast(a.market, true))
+    case 'price-asc':
+      return out.sort((a, b) => nullsLast(a.market, false) - nullsLast(b.market, false))
+    case 'name':
+      return out.sort((a, b) => a.name.localeCompare(b.name))
+    default:
+      return out
+  }
+}
+
+// Free-text search across set code + name. Tokenised so "op05 awakening"
+// matches regardless of word order; every token must hit somewhere.
+function matchesQuery(box: BoxPricing, query: string): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  const haystack = `${box.setAbbr} ${box.name}`.toLowerCase()
+  return q.split(/\s+/).every((token) => haystack.includes(token))
 }
 
 /** Card-wall-style zoom scrubber. `fluid` stretches the track to fill
@@ -142,28 +212,36 @@ export function SealedDashboard() {
   const columns = zoomToCols(zoom, windowWidth)
   const zoomRange = colRangeForWidth(windowWidth)
 
+  // Toolbar state: free-text search + sort mode. Default keeps the familiar
+  // release order (OP01 -> newest, then special products) the page has always
+  // opened on; newest-first and the price/movement sorts are a click away.
+  const [query, setQuery] = useState('')
+  const [sortMode, setSortMode] = useState<SortMode>('release-asc')
+
   const boxes = useMemo(() => {
     if (!ready) return []
-    const all = getBoxes()
-    return [...all].sort((a, b) => {
-      const ao = scoreSetAbbr(a.setAbbr)
-      const bo = scoreSetAbbr(b.setAbbr)
-      if (ao !== bo) return ao - bo
-      return a.name.localeCompare(b.name)
-    })
+    return getBoxes()
   }, [ready])
+
+  // What the grid actually renders: boxes filtered by the search query then
+  // ordered by the chosen sort mode.
+  const visibleBoxes = useMemo(
+    () => sortBoxes(boxes.filter((b) => matchesQuery(b, query)), sortMode),
+    [boxes, query, sortMode],
+  )
 
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const stats = useMemo(() => {
-    const withMarket = boxes.filter((b) => b.market !== null)
+    const withMarket = visibleBoxes.filter((b) => b.market !== null)
     const totalMarket = withMarket.reduce((sum, b) => sum + (b.market || 0), 0)
     return {
-      count: boxes.length,
+      count: visibleBoxes.length,
+      total: boxes.length,
       avg: withMarket.length ? totalMarket / withMarket.length : 0,
       max: withMarket.length ? Math.max(...withMarket.map((b) => b.market || 0)) : 0,
     }
-  }, [boxes])
+  }, [visibleBoxes, boxes.length])
 
   const ctrl: React.CSSProperties = {
     background: 'var(--bg-surface)',
@@ -280,12 +358,58 @@ export function SealedDashboard() {
           <div className="sb-collection-band__row">
             <h1 className="sb-collection-band__title">One Piece booster boxes</h1>
             <span className="sb-collection-band__meta">
-              {stats.count.toLocaleString()} boxes
+              {query.trim()
+                ? `${stats.count.toLocaleString()} of ${stats.total.toLocaleString()} boxes`
+                : `${stats.total.toLocaleString()} boxes`}
               {stats.avg > 0 && <> · avg {formatUsd(stats.avg)}</>}
               {stats.max > 0 && <> · top {formatUsd(stats.max)}</>}
             </span>
           </div>
         </div>
+
+        {/* Toolbar - search + sort. Lets users find a box fast or reorder by
+            release, movement, or price without leaving the grid. */}
+        {ready && boxes.length > 0 && (
+          <div className="sb-toolbar">
+            <div className="sb-search" style={ctrl}>
+              <Search size={14} strokeWidth={2.25} aria-hidden className="sb-search__icon" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search boxes…"
+                aria-label="Search boxes"
+                className="sb-search__input"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="sb-search__clear"
+                  aria-label="Clear search"
+                >
+                  <X size={13} strokeWidth={2.5} aria-hidden />
+                </button>
+              )}
+            </div>
+            <label className="sb-sort" style={ctrl}>
+              <ArrowUpDown size={13} strokeWidth={2.25} aria-hidden className="sb-sort__icon" />
+              <span className="sr-only">Sort boxes</span>
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value as SortMode)}
+                className="sb-sort__select"
+                aria-label="Sort boxes"
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
 
         {!ready ? (
           <div className="sb-loading" aria-live="polite">Loading box prices…</div>
@@ -295,6 +419,15 @@ export function SealedDashboard() {
               No booster box data yet. Run{' '}
               <code>op-hub pricing sync-tcgtracking</code> on the VPS to
               populate the dashboard.
+            </p>
+          </div>
+        ) : visibleBoxes.length === 0 ? (
+          <div className="sb-empty">
+            <p>
+              No boxes match “{query.trim()}”.{' '}
+              <button type="button" className="sb-empty__link" onClick={() => setQuery('')}>
+                Clear search
+              </button>
             </p>
           </div>
         ) : (
@@ -308,7 +441,7 @@ export function SealedDashboard() {
               gap: `${gapForCols(columns).row}px ${gapForCols(columns).col}px`,
             }}
           >
-            {boxes.map((box) => (
+            {visibleBoxes.map((box) => (
               <BoxTile
                 key={box.tcgplayerId}
                 box={box}
@@ -341,13 +474,9 @@ function BoxTile({
   onClick: () => void
 }) {
   const trend = useMemo(() => {
-    if (box.history.length < 2) return null
-    const first = box.history[0][1]
-    const last = box.history[box.history.length - 1][1]
-    if (!first) return null
-    const delta = ((last - first) / first) * 100
-    return { delta }
-  }, [box.history])
+    const delta = boxTrendPct(box)
+    return delta == null ? null : { delta }
+  }, [box])
 
   const imageUrl = hiResBoxImage(box.imageUrl)
   const shortName = box.name.replace(/^[^:]+:\s*/, '').replace(/\s*-\s*Booster Box.*$/i, '')

@@ -810,6 +810,103 @@ html.lenis, html.lenis body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Search + sort toolbar above the grid */
+.sb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+}
+.sb-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 10px;
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 360px;
+}
+.sb-search__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.sb-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1;
+}
+.sb-search__input::placeholder {
+  color: var(--text-muted);
+}
+/* Hide the native search "x"; we render our own clear button */
+.sb-search__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sb-search__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.sb-search__clear:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+.sb-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 8px 0 10px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.sb-sort__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.sb-sort__select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  padding-right: 14px;
+  cursor: pointer;
+  /* caret */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 3.5L5 6.5L8 3.5' stroke='gray' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right center;
+}
+.sb-sort__select option {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+.sb-empty__link {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 .sb-loading {
   padding: 80px 24px;
   text-align: center;
