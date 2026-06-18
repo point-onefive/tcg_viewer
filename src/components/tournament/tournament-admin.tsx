@@ -256,9 +256,21 @@ export function TournamentAdmin() {
   return (
     <TournamentShell>
       <div className="mx-auto max-w-2xl flex flex-col gap-6">
-        <div className="flex items-center gap-2">
-          <Crown size={20} style={{ color: '#E85D2A' }} />
-          <h2 className="font-display text-xl font-bold">Tournament admin</h2>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Crown size={20} style={{ color: '#E85D2A' }} />
+            <h2 className="font-display text-xl font-bold">Tournament admin</h2>
+          </div>
+          {unlocked && (
+            <button
+              type="button"
+              onClick={doLogout}
+              className="footer-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+            >
+              <LogOut size={13} /> Log out
+            </button>
+          )}
         </div>
 
         {unlockBusy && !unlocked ? (
@@ -294,16 +306,6 @@ export function TournamentAdmin() {
           </form>
         ) : (
           <>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={doLogout}
-                className="footer-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
-                style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
-              >
-                <LogOut size={13} /> Log out
-              </button>
-            </div>
             {error && !snapshot && (
               <div className="p-4 text-sm" style={{ ...card, color: '#ef4444' }}>{error}</div>
             )}
@@ -458,15 +460,17 @@ export function TournamentAdmin() {
                 once to backfill gold/silver/bronze badges for events that completed before this
                 feature. Safe to run anytime.
               </p>
-              <AdminBtn
-                disabled={busy}
-                onClick={() => run(async () => {
-                  const r = await adminApi(adminKey, { action: 'recompute-placements' })
-                  setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
-                })}
-              >
-                Recompute placements
-              </AdminBtn>
+              <div className="mt-4 flex justify-center">
+                <AdminBtn
+                  disabled={busy}
+                  onClick={() => run(async () => {
+                    const r = await adminApi(adminKey, { action: 'recompute-placements' })
+                    setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
+                  })}
+                >
+                  Recompute placements
+                </AdminBtn>
+              </div>
             </div>
 
             {snapshot && code && (
@@ -583,7 +587,7 @@ export function TournamentAdmin() {
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
                         <Swords size={16} style={{ color: '#E85D2A' }} />
-                        <h3 className="font-display font-bold">Round {activeRound.number} results</h3>
+                        <h3 className="font-display font-bold">Round {activeRound.number} decisions</h3>
                       </div>
                       <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
                         {activeMatches.filter((m) => m.status === 'confirmed' || m.status === 'bye').length}/{activeMatches.length} done

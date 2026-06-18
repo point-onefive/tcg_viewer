@@ -41,8 +41,11 @@ export function BrandLockup({ mobileCompact = false }: { mobileCompact?: boolean
           style={{
             background: 'var(--bg)',
             padding: '0 5px',
+            // Full border so the chip reads as a closed box when the wordmark
+            // is hidden (compact mode). In full mode the right edge is colored
+            // var(--text-primary), which blends into the dark wordmark panel,
+            // so no divider line shows.
             border: '1px solid var(--text-primary)',
-            borderRight: 'none',
             borderTopLeftRadius: 6,
             borderBottomLeftRadius: 6,
           }}
