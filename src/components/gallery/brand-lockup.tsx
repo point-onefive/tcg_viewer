@@ -35,9 +35,16 @@ export function BrandLockup({ mobileCompact = false }: { mobileCompact?: boolean
           transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
-        {/* Mascot chip - lighter panel that anchors him inside the mark */}
+        {/* Mascot chip - lighter panel that anchors him inside the mark.
+            Left corners always round. Right corners round too in compact mode
+            (mobile, wordmark hidden) so the border follows all four corners
+            and there are no blank/un-outlined corners; at >= sm the wordmark
+            reappears and the right side goes square again to butt flush
+            against the dark wordmark panel. */}
         <span
-          className="inline-flex items-center justify-center"
+          className={`inline-flex items-center justify-center rounded-l-md ${
+            mobileCompact ? 'rounded-r-md sm:rounded-r-none' : ''
+          }`}
           style={{
             background: 'var(--bg)',
             padding: '0 5px',
@@ -46,8 +53,6 @@ export function BrandLockup({ mobileCompact = false }: { mobileCompact?: boolean
             // var(--text-primary), which blends into the dark wordmark panel,
             // so no divider line shows.
             border: '1px solid var(--text-primary)',
-            borderTopLeftRadius: 6,
-            borderBottomLeftRadius: 6,
           }}
         >
           {/* Explicit width - `width: auto` resolved to 0px in some
