@@ -23,6 +23,7 @@ import {
   type Pairing,
 } from './pairing'
 import type {
+  CompletedTournamentSummary,
   CreateTournamentInput,
   CreateTournamentResult,
   EnrollResult,
@@ -1090,13 +1091,16 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     proposals = (data ?? []).map(rowToProposal)
   }
   const standings = computeStandings(players, matches)
-  // Deck contents are private (host + the owning player only). The snapshot is
-  // public and cached, so strip the text here - `hasDeckList` still signals
-  // submitted/missing for the roster and admin status without enabling
-  // pre-match meta-gaming.
-  const publicPlayers = players.map((p) =>
-    p.deckList == null ? p : { ...p, deckList: null },
-  )
+  // Deck contents are private WHILE the event runs (host + the owning player
+  // only): the snapshot is public and cached, so stripping the text here keeps
+  // opponents from pre-match meta-gaming. Standard tournament etiquette is
+  // closed lists during play, published once the event concludes - so once the
+  // tournament is `complete` we expose the lists as a public metagame archive.
+  // `hasDeckList` still signals submitted/missing regardless of phase.
+  const decksPublic = tournament.status === 'complete'
+  const publicPlayers = decksPublic
+    ? players
+    : players.map((p) => (p.deckList == null ? p : { ...p, deckList: null }))
   return {
     tournament,
     players: publicPlayers,
@@ -1131,6 +1135,53 @@ export async function getLiveTournamentRow() {
 export async function getActiveSnapshot(): Promise<TournamentSnapshot> {
   const row = await getLiveTournamentRow()
   return getSnapshotByCode(row.code)
+}
+
+/**
+ * Public archive of finished events, newest first. One lightweight summary
+ * per `complete` tournament (no bracket joins): name, date, headcount, and the
+ * champion (final_rank = 1). Players are pulled in a single batched query and
+ * grouped in memory so this stays one round-trip regardless of event count.
+ */
+export async function listCompletedTournaments(): Promise<CompletedTournamentSummary[]> {
+  const sb = getServiceClient()
+  const { data: tRows, error } = await sb
+    .from('tournaments')
+    .select('id, code, name, format, created_at')
+    .eq('status', 'complete')
+    .order('created_at', { ascending: false })
+  if (error) throw new TournamentError(error.message, 500)
+  const tournaments = tRows ?? []
+  if (tournaments.length === 0) return []
+
+  const ids = tournaments.map((t) => t.id as string)
+  const { data: pRows } = await sb
+    .from('players')
+    .select('tournament_id, x_handle, display_name, final_rank, dropped, approval_status')
+    .in('tournament_id', ids)
+
+  const counts = new Map<string, number>()
+  const champions = new Map<string, { xHandle: string; displayName: string }>()
+  for (const p of pRows ?? []) {
+    const tid = p.tournament_id as string
+    const rejected = (p.approval_status ?? 'approved') === 'rejected'
+    if (!rejected) counts.set(tid, (counts.get(tid) ?? 0) + 1)
+    if ((p.final_rank ?? null) === 1 && !champions.has(tid)) {
+      champions.set(tid, {
+        xHandle: (p.x_handle as string) ?? '',
+        displayName: (p.display_name as string) ?? '',
+      })
+    }
+  }
+
+  return tournaments.map((t) => ({
+    code: t.code as string,
+    name: t.name as string,
+    format: t.format as TournamentFormat,
+    createdAt: t.created_at as string,
+    playerCount: counts.get(t.id as string) ?? 0,
+    champion: champions.get(t.id as string) ?? null,
+  }))
 }
 
 /**

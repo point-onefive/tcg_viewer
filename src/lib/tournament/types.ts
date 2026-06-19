@@ -261,3 +261,19 @@ export interface TournamentSnapshot {
   /** Prizes resolved to winners; empty until the event completes + is awarded. */
   awardedPrizes: AwardedPrize[]
 }
+
+/**
+ * Compact card shown in the public "Past events" archive. One row per
+ * completed tournament, newest first. Contents only - no tokens.
+ */
+export interface CompletedTournamentSummary {
+  code: string
+  name: string
+  format: TournamentFormat
+  /** When the event was created (ISO); used as the archive date label. */
+  createdAt: string
+  /** Headcount of non-dropped, approved entrants. */
+  playerCount: number
+  /** The 1st-place finisher, when standings were locked; null otherwise. */
+  champion: { xHandle: string; displayName: string } | null
+}

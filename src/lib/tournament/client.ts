@@ -1,6 +1,6 @@
 'use client'
 
-import type { TournamentSnapshot } from './types'
+import type { CompletedTournamentSummary, TournamentSnapshot } from './types'
 import type { PollResults } from './poll'
 
 const ADMIN_KEY = 'tcw_tournament_admin_key'
@@ -54,6 +54,18 @@ export async function apiSnapshotByCode(code: string): Promise<TournamentSnapsho
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Not found')
   return data as TournamentSnapshot
+}
+
+/** Public archive of completed events, newest first. Never throws. */
+export async function apiTournamentHistory(): Promise<CompletedTournamentSummary[]> {
+  try {
+    const res = await fetch('/api/tournaments/history', { cache: 'no-store' })
+    if (!res.ok) return []
+    const data = (await res.json()) as { tournaments?: CompletedTournamentSummary[] }
+    return data.tournaments ?? []
+  } catch {
+    return []
+  }
 }
 
 /** Live/enrolling probe for the global header badge. Never throws. */

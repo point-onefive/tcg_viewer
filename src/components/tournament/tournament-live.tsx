@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { CalendarClock, Check, ChevronRight, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -1181,6 +1182,16 @@ export function TournamentLive() {
             </p>
           </div>
           <WaitlistCard />
+          <div className="mt-6 flex justify-center">
+            <Link
+              href="/tournaments/history"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
+              style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+            >
+              <Trophy size={15} style={{ color: '#E85D2A' }} aria-hidden /> Browse past events
+              <ChevronRight size={15} aria-hidden />
+            </Link>
+          </div>
         </div>
       </TournamentShell>
     )
@@ -1201,6 +1212,18 @@ export function TournamentLive() {
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
       {/* Global leaderboard across all tournaments */}
       <Leaderboard />
+
+      {/* Archive of finished events (final standings + published deck lists). */}
+      <div className="mb-6 flex justify-end">
+        <Link
+          href="/tournaments/history"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
+          style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+        >
+          <Trophy size={15} style={{ color: '#E85D2A' }} aria-hidden /> Past events
+          <ChevronRight size={15} aria-hidden />
+        </Link>
+      </div>
 
       {/* Next-event waitlist. Shown only when the current event is not actively
           enrolling, so it never competes with the live sign-up form below. */}
