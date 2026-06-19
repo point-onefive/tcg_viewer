@@ -211,12 +211,49 @@ async function fetchPlayerByToken(
   return data ? rowToPlayer(data) : null
 }
 
+/**
+ * Resolve a signed-in wallet to its player row in one event. Matches on the
+ * wallet address first (set at enroll time), then falls back to the profile's
+ * X handle so players who signed up before a wallet was linked can still
+ * report. Returns the active (non-rejected) row.
+ */
+async function fetchPlayerByWalletOrHandle(
+  tournamentId: string,
+  walletAddress: string,
+  xHandle: string | null,
+): Promise<Player | null> {
+  const sb = getServiceClient()
+  const addr = walletAddress.toLowerCase()
+  const { data: byWallet, error: walletErr } = await sb
+    .from('players')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .eq('wallet_address', addr)
+    .neq('approval_status', 'rejected')
+    .maybeSingle()
+  if (walletErr) throw new TournamentError(walletErr.message, 500)
+  if (byWallet) return rowToPlayer(byWallet)
+
+  const handle = xHandle ? normalizeXHandle(xHandle) : ''
+  if (!handle) return null
+  const { data: byHandle, error: handleErr } = await sb
+    .from('players')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .eq('x_handle', handle)
+    .neq('approval_status', 'rejected')
+    .maybeSingle()
+  if (handleErr) throw new TournamentError(handleErr.message, 500)
+  return byHandle ? rowToPlayer(byHandle) : null
+}
+
 // ── Enroll ─────────────────────────────────────────────────────────────────
 
 export async function enroll(
   code: string,
   xHandleRaw: string,
   deckListRaw?: string | null,
+  walletAddress?: string | null,
 ): Promise<EnrollResult> {
   const sb = getServiceClient()
   const row = await fetchTournamentRowByCode(code)
@@ -262,6 +299,7 @@ export async function enroll(
       approval_status: 'pending',
       discord_handle: null,
       deck_list: deckList,
+      wallet_address: walletAddress ? walletAddress.toLowerCase() : null,
       player_token_hash: hashToken(playerToken),
     })
     .select('*')
@@ -422,10 +460,46 @@ export async function reportResult(
   playerToken: string,
   result: ReportedResult,
 ): Promise<void> {
-  const sb = getServiceClient()
   const row = await fetchTournamentRowByCode(code)
   const player = await fetchPlayerByToken(row.id, playerToken)
   if (!player) throw new TournamentError('Not authorized (invalid player token).', 403)
+  await applyReport(row, matchId, player, result)
+}
+
+/**
+ * Wallet-backed match reporting. The route verifies the wallet session and
+ * passes the signed-in wallet address plus the profile X handle. We resolve the
+ * caller to their player row in this event by wallet address first, then fall
+ * back to the X handle (covers players enrolled before a wallet was linked).
+ * Same dual-confirmation resolution as the token path.
+ */
+export async function reportResultByWallet(
+  code: string,
+  matchId: string,
+  walletAddress: string,
+  xHandle: string | null,
+  result: ReportedResult,
+): Promise<void> {
+  const row = await fetchTournamentRowByCode(code)
+  const player = await fetchPlayerByWalletOrHandle(row.id, walletAddress, xHandle)
+  if (!player) {
+    throw new TournamentError('You are not signed up for this tournament.', 403)
+  }
+  await applyReport(row, matchId, player, result)
+}
+
+/**
+ * Core dual-confirmation report logic shared by the token and wallet paths.
+ * Both sides agree -> confirmed + auto-advance; conflict -> disputed (admin
+ * review); single-sided -> provisional until the confirm window / cron sweep.
+ */
+async function applyReport(
+  row: { id: string; format: Tournament['format'] },
+  matchId: string,
+  player: Player,
+  result: ReportedResult,
+): Promise<void> {
+  const sb = getServiceClient()
 
   const { data: mRow, error } = await sb
     .from('matches')
@@ -443,6 +517,9 @@ export async function reportResult(
   }
   if (match.status === 'confirmed') {
     throw new TournamentError('This match is already finalized.')
+  }
+  if (result === 'draw' && row.format === 'single-elim') {
+    throw new TournamentError('Single elimination cannot end in a draw - pick a winner.')
   }
 
   const isP1 = match.player1Id === player.id

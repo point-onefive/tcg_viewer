@@ -37,7 +37,7 @@ export async function POST(
     if (!body?.deckList || String(body.deckList).trim() === '') {
       throw new TournamentError('Paste your deck list to sign up.', 422)
     }
-    const result = await enroll(code, profile.xHandle, body.deckList)
+    const result = await enroll(code, profile.xHandle, body.deckList, session.address)
     return ok(result, 201)
   })
 }

@@ -455,30 +455,6 @@ export function TournamentAdmin() {
               )}
             </div>
 
-            {/* Maintenance - backfill finalist badges for past events */}
-            <div className="p-5" style={card}>
-              <div className="flex items-center gap-2">
-                <Medal size={16} style={{ color: '#f5b301' }} />
-                <h3 className="font-display font-bold">Finalist badges</h3>
-              </div>
-              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                New tournaments record final placements automatically when they finish. Run this
-                once to backfill gold/silver/bronze badges for events that completed before this
-                feature. Safe to run anytime.
-              </p>
-              <div className="mt-4 flex justify-center">
-                <AdminBtn
-                  disabled={busy}
-                  onClick={() => run(async () => {
-                    const r = await adminApi(adminKey, { action: 'recompute-placements' })
-                    setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
-                  })}
-                >
-                  Recompute placements
-                </AdminBtn>
-              </div>
-            </div>
-
             {snapshot && code && (
               <>
                 <div className="p-5" style={card}>
@@ -725,6 +701,31 @@ export function TournamentAdmin() {
                 )}
               </>
             )}
+
+            {/* Maintenance - backfill finalist badges for past events. Rarely
+                run, so it lives at the bottom of the panel. */}
+            <div className="p-5" style={card}>
+              <div className="flex items-center gap-2">
+                <Medal size={16} style={{ color: '#f5b301' }} />
+                <h3 className="font-display font-bold">Finalist badges</h3>
+              </div>
+              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                New tournaments record final placements automatically when they finish. Run this
+                once to backfill gold/silver/bronze badges for events that completed before this
+                feature. Safe to run anytime.
+              </p>
+              <div className="mt-4 flex justify-center">
+                <AdminBtn
+                  disabled={busy}
+                  onClick={() => run(async () => {
+                    const r = await adminApi(adminKey, { action: 'recompute-placements' })
+                    setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
+                  })}
+                >
+                  Recompute placements
+                </AdminBtn>
+              </div>
+            </div>
 
             {error && snapshot && (
               <div className="p-4 text-sm" style={{ ...card, color: '#ef4444' }}>{error}</div>
@@ -1388,6 +1389,37 @@ function AdminMatchRow({
         : 'draw'
     : null
 
+  // Surface the players' self-reports so the admin can spot disputes (both
+  // claim the win), provisional single-sided reports, and matches the players
+  // already auto-confirmed between themselves.
+  const r1 = match.player1Report
+  const r2 = match.player2Report
+  const p1Label = p1 ? formatXLabel(p1.xHandle) : 'Player 1'
+  const p2Label = p2 ? formatXLabel(p2.xHandle) : 'Player 2'
+  const reportStatus: { tone: string; label: string; text: string } | null = (() => {
+    if (isBye) return null
+    if (match.status === 'disputed') {
+      return {
+        tone: '#f59e0b',
+        label: 'Disputed',
+        text: `${p1Label} said ${r1 ?? '-'}, ${p2Label} said ${r2 ?? '-'}. Pick the winner to resolve.`,
+      }
+    }
+    if (!resolved && (r1 || r2)) {
+      const who = r1 ? p1Label : p2Label
+      const what = r1 ?? r2
+      return {
+        tone: '#E85D2A',
+        label: 'Reported',
+        text: `${who} reported ${what}. Awaiting the other player.`,
+      }
+    }
+    if (resolved && r1 && r2) {
+      return { tone: '#22c55e', label: 'Auto-confirmed', text: 'Both players agreed.' }
+    }
+    return null
+  })()
+
   const choose = (side: 'p1' | 'p2' | 'draw') => {
     if (disabled) return
     if (pending === side) {
@@ -1471,13 +1503,32 @@ function AdminMatchRow({
         )}
       </div>
 
+      {reportStatus && (
+        <div
+          className="flex items-start gap-2 rounded-md px-2.5 py-1.5"
+          style={{
+            background: `color-mix(in srgb, ${reportStatus.tone} 10%, var(--bg))`,
+            border: `1px solid color-mix(in srgb, ${reportStatus.tone} 28%, transparent)`,
+          }}
+        >
+          <span
+            className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+            style={{ background: reportStatus.tone, color: '#0a0a0a' }}
+          >
+            {reportStatus.label}
+          </span>
+          <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+            {reportStatus.text}
+          </span>
+        </div>
+      )}
+
       {!isBye && pending ? (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs flex-1 min-w-0" style={{ color: 'var(--text-secondary)' }}>
             Record <strong style={{ color: 'var(--text-primary)' }}>{labelFor(pending)}</strong>
             {pending === 'draw' ? '' : ' as the winner'}?
-          </span>
-          <button
+          </span>          <button
             type="button"
             disabled={disabled}
             onClick={confirm}
