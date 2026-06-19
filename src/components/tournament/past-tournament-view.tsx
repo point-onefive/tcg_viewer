@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, ListChecks, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { AwardedPrizesHistory, RoundBoard } from './tournament-live'
+import { AwardedPrizesHistory, LeaderChip, RoundBoard } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import { deckCardCount } from '@/lib/tournament/deck-list'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
@@ -256,8 +256,9 @@ export function PastTournamentView({ code }: { code: string }) {
                     className="flex cursor-pointer items-center justify-between gap-3 p-3 text-sm"
                     style={{ listStyle: 'none' }}
                   >
-                    <span className="min-w-0 truncate font-semibold">
-                      {formatXLabel(p.xHandle || p.displayName)}
+                    <span className="flex min-w-0 items-center gap-2">
+                      <XLink handle={p.xHandle || p.displayName} />
+                      <LeaderChip player={p} />
                     </span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {deckCardCount(p.deckList ?? '')} cards

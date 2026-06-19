@@ -1,0 +1,550 @@
+{
+  "EB01-001": {
+    "name": "Kouzuki Oden",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB01-001.png"
+  },
+  "EB01-021": {
+    "name": "Hannyabal",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB01-021.png"
+  },
+  "EB01-040": {
+    "name": "Kyros",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB01-040.png"
+  },
+  "EB02-010": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB02-010.png"
+  },
+  "EB03-001": {
+    "name": "Nefeltari Vivi",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB03-001.png"
+  },
+  "EB04-001": {
+    "name": "Jewelry Bonney",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/EB04-001.png"
+  },
+  "OP01-001": {
+    "name": "Roronoa Zoro",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-001.png"
+  },
+  "OP01-002": {
+    "name": "Trafalgar Law",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-002.png"
+  },
+  "OP01-003": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-003.png"
+  },
+  "OP01-031": {
+    "name": "Kouzuki Oden",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-031.png"
+  },
+  "OP01-060": {
+    "name": "Donquixote Doflamingo",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-060.png"
+  },
+  "OP01-061": {
+    "name": "Kaido",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-061.png"
+  },
+  "OP01-062": {
+    "name": "Crocodile",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-062.png"
+  },
+  "OP01-091": {
+    "name": "King",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP01-091.png"
+  },
+  "OP02-001": {
+    "name": "Edward.Newgate",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-001.png"
+  },
+  "OP02-002": {
+    "name": "Monkey.D.Garp",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-002.png"
+  },
+  "OP02-025": {
+    "name": "Kin'emon",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-025.png"
+  },
+  "OP02-026": {
+    "name": "Sanji",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-026.png"
+  },
+  "OP02-049": {
+    "name": "Emporio.Ivankov",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-049.png"
+  },
+  "OP02-071": {
+    "name": "Magellan",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-071.png"
+  },
+  "OP02-072": {
+    "name": "Zephyr",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-072.png"
+  },
+  "OP02-093": {
+    "name": "Smoker",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP02-093.png"
+  },
+  "OP03-001": {
+    "name": "Portgas.D.Ace",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-001.png"
+  },
+  "OP03-021": {
+    "name": "Kuro",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-021.png"
+  },
+  "OP03-022": {
+    "name": "Arlong",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-022.png"
+  },
+  "OP03-040": {
+    "name": "Nami",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-040.png"
+  },
+  "OP03-058": {
+    "name": "Iceburg",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-058.png"
+  },
+  "OP03-076": {
+    "name": "Rob Lucci",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-076.png"
+  },
+  "OP03-077": {
+    "name": "Charlotte Linlin",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-077.png"
+  },
+  "OP03-099": {
+    "name": "Charlotte Katakuri",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP03-099.png"
+  },
+  "OP04-001": {
+    "name": "Nefeltari Vivi",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-001.png"
+  },
+  "OP04-019": {
+    "name": "Donquixote Doflamingo",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-019.png"
+  },
+  "OP04-020": {
+    "name": "Issho",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-020.png"
+  },
+  "OP04-039": {
+    "name": "Rebecca",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-039.png"
+  },
+  "OP04-040": {
+    "name": "Queen",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-040.png"
+  },
+  "OP04-058": {
+    "name": "Crocodile",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP04-058.png"
+  },
+  "OP05-001": {
+    "name": "Sabo",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-001.png"
+  },
+  "OP05-002": {
+    "name": "Belo Betty",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-002.png"
+  },
+  "OP05-022": {
+    "name": "Donquixote Rosinante",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-022.png"
+  },
+  "OP05-041": {
+    "name": "Sakazuki",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-041.png"
+  },
+  "OP05-060": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-060.png"
+  },
+  "OP05-098": {
+    "name": "Enel",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP05-098.png"
+  },
+  "OP06-001": {
+    "name": "Uta",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-001.png"
+  },
+  "OP06-020": {
+    "name": "Hody Jones",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-020.png"
+  },
+  "OP06-021": {
+    "name": "Perona",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-021.png"
+  },
+  "OP06-022": {
+    "name": "Yamato",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-022.png"
+  },
+  "OP06-042": {
+    "name": "Vinsmoke Reiju",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-042.png"
+  },
+  "OP06-080": {
+    "name": "Gecko Moria",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP06-080.png"
+  },
+  "OP07-001": {
+    "name": "Monkey.D.Dragon",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-001.png"
+  },
+  "OP07-019": {
+    "name": "Jewelry Bonney",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-019.png"
+  },
+  "OP07-038": {
+    "name": "Boa Hancock",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-038.png"
+  },
+  "OP07-059": {
+    "name": "Foxy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-059.png"
+  },
+  "OP07-079": {
+    "name": "Rob Lucci",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-079.png"
+  },
+  "OP07-097": {
+    "name": "Vegapunk",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP07-097.png"
+  },
+  "OP08-001": {
+    "name": "Tony Tony.Chopper",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-001.png"
+  },
+  "OP08-002": {
+    "name": "Marco",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-002.png"
+  },
+  "OP08-021": {
+    "name": "Carrot",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-021.png"
+  },
+  "OP08-057": {
+    "name": "King",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-057.png"
+  },
+  "OP08-058": {
+    "name": "Charlotte Pudding",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-058.png"
+  },
+  "OP08-098": {
+    "name": "Kalgara",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP08-098.png"
+  },
+  "OP09-001": {
+    "name": "Shanks",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-001.png"
+  },
+  "OP09-022": {
+    "name": "Lim",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-022.png"
+  },
+  "OP09-042": {
+    "name": "Buggy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-042.png"
+  },
+  "OP09-061": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-061.png"
+  },
+  "OP09-062": {
+    "name": "Nico Robin",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-062.png"
+  },
+  "OP09-081": {
+    "name": "Marshall.D.Teach",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP09-081.png"
+  },
+  "OP10-001": {
+    "name": "Smoker",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-001.png"
+  },
+  "OP10-002": {
+    "name": "Caesar Clown",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-002.png"
+  },
+  "OP10-003": {
+    "name": "Sugar",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-003.png"
+  },
+  "OP10-022": {
+    "name": "Trafalgar Law",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-022.png"
+  },
+  "OP10-042": {
+    "name": "Usopp",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-042.png"
+  },
+  "OP10-099": {
+    "name": "Eustass\"Captain\"Kid",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP10-099.png"
+  },
+  "OP11-001": {
+    "name": "Koby",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-001.png"
+  },
+  "OP11-021": {
+    "name": "Jinbe",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-021.png"
+  },
+  "OP11-022": {
+    "name": "Shirahoshi",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-022.png"
+  },
+  "OP11-040": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-040.png"
+  },
+  "OP11-041": {
+    "name": "Nami",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-041.png"
+  },
+  "OP11-062": {
+    "name": "Charlotte Katakuri",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP11-062.png"
+  },
+  "OP12-001": {
+    "name": "Silvers Rayleigh",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-001.png"
+  },
+  "OP12-020": {
+    "name": "Roronoa Zoro",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-020.png"
+  },
+  "OP12-040": {
+    "name": "Kuzan",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-040.png"
+  },
+  "OP12-041": {
+    "name": "Sanji",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-041.png"
+  },
+  "OP12-061": {
+    "name": "Donquixote Rosinante",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-061.png"
+  },
+  "OP12-081": {
+    "name": "Koala",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP12-081.png"
+  },
+  "OP13-001": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-001.png"
+  },
+  "OP13-002": {
+    "name": "Portgas.D.Ace",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-002.png"
+  },
+  "OP13-003": {
+    "name": "Gol.D.Roger",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-003.png"
+  },
+  "OP13-004": {
+    "name": "Sabo",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-004.png"
+  },
+  "OP13-079": {
+    "name": "Imu",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-079.png"
+  },
+  "OP13-100": {
+    "name": "Jewelry Bonney",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP13-100.png"
+  },
+  "OP14-001": {
+    "name": "Trafalgar Law",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-001.png"
+  },
+  "OP14-020": {
+    "name": "Dracule Mihawk",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-020.png"
+  },
+  "OP14-040": {
+    "name": "Jinbe",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-040.png"
+  },
+  "OP14-041": {
+    "name": "Boa Hancock",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-041.png"
+  },
+  "OP14-060": {
+    "name": "Donquixote Doflamingo",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-060.png"
+  },
+  "OP14-079": {
+    "name": "Crocodile",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-079.png"
+  },
+  "OP14-080": {
+    "name": "Gecko Moria",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP14-080.png"
+  },
+  "OP15-001": {
+    "name": "Krieg",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP15-001.png"
+  },
+  "OP15-002": {
+    "name": "Lucy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP15-002.png"
+  },
+  "OP15-022": {
+    "name": "Brook",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP15-022.png"
+  },
+  "OP15-039": {
+    "name": "Rebecca",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP15-039.png"
+  },
+  "OP15-058": {
+    "name": "Enel",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP15-058.png"
+  },
+  "OP15-098": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP15-098.png"
+  },
+  "OP16-001": {
+    "name": "Portgas.D.Ace",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP16-001.png"
+  },
+  "OP16-022": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP16-022.png"
+  },
+  "OP16-041": {
+    "name": "Buggy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP16-041.png"
+  },
+  "OP16-060": {
+    "name": "Sengoku",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP16-060.png"
+  },
+  "OP16-079": {
+    "name": "Yamato",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP16-079.png"
+  },
+  "OP16-080": {
+    "name": "Marshall.D.Teach",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/OP16-080.png"
+  },
+  "P-011": {
+    "name": "Uta",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-011.png"
+  },
+  "P-047": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-047.png"
+  },
+  "P-076": {
+    "name": "Sakazuki",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-076.png"
+  },
+  "P-086": {
+    "name": "Trafalgar Law",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-086.png"
+  },
+  "P-117": {
+    "name": "Nami",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/P-117.png"
+  },
+  "PRB01-001": {
+    "name": "Sanji",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/PRB01-001.png"
+  },
+  "ST01-001": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST01-001.png"
+  },
+  "ST02-001": {
+    "name": "Eustass\"Captain\"Kid",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST02-001.png"
+  },
+  "ST03-001": {
+    "name": "Crocodile",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST03-001.png"
+  },
+  "ST04-001": {
+    "name": "Kaido",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST04-001.png"
+  },
+  "ST05-001": {
+    "name": "Shanks",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST05-001.png"
+  },
+  "ST06-001": {
+    "name": "Sakazuki",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST06-001.png"
+  },
+  "ST07-001": {
+    "name": "Charlotte Linlin",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST07-001.png"
+  },
+  "ST08-001": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST08-001.png"
+  },
+  "ST09-001": {
+    "name": "Yamato",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST09-001.png"
+  },
+  "ST10-001": {
+    "name": "Trafalgar Law",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST10-001.png"
+  },
+  "ST10-002": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST10-002.png"
+  },
+  "ST10-003": {
+    "name": "Eustass\"Captain\"Kid",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST10-003.png"
+  },
+  "ST11-001": {
+    "name": "Uta",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST11-001.png"
+  },
+  "ST12-001": {
+    "name": "Roronoa Zoro & Sanji",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST12-001.png"
+  },
+  "ST13-001": {
+    "name": "Sabo",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-001.png"
+  },
+  "ST13-002": {
+    "name": "Portgas.D.Ace",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-002.png"
+  },
+  "ST13-003": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST13-003.png"
+  },
+  "ST14-001": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST14-001.png"
+  },
+  "ST21-001": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST21-001.png"
+  },
+  "ST22-001": {
+    "name": "Ace & Newgate",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST22-001.png"
+  },
+  "ST29-001": {
+    "name": "Monkey.D.Luffy",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST29-001.png"
+  },
+  "ST30-001": {
+    "name": "Luffy & Ace",
+    "image": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/ST30-001.png"
+  }
+}

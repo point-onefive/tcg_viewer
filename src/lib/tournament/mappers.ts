@@ -69,6 +69,11 @@ export function rowToPlayer(r: any): Player {
     dropped: Boolean(r.dropped),
     deckList: r.deck_list ?? null,
     hasDeckList: Boolean(r.deck_list),
+    // Leader is derived from the deck list in the snapshot layer (it needs the
+    // card index); default null here so the raw mapper stays pure.
+    leaderCardId: null,
+    leaderName: null,
+    leaderImage: null,
     createdAt: r.created_at,
   }
 }

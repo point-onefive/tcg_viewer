@@ -232,6 +232,45 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
 }
 
 /**
+ * Small Leader-card chip: thumbnail + name. The Leader is public during play
+ * (it is on the table and the metagame is tracked by it), so we surface it on
+ * the roster even while the rest of the deck list stays hidden.
+ */
+export function LeaderChip({ player }: { player: Player }) {
+  if (!player.leaderCardId) return null
+  return (
+    <span
+      className="shrink-0 inline-flex items-center gap-1.5"
+      title={player.leaderName ?? player.leaderCardId}
+    >
+      {player.leaderImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={player.leaderImage}
+          alt={player.leaderName ?? 'Leader'}
+          loading="lazy"
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 4,
+            objectFit: 'cover',
+            objectPosition: 'top center',
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-surface)',
+          }}
+        />
+      )}
+      <span
+        className="hidden truncate text-[11px] font-semibold sm:inline"
+        style={{ color: 'var(--text-secondary)', maxWidth: 110 }}
+      >
+        {player.leaderName ?? player.leaderCardId}
+      </span>
+    </span>
+  )
+}
+
+/**
  * Public, read-only history of the prizes that were actually handed out, shown
  * only once an event is complete and its prizes have been resolved to winners.
  * Reads the frozen award snapshot (never the live pool), grouped by prize slot
@@ -2175,6 +2214,7 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
       <span className="min-w-0 flex-1">
         <XProfileLink handle={player.xHandle} className="truncate block" />
       </span>
+      <LeaderChip player={player} />
       {player.approvalStatus === 'pending' && (
         <span
           className="shrink-0 text-[10px] uppercase tracking-wider font-bold"

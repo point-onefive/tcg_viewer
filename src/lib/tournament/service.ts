@@ -39,6 +39,7 @@ import type {
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { validateDeckList } from './deck-list'
+import { extractLeader } from './leader'
 import { emptyPollResults, isPollChoice, type PollResults } from './poll'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1091,16 +1092,33 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     proposals = (data ?? []).map(rowToProposal)
   }
   const standings = computeStandings(players, matches)
-  // Deck contents are private WHILE the event runs (host + the owning player
-  // only): the snapshot is public and cached, so stripping the text here keeps
-  // opponents from pre-match meta-gaming. Standard tournament etiquette is
-  // closed lists during play, published once the event concludes - so once the
-  // tournament is `complete` we expose the lists as a public metagame archive.
-  // `hasDeckList` still signals submitted/missing regardless of phase.
+  // Leader reveal: resolve each player's Leader card from their (private) deck
+  // list and expose it ALWAYS. The Leader is public during play (it is on the
+  // table and the metagame is tracked by it), so revealing it never leaks the
+  // hidden 50-card list.
+  //
+  // Deck contents themselves are private WHILE the event runs (host + the
+  // owning player only): the snapshot is public and cached, so stripping the
+  // text keeps opponents from pre-match meta-gaming. Standard tournament
+  // etiquette is closed lists during play, published once the event concludes
+  // - so once the tournament is `complete` we expose the full lists as a
+  // public metagame archive. `hasDeckList` signals submitted/missing in any
+  // phase.
   const decksPublic = tournament.status === 'complete'
-  const publicPlayers = decksPublic
-    ? players
-    : players.map((p) => (p.deckList == null ? p : { ...p, deckList: null }))
+  const withLeader = (p: Player): Player => {
+    const leader = extractLeader(p.deckList)
+    return {
+      ...p,
+      leaderCardId: leader?.id ?? null,
+      leaderName: leader?.name ?? null,
+      leaderImage: leader?.image ?? null,
+    }
+  }
+  const publicPlayers = players.map((p) => {
+    const enriched = withLeader(p)
+    if (decksPublic) return enriched
+    return enriched.deckList == null ? enriched : { ...enriched, deckList: null }
+  })
   return {
     tournament,
     players: publicPlayers,

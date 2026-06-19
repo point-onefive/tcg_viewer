@@ -129,6 +129,15 @@ export interface Player {
   deckList: string | null
   /** Whether a deck list is on file. Safe to expose publicly (no contents). */
   hasDeckList: boolean
+  /**
+   * The deck's Leader card, resolved from the (private) deck list. The Leader
+   * is public during play (it sits face-up on the table; the metagame is
+   * tracked by leader), so these are exposed in the public snapshot even while
+   * the rest of the deck stays hidden. null when no known leader was found.
+   */
+  leaderCardId: string | null
+  leaderName: string | null
+  leaderImage: string | null
   createdAt: string
 }
 
