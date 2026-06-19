@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
+import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -11,6 +11,8 @@ import {
   loadAdminKey,
   saveAdminKey,
 } from '@/lib/tournament/client'
+import { ModalPortal } from '@/components/ui/modal-portal'
+import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import type { Match, Player, StandingRow, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
@@ -88,6 +90,8 @@ export function TournamentAdmin() {
   // Which participant bucket the table is showing. Defaults to "all" so an
   // approve/reject never makes a row vanish - it just restyles in place.
   const [tab, setTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  // Which player's deck-list modal is open (view + operator override).
+  const [deckPlayer, setDeckPlayer] = useState<Player | null>(null)
 
   // Next-event waitlist (people queued for the NEXT tournament, separate from
   // the current event's sign-ups). Auto-converted into pending sign-ups when a
@@ -191,6 +195,8 @@ export function TournamentAdmin() {
   const pending = players.filter((p) => p.approvalStatus === 'pending')
   const approved = players.filter((p) => p.approvalStatus === 'approved')
   const rejected = players.filter((p) => p.approvalStatus === 'rejected')
+  // Approved players still owing a deck list block the bracket start.
+  const missingDeck = approved.filter((p) => !p.hasDeckList)
   const visiblePlayers =
     tab === 'pending' ? pending : tab === 'approved' ? approved : tab === 'rejected' ? rejected : players
 
@@ -626,6 +632,18 @@ export function TournamentAdmin() {
                     <ParticipantTab label="Rejected" count={rejected.length} active={tab === 'rejected'} onClick={() => setTab('rejected')} />
                   </div>
 
+                  {missingDeck.length > 0 && (
+                    <p
+                      className="mb-3 flex items-start gap-1.5 rounded-md px-3 py-2 text-xs font-semibold"
+                      style={{ color: '#E85D2A', background: 'rgba(232,93,42,0.1)', border: '1px solid rgba(232,93,42,0.35)', lineHeight: 1.5 }}
+                    >
+                      <ListChecks size={13} className="mt-0.5 shrink-0" />
+                      {missingDeck.length} approved player{missingDeck.length === 1 ? '' : 's'} still
+                      {missingDeck.length === 1 ? ' owes' : ' owe'} a deck list. The bracket
+                      can&rsquo;t start until every approved player has one.
+                    </p>
+                  )}
+
                   {visiblePlayers.length === 0 ? (
                     <p className="text-sm py-4 text-center" style={{ color: 'var(--text-muted)' }}>
                       {players.length === 0 ? 'No sign-ups yet.' : `No ${tab === 'all' ? '' : tab + ' '}participants.`}
@@ -639,11 +657,24 @@ export function TournamentAdmin() {
                           disabled={busy}
                           onApprove={() => approvePlayer(p)}
                           onReject={() => rejectPlayer(p)}
+                          onViewDeck={() => setDeckPlayer(p)}
                         />
                       ))}
                     </ul>
                   )}
                 </div>
+
+                {deckPlayer && (
+                  <AdminDeckModal
+                    key={deckPlayer.id}
+                    player={deckPlayer}
+                    code={code ?? ''}
+                    adminKey={adminKey}
+                    canEdit={status === 'enrolling'}
+                    onClose={() => setDeckPlayer(null)}
+                    onSaved={() => refresh(adminKey)}
+                  />
+                )}
 
                 <PrizeEditor
                   key={code}
@@ -1546,11 +1577,13 @@ function ParticipantRow({
   disabled,
   onApprove,
   onReject,
+  onViewDeck,
 }: {
   player: Player
   disabled: boolean
   onApprove: () => void
   onReject: () => void
+  onViewDeck: () => void
 }) {
   const url = xProfileUrl(player.xHandle)
   const status = STATUS_STYLE[player.approvalStatus]
@@ -1574,8 +1607,21 @@ function ParticipantRow({
         >
           {status.label}
         </span>
+        <span
+          className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
+          style={
+            player.hasDeckList
+              ? { color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 7px', borderRadius: 5 }
+              : { color: '#E85D2A', background: 'rgba(232,93,42,0.15)', padding: '2px 7px', borderRadius: 5 }
+          }
+        >
+          {player.hasDeckList ? 'Deck ✓' : 'No deck'}
+        </span>
       </div>
       <div className="flex gap-2">
+        <AdminBtn disabled={disabled} onClick={onViewDeck}>
+          {player.hasDeckList ? 'Deck' : 'Add deck'}
+        </AdminBtn>
         {player.approvalStatus !== 'approved' && (
           <AdminBtn disabled={disabled} onClick={onApprove}>
             {player.approvalStatus === 'rejected' ? 'Restore' : 'Approve'}
@@ -1586,5 +1632,148 @@ function ParticipantRow({
         )}
       </div>
     </li>
+  )
+}
+
+/**
+ * Host view of one player's deck list, with an operator override editor while
+ * sign-ups are open (status 'enrolling'). Fetches the full list on open (it is
+ * redacted from the public snapshot). The override doubles as the way to record
+ * a walk-in's list and the typo-fix escape hatch; lists freeze once the bracket
+ * starts.
+ */
+function AdminDeckModal({
+  player,
+  code,
+  adminKey,
+  canEdit,
+  onClose,
+  onSaved,
+}: {
+  player: Player
+  code: string
+  adminKey: string
+  canEdit: boolean
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [loading, setLoading] = useState(true)
+  const [text, setText] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        const r = await adminApi(adminKey, { action: 'get-deck', code, playerId: player.id })
+        if (!alive) return
+        setText(r.deckList ?? null)
+      } catch (e) {
+        if (alive) setErr(e instanceof Error ? e.message : 'Could not load deck list')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [adminKey, code, player.id])
+
+  async function save() {
+    const deck = draft.trim()
+    if (!deck) {
+      setErr('Paste a deck list to save.')
+      return
+    }
+    setBusy(true)
+    setErr(null)
+    try {
+      await adminApi(adminKey, { action: 'set-deck', code, playerId: player.id, deckList: deck })
+      setText(deck)
+      setEditing(false)
+      onSaved()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not save deck list')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <ModalPortal onClose={onClose} label="Deck list" maxWidth={480}>
+      <div className="flex items-center gap-2 mb-3">
+        <ListChecks size={16} style={{ color: '#E85D2A' }} />
+        <h3 className="font-display font-bold">{formatXLabel(player.xHandle)} - deck list</h3>
+      </div>
+      {loading ? (
+        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 size={15} className="animate-spin" /> Loading…
+        </div>
+      ) : editing ? (
+        <div className="flex flex-col gap-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            disabled={busy}
+            maxLength={MAX_DECK_CHARS}
+            rows={10}
+            spellCheck={false}
+            placeholder={'1xOP01-001\n4xOP01-016\n…'}
+            className="w-full rounded-md p-2.5 text-xs"
+            style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)', resize: 'vertical' }}
+          />
+          {err && <p className="text-sm" style={{ color: '#ef4444' }}>{err}</p>}
+          <div className="flex gap-2">
+            <AdminBtn disabled={busy} onClick={() => void save()}>
+              {busy ? 'Saving…' : 'Save deck list'}
+            </AdminBtn>
+            <AdminBtn disabled={busy} onClick={() => setEditing(false)}>Cancel</AdminBtn>
+          </div>
+        </div>
+      ) : (
+        <>
+          {text ? (
+            <>
+              <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                {deckCardCount(text)} cards
+              </p>
+              <pre
+                className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
+                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)' }}
+              >
+                {text}
+              </pre>
+            </>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              No deck list on file for this player yet.
+            </p>
+          )}
+          {err && <p className="mt-2 text-sm" style={{ color: '#ef4444' }}>{err}</p>}
+          {canEdit && (
+            <div className="mt-3">
+              <AdminBtn
+                disabled={busy}
+                onClick={() => {
+                  setDraft(text ?? '')
+                  setEditing(true)
+                  setErr(null)
+                }}
+              >
+                {text ? 'Replace deck list' : 'Add deck list'}
+              </AdminBtn>
+            </div>
+          )}
+          {!canEdit && (
+            <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Deck lists are locked once the bracket has started.
+            </p>
+          )}
+        </>
+      )}
+    </ModalPortal>
   )
 }

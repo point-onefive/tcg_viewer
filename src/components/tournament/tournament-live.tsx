@@ -7,11 +7,14 @@ import {
   apiActiveSnapshot,
   apiCastVote,
   apiEnroll,
+  apiOwnDeck,
+  apiSubmitDeckList,
   loadVotedChoice,
   loadVoterId,
   saveVotedChoice,
 } from '@/lib/tournament/client'
 import { POLL_OPTIONS, type PollResults } from '@/lib/tournament/poll'
+import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { Leaderboard } from '@/components/wallet/leaderboard'
@@ -647,6 +650,15 @@ export function TournamentLive() {
   // (and persisting it) means a *new* tournament correctly shows the sign-up
   // form again instead of a stale "you're in the queue" from a past event.
   const [signedUpCode, setSignedUpCode] = useState<string | null>(null)
+  // Deck list the player is committing to (required at sign-up). Locked once
+  // submitted - the server refuses to overwrite an existing list.
+  const [deckDraft, setDeckDraft] = useState('')
+  // Post-entry deck submission (waitlist conversions who entered without one)
+  // and viewing one's own locked list during the event.
+  const [submitDeckBusy, setSubmitDeckBusy] = useState(false)
+  const [ownDeckModal, setOwnDeckModal] = useState<
+    { loading: true } | { loading: false; text: string | null } | null
+  >(null)
   // Roster starts capped (top N) with a "Load more" so a big field doesn't
   // dominate the page; one tap reveals everyone.
   const [rosterExpanded, setRosterExpanded] = useState(false)
@@ -766,12 +778,32 @@ export function TournamentLive() {
         )),
   )
 
+  // The signed-in wallet's own roster row, if any. Drives the post-entry
+  // "submit your deck list" prompt (waitlist conversions enter without one)
+  // and the "view my locked list" affordance. Deck contents are redacted from
+  // the public snapshot, so we only know `hasDeckList` here, never the text.
+  const myPlayer = useMemo(
+    () =>
+      profile?.xHandle
+        ? visiblePlayers.find(
+            (p) => p.xHandle.toLowerCase() === profile.xHandle!.toLowerCase(),
+          ) ?? null
+        : null,
+    [visiblePlayers, profile?.xHandle],
+  )
+  const owesDeckList = Boolean(myPlayer && !myPlayer.hasDeckList)
+
   async function doEnroll() {
     if (!tournament) return
+    const deck = deckDraft.trim()
+    if (!deck) {
+      setActionError('Paste your deck list to sign up.')
+      return
+    }
     setBusy(true)
     setActionError(null)
     try {
-      await apiEnroll(tournament.code)
+      await apiEnroll(tournament.code, deck)
       setSignedUpCode(tournament.code)
       try {
         localStorage.setItem(SIGNED_UP_KEY, tournament.code)
@@ -783,6 +815,40 @@ export function TournamentLive() {
       setActionError(err instanceof Error ? err.message : 'Sign-up failed')
     } finally {
       setBusy(false)
+    }
+  }
+
+  // Submit a deck list AFTER entry (waitlist conversions who came in without
+  // one). Set-once on the server, so this only appears while the list is null.
+  async function doSubmitDeck() {
+    if (!tournament) return
+    const deck = deckDraft.trim()
+    if (!deck) {
+      setActionError('Paste your deck list to submit.')
+      return
+    }
+    setSubmitDeckBusy(true)
+    setActionError(null)
+    try {
+      await apiSubmitDeckList(tournament.code, deck)
+      setDeckDraft('')
+      await refresh()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Could not submit deck list')
+    } finally {
+      setSubmitDeckBusy(false)
+    }
+  }
+
+  // Pull up the caller's own locked list (private to the owner + host).
+  async function viewOwnDeck() {
+    if (!tournament) return
+    setOwnDeckModal({ loading: true })
+    try {
+      const res = await apiOwnDeck(tournament.code)
+      setOwnDeckModal({ loading: false, text: res.deckList })
+    } catch {
+      setOwnDeckModal({ loading: false, text: null })
     }
   }
 
@@ -978,11 +1044,50 @@ export function TournamentLive() {
               <h3 className="font-display font-bold">Sign up</h3>
             </div>
             {signedUp ? (
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                You&rsquo;re in the queue
-                {profile?.xHandle ? ` as @${profile.xHandle}` : ''}. Your handle
-                will be verified before the bracket is posted.
-              </p>
+              <div className="flex flex-col gap-3">
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  You&rsquo;re in the queue
+                  {profile?.xHandle ? ` as @${profile.xHandle}` : ''}. Your handle
+                  will be verified before the bracket is posted.
+                </p>
+                {owesDeckList ? (
+                  <div className="flex flex-col gap-2 rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid rgba(232,93,42,0.4)' }}>
+                    <p className="text-xs font-bold" style={{ color: '#E85D2A' }}>
+                      One more step: submit your deck list before the bracket is
+                      drawn, or you can&rsquo;t be paired.
+                    </p>
+                    <DeckListField
+                      value={deckDraft}
+                      onChange={setDeckDraft}
+                      disabled={submitDeckBusy}
+                    />
+                    {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
+                    <button
+                      onClick={() => void doSubmitDeck()}
+                      disabled={submitDeckBusy}
+                      className="footer-btn py-2 text-sm font-bold"
+                      style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: submitDeckBusy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    >
+                      {submitDeckBusy ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" /> Locking in…
+                        </>
+                      ) : (
+                        'Lock in my deck list'
+                      )}
+                    </button>
+                  </div>
+                ) : myPlayer ? (
+                  <button
+                    type="button"
+                    onClick={() => void viewOwnDeck()}
+                    className="inline-flex items-center gap-1.5 self-start text-xs font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    <ListChecks size={13} aria-hidden /> View my locked deck list
+                  </button>
+                ) : null}
+              </div>
             ) : walletStatus === 'loading' ? (
               <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                 <Loader2 size={15} className="animate-spin" /> Checking your wallet…
@@ -1015,6 +1120,11 @@ export function TournamentLive() {
                   Signing up as <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>@{profile.xHandle}</span>{' '}
                   - your <XLogo /> handle becomes a clickable link in matchups.
                 </p>
+                <DeckListField
+                  value={deckDraft}
+                  onChange={setDeckDraft}
+                  disabled={busy}
+                />
                 {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                 <button
                   onClick={() => void doEnroll()}
@@ -1110,8 +1220,83 @@ export function TournamentLive() {
           <AwardedPrizesHistory awarded={snapshot.awardedPrizes} />
         </div>
       )}
+
+      {ownDeckModal && (
+        <ModalPortal onClose={() => setOwnDeckModal(null)} label="Your deck list" maxWidth={460}>
+          <div className="flex items-center gap-2 mb-3">
+            <ListChecks size={16} style={{ color: '#E85D2A' }} />
+            <h3 className="font-display font-bold">Your locked deck list</h3>
+          </div>
+          {ownDeckModal.loading ? (
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+              <Loader2 size={15} className="animate-spin" /> Loading…
+            </div>
+          ) : ownDeckModal.text ? (
+            <>
+              <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                {deckCardCount(ownDeckModal.text)} cards - this is the list you are
+                committed to for the whole event.
+              </p>
+              <pre
+                className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
+                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)' }}
+              >
+                {ownDeckModal.text}
+              </pre>
+            </>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              No deck list on file yet.
+            </p>
+          )}
+        </ModalPortal>
+      )}
       </div>
     </TournamentShell>
+  )
+}
+
+/**
+ * Required deck-list input for the sign-up + post-entry submit flows. Plain
+ * textarea with the OPTCG Sim format hint and a live card count. Validation is
+ * light (server stores verbatim) - the count is display-only.
+ */
+function DeckListField({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string
+  onChange: (v: string) => void
+  disabled?: boolean
+}) {
+  const count = deckCardCount(value)
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+        <ListChecks size={13} style={{ color: '#E85D2A' }} /> Deck list (required)
+      </label>
+      <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        In OPTCG Sim, open your deck and hit{' '}
+        <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Copy Deck list to Clipboard</span>,
+        then paste it here. This is the deck you are locked into for the whole
+        event - it can&rsquo;t be changed once submitted.
+      </p>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        maxLength={MAX_DECK_CHARS}
+        rows={6}
+        spellCheck={false}
+        placeholder={'1xOP01-001\n4xOP01-016\n4xST01-006\n…'}
+        className="w-full rounded-md p-2.5 text-xs"
+        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)', resize: 'vertical' }}
+      />
+      <span className="self-end text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
+        {count > 0 ? `${count} cards` : 'Paste your list'}
+      </span>
+    </div>
   )
 }
 

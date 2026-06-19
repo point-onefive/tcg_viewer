@@ -113,10 +113,22 @@ export interface Player {
   approvalStatus: ApprovalStatus
   /** Optional Discord handle if the player linked their account. */
   discordHandle: string | null
+  /** EVM wallet that owns this entry, when signed up / converted via wallet. */
+  walletAddress: string | null
   /** Swiss seed / single-elim seed (1 = top). Assigned at bracket gen. */
   seed: number | null
   /** True once the player drops; pairing skips them, no auto-wins. */
   dropped: boolean
+  /**
+   * The deck the player committed to for the event (OPTCG Sim text format).
+   * Required at sign-up and locked once set; null only for in-flight rows
+   * (waitlist conversions / walk-ins) that still owe a list before lock.
+   * REDACTED in the public snapshot - read contents via the gated deck
+   * endpoints (player sees own, host sees all). Use `hasDeckList` for status.
+   */
+  deckList: string | null
+  /** Whether a deck list is on file. Safe to expose publicly (no contents). */
+  hasDeckList: boolean
   createdAt: string
 }
 

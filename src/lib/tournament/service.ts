@@ -37,6 +37,7 @@ import type {
   AwardedPrize,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
+import { validateDeckList } from './deck-list'
 import { emptyPollResults, isPollChoice, type PollResults } from './poll'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -215,6 +216,7 @@ async function fetchPlayerByToken(
 export async function enroll(
   code: string,
   xHandleRaw: string,
+  deckListRaw?: string | null,
 ): Promise<EnrollResult> {
   const sb = getServiceClient()
   const row = await fetchTournamentRowByCode(code)
@@ -227,6 +229,16 @@ export async function enroll(
   const xHandle = normalizeXHandle(xHandleRaw)
   if (!isValidXHandle(xHandle)) {
     throw new TournamentError('Enter a valid X handle (letters, numbers, underscore - no @ needed).')
+  }
+
+  // Deck list is optional at the service boundary so operator-seeded walk-ins
+  // (admin add-player) and waitlist conversions can come in without one and
+  // submit it before the bracket locks. The public sign-up route requires it.
+  let deckList: string | null = null
+  if (deckListRaw != null && String(deckListRaw).trim() !== '') {
+    const checked = validateDeckList(deckListRaw)
+    if (!checked.ok) throw new TournamentError(checked.error)
+    deckList = checked.value
   }
 
   const players = await fetchPlayers(row.id)
@@ -249,6 +261,7 @@ export async function enroll(
       x_handle: xHandle,
       approval_status: 'pending',
       discord_handle: null,
+      deck_list: deckList,
       player_token_hash: hashToken(playerToken),
     })
     .select('*')
@@ -336,6 +349,17 @@ async function generateFirstRound(row: {
   )
   if (active.length < MIN_PLAYERS_TO_START) {
     throw new TournamentError('Need at least 2 approved players to start.')
+  }
+
+  // Every player in the bracket must have a locked deck list. Block the start
+  // (rather than silently dropping people) so the operator can chase the
+  // stragglers - e.g. waitlist conversions who have not submitted theirs yet.
+  const missingDecks = active.filter((p) => !p.deckList || p.deckList.trim() === '')
+  if (missingDecks.length > 0) {
+    const names = missingDecks.map((p) => formatXLabel(p.xHandle)).join(', ')
+    throw new TournamentError(
+      `These approved players still need to submit a deck list before the bracket can start: ${names}`,
+    )
   }
 
   // Assign random seeds 1..N.
@@ -989,7 +1013,23 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     proposals = (data ?? []).map(rowToProposal)
   }
   const standings = computeStandings(players, matches)
-  return { tournament, players, rounds, matches, proposals, standings, poll, awardedPrizes }
+  // Deck contents are private (host + the owning player only). The snapshot is
+  // public and cached, so strip the text here - `hasDeckList` still signals
+  // submitted/missing for the roster and admin status without enabling
+  // pre-match meta-gaming.
+  const publicPlayers = players.map((p) =>
+    p.deckList == null ? p : { ...p, deckList: null },
+  )
+  return {
+    tournament,
+    players: publicPlayers,
+    rounds,
+    matches,
+    proposals,
+    standings,
+    poll,
+    awardedPrizes,
+  }
 }
 
 // ── Active (live) tournament ───────────────────────────────────────────────
@@ -1142,6 +1182,122 @@ export async function adminRejectPlayer(code: string, playerId: string): Promise
     .update({ approval_status: 'rejected' })
     .eq('id', playerId)
     .eq('tournament_id', row.id)
+}
+
+// ── Deck lists ───────────────────────────────────────────────────────────--
+
+/**
+ * Player self-submit of their committed deck list. Wallet-backed: the route
+ * passes the signed-in wallet + its profile handle, and we match those to the
+ * player row in this tournament. Set-once: if a list is already locked we
+ * refuse, so a player can never quietly swap decks mid-event. Used by people
+ * who entered without a list (waitlist conversions) to fill it in before lock.
+ */
+export async function submitDeckList(
+  code: string,
+  walletAddress: string,
+  xHandle: string,
+  deckListRaw: string,
+): Promise<{ deckList: string }> {
+  const sb = getServiceClient()
+  const row = await fetchTournamentRowByCode(code)
+  if (row.status === 'complete') {
+    throw new TournamentError('This tournament is over.')
+  }
+
+  const addr = (walletAddress ?? '').toLowerCase()
+  const handle = normalizeXHandle(xHandle)
+  const players = await fetchPlayers(row.id)
+  const player = players.find(
+    (p) =>
+      p.approvalStatus !== 'rejected' &&
+      ((addr && p.walletAddress?.toLowerCase() === addr) || (handle && p.xHandle === handle)),
+  )
+  if (!player) {
+    throw new TournamentError('You are not signed up for this tournament.', 404)
+  }
+  if (player.deckList && player.deckList.trim() !== '') {
+    throw new TournamentError('Your deck list is already locked and cannot be changed.', 409)
+  }
+
+  const checked = validateDeckList(deckListRaw)
+  if (!checked.ok) throw new TournamentError(checked.error)
+
+  // Guard the write on deck_list still being null to avoid a double-submit race.
+  const { data, error } = await sb
+    .from('players')
+    .update({ deck_list: checked.value })
+    .eq('id', player.id)
+    .is('deck_list', null)
+    .select('id')
+  if (error) throw new TournamentError(error.message, 500)
+  if (!data || data.length === 0) {
+    throw new TournamentError('Your deck list is already locked and cannot be changed.', 409)
+  }
+  return { deckList: checked.value }
+}
+
+/**
+ * Operator override of a player's deck list. Allowed only before the bracket
+ * is generated (status 'enrolling'), so it doubles as the typo-fix escape
+ * hatch and the way to record a walk-in's list. Once the bracket starts, lists
+ * are frozen for everyone.
+ */
+export async function adminSetDeck(
+  code: string,
+  playerId: string,
+  deckListRaw: string,
+): Promise<{ deckList: string }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'enrolling') {
+    throw new TournamentError('Deck lists are locked once the bracket has started.')
+  }
+  const checked = validateDeckList(deckListRaw)
+  if (!checked.ok) throw new TournamentError(checked.error)
+
+  const { error } = await sb
+    .from('players')
+    .update({ deck_list: checked.value })
+    .eq('id', playerId)
+    .eq('tournament_id', row.id)
+  if (error) throw new TournamentError(error.message, 500)
+  return { deckList: checked.value }
+}
+
+/** Operator read of one player's full deck list (host-gated, on demand). */
+export async function adminGetDeck(
+  code: string,
+  playerId: string,
+): Promise<{ deckList: string | null }> {
+  const row = await requireHost(code)
+  const players = await fetchPlayers(row.id)
+  const player = players.find((p) => p.id === playerId)
+  if (!player) throw new TournamentError('Player not found.', 404)
+  return { deckList: player.deckList }
+}
+
+/**
+ * The signed-in player's own deck list for this tournament, resolved from
+ * their wallet (or profile handle). Lets a player pull up the list they
+ * committed to during the event, and tells the UI whether they still owe one.
+ */
+export async function getOwnDeck(
+  code: string,
+  walletAddress: string,
+  xHandle: string,
+): Promise<{ enrolled: boolean; deckList: string | null }> {
+  const row = await fetchTournamentRowByCode(code)
+  const addr = (walletAddress ?? '').toLowerCase()
+  const handle = normalizeXHandle(xHandle)
+  const players = await fetchPlayers(row.id)
+  const player = players.find(
+    (p) =>
+      p.approvalStatus !== 'rejected' &&
+      ((addr && p.walletAddress?.toLowerCase() === addr) || (handle && p.xHandle === handle)),
+  )
+  if (!player) return { enrolled: false, deckList: null }
+  return { enrolled: true, deckList: player.deckList }
 }
 
 /** Hard caps so a pasted image dump can't bloat the polled snapshot. */

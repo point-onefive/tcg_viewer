@@ -1,4 +1,4 @@
-import { handle, ok } from '@/lib/tournament/http'
+import { handle, ok, readJson } from '@/lib/tournament/http'
 import { enroll, TournamentError } from '@/lib/tournament/service'
 import { getSession } from '@/lib/wallet/session'
 import { getProfile } from '@/lib/wallet/db'
@@ -13,8 +13,11 @@ export const dynamic = 'force-dynamic'
 // verified, and impossible to spoof. A profile with no X handle is rejected
 // with guidance. This mirrors the next-event waitlist so sign-in is consistent
 // across every tournament action.
+//
+// A deck list is required at public sign-up (the operator add-player path stays
+// optional for walk-ins, who submit theirs before the bracket locks).
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
   return handle(async () => {
@@ -30,7 +33,11 @@ export async function POST(
         422,
       )
     }
-    const result = await enroll(code, profile.xHandle)
+    const body = await readJson<{ deckList?: string }>(request)
+    if (!body?.deckList || String(body.deckList).trim() === '') {
+      throw new TournamentError('Paste your deck list to sign up.', 422)
+    }
+    const result = await enroll(code, profile.xHandle, body.deckList)
     return ok(result, 201)
   })
 }

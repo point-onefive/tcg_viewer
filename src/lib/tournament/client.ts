@@ -69,10 +69,31 @@ export async function apiActiveStatus(): Promise<{ live: boolean; status?: strin
 
 /**
  * Sign up for a tournament. Wallet-backed: the server reads the signed-in
- * wallet's X handle from its profile, so there is no payload to send.
+ * wallet's X handle from its profile. The deck list is the one required
+ * payload - the player commits to it for the whole event.
  */
-export async function apiEnroll(code: string): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, {})
+export async function apiEnroll(code: string, deckList: string): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { deckList })
+}
+
+/**
+ * Submit the signed-in player's deck list after entry (waitlist conversions).
+ * Set-once on the server - it refuses to overwrite an existing list.
+ */
+export async function apiSubmitDeckList(code: string, deckList: string): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/deck`, { deckList })
+}
+
+/** Fetch the signed-in player's own deck list for this tournament. */
+export async function apiOwnDeck(
+  code: string,
+): Promise<{ enrolled: boolean; deckList: string | null }> {
+  const res = await fetch(`/api/tournaments/${encodeURIComponent(code)}/deck`, {
+    cache: 'no-store',
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error((data as { error?: string }).error || 'Request failed')
+  return data as { enrolled: boolean; deckList: string | null }
 }
 
 // ── Next-event waitlist ─────────────────────────────────────────────────────
@@ -120,6 +141,7 @@ export async function adminApi(
   approved?: number
   count?: number
   ok?: boolean
+  deckList?: string | null
   entries?: { id: string; xHandle: string; walletAddress: string; createdAt: string }[]
 }> {
   return post('/api/tournaments/admin', body, adminKey)

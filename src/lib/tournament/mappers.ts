@@ -64,8 +64,11 @@ export function rowToPlayer(r: any): Player {
     xHandle,
     approvalStatus: (r.approval_status ?? 'approved') as Player['approvalStatus'],
     discordHandle: r.discord_handle ?? null,
+    walletAddress: r.wallet_address ?? null,
     seed: r.seed ?? null,
     dropped: Boolean(r.dropped),
+    deckList: r.deck_list ?? null,
+    hasDeckList: Boolean(r.deck_list),
     createdAt: r.created_at,
   }
 }
