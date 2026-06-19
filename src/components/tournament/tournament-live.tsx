@@ -1755,7 +1755,7 @@ function SwissBoard({
   )
 }
 
-function StandingsTable({ standings, nameById, complete }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean }) {
+export function StandingsTable({ standings, nameById, complete }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean }) {
   if (standings.length === 0) return null
   return (
     <div className="mt-6">
@@ -1771,6 +1771,7 @@ function StandingsTable({ standings, nameById, complete }: { standings: Standing
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
               <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-2" style={{ fontSize: 10, width: 44 }}>#</th>
               <th className="text-left font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10 }}>Player</th>
+              <th className="text-left font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10 }}>Deck</th>
               <th className="text-center font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10, width: 90 }}>W-L-D</th>
               <th className="text-right font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10, width: 56 }}>Pts</th>
               <th className="text-right font-bold uppercase tracking-wider py-2 pl-2 pr-3 hidden sm:table-cell" style={{ fontSize: 10, width: 72 }}>OMW%</th>
@@ -1780,6 +1781,7 @@ function StandingsTable({ standings, nameById, complete }: { standings: Standing
             {standings.map((s) => {
               const top = s.rank <= 3 && complete
               const medal = s.rank === 1 ? '#f5b301' : s.rank === 2 ? '#c4cad3' : s.rank === 3 ? '#cd7f32' : null
+              const player = nameById.get(s.playerId)
               return (
                 <tr key={s.playerId} style={{ borderTop: '1px solid var(--border-subtle)', background: top ? `color-mix(in srgb, ${medal} 10%, var(--bg-surface))` : 'var(--bg-surface)' }}>
                   <td className="py-2 pl-3 pr-2">
@@ -1797,6 +1799,26 @@ function StandingsTable({ standings, nameById, complete }: { standings: Standing
                         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>dropped</span>
                       )}
                     </span>
+                  </td>
+                  <td className="py-2 px-2 min-w-0">
+                    {player?.leaderCardId ? (
+                      <span className="inline-flex items-center gap-1.5" title={player.leaderName ?? player.leaderCardId}>
+                        {player.leaderImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={player.leaderImage}
+                            alt={player.leaderName ?? 'Leader'}
+                            loading="lazy"
+                            style={{ width: 22, height: 22, borderRadius: 4, objectFit: 'cover', objectPosition: 'top center', border: '1px solid var(--border-subtle)', background: 'var(--bg)' }}
+                          />
+                        )}
+                        <span className="hidden truncate sm:inline" style={{ color: 'var(--text-secondary)', maxWidth: 130 }}>
+                          {player.leaderName ?? player.leaderCardId}
+                        </span>
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)' }}>-</span>
+                    )}
                   </td>
                   <td className="py-2 px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
                     {s.wins}-{s.losses}-{s.draws}

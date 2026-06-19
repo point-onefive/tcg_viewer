@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, ListChecks, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { AwardedPrizesHistory, LeaderChip, RoundBoard } from './tournament-live'
+import { AwardedPrizesHistory, LeaderChip, RoundBoard, StandingsTable } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import { deckCardCount } from '@/lib/tournament/deck-list'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
@@ -105,6 +105,11 @@ export function PastTournamentView({ code }: { code: string }) {
     if (!top) return null
     return playerById.get(top.playerId) ?? null
   }, [snapshot, playerById])
+
+  const standings = useMemo(
+    () => [...(snapshot?.standings ?? [])].sort((a, b) => a.rank - b.rank),
+    [snapshot],
+  )
 
   // Competitors whose now-public deck lists are published (lists publish on
   // completion). Ordered by final placing so the winning decks lead.
@@ -220,6 +225,13 @@ export function PastTournamentView({ code }: { code: string }) {
             players={snapshot.players}
             activeRound={undefined}
           />
+        )}
+
+        {/* Final standings with a Deck (Leader) column - the cleanest read on
+            deck performance. Swiss already renders this inside the board above,
+            so only add it for single-elim (the bracket has no standings list). */}
+        {tournament.format === 'single-elim' && (
+          <StandingsTable standings={standings} nameById={playerById} complete />
         )}
 
         {/* Prizes that were actually handed out (frozen award snapshot, with
