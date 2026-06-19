@@ -55,6 +55,76 @@ function RankBadge({ rank }: { rank: number }) {
   )
 }
 
+/**
+ * Win-rate "tug of war": a proportional green/grey/red bar (wins/draws/losses)
+ * with the win percentage to its right. Fills the desktop row so the record no
+ * longer floats alone on the far edge. Desktop-only - mobile rows stay compact.
+ */
+function WinRateBar({ wins, losses, draws }: { wins: number; losses: number; draws: number }) {
+  const total = wins + losses + draws
+  const pct = total > 0 ? Math.round((wins / total) * 100) : 0
+  return (
+    <div className="hidden sm:flex items-center gap-2.5" style={{ flex: 1, minWidth: 0 }}>
+      <div
+        className="flex"
+        style={{
+          flex: 1,
+          height: 6,
+          borderRadius: 999,
+          overflow: 'hidden',
+          background: 'var(--bg)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        {total > 0 && (
+          <>
+            {wins > 0 && <span style={{ flexGrow: wins, flexBasis: 0, background: '#22c55e' }} />}
+            {draws > 0 && <span style={{ flexGrow: draws, flexBasis: 0, background: 'var(--text-muted)' }} />}
+            {losses > 0 && <span style={{ flexGrow: losses, flexBasis: 0, background: '#ef4444' }} />}
+          </>
+        )}
+      </div>
+      <span
+        style={{
+          width: 34,
+          flexShrink: 0,
+          textAlign: 'right',
+          fontSize: 12,
+          fontWeight: 700,
+          fontVariantNumeric: 'tabular-nums',
+          color: total > 0 ? 'var(--text-secondary)' : 'var(--text-muted)',
+        }}
+      >
+        {total > 0 ? `${pct}%` : '-'}
+      </span>
+    </div>
+  )
+}
+
+/** Faint column header, desktop-only, so the rows below read as a table. */
+function LeaderboardHeader() {
+  const cell: React.CSSProperties = {
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: 'var(--text-muted)',
+  }
+  return (
+    <div
+      className="hidden sm:flex items-center gap-3 px-4 py-2"
+      style={{ borderBottom: '1px solid var(--border-subtle)' }}
+    >
+      <span style={{ ...cell, width: 26, textAlign: 'center' }}>#</span>
+      <span style={{ width: 32, flexShrink: 0 }} aria-hidden />
+      <span style={{ ...cell, width: 176, flexShrink: 0 }}>Player</span>
+      <span style={{ ...cell, flex: 1, minWidth: 0 }}>Win rate</span>
+      <span style={{ ...cell, width: 64, textAlign: 'right' }}>Events</span>
+      <span style={{ ...cell, width: 56, textAlign: 'right' }}>W / L</span>
+    </div>
+  )
+}
+
 function LeaderboardRow({
   standing,
   rank,
@@ -89,13 +159,20 @@ function LeaderboardRow({
         walletAddress={standing.walletAddress}
         size={32}
       />
-      <span className="font-display truncate" style={{ fontWeight: 700, fontSize: 14, flex: 1, minWidth: 0 }}>
+      <span
+        className="font-display truncate flex-1 sm:flex-none sm:w-44"
+        style={{ fontWeight: 700, fontSize: 14, minWidth: 0 }}
+      >
         {username}
       </span>
-      <span className="hidden sm:inline" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+      <WinRateBar wins={standing.wins} losses={standing.losses} draws={standing.draws} />
+      <span className="hidden sm:block" style={{ width: 64, textAlign: 'right', fontSize: 12, color: 'var(--text-muted)' }}>
         {standing.tournamentsPlayed} event{standing.tournamentsPlayed === 1 ? '' : 's'}
       </span>
-      <span style={{ fontSize: 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+      <span
+        className="sm:w-14"
+        style={{ fontSize: 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
+      >
         <span style={{ color: '#22c55e' }}>{standing.wins}</span>
         <span style={{ color: 'var(--text-muted)' }}> / </span>
         <span style={{ color: '#ef4444' }}>{standing.losses}</span>
@@ -163,6 +240,7 @@ export function Leaderboard() {
         </div>
       ) : (
         <>
+          <LeaderboardHeader />
           {visible.map((s, i) => (
             <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} onSelect={setSelected} />
           ))}
