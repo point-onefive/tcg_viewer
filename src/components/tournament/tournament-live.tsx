@@ -237,7 +237,7 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
  * Reads the frozen award snapshot (never the live pool), grouped by prize slot
  * so a single prize split across several winners renders as one card.
  */
-function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
+export function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
   // Group by slot so one prize with many winners is a single card.
   const groups = useMemo(() => {
     const bySlot = new Map<number, AwardedPrize[]>()
@@ -1559,7 +1559,7 @@ function DeckListField({
   )
 }
 
-function RoundBoard({
+export function RoundBoard({
   tournament,
   rounds,
   matches,

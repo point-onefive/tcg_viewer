@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, ListChecks, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
+import { AwardedPrizesHistory, RoundBoard } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import { deckCardCount } from '@/lib/tournament/deck-list'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
-import type { Player, StandingRow, TournamentSnapshot } from '@/lib/tournament/types'
+import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -42,13 +43,6 @@ function XLink({ handle }: { handle: string }) {
       {label}
     </a>
   )
-}
-
-function placeAccent(rank: number): { bg: string; fg: string } {
-  if (rank === 1) return { bg: '#f5b301', fg: '#1a1a1a' }
-  if (rank === 2) return { bg: '#c4cad3', fg: '#1a1a1a' }
-  if (rank === 3) return { bg: '#cd7f32', fg: '#fff' }
-  return { bg: 'color-mix(in srgb, var(--text-primary) 14%, transparent)', fg: 'var(--text-primary)' }
 }
 
 function MetaChip({ icon: Icon, children }: { icon: typeof Hash; children: React.ReactNode }) {
@@ -105,22 +99,21 @@ export function PastTournamentView({ code }: { code: string }) {
     return m
   }, [snapshot])
 
-  const standings: StandingRow[] = useMemo(
-    () => [...(snapshot?.standings ?? [])].sort((a, b) => a.rank - b.rank),
-    [snapshot],
-  )
+  // Champion: standings rank 1 works for both single-elim and Swiss.
+  const champion = useMemo(() => {
+    const top = [...(snapshot?.standings ?? [])].sort((a, b) => a.rank - b.rank)[0]
+    if (!top) return null
+    return playerById.get(top.playerId) ?? null
+  }, [snapshot, playerById])
 
-  const champion = standings.find((s) => s.rank === 1) ?? null
-  const handleFor = (s: StandingRow): string =>
-    playerById.get(s.playerId)?.xHandle || s.displayName
-
-  // Competitors that have a now-public deck list (events publish lists on
-  // completion). Ordered by final standings so the winning decks lead.
+  // Competitors whose now-public deck lists are published (lists publish on
+  // completion). Ordered by final placing so the winning decks lead.
   const decks = useMemo(() => {
-    return standings
+    const order = [...(snapshot?.standings ?? [])].sort((a, b) => a.rank - b.rank)
+    return order
       .map((s) => playerById.get(s.playerId))
       .filter((p): p is Player => Boolean(p && p.deckList && p.deckList.trim() !== ''))
-  }, [standings, playerById])
+  }, [snapshot, playerById])
 
   if (error) {
     return (
@@ -207,7 +200,7 @@ export function PastTournamentView({ code }: { code: string }) {
                     Champion
                   </div>
                   <div className="text-base font-bold">
-                    <XLink handle={handleFor(champion)} />
+                    <XLink handle={champion.xHandle || champion.displayName} />
                   </div>
                 </div>
               </div>
@@ -215,101 +208,30 @@ export function PastTournamentView({ code }: { code: string }) {
           </div>
         </div>
 
-        {/* Final standings */}
-        <div className="mb-6 p-5" style={card}>
-          <div className="mb-4 flex items-center gap-2">
-            <Trophy size={16} style={{ color: '#E85D2A' }} />
-            <h3 className="font-display font-bold">Final standings</h3>
-          </div>
-          {standings.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              No standings were recorded for this event.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-1.5">
-              {standings.map((s) => {
-                const accent = placeAccent(s.rank)
-                return (
-                  <li
-                    key={s.playerId}
-                    className="flex items-center gap-3 rounded-md p-2.5"
-                    style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
-                  >
-                    <span
-                      className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
-                      style={{
-                        minWidth: 26,
-                        height: 26,
-                        borderRadius: 5,
-                        background: accent.bg,
-                        color: accent.fg,
-                      }}
-                    >
-                      {s.rank}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      <XLink handle={handleFor(s)} />
-                      {s.dropped && (
-                        <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                          (dropped)
-                        </span>
-                      )}
-                    </span>
-                    <span
-                      className="text-xs tabular-nums"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {s.wins}-{s.losses}
-                      {s.draws > 0 ? `-${s.draws}` : ''}
-                    </span>
-                    <span
-                      className="text-xs font-bold tabular-nums"
-                      style={{ color: 'var(--text-primary)', minWidth: 44, textAlign: 'right' }}
-                    >
-                      {s.points} pts
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
+        {/* The real bracket / Swiss board + final standings - the identical
+            component the live page uses, rendered read-only from the
+            completed snapshot. Single-elim shows the bracket tree; Swiss shows
+            round-by-round pairings plus the final standings table. */}
+        {snapshot.matches.length > 0 && (
+          <RoundBoard
+            tournament={tournament}
+            rounds={snapshot.rounds}
+            matches={snapshot.matches}
+            players={snapshot.players}
+            activeRound={undefined}
+          />
+        )}
 
-        {/* Awarded prizes */}
+        {/* Prizes that were actually handed out (frozen award snapshot, with
+            their images preserved at award time). */}
         {awardedPrizes.length > 0 && (
-          <div className="mb-6 p-5" style={card}>
-            <div className="mb-4 flex items-center gap-2">
-              <Trophy size={16} style={{ color: '#E85D2A' }} />
-              <h3 className="font-display font-bold">Prizes awarded</h3>
-            </div>
-            <ul className="flex flex-col gap-2">
-              {awardedPrizes.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex items-center gap-3 rounded-md p-3"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-bold">{a.title}</div>
-                    {a.description && (
-                      <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        {a.description}
-                      </div>
-                    )}
-                  </div>
-                  {a.xHandle && (
-                    <span className="text-sm">
-                      <XLink handle={a.xHandle} />
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+          <div className="mt-6">
+            <AwardedPrizesHistory awarded={awardedPrizes} />
           </div>
         )}
 
-        {/* Public deck archive */}
-        <div className="p-5" style={card}>
+        {/* Public deck archive - the metagame record for this event. */}
+        <div className="mt-6 p-5" style={card}>
           <div className="mb-1 flex items-center gap-2">
             <ListChecks size={16} style={{ color: '#E85D2A' }} />
             <h3 className="font-display font-bold">Deck lists</h3>
