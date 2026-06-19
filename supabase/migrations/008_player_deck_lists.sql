@@ -1,6 +1,6 @@
 -- Run once in the cardwall-tournaments Supabase SQL editor
--- (after 006_tournament_placements.sql). MUST run on the SAME project as the
--- tournament tables.
+-- (after 007_tournament_awarded_prizes.sql). MUST run on the SAME project as
+-- the tournament tables.
 --
 -- Adds a per-player deck list captured at sign-up. The list is the deck the
 -- player commits to for the whole event; it is meant to stay unchanged once
