@@ -1223,7 +1223,7 @@ function ViewFiltersMenu({
       )}
       {isOnePiece && (
         <FacetOptionRow
-          label="Errata"
+          label="Pre Errata"
           selected={onlyErrata}
           onClick={() => setOnlyErrata(!onlyErrata)}
         />
@@ -2385,7 +2385,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
               onClear={() => setOnlyAltArt(false)}
             />
           )}
-          {onlyErrata && <FilterChip label="Errata only" onClear={() => setOnlyErrata(false)} />}
+          {onlyErrata && <FilterChip label="Pre Errata only" onClear={() => setOnlyErrata(false)} />}
           {flattenWall && <FilterChip label="Flattened" onClear={() => setFlattenWall(false)} />}
           {searchQuery.trim() && (
             <FilterChip
