@@ -611,7 +611,7 @@ export function TournamentAdmin() {
                   {missingDeck.length > 0 && (
                     <p
                       className="mb-3 flex items-start gap-1.5 rounded-md px-3 py-2 text-xs font-semibold"
-                      style={{ color: '#E85D2A', background: 'rgba(232,93,42,0.1)', border: '1px solid rgba(232,93,42,0.35)', lineHeight: 1.5 }}
+                      style={{ color: 'var(--text-primary)', background: 'rgba(232,93,42,0.1)', border: '1px solid rgba(232,93,42,0.35)', lineHeight: 1.5 }}
                     >
                       <ListChecks size={13} className="mt-0.5 shrink-0" />
                       {missingDeck.length} approved player{missingDeck.length === 1 ? '' : 's'} still
@@ -1648,7 +1648,7 @@ function ParticipantRow({
       }}
     >
       <div className="flex items-center gap-2 min-w-0">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-semibold truncate" style={{ color: '#E85D2A' }}>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
           {formatXLabel(player.xHandle)}
           <ExternalLink size={11} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.7 }} />
         </a>

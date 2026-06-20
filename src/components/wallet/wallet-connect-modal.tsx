@@ -95,7 +95,7 @@ export function WalletConnectModal({
           <div style={{ textAlign: 'center', padding: '0 24px 16px', flexShrink: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/icon.svg"
+              src="/icon.png"
               alt="The Card Wall"
               width={56}
               height={56}

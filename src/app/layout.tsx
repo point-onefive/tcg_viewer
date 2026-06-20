@@ -27,10 +27,6 @@ export const metadata: Metadata = {
     title: 'Card Wall',
     statusBarStyle: 'black-translucent',
   },
-  icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
-  },
   openGraph: {
     title: 'The Card Wall',
     description: "Find something you didn't know existed.",

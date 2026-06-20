@@ -34,7 +34,7 @@ function walletConnectMetadata() {
     name: 'The Card Wall',
     description: 'Trading card gallery and tournaments.',
     url: origin,
-    icons: [`${origin}/icon.svg`],
+    icons: [`${origin}/icon.png`],
   }
 }
 
