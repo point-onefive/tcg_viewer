@@ -168,14 +168,20 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
       {/* Co-branded module header: the sponsor identity lives in the
           module chrome (a dark BONK section band), not as a sticker in
           the content. Title left, official BONK lockup right. */}
-      <div className="bonk-grad-night flex items-center justify-between gap-3 px-5 py-4">
-        <div className="flex items-center gap-2.5">
+      <div className="bonk-grad-night relative flex items-center justify-between gap-3 px-5 py-4">
+        {/* Warm BONK glow so the dark band reads as orange-cosmic, not blue. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: 'radial-gradient(90% 220% at 100% 50%, color-mix(in srgb, var(--bonk-ui-orange) 32%, transparent) 0%, transparent 58%)' }}
+        />
+        <div className="relative flex items-center gap-2.5">
           <Gift size={20} style={{ color: 'var(--bonk-ui-yellow)' }} />
           <h3 className="bonk-display" style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 900, color: '#fff' }}>
             Prize pool
           </h3>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3">
           <span
             className="bonk-mono hidden text-[10px] font-bold uppercase tracking-[0.16em] sm:inline"
             style={{ color: 'rgba(255,255,255,0.5)' }}
@@ -613,7 +619,7 @@ function HowItWorks() {
       lead: (
         <>
           Play on{' '}
-          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--tcw-accent)' }}>
+          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bonk-ui-yellow)', fontWeight: 700 }}>
             OPTCG Sim
           </a>
         </>
@@ -631,84 +637,120 @@ function HowItWorks() {
     },
   ]
   return (
-    <div className="mb-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
-      <div className="p-5 sm:p-6">
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <div className="flex items-center gap-2">
-            <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
-            <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
+    <div className="relative mb-6 overflow-hidden" style={{ ...card, borderRadius: 16, border: 'none' }}>
+      {/* Faded BONK scene background (the DJ "for the pack" energy) with a
+          dark cosmic overlay so copy stays crisp. Brings the section to life
+          the way bonkcoin.com leans on full-bleed dog scenes. */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ backgroundImage: 'url(/bonk/scenes/scene-dj.jpg)', backgroundSize: 'cover', backgroundPosition: 'center 28%' }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(108deg, rgba(18,2,24,0.94) 30%, rgba(40,8,52,0.7) 72%, rgba(58,12,72,0.5) 100%)' }}
+      />
+      <div style={{ position: 'relative', height: 3, background: 'var(--bonk-grad-sun)' }} />
+
+      <div className="relative z-[1] p-5 sm:p-7">
+        <div className="flex items-end justify-between gap-2 mb-5">
+          <div>
+            <span className="bonk-mono text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--bonk-ui-yellow)' }}>
+              The playbook
+            </span>
+            <div className="mt-1 flex items-center gap-2.5">
+              <ListChecks size={24} style={{ color: 'var(--bonk-ui-yellow)' }} />
+              <h3 className="bonk-display" style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 900, color: '#fff' }}>
+                How it works
+              </h3>
+            </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/bonk/web-img/BONK_Pose_Point_001_LR.png"
+            src="/bonk/web-img/BONK_Pose_One_001_LR.png"
             alt=""
             aria-hidden
-            className="bonk-sway hidden shrink-0 select-none sm:block"
-            style={{ width: 78, height: 'auto', marginTop: -18, marginBottom: -18, filter: 'drop-shadow(0 10px 16px rgba(23,0,28,0.18))' }}
+            className="bonk-cheer hidden shrink-0 select-none sm:block"
+            style={{ width: 104, height: 'auto', marginTop: -34, marginBottom: -20, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.5))' }}
           />
         </div>
-        <div className="flex flex-col gap-2.5">
+
+        {/* Steps as glass cards over the scene - two columns on desktop. */}
+        <div className="grid gap-3 sm:grid-cols-2">
           {steps.map((s, i) => {
-            const accent = s.danger ? '#ef4444' : 'var(--tcw-accent)'
+            const medal = s.danger
+              ? 'linear-gradient(135deg, #ff5a5a 0%, #ff0000 100%)'
+              : 'var(--bonk-grad-sun)'
             return (
-              <div key={i} className="flex items-start gap-2.5">
+              <div
+                key={i}
+                className="flex items-start gap-3 rounded-2xl p-4"
+                style={{
+                  background: 'rgba(15,2,20,0.55)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                }}
+              >
                 <span
-                  className="shrink-0 inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                  className="bonk-mono shrink-0 inline-flex items-center justify-center text-sm font-bold tabular-nums"
                   style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
-                    background: `color-mix(in srgb, ${accent} 12%, var(--bg))`,
-                    border: `1px solid color-mix(in srgb, ${accent} 28%, transparent)`,
-                    color: accent,
-                    marginTop: 1,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 999,
+                    background: medal,
+                    color: 'var(--bonk-midnight)',
+                    fontWeight: 700,
+                    boxShadow: s.danger
+                      ? '0 6px 16px -6px rgba(255,0,0,0.7)'
+                      : '0 6px 16px -6px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)',
                   }}
                 >
                   {i + 1}
                 </span>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  <span className="font-display font-bold" style={{ color: s.danger ? '#ef4444' : 'var(--text-primary)' }}>
+                <div className="min-w-0">
+                  <div
+                    className="font-display font-bold"
+                    style={{ color: s.danger ? '#ff8a8a' : '#fff', fontSize: 15, lineHeight: 1.25 }}
+                  >
                     {s.lead}
-                  </span>
-                  <span className="mx-1.5" style={{ color: 'var(--text-muted)' }}>·</span>
-                  {s.body}
-                </p>
+                  </div>
+                  <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
+                    {s.body}
+                  </p>
+                </div>
               </div>
             )
           })}
         </div>
-        <div
-          className="mt-4 pt-4"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}
+
+        {/* Optional Discord - same glass language, Discord-accent. */}
+        <a
+          href={discordUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group mt-3 flex items-start gap-3 rounded-2xl px-4 py-3.5 transition-transform hover:-translate-y-0.5"
+          style={{
+            background: 'rgba(88,101,242,0.22)',
+            border: '1px solid rgba(88,101,242,0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
         >
-          <a
-            href={discordUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-start gap-3 rounded-md px-3 py-2.5 transition-opacity hover:opacity-90"
-            style={{
-              background: 'color-mix(in srgb, #5865F2 10%, var(--bg))',
-              border: '1px solid color-mix(in srgb, #5865F2 22%, transparent)',
-            }}
-          >
-            <DiscordLogo size={20} style={{ color: '#5865F2', marginTop: 1 }} />
-            <span className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <span
-                className="font-display text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Optional
-              </span>
-              <span className="block mt-0.5">
-                <span className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>
-                  Discord
-                </span>{' '}
-                is available if you want to screenshare, spectate, or chat during your match. Not required.
-              </span>
+          <DiscordLogo size={22} style={{ color: '#fff', marginTop: 1 }} />
+          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.82)', lineHeight: 1.5 }}>
+            <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Optional
             </span>
-          </a>
-        </div>
+            <span className="block mt-0.5">
+              <span className="font-display font-bold" style={{ color: '#fff' }}>
+                Discord
+              </span>{' '}
+              is available if you want to screenshare, spectate, or chat during your match. Not required.
+            </span>
+          </span>
+        </a>
       </div>
     </div>
   )
@@ -998,11 +1040,22 @@ function BonkFooter() {
         boxShadow: '0 24px 60px -24px rgba(23,0,28,0.7)',
       }}
     >
+      {/* Faded cosmic scene - "never surrenders" energy under the message. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ backgroundImage: 'url(/bonk/scenes/scene-sunset.jpg)', backgroundSize: 'cover', backgroundPosition: 'center 60%', opacity: 0.5 }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'linear-gradient(100deg, rgba(15,2,20,0.9) 38%, rgba(15,2,20,0.62) 78%, rgba(15,2,20,0.45) 100%)' }}
+      />
       {/* Warm light source bottom-left, the way BONK lights its dark scenes. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(70% 130% at 12% 100%, color-mix(in srgb, var(--bonk-ui-orange) 42%, transparent) 0%, transparent 60%)' }}
+        style={{ background: 'radial-gradient(70% 130% at 12% 100%, color-mix(in srgb, var(--bonk-ui-orange) 38%, transparent) 0%, transparent 60%)' }}
       />
       <div className="relative z-[1] flex flex-col items-center gap-5 px-6 py-8 text-center sm:flex-row sm:gap-7 sm:px-10 sm:text-left">
         {/* eslint-disable-next-line @next/next/no-img-element */}
