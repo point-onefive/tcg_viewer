@@ -164,30 +164,35 @@ function medalColor(i: number): string | null {
 /** Public, read-only prize pool. Centered, medal-accented showcase. */
 function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
   return (
-    <div className="mb-6 p-5" style={card}>
-      <div className="flex flex-col items-center gap-3 mb-5">
-        <div className="flex items-center justify-center gap-2">
-          <Gift size={22} style={{ color: 'var(--tcw-accent)' }} />
-          <h3 className="bonk-display" style={{ fontSize: 'clamp(20px, 3.4vw, 28px)', fontWeight: 900 }}>Prize pool</h3>
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      {/* Co-branded module header: the sponsor identity lives in the
+          module chrome (a dark BONK section band), not as a sticker in
+          the content. Title left, official BONK lockup right. */}
+      <div className="bonk-grad-night flex items-center justify-between gap-3 px-5 py-4">
+        <div className="flex items-center gap-2.5">
+          <Gift size={20} style={{ color: 'var(--bonk-ui-yellow)' }} />
+          <h3 className="bonk-display" style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 900, color: '#fff' }}>
+            Prize pool
+          </h3>
         </div>
-        {/* Prominent sponsor badge - pill lockup with the BONK mark. */}
-        <span
-          className="inline-flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4"
-          style={{
-            background: 'var(--bonk-grad-sun)',
-            boxShadow: '0 8px 22px -10px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)',
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden style={{ height: 30, width: 'auto', display: 'block' }} />
-          <span className="bonk-mono text-xs font-bold uppercase tracking-[0.1em]" style={{ color: 'var(--bonk-midnight)' }}>
-            Powered by BONK
+        <div className="flex items-center gap-3">
+          <span
+            className="bonk-mono hidden text-[10px] font-bold uppercase tracking-[0.16em] sm:inline"
+            style={{ color: 'rgba(255,255,255,0.5)' }}
+          >
+            Prize sponsor
           </span>
-        </span>
+          {/* White-wordmark lockup, made for dark surfaces (BRAND.md). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bonk/web-img/secondary_white.png" alt="BONK" style={{ height: 28, width: 'auto', display: 'block' }} />
+        </div>
       </div>
+      {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
+      <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
+
       <div
-        className="flex flex-wrap justify-center"
-        style={{ gap: 16, maxWidth: 800, margin: '0 auto' }}
+        className="flex flex-wrap justify-center p-5"
+        style={{ gap: 16, maxWidth: 832, margin: '0 auto' }}
       >
         {prizes.map((prize, i) => {
           const accent = placeAccent(i)
@@ -202,7 +207,7 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
                 background: 'var(--bg)',
                 border: '1px solid var(--border-subtle)',
                 borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
-                borderRadius: 6,
+                borderRadius: 12,
                 boxShadow: i === 0 ? undefined : medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
               }}
             >
