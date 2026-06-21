@@ -622,9 +622,19 @@ function HowItWorks() {
     <div className="mb-6 overflow-hidden" style={card}>
       <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
       <div className="p-5 sm:p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
-          <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
+            <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/bonk/web-img/BONK_Pose_Point_001_LR.png"
+            alt=""
+            aria-hidden
+            className="bonk-float--slow bonk-float hidden shrink-0 select-none sm:block"
+            style={{ width: 56, height: 'auto', marginTop: -8, marginBottom: -8 }}
+          />
         </div>
         <div className="flex flex-col gap-2.5">
           {steps.map((s, i) => {
@@ -811,8 +821,8 @@ function PollCard({
                     <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
                   ) : showResults ? (
                     <>
-                      <span className="font-display text-2xl font-bold leading-none tabular-nums">{pct}%</span>
-                      <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                      <span className="bonk-mono text-2xl font-bold leading-none tabular-nums">{pct}%</span>
+                      <span className="bonk-mono text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
                         {count} {count === 1 ? 'vote' : 'votes'}
                       </span>
                     </>
@@ -955,6 +965,55 @@ function BonkSponsorBanner() {
             Win for the community. Top 3 finishers take home the BONK-backed pool.
           </p>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Closing co-brand strip. Bookends the page opposite the sponsor banner:
+ * BONK Dog (peace), the brand's own community line, and an attributed
+ * "powered by BONK" lockup linking out to bonkcoin.com.
+ */
+function BonkFooter() {
+  return (
+    <div
+      className="relative mt-8 overflow-hidden"
+      style={{
+        borderRadius: 10,
+        border: '1px solid color-mix(in srgb, var(--bonk-ui-orange) 30%, var(--border-subtle))',
+        background:
+          'linear-gradient(135deg, color-mix(in srgb, var(--bonk-ui-yellow) 14%, var(--bg-surface)) 0%, color-mix(in srgb, var(--bonk-ui-orange) 12%, var(--bg-surface)) 100%)',
+      }}
+    >
+      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--bonk-ui-yellow), var(--bonk-ui-orange))' }} />
+      <div className="flex flex-col items-center gap-3 px-5 py-6 text-center sm:flex-row sm:gap-5 sm:text-left">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/bonk/web-img/BONK_Pose_Peace_001_LR.png"
+          alt="BONK Dog"
+          className="bonk-float shrink-0"
+          style={{ width: 72, height: 'auto', filter: 'drop-shadow(0 8px 14px rgba(23,0,28,0.22))' }}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-sm font-bold" style={{ color: 'var(--text-primary)', lineHeight: 1.45 }}>
+            BONK Dog is a winner<span style={{ color: 'var(--bonk-red)' }}>!!!</span> He wins for the
+            community, never gives up, and never surrenders.
+          </p>
+          <p className="mt-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
+            This event&rsquo;s prize pool is proudly backed by BONK.
+          </p>
+        </div>
+        <a
+          href="https://bonkcoin.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 transition-opacity hover:opacity-80"
+          aria-label="Learn more about BONK at bonkcoin.com"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bonk/web-img/powered_by_bonk.png" alt="Powered by BONK" style={{ height: 26, width: 'auto', display: 'block' }} />
+        </a>
       </div>
     </div>
   )
@@ -1431,9 +1490,19 @@ export function TournamentLive() {
         {/* Sign up */}
         {signupOpen && (
           <div className="p-5" style={card}>
-            <div className="flex items-center gap-2 mb-4">
-              <UserPlus size={16} style={{ color: 'var(--tcw-accent)' }} />
-              <h3 className="font-display font-bold">Sign up</h3>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <UserPlus size={16} style={{ color: 'var(--tcw-accent)' }} />
+                <h3 className="font-display font-bold">Sign up</h3>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/bonk/web-img/BONK_Pose_Wave_001_LR.png"
+                alt=""
+                aria-hidden
+                className="bonk-float hidden shrink-0 select-none sm:block"
+                style={{ width: 48, height: 'auto', marginTop: -6, marginBottom: -6 }}
+              />
             </div>
             {signedUp ? (
               <div className="flex flex-col gap-3">
@@ -1612,6 +1681,9 @@ export function TournamentLive() {
           <AwardedPrizesHistory awarded={snapshot.awardedPrizes} />
         </div>
       )}
+
+      {/* Closing co-brand strip */}
+      <BonkFooter />
 
       {ownDeckModal && (
         <ModalPortal onClose={() => setOwnDeckModal(null)} label="Your deck list" maxWidth={460}>

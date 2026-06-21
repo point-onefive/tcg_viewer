@@ -53,15 +53,15 @@ export function TournamentShell({
               // Partnership lockup: Card Wall  x  BONK (brand.bonkcoin.com
               // co-brand guidance). The "x" separator + BONK mark sit
               // immediately after the Card Wall lockup.
-              <span className="bonk-lockup gap-1.5 sm:gap-2" aria-label="in partnership with BONK">
-                <span className="bonk-lockup__x">✕</span>
+              <span className="bonk-lockup" aria-label="in partnership with BONK">
+                <span className="bonk-lockup__x" aria-hidden>✕</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/bonk/web-img/master_logo.png"
                   alt="BONK"
-                  width={30}
-                  height={30}
-                  style={{ height: 30, width: 'auto', display: 'block' }}
+                  width={32}
+                  height={32}
+                  style={{ height: 32, width: 'auto', display: 'block' }}
                 />
               </span>
             )}
