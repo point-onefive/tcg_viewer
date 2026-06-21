@@ -146,7 +146,7 @@ function CountdownStat({ label, value }: { label: string; value: string }) {
       <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
         {label}
       </div>
-      <div className="font-display text-2xl font-bold tabular-nums leading-tight" style={{ color: '#E85D2A' }}>
+      <div className="bonk-mono text-2xl font-bold tabular-nums leading-tight" style={{ color: 'var(--tcw-accent)' }}>
         {value}
       </div>
     </div>
@@ -165,9 +165,18 @@ function medalColor(i: number): string | null {
 function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
   return (
     <div className="mb-6 p-5" style={card}>
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Gift size={18} style={{ color: '#E85D2A' }} />
-        <h3 className="font-display text-lg font-bold tracking-tight">Prize pool</h3>
+      <div className="flex flex-col items-center gap-1.5 mb-4">
+        <div className="flex items-center justify-center gap-2">
+          <Gift size={18} style={{ color: 'var(--tcw-accent)' }} />
+          <h3 className="font-display text-lg font-bold tracking-tight">Prize pool</h3>
+        </div>
+        {/* Sponsor credit per partnership lockup guidance. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/bonk/web-img/powered_by_bonk.png"
+          alt="Powered by BONK"
+          style={{ height: 18, width: 'auto', display: 'block', opacity: 0.95 }}
+        />
       </div>
       <div
         className="flex flex-wrap justify-center"
@@ -179,7 +188,7 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
           return (
             <div
               key={i}
-              className="flex flex-col overflow-hidden"
+              className={`flex flex-col overflow-hidden${i === 0 ? ' bonk-prize-glow' : ''}`}
               style={{
                 width: 'min(100%, 240px)',
                 flex: '0 0 auto',
@@ -187,7 +196,7 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
                 border: '1px solid var(--border-subtle)',
                 borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
                 borderRadius: 6,
-                boxShadow: medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
+                boxShadow: i === 0 ? undefined : medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
               }}
             >
               {prize.image && (
@@ -470,7 +479,7 @@ function MyMatchCard({
 
   const header = (
     <div className="flex items-center gap-2 mb-1">
-      <Swords size={18} style={{ color: '#E85D2A' }} />
+      <Swords size={18} style={{ color: 'var(--tcw-accent)' }} />
       <h3 className="font-display text-lg font-bold tracking-tight">Your match</h3>
     </div>
   )
@@ -535,12 +544,12 @@ function MyMatchCard({
   // I already reported - waiting on my opponent.
   if (myReport) {
     const mine = myReport === 'win' ? 'a win' : myReport === 'loss' ? 'a loss' : 'a draw'
-    return shell('#E85D2A', (
+    return shell('var(--tcw-accent)', (
       <>
         {header}
         {vsLine}
         <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          <Loader2 size={15} className="animate-spin" style={{ color: '#E85D2A' }} />
+          <Loader2 size={15} className="animate-spin" style={{ color: 'var(--tcw-accent)' }} />
           You reported {mine}. Waiting for {oppLabel} to confirm.
         </div>
         <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -553,12 +562,12 @@ function MyMatchCard({
   }
 
   // Default: opponent may have reported; show the buttons.
-  return shell('#E85D2A', (
+  return shell('var(--tcw-accent)', (
     <>
       {header}
       {vsLine}
       {theirReport && (
-        <p className="mt-3 rounded-md px-3 py-2 text-xs" style={{ background: 'color-mix(in srgb, #E85D2A 8%, var(--bg))', border: '1px solid color-mix(in srgb, #E85D2A 22%, transparent)', color: 'var(--text-secondary)' }}>
+        <p className="mt-3 rounded-md px-3 py-2 text-xs" style={{ background: 'color-mix(in srgb, var(--tcw-accent) 8%, var(--bg))', border: '1px solid color-mix(in srgb, var(--tcw-accent) 22%, transparent)', color: 'var(--text-secondary)' }}>
           {oppLabel} reported {theirReport === 'win' ? 'a win' : theirReport === 'loss' ? 'a loss' : 'a draw'}. Report your result to confirm - if it matches, the bracket advances right away.
         </p>
       )}
@@ -592,7 +601,7 @@ function HowItWorks() {
       lead: (
         <>
           Play on{' '}
-          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#E85D2A' }}>
+          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--tcw-accent)' }}>
             OPTCG Sim
           </a>
         </>
@@ -611,15 +620,15 @@ function HowItWorks() {
   ]
   return (
     <div className="mb-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
+      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
       <div className="p-5 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
-          <ListChecks size={18} style={{ color: '#E85D2A' }} />
+          <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
           <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
         </div>
         <div className="flex flex-col gap-2.5">
           {steps.map((s, i) => {
-            const accent = s.danger ? '#ef4444' : '#E85D2A'
+            const accent = s.danger ? '#ef4444' : 'var(--tcw-accent)'
             return (
               <div key={i} className="flex items-start gap-2.5">
                 <span
@@ -745,7 +754,7 @@ function PollCard({
   return (
     <div className="mb-6 p-5" style={card}>
       <div className="flex items-center justify-center gap-2 mb-1.5">
-        <PieChart size={18} style={{ color: '#E85D2A' }} />
+        <PieChart size={18} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display text-lg font-bold tracking-tight">How should the prize be split?</h3>
       </div>
       <p className="mb-4 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -781,7 +790,7 @@ function PollCard({
                     height: 4,
                     width: `${pct}%`,
                     background: mine
-                      ? '#E85D2A'
+                      ? 'var(--tcw-accent)'
                       : winning
                         ? '#22c55e'
                         : 'color-mix(in srgb, var(--text-primary) 22%, transparent)',
@@ -792,7 +801,7 @@ function PollCard({
               <div className="relative flex flex-1 flex-col gap-1.5">
                 <div className="flex items-start justify-between gap-1.5">
                   <span className="font-display text-sm font-bold leading-tight">{opt.label}</span>
-                  {mine && <Check size={14} strokeWidth={3} style={{ color: '#E85D2A', flexShrink: 0 }} />}
+                  {mine && <Check size={14} strokeWidth={3} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />}
                 </div>
                 <span className="flex-1 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.35 }}>
                   {opt.blurb}
@@ -808,7 +817,7 @@ function PollCard({
                       </span>
                     </>
                   ) : (
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#E85D2A' }}>
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--tcw-accent)' }}>
                       Vote
                     </span>
                   )}
@@ -830,7 +839,7 @@ function PollCard({
               winning
                 ? '#22c55e'
                 : mine
-                  ? 'color-mix(in srgb, #E85D2A 55%, transparent)'
+                  ? 'color-mix(in srgb, var(--tcw-accent) 55%, transparent)'
                   : 'var(--border-subtle)'
             }`,
             boxShadow: winning
@@ -871,6 +880,82 @@ function PollCard({
       <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--text-muted)' }}>
         {total} total {total === 1 ? 'vote' : 'votes'}
       </p>
+    </div>
+  )
+}
+
+/**
+ * BONK sponsorship banner. Co-brand announcement at the top of the live
+ * page: "powered by BONK" lockup, the BONK Dog mascot, and the prize
+ * tease. Palette + mascot usage follow public/bonk/BRAND.md (BONK Dog is
+ * "a winner!!!"; red reserved for the "!!!"; gradient brings BONK to life).
+ */
+function BonkSponsorBanner() {
+  return (
+    <div
+      className="bonk-pop relative mb-6 overflow-hidden"
+      style={{
+        borderRadius: 10,
+        background:
+          'linear-gradient(135deg, var(--bonk-ui-yellow) 0%, var(--bonk-orange) 52%, var(--bonk-ui-orange) 100%)',
+        boxShadow: '0 18px 44px -16px color-mix(in srgb, var(--bonk-ui-orange) 70%, transparent)',
+      }}
+    >
+      {/* Signature BONK "!!!" energy bleeding off the right edge. Red is
+          explicitly endorsed for "!!!" in the brand guide. Hidden on small
+          screens so it never crowds the mascot + copy. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/bonk/web-img/3d-exclamation-marks.png"
+        alt=""
+        aria-hidden
+        className="bonk-float--slow bonk-float pointer-events-none absolute hidden select-none sm:block"
+        style={{
+          right: -18,
+          top: -10,
+          height: '128%',
+          width: 'auto',
+          opacity: 0.9,
+          transform: 'rotate(8deg)',
+          filter: 'drop-shadow(0 12px 22px rgba(23,0,28,0.28))',
+        }}
+      />
+      <div className="relative z-[1] flex items-center gap-4 px-5 py-5 sm:gap-6 sm:px-7 sm:py-6">
+        {/* Mascot - the winner. Floats so it reads alive, not pasted. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/bonk/web-img/BONK_Pose_ThumbsUp_001_LR.png"
+          alt="BONK Dog"
+          className="bonk-float shrink-0"
+          style={{
+            width: 'clamp(64px, 16vw, 104px)',
+            height: 'auto',
+            filter: 'drop-shadow(0 10px 18px rgba(23,0,28,0.28))',
+          }}
+        />
+        <div className="min-w-0 flex-1">
+          <div
+            className="mb-1 inline-flex items-center gap-1.5 font-display text-[10px] font-extrabold uppercase tracking-[0.18em]"
+            style={{ color: 'var(--bonk-midnight)', opacity: 0.72 }}
+          >
+            Prize pool powered by
+            <span style={{ letterSpacing: '0.04em', fontWeight: 900 }}>BONK</span>
+          </div>
+          <h2
+            className="font-display font-black leading-[1.05]"
+            style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(18px, 4.4vw, 30px)', letterSpacing: '-0.02em' }}
+          >
+            BONK is fueling the prize pool
+            <span style={{ color: 'var(--bonk-red)' }}>!!!</span>
+          </h2>
+          <p
+            className="mt-1.5 text-sm font-semibold"
+            style={{ color: 'var(--bonk-midnight)', opacity: 0.82, lineHeight: 1.4 }}
+          >
+            Win for the community. Top 3 finishers take home the BONK-backed pool.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1129,11 +1214,11 @@ export function TournamentLive() {
           color: 'var(--text-secondary)',
         }}
       >
-        <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>“</span>
-        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: '#E85D2A' }} aria-label="wallet" />,{' '}
+        <span style={{ color: 'var(--tcw-accent)', fontWeight: 800, marginRight: 3 }}>“</span>
+        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: 'var(--tcw-accent)' }} aria-label="wallet" />,{' '}
         <br className="sm:hidden" />
         link your <XLogo /> handle for authenticity
-        <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>”</span>
+        <span style={{ color: 'var(--tcw-accent)', fontWeight: 800, marginLeft: 3 }}>”</span>
       </p>
 
       <button
@@ -1180,8 +1265,8 @@ export function TournamentLive() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'color-mix(in srgb, #E85D2A 16%, var(--bg))',
-                color: '#E85D2A',
+                background: 'color-mix(in srgb, var(--tcw-accent) 16%, var(--bg))',
+                color: 'var(--tcw-accent)',
               }}
             >
               <Wallet size={24} aria-hidden />
@@ -1211,10 +1296,16 @@ export function TournamentLive() {
 
   if (loadError && !snapshot) {
     return (
-      <TournamentShell lede={lede}>
+      <TournamentShell lede={lede} bonk>
         <div className="mx-auto" style={{ maxWidth: 1080 }}>
           <div className="mx-auto mb-6 max-w-md p-8 text-center" style={card}>
-            <Trophy size={32} style={{ color: '#E85D2A', margin: '0 auto 12px' }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/bonk/web-img/BONK_Pose_Head_001_LR.png"
+              alt="BONK Dog"
+              className="bonk-float"
+              style={{ width: 96, height: 'auto', margin: '0 auto 12px', display: 'block' }}
+            />
             <p className="font-display text-lg font-bold">No active tournament</p>
             <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {loadError.includes('No tournament') ? 'Check back when the next event opens, or get in line below.' : loadError}
@@ -1227,7 +1318,7 @@ export function TournamentLive() {
               className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
               style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
             >
-              <Trophy size={15} style={{ color: '#E85D2A' }} aria-hidden /> Browse past events
+              <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Browse past events
               <ChevronRight size={15} aria-hidden />
             </Link>
           </div>
@@ -1238,7 +1329,7 @@ export function TournamentLive() {
 
   if (!snapshot || !tournament) {
     return (
-      <TournamentShell lede={lede}>
+      <TournamentShell lede={lede} bonk>
         <div className="flex justify-center py-20 gap-2" style={{ color: 'var(--text-muted)' }}>
           <Loader2 size={18} className="animate-spin" /> Loading…
         </div>
@@ -1247,8 +1338,11 @@ export function TournamentLive() {
   }
 
   return (
-    <TournamentShell lede={lede}>
+    <TournamentShell lede={lede} bonk>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
+      {/* BONK sponsor banner - sets the co-brand tone up top */}
+      <BonkSponsorBanner />
+
       {/* Global leaderboard across all tournaments */}
       <Leaderboard />
 
@@ -1259,7 +1353,7 @@ export function TournamentLive() {
           className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
           style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
         >
-          <Trophy size={15} style={{ color: '#E85D2A' }} aria-hidden /> Past events
+          <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Past events
           <ChevronRight size={15} aria-hidden />
         </Link>
       </div>
@@ -1270,7 +1364,7 @@ export function TournamentLive() {
 
       {/* Event hero */}
       <div className="mb-6 overflow-hidden" style={card}>
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
+        <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
@@ -1301,7 +1395,7 @@ export function TournamentLive() {
           )}
           {tournament.contactUrl && (
             <p className="mt-3 text-sm">
-              <a href={tournament.contactUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold" style={{ color: '#E85D2A' }}>
+              <a href={tournament.contactUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold" style={{ color: 'var(--tcw-accent)' }}>
                 <CalendarClock size={14} /> Coordination link (Discord / stream)
               </a>
             </p>
@@ -1338,7 +1432,7 @@ export function TournamentLive() {
         {signupOpen && (
           <div className="p-5" style={card}>
             <div className="flex items-center gap-2 mb-4">
-              <UserPlus size={16} style={{ color: '#E85D2A' }} />
+              <UserPlus size={16} style={{ color: 'var(--tcw-accent)' }} />
               <h3 className="font-display font-bold">Sign up</h3>
             </div>
             {signedUp ? (
@@ -1350,7 +1444,7 @@ export function TournamentLive() {
                 </p>
                 {owesDeckList ? (
                   <div className="flex flex-col gap-2 rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid rgba(232,93,42,0.4)' }}>
-                    <p className="text-xs font-bold" style={{ color: '#E85D2A' }}>
+                    <p className="text-xs font-bold" style={{ color: 'var(--tcw-accent)' }}>
                       One more step: submit your deck list before the bracket is
                       drawn, or you can&rsquo;t be paired.
                     </p>
@@ -1364,7 +1458,7 @@ export function TournamentLive() {
                       onClick={() => void doSubmitDeck()}
                       disabled={submitDeckBusy}
                       className="footer-btn py-2 text-sm font-bold"
-                      style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: submitDeckBusy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                      style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: submitDeckBusy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
                       {submitDeckBusy ? (
                         <>
@@ -1407,7 +1501,7 @@ export function TournamentLive() {
                 <button
                   onClick={() => setEditingProfile(true)}
                   className="footer-btn py-2.5 text-sm font-bold"
-                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6 }}
+                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6 }}
                 >
                   Add X handle
                 </button>
@@ -1428,7 +1522,7 @@ export function TournamentLive() {
                   onClick={() => void doEnroll()}
                   disabled={busy}
                   className="footer-btn py-2.5 text-sm font-bold"
-                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {busy ? (
                     <>
@@ -1451,7 +1545,7 @@ export function TournamentLive() {
         <div className="p-5" style={card}>
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <Users size={16} style={{ color: '#E85D2A' }} />
+              <Users size={16} style={{ color: 'var(--tcw-accent)' }} />
               <h3 className="font-display font-bold">{signupOpen ? 'Sign-ups' : 'Competitors'}</h3>
             </div>
             <span
@@ -1522,7 +1616,7 @@ export function TournamentLive() {
       {ownDeckModal && (
         <ModalPortal onClose={() => setOwnDeckModal(null)} label="Your deck list" maxWidth={460}>
           <div className="flex items-center gap-2 mb-3">
-            <ListChecks size={16} style={{ color: '#E85D2A' }} />
+            <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
             <h3 className="font-display font-bold">Your locked deck list</h3>
           </div>
           {ownDeckModal.loading ? (
@@ -1572,7 +1666,7 @@ function DeckListField({
   return (
     <div className="flex flex-col gap-1.5">
       <label className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-        <ListChecks size={13} style={{ color: '#E85D2A' }} /> Deck list (required)
+        <ListChecks size={13} style={{ color: 'var(--tcw-accent)' }} /> Deck list (required)
       </label>
       <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
         In OPTCG Sim, open your deck and hit{' '}
@@ -1641,7 +1735,7 @@ function SectionHeader({
     <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
       <div>
         <div className="flex items-center gap-2">
-          <Swords size={18} style={{ color: '#E85D2A' }} />
+          <Swords size={18} style={{ color: 'var(--tcw-accent)' }} />
           <h3 className="font-display text-lg font-bold tracking-tight">{title}</h3>
         </div>
         {subtitle && (
@@ -1695,7 +1789,7 @@ function SwissBoard({
 
   return (
     <div className="mt-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
+      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
       <div className="p-5 sm:p-6">
         <SectionHeader
           title={`Round ${selectedRound?.number ?? 1} pairings`}
@@ -1760,7 +1854,7 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
   return (
     <div className="mt-6">
       <div className="flex items-center gap-2 mb-3">
-        <Trophy size={15} style={{ color: '#E85D2A' }} />
+        <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} />
         <h4 className="font-display text-sm font-bold uppercase tracking-wider">
           {complete ? 'Final standings' : 'Standings'}
         </h4>
@@ -1889,7 +1983,7 @@ function ElimBracket({
 
   return (
     <div className="mt-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
+      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
       <div className="p-5 sm:p-6">
         <SectionHeader
           title="Bracket"
@@ -2021,11 +2115,11 @@ function BracketScroller({ children }: { children: React.ReactNode }) {
             marginRight: 2,
             borderRadius: '50%',
             background: 'var(--bg)',
-            border: '1px solid color-mix(in srgb, #E85D2A 45%, var(--border-subtle))',
+            border: '1px solid color-mix(in srgb, var(--tcw-accent) 45%, var(--border-subtle))',
             boxShadow: 'var(--shadow-card)',
           }}
         >
-          <ChevronRight size={16} style={{ color: '#E85D2A' }} />
+          <ChevronRight size={16} style={{ color: 'var(--tcw-accent)' }} />
         </span>
       </div>
     </div>

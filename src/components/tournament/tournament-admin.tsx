@@ -264,7 +264,7 @@ export function TournamentAdmin() {
       <div className="mx-auto max-w-2xl flex flex-col gap-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Crown size={20} style={{ color: '#E85D2A' }} />
+            <Crown size={20} style={{ color: 'var(--tcw-accent)' }} />
             <h2 className="font-display text-xl font-bold">Tournament admin</h2>
           </div>
           {unlocked && (
@@ -304,7 +304,7 @@ export function TournamentAdmin() {
               type="submit"
               disabled={!adminKey.trim() || unlockBusy}
               className="footer-btn py-2 text-sm font-bold inline-flex items-center justify-center gap-2"
-              style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: !adminKey.trim() || unlockBusy ? 0.6 : 1 }}
+              style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: !adminKey.trim() || unlockBusy ? 0.6 : 1 }}
             >
               {unlockBusy && <Loader2 size={14} className="animate-spin" />}
               {unlockBusy ? 'Verifying…' : 'Unlock'}
@@ -353,7 +353,7 @@ export function TournamentAdmin() {
               }}
             >
               <div className="flex items-center gap-2">
-                <Trophy size={16} style={{ color: '#E85D2A' }} />
+                <Trophy size={16} style={{ color: 'var(--tcw-accent)' }} />
                 <h3 className="font-display font-bold">Start fresh tournament</h3>
               </div>
               <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="Tournament name" />
@@ -396,7 +396,7 @@ export function TournamentAdmin() {
             {/* Next event waitlist - queued profiles, NOT current sign-ups */}
             <div className="p-5" style={card}>
               <div className="flex items-center gap-2">
-                <Hourglass size={16} style={{ color: '#E85D2A' }} />
+                <Hourglass size={16} style={{ color: 'var(--tcw-accent)' }} />
                 <h3 className="font-display font-bold">Next event waitlist</h3>
                 <span className="ml-auto inline-flex items-center gap-1.5">
                   <span
@@ -405,7 +405,7 @@ export function TournamentAdmin() {
                       minWidth: 22,
                       height: 22,
                       padding: '0 6px',
-                      background: '#E85D2A',
+                      background: 'var(--tcw-accent)',
                       color: '#fff',
                       borderRadius: 6,
                     }}
@@ -506,7 +506,7 @@ export function TournamentAdmin() {
                       className="mt-4 flex items-center gap-2 px-3 py-2.5"
                       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
                     >
-                      <Swords size={15} style={{ color: '#E85D2A', flexShrink: 0 }} />
+                      <Swords size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
                       <span className="text-sm font-semibold">
                         Round {activeRound?.number ?? roundsPlayed} of {totalRounds} in progress
                       </span>
@@ -544,7 +544,7 @@ export function TournamentAdmin() {
                     className="mt-4 flex flex-wrap items-center gap-2 px-3 py-2.5"
                     style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
                   >
-                    <PieChart size={15} style={{ color: '#E85D2A', flexShrink: 0 }} />
+                    <PieChart size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
                     <span className="text-sm font-semibold">Prize poll</span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {snapshot.poll.totalVotes} vote{snapshot.poll.totalVotes === 1 ? '' : 's'} · {pollOpen ? 'open' : 'closed'}
@@ -568,7 +568,7 @@ export function TournamentAdmin() {
                   <div className="p-5" style={card}>
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
-                        <Swords size={16} style={{ color: '#E85D2A' }} />
+                        <Swords size={16} style={{ color: 'var(--tcw-accent)' }} />
                         <h3 className="font-display font-bold">Round {activeRound.number} decisions</h3>
                       </div>
                       <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
@@ -809,7 +809,7 @@ function PrizeEditor({
   return (
     <div className="p-5" style={card}>
       <div className="flex items-center gap-2 mb-1">
-        <Gift size={16} style={{ color: '#E85D2A' }} />
+        <Gift size={16} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display font-bold">Prize pool</h3>
       </div>
       <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
@@ -1222,8 +1222,8 @@ function PlayerCapPicker({
                 padding: '7px 10px',
                 borderRadius: 6,
                 cursor: 'pointer',
-                background: active ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
-                border: `1px solid ${active ? '#E85D2A' : 'var(--border-subtle)'}`,
+                background: active ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg)',
+                border: `1px solid ${active ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
               }}
             >
               <span className="block font-display text-base font-bold leading-none">{size}</span>
@@ -1244,8 +1244,8 @@ function PlayerCapPicker({
             padding: '7px 10px',
             borderRadius: 6,
             cursor: 'pointer',
-            background: custom ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
-            border: `1px solid ${custom ? '#E85D2A' : 'var(--border-subtle)'}`,
+            background: custom ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg)',
+            border: `1px solid ${custom ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
           }}
         >
           <span className="block font-display text-base font-bold leading-none">∙∙∙</span>
@@ -1287,14 +1287,14 @@ function FormatCard({
       aria-pressed={active}
       className="flex flex-col gap-1.5 p-3 text-left transition-colors"
       style={{
-        background: active ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
-        border: `1px solid ${active ? '#E85D2A' : 'var(--border-subtle)'}`,
+        background: active ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg)',
+        border: `1px solid ${active ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
         borderRadius: 6,
         cursor: 'pointer',
       }}
     >
       <span className="inline-flex items-center gap-1.5 font-display text-sm font-bold">
-        <Icon size={15} style={{ color: active ? '#E85D2A' : 'var(--text-muted)' }} />
+        <Icon size={15} style={{ color: active ? 'var(--tcw-accent)' : 'var(--text-muted)' }} />
         {title}
       </span>
       <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -1322,7 +1322,7 @@ function AdminBtn({
       onClick={onClick}
       className="footer-btn px-3 py-1.5 text-xs font-bold"
       style={{
-        background: primary ? '#E85D2A' : 'var(--bg)',
+        background: primary ? 'var(--tcw-accent)' : 'var(--bg)',
         color: primary ? '#fff' : 'var(--text-primary)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 6,
@@ -1336,7 +1336,7 @@ function AdminBtn({
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string }> = {
-    enrolling: { label: 'Sign-ups open', color: '#E85D2A' },
+    enrolling: { label: 'Sign-ups open', color: 'var(--tcw-accent)' },
     running: { label: 'Live', color: '#22c55e' },
     complete: { label: 'Complete', color: '#8b93a1' },
   }
@@ -1409,7 +1409,7 @@ function AdminMatchRow({
       const who = r1 ? p1Label : p2Label
       const what = r1 ?? r2
       return {
-        tone: '#E85D2A',
+        tone: 'var(--tcw-accent)',
         label: 'Reported',
         text: `${who} reported ${what}. Awaiting the other player.`,
       }
@@ -1663,7 +1663,7 @@ function ParticipantRow({
           style={
             player.hasDeckList
               ? { color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 7px', borderRadius: 5 }
-              : { color: '#E85D2A', background: 'rgba(232,93,42,0.15)', padding: '2px 7px', borderRadius: 5 }
+              : { color: 'var(--tcw-accent)', background: 'rgba(232,93,42,0.15)', padding: '2px 7px', borderRadius: 5 }
           }
         >
           {player.hasDeckList ? 'Deck ✓' : 'No deck'}
@@ -1756,7 +1756,7 @@ function AdminDeckModal({
   return (
     <ModalPortal onClose={onClose} label="Deck list" maxWidth={480}>
       <div className="flex items-center gap-2 mb-3">
-        <ListChecks size={16} style={{ color: '#E85D2A' }} />
+        <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display font-bold">{formatXLabel(player.xHandle)} - deck list</h3>
       </div>
       {loading ? (

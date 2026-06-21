@@ -42,6 +42,12 @@
   --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.3);
   --border-subtle: rgba(0, 0, 0, 0.06);
   --overlay: rgba(245, 243, 240, 0.92);
+  /* Tournament accent (Card Wall default). Overridden inside .bonk-theme
+     so the sponsored /tournaments page can swap to BONK's palette without
+     touching any component. Every tournament component reads
+     var(--tcw-accent) instead of the literal Card Wall orange. */
+  --tcw-accent: #E85D2A;
+  --tcw-accent-2: #f5b301;
   /* Lightbox tokens (theme-aware) */
   --lb-backdrop-1: rgba(245, 243, 240, 0.97);
   --lb-backdrop-2: rgba(220, 215, 206, 1);
@@ -67,6 +73,8 @@
   --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 2px rgba(255, 255, 255, 0.08);
   --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.6);
   --border-subtle: rgba(255, 255, 255, 0.06);
+  --tcw-accent: #E85D2A;
+  --tcw-accent-2: #f5b301;
   /* Lightbox tokens (dark) */
   --lb-backdrop-1: rgba(18, 18, 28, 0.97);
   --lb-backdrop-2: rgba(0, 0, 0, 1);
@@ -2337,4 +2345,102 @@ html.lenis, html.lenis body {
   outline: none;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   BONK x The Card Wall - sponsored /tournaments theme
+   Scoped to .bonk-theme so the rest of the site is untouched. Palette,
+   type and rules mirror brand.bonkcoin.com (see public/bonk/BRAND.md).
+   ═══════════════════════════════════════════════════════════════════ */
 
+/* Poppins - BONK primary typeface (geometric, web-safe weights). */
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 400; font-display: swap; src: url('/bonk/fonts/web/Poppins-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 500; font-display: swap; src: url('/bonk/fonts/web/Poppins-Medium.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 600; font-display: swap; src: url('/bonk/fonts/web/Poppins-SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 700; font-display: swap; src: url('/bonk/fonts/web/Poppins-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 800; font-display: swap; src: url('/bonk/fonts/web/Poppins-ExtraBold.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 900; font-display: swap; src: url('/bonk/fonts/web/Poppins-Black.ttf') format('truetype'); }
+/* Space Mono - BONK detail face for data, filters, timers, codes. */
+@font-face { font-family: 'BonkMono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/bonk/fonts/web/SpaceMono-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'BonkMono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/bonk/fonts/web/SpaceMono-Bold.ttf') format('truetype'); }
+
+.bonk-theme {
+  /* Core BONK palette (BRAND.md). Red stays reserved for !!! + accents. */
+  --bonk-white: #ffffff;
+  --bonk-yellow: #ffe208;
+  --bonk-orange: #fc8e03;
+  --bonk-red: #ff0000;
+  --bonk-ui-yellow: #fdc202;
+  --bonk-ui-orange: #ff5c01;
+  --bonk-nude: #f7bd9f;
+  --bonk-pink: #fa7ef3;
+  --bonk-purple: #7933bc;
+  --bonk-midnight: #17001c;
+  --bonk-grey: #2b3649;
+
+  /* Retheme the tournament accent to BONK's UI orange + yellow. Every
+     tournament component already reads these vars. */
+  --tcw-accent: var(--bonk-ui-orange);
+  --tcw-accent-2: var(--bonk-ui-yellow);
+
+  /* Typography swap, scoped to the page. */
+  --font-display: 'BonkPoppins', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'BonkPoppins', 'Inter', system-ui, sans-serif;
+  --font-bonk-mono: 'BonkMono', ui-monospace, monospace;
+
+  font-family: var(--font-body);
+}
+
+/* Gradient background wash - "we like gradient backgrounds to bring
+   BONK to life". Layered behind content; respects light/dark toggle. */
+.bonk-theme {
+  position: relative;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--bonk-ui-yellow) 22%, transparent) 0%, transparent 55%),
+    radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--bonk-ui-orange) 18%, transparent) 0%, transparent 50%),
+    var(--bg);
+}
+[data-theme="dark"] .bonk-theme,
+.bonk-theme[data-theme="dark"] {
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--bonk-ui-orange) 26%, transparent) 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--bonk-purple) 22%, transparent) 0%, transparent 55%),
+    var(--bg);
+}
+
+/* Mono details: timers, codes, stat numerals. */
+.bonk-mono { font-family: var(--font-bonk-mono, 'BonkMono', ui-monospace, monospace); letter-spacing: -0.02em; }
+
+/* Co-brand lockup: PARTNER  x  X  x  BONK (x = BONK width / 3). */
+.bonk-lockup { display: inline-flex; align-items: center; gap: 0; }
+.bonk-lockup__x {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+/* BONK Dog mascot - gentle idle float so it feels alive, not pasted. */
+@keyframes bonk-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(-1.5deg); }
+}
+.bonk-float { animation: bonk-float 4.5s ease-in-out infinite; will-change: transform; }
+.bonk-float--slow { animation-duration: 6s; }
+
+/* "!!!" energy pop for emphasis moments (winner, prize). */
+@keyframes bonk-pop {
+  0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(1.12) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.bonk-pop { animation: bonk-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bonk-float, .bonk-pop { animation: none; }
+}
+
+/* Gold/medal prize tier glow built from BONK yellow. */
+.bonk-prize-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--bonk-ui-yellow) 50%, transparent),
+    0 10px 30px -10px color-mix(in srgb, var(--bonk-ui-orange) 45%, transparent);
+}

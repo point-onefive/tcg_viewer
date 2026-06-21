@@ -35,13 +35,13 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
         style={{
           height: 3,
           background:
-            'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))',
+            'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))',
         }}
       />
       <div className="p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <BellRing size={18} style={{ color: '#E85D2A' }} />
+            <BellRing size={18} style={{ color: 'var(--tcw-accent)' }} />
             <h3 className="font-display text-lg font-bold tracking-tight">
               Next event waitlist
             </h3>
@@ -54,7 +54,7 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
                   minWidth: 22,
                   height: 22,
                   padding: '0 6px',
-                  background: '#E85D2A',
+                  background: 'var(--tcw-accent)',
                   color: '#fff',
                   borderRadius: 6,
                 }}
@@ -214,7 +214,7 @@ export function WaitlistCard() {
         <button
           onClick={() => setEditingProfile(true)}
           className="footer-btn mt-4 py-2.5 px-5 text-sm font-bold"
-          style={{ background: '#E85D2A', color: '#fff', borderRadius: 6 }}
+          style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6 }}
         >
           Add X handle
         </button>
@@ -235,7 +235,7 @@ export function WaitlistCard() {
           disabled={busy}
           className="footer-btn py-2.5 px-5 text-sm font-bold"
           style={{
-            background: '#E85D2A',
+            background: 'var(--tcw-accent)',
             color: '#fff',
             borderRadius: 6,
             opacity: busy ? 0.6 : 1,

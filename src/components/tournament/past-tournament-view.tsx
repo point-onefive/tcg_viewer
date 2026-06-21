@@ -57,7 +57,7 @@ function MetaChip({ icon: Icon, children }: { icon: typeof Hash; children: React
         padding: '4px 8px',
       }}
     >
-      <Icon size={13} style={{ color: '#E85D2A' }} aria-hidden />
+      <Icon size={13} style={{ color: 'var(--tcw-accent)' }} aria-hidden />
       {children}
     </span>
   )
@@ -126,7 +126,7 @@ export function PastTournamentView({ code }: { code: string }) {
         <div className="mx-auto" style={{ maxWidth: 1080 }}>
           <div className="mb-4">{backLink}</div>
           <div className="mx-auto max-w-md p-8 text-center" style={card}>
-            <Trophy size={32} style={{ color: '#E85D2A', margin: '0 auto 12px' }} />
+            <Trophy size={32} style={{ color: 'var(--tcw-accent)', margin: '0 auto 12px' }} />
             <p className="font-display text-lg font-bold">Event not found</p>
             <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {error}
@@ -159,7 +159,7 @@ export function PastTournamentView({ code }: { code: string }) {
           <div
             style={{
               height: 3,
-              background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))',
+              background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))',
             }}
           />
           <div className="p-5 sm:p-6">
@@ -245,7 +245,7 @@ export function PastTournamentView({ code }: { code: string }) {
         {/* Public deck archive - the metagame record for this event. */}
         <div className="mt-6 p-5" style={card}>
           <div className="mb-1 flex items-center gap-2">
-            <ListChecks size={16} style={{ color: '#E85D2A' }} />
+            <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
             <h3 className="font-display font-bold">Deck lists</h3>
           </div>
           <p className="mb-4 text-xs" style={{ color: 'var(--text-muted)' }}>

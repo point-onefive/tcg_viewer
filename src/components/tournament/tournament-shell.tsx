@@ -22,15 +22,21 @@ export function TournamentShell({
   children,
   lede,
   right,
+  bonk = false,
 }: {
   children: React.ReactNode
   /** Optional italic tagline + pill row shown under the header. */
   lede?: React.ReactNode
   /** Optional extra controls in the header's right cluster. */
   right?: React.ReactNode
+  /** Apply the BONK sponsorship theme (scoped palette, fonts, gradient). */
+  bonk?: boolean
 }) {
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text-primary)' }}>
+    <div
+      className={bonk ? 'bonk-theme' : undefined}
+      style={{ minHeight: '100dvh', background: bonk ? undefined : 'var(--bg)', color: 'var(--text-primary)' }}
+    >
       <header
         className="sticky top-0 z-20 py-3"
         style={{
@@ -43,13 +49,29 @@ export function TournamentShell({
         <div className="mx-auto flex flex-wrap items-center justify-between gap-2 px-4 sm:gap-3" style={{ maxWidth: 1800 }}>
           <div className="flex items-center gap-2 sm:gap-3">
             <BrandLockup mobileCompact />
+            {bonk && (
+              // Partnership lockup: Card Wall  x  BONK (brand.bonkcoin.com
+              // co-brand guidance). The "x" separator + BONK mark sit
+              // immediately after the Card Wall lockup.
+              <span className="bonk-lockup gap-1.5 sm:gap-2" aria-label="in partnership with BONK">
+                <span className="bonk-lockup__x">✕</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/bonk/web-img/master_logo.png"
+                  alt="BONK"
+                  width={30}
+                  height={30}
+                  style={{ height: 30, width: 'auto', display: 'block' }}
+                />
+              </span>
+            )}
             <div
               aria-hidden
               className="hidden sm:block"
               style={{ width: 1, height: 22, background: 'var(--text-muted)', opacity: 0.4, margin: '0 4px' }}
             />
             <Link href="/tournaments" className="flex items-center gap-2">
-              <Trophy size={18} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
+              <Trophy size={18} strokeWidth={2.25} style={{ color: 'var(--tcw-accent)' }} aria-hidden />
               <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">Tournaments</h1>
             </Link>
           </div>

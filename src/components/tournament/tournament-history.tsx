@@ -54,7 +54,7 @@ export function TournamentHistory() {
         </div>
 
         <div className="mb-6 flex items-center gap-2">
-          <Trophy size={20} style={{ color: '#E85D2A' }} />
+          <Trophy size={20} style={{ color: 'var(--tcw-accent)' }} />
           <h2 className="font-display text-2xl font-bold tracking-tight">Past events</h2>
         </div>
 
