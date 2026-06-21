@@ -165,18 +165,25 @@ function medalColor(i: number): string | null {
 function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
   return (
     <div className="mb-6 p-5" style={card}>
-      <div className="flex flex-col items-center gap-1.5 mb-4">
+      <div className="flex flex-col items-center gap-3 mb-5">
         <div className="flex items-center justify-center gap-2">
-          <Gift size={18} style={{ color: 'var(--tcw-accent)' }} />
-          <h3 className="font-display text-lg font-bold tracking-tight">Prize pool</h3>
+          <Gift size={22} style={{ color: 'var(--tcw-accent)' }} />
+          <h3 className="bonk-display" style={{ fontSize: 'clamp(20px, 3.4vw, 28px)', fontWeight: 900 }}>Prize pool</h3>
         </div>
-        {/* Sponsor credit per partnership lockup guidance. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/bonk/web-img/powered_by_bonk.png"
-          alt="Powered by BONK"
-          style={{ height: 18, width: 'auto', display: 'block', opacity: 0.95 }}
-        />
+        {/* Prominent sponsor badge - pill lockup with the BONK mark. */}
+        <span
+          className="inline-flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4"
+          style={{
+            background: 'var(--bonk-grad-sun)',
+            boxShadow: '0 8px 22px -10px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden style={{ height: 30, width: 'auto', display: 'block' }} />
+          <span className="bonk-mono text-xs font-bold uppercase tracking-[0.1em]" style={{ color: 'var(--bonk-midnight)' }}>
+            Powered by BONK
+          </span>
+        </span>
       </div>
       <div
         className="flex flex-wrap justify-center"
@@ -632,8 +639,8 @@ function HowItWorks() {
             src="/bonk/web-img/BONK_Pose_Point_001_LR.png"
             alt=""
             aria-hidden
-            className="bonk-float--slow bonk-float hidden shrink-0 select-none sm:block"
-            style={{ width: 56, height: 'auto', marginTop: -8, marginBottom: -8 }}
+            className="bonk-sway hidden shrink-0 select-none sm:block"
+            style={{ width: 78, height: 'auto', marginTop: -18, marginBottom: -18, filter: 'drop-shadow(0 10px 16px rgba(23,0,28,0.18))' }}
           />
         </div>
         <div className="flex flex-col gap-2.5">
@@ -903,64 +910,66 @@ function PollCard({
 function BonkSponsorBanner() {
   return (
     <div
-      className="bonk-pop relative mb-6 overflow-hidden"
+      className="bonk-pop bonk-grad-sun relative mb-6 overflow-hidden"
       style={{
-        borderRadius: 10,
-        background:
-          'linear-gradient(135deg, var(--bonk-ui-yellow) 0%, var(--bonk-orange) 52%, var(--bonk-ui-orange) 100%)',
-        boxShadow: '0 18px 44px -16px color-mix(in srgb, var(--bonk-ui-orange) 70%, transparent)',
+        borderRadius: 20,
+        boxShadow: '0 24px 60px -20px color-mix(in srgb, var(--bonk-ui-orange) 75%, transparent)',
       }}
     >
-      {/* Signature BONK "!!!" energy bleeding off the right edge. Red is
-          explicitly endorsed for "!!!" in the brand guide. Hidden on small
-          screens so it never crowds the mascot + copy. */}
+      {/* Soft sunburst glow behind the dog, like the bonkcoin.com hero. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(60% 120% at 18% 60%, rgba(255,255,255,0.45) 0%, transparent 55%)' }}
+      />
+      {/* Signature BONK "!!!" energy bleeding off the right edge. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/bonk/web-img/3d-exclamation-marks.png"
         alt=""
         aria-hidden
-        className="bonk-float--slow bonk-float pointer-events-none absolute hidden select-none sm:block"
+        className="bonk-sway pointer-events-none absolute hidden select-none sm:block"
         style={{
-          right: -18,
-          top: -10,
-          height: '128%',
+          right: -10,
+          top: -22,
+          height: '150%',
           width: 'auto',
-          opacity: 0.9,
-          transform: 'rotate(8deg)',
-          filter: 'drop-shadow(0 12px 22px rgba(23,0,28,0.28))',
+          opacity: 0.95,
+          filter: 'drop-shadow(0 14px 26px rgba(23,0,28,0.3))',
         }}
       />
-      <div className="relative z-[1] flex items-center gap-4 px-5 py-5 sm:gap-6 sm:px-7 sm:py-6">
-        {/* Mascot - the winner. Floats so it reads alive, not pasted. */}
+      <div className="relative z-[1] flex items-center gap-5 px-6 py-7 sm:gap-8 sm:px-9 sm:py-9">
+        {/* Mascot - the winner, big and dramatic per bonkcoin.com hero scale. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/bonk/web-img/BONK_Pose_ThumbsUp_001_LR.png"
           alt="BONK Dog"
-          className="bonk-float shrink-0"
+          className="bonk-cheer shrink-0"
           style={{
-            width: 'clamp(64px, 16vw, 104px)',
+            width: 'clamp(96px, 21vw, 168px)',
             height: 'auto',
-            filter: 'drop-shadow(0 10px 18px rgba(23,0,28,0.28))',
+            marginTop: -10,
+            marginBottom: -10,
+            filter: 'drop-shadow(0 16px 26px rgba(23,0,28,0.32))',
           }}
         />
         <div className="min-w-0 flex-1">
-          <div
-            className="mb-1 inline-flex items-center gap-1.5 font-display text-[10px] font-extrabold uppercase tracking-[0.18em]"
-            style={{ color: 'var(--bonk-midnight)', opacity: 0.72 }}
+          <span
+            className="bonk-mono mb-2.5 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em]"
+            style={{ background: 'rgba(23,0,28,0.14)', color: 'var(--bonk-midnight)' }}
           >
-            Prize pool powered by
-            <span style={{ letterSpacing: '0.04em', fontWeight: 900 }}>BONK</span>
-          </div>
+            Official prize sponsor
+          </span>
           <h2
-            className="font-display font-black leading-[1.05]"
-            style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(18px, 4.4vw, 30px)', letterSpacing: '-0.02em' }}
+            className="bonk-display"
+            style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(26px, 5.2vw, 46px)', fontWeight: 900 }}
           >
-            BONK is fueling the prize pool
-            <span style={{ color: 'var(--bonk-red)' }}>!!!</span>
+            BONK is fueling
+            <br className="hidden sm:block" /> the prize pool<span style={{ color: 'var(--bonk-red)' }}>!!!</span>
           </h2>
           <p
-            className="mt-1.5 text-sm font-semibold"
-            style={{ color: 'var(--bonk-midnight)', opacity: 0.82, lineHeight: 1.4 }}
+            className="mt-2.5 font-semibold"
+            style={{ color: 'var(--bonk-midnight)', opacity: 0.86, lineHeight: 1.45, fontSize: 'clamp(13px, 1.6vw, 16px)' }}
           >
             Win for the community. Top 3 finishers take home the BONK-backed pool.
           </p>
@@ -978,41 +987,46 @@ function BonkSponsorBanner() {
 function BonkFooter() {
   return (
     <div
-      className="relative mt-8 overflow-hidden"
+      className="bonk-grad-night relative mt-8 overflow-hidden"
       style={{
-        borderRadius: 10,
-        border: '1px solid color-mix(in srgb, var(--bonk-ui-orange) 30%, var(--border-subtle))',
-        background:
-          'linear-gradient(135deg, color-mix(in srgb, var(--bonk-ui-yellow) 14%, var(--bg-surface)) 0%, color-mix(in srgb, var(--bonk-ui-orange) 12%, var(--bg-surface)) 100%)',
+        borderRadius: 20,
+        boxShadow: '0 24px 60px -24px rgba(23,0,28,0.7)',
       }}
     >
-      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--bonk-ui-yellow), var(--bonk-ui-orange))' }} />
-      <div className="flex flex-col items-center gap-3 px-5 py-6 text-center sm:flex-row sm:gap-5 sm:text-left">
+      {/* Warm light source bottom-left, the way BONK lights its dark scenes. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(70% 130% at 12% 100%, color-mix(in srgb, var(--bonk-ui-orange) 42%, transparent) 0%, transparent 60%)' }}
+      />
+      <div className="relative z-[1] flex flex-col items-center gap-5 px-6 py-8 text-center sm:flex-row sm:gap-7 sm:px-10 sm:text-left">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/bonk/web-img/BONK_Pose_Peace_001_LR.png"
           alt="BONK Dog"
-          className="bonk-float shrink-0"
-          style={{ width: 72, height: 'auto', filter: 'drop-shadow(0 8px 14px rgba(23,0,28,0.22))' }}
+          className="bonk-sway shrink-0"
+          style={{ width: 'clamp(96px, 18vw, 128px)', height: 'auto', marginTop: -14, marginBottom: -14, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.45))' }}
         />
         <div className="min-w-0 flex-1">
-          <p className="font-display text-sm font-bold" style={{ color: 'var(--text-primary)', lineHeight: 1.45 }}>
-            BONK Dog is a winner<span style={{ color: 'var(--bonk-red)' }}>!!!</span> He wins for the
-            community, never gives up, and never surrenders.
+          <p className="bonk-display" style={{ color: '#fff', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
+            BONK Dog is a winner<span style={{ color: 'var(--bonk-ui-yellow)' }}>!!!</span>
           </p>
-          <p className="mt-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
-            This event&rsquo;s prize pool is proudly backed by BONK.
+          <p className="mt-2 text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+            He wins for the community, never gives up, and never surrenders. This
+            event&rsquo;s prize pool is proudly backed by BONK.
           </p>
         </div>
         <a
           href="https://bonkcoin.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 transition-opacity hover:opacity-80"
+          className="bonk-mono shrink-0 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.08em] transition-transform hover:-translate-y-0.5"
+          style={{ background: 'var(--bonk-grad-ui)', color: '#fff', boxShadow: '0 10px 26px -10px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)' }}
           aria-label="Learn more about BONK at bonkcoin.com"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/bonk/web-img/powered_by_bonk.png" alt="Powered by BONK" style={{ height: 26, width: 'auto', display: 'block' }} />
+          <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden style={{ height: 26, width: 'auto', display: 'block' }} />
+          bonkcoin.com
         </a>
       </div>
     </div>
@@ -1362,8 +1376,8 @@ export function TournamentLive() {
             <img
               src="/bonk/web-img/BONK_Pose_Head_001_LR.png"
               alt="BONK Dog"
-              className="bonk-float"
-              style={{ width: 96, height: 'auto', margin: '0 auto 12px', display: 'block' }}
+              className="bonk-bob"
+              style={{ width: 116, height: 'auto', margin: '0 auto 14px', display: 'block', filter: 'drop-shadow(0 12px 20px rgba(23,0,28,0.2))' }}
             />
             <p className="font-display text-lg font-bold">No active tournament</p>
             <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -1500,8 +1514,8 @@ export function TournamentLive() {
                 src="/bonk/web-img/BONK_Pose_Wave_001_LR.png"
                 alt=""
                 aria-hidden
-                className="bonk-float hidden shrink-0 select-none sm:block"
-                style={{ width: 48, height: 'auto', marginTop: -6, marginBottom: -6 }}
+                className="bonk-bob hidden shrink-0 select-none sm:block"
+                style={{ width: 66, height: 'auto', marginTop: -16, marginBottom: -16, filter: 'drop-shadow(0 10px 16px rgba(23,0,28,0.18))' }}
               />
             </div>
             {signedUp ? (
@@ -1526,7 +1540,7 @@ export function TournamentLive() {
                     <button
                       onClick={() => void doSubmitDeck()}
                       disabled={submitDeckBusy}
-                      className="footer-btn py-2 text-sm font-bold"
+                      className="footer-btn bonk-cta py-2 text-sm font-bold"
                       style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: submitDeckBusy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
                       {submitDeckBusy ? (
@@ -1569,7 +1583,7 @@ export function TournamentLive() {
                 </p>
                 <button
                   onClick={() => setEditingProfile(true)}
-                  className="footer-btn py-2.5 text-sm font-bold"
+                  className="footer-btn bonk-cta py-2.5 text-sm font-bold"
                   style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6 }}
                 >
                   Add X handle
@@ -1590,7 +1604,7 @@ export function TournamentLive() {
                 <button
                   onClick={() => void doEnroll()}
                   disabled={busy}
-                  className="footer-btn py-2.5 text-sm font-bold"
+                  className="footer-btn bonk-cta py-2.5 text-sm font-bold"
                   style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {busy ? (

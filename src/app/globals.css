@@ -2376,6 +2376,12 @@ html.lenis, html.lenis body {
   --bonk-midnight: #17001c;
   --bonk-grey: #2b3649;
 
+  /* Signature gradients measured live from bonkcoin.com + brand.bonkcoin.com. */
+  --bonk-grad-sun: linear-gradient(135deg, #ffe208 0%, #fc8e03 100%);     /* yellow -> orange (hero "happy") */
+  --bonk-grad-ui: linear-gradient(135deg, #fdc202 0%, #ff5c01 100%);      /* ui yellow -> ui orange */
+  --bonk-grad-fire: radial-gradient(125% 150% at 50% 0%, #fdaf00 0%, #ff2600 100%); /* energy / stats */
+  --bonk-grad-night: linear-gradient(160deg, #2b3649 0%, #17001c 100%);   /* dark sections */
+
   /* Retheme the tournament accent to BONK's UI orange + yellow. Every
      tournament component already reads these vars. */
   --tcw-accent: var(--bonk-ui-orange);
@@ -2394,24 +2400,58 @@ html.lenis, html.lenis body {
 .bonk-theme {
   position: relative;
   background:
-    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--bonk-ui-yellow) 22%, transparent) 0%, transparent 55%),
-    radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--bonk-ui-orange) 18%, transparent) 0%, transparent 50%),
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--bonk-ui-yellow) 26%, transparent) 0%, transparent 55%),
+    radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--bonk-ui-orange) 20%, transparent) 0%, transparent 50%),
     var(--bg);
 }
 [data-theme="dark"] .bonk-theme,
 .bonk-theme[data-theme="dark"] {
   background:
-    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--bonk-ui-orange) 26%, transparent) 0%, transparent 55%),
-    radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--bonk-purple) 22%, transparent) 0%, transparent 55%),
+    radial-gradient(120% 85% at 50% -10%, color-mix(in srgb, var(--bonk-ui-orange) 30%, transparent) 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--bonk-purple) 26%, transparent) 0%, transparent 55%),
     var(--bg);
 }
 
-/* Mono details: timers, codes, stat numerals. */
+/* Mono details: timers, codes, stat numerals (BONK uses Space Mono here). */
 .bonk-mono { font-family: var(--font-bonk-mono, 'BonkMono', ui-monospace, monospace); letter-spacing: -0.02em; }
+
+/* Heavy display type - BONK headings are big + bold Poppins. */
+.bonk-display { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+
+/* Section gradient surfaces. */
+.bonk-grad-sun { background: var(--bonk-grad-sun); }
+.bonk-grad-ui { background: var(--bonk-grad-ui); }
+.bonk-grad-fire { background: var(--bonk-grad-fire); }
+.bonk-grad-night { background: var(--bonk-grad-night); }
+
+/* Pill CTAs - BONK's buttons are fully-rounded, Space Mono, uppercase.
+   Scoped override of the site's .footer-btn so every primary action on
+   the tournaments page adopts the BONK button language (beats the inline
+   border-radius via !important, only inside the themed page). */
+.bonk-theme .footer-btn,
+.bonk-theme .bonk-cta {
+  border-radius: 999px !important;
+  font-family: var(--font-bonk-mono) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+/* Primary (orange-filled) CTA: glow on hover instead of the muted site hover. */
+.bonk-theme .bonk-cta {
+  background: var(--bonk-grad-ui) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--bonk-ui-orange) 75%, transparent);
+}
+.bonk-theme .bonk-cta:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px -8px color-mix(in srgb, var(--bonk-ui-orange) 85%, transparent);
+}
 
 /* Co-brand lockup: PARTNER  x  X  x  BONK. Per brand.bonkcoin.com the
    clear space around the "x" separator is BONK-width / 3 (~10px at our
-   30px mark), applied symmetrically via the flex gap. */
+   32px mark), applied symmetrically via the flex gap. */
 .bonk-lockup { display: inline-flex; align-items: center; gap: 10px; margin-left: 4px; }
 .bonk-lockup__x {
   color: var(--text-muted);
@@ -2421,12 +2461,30 @@ html.lenis, html.lenis body {
   line-height: 1;
 }
 
-/* BONK Dog mascot - gentle idle float so it feels alive, not pasted. */
-@keyframes bonk-float {
+/* ── Mascot motion. Distinct keyframes so no two dogs move alike. ──────── */
+@keyframes bonk-bob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-7px) rotate(-1.5deg); }
+  50% { transform: translateY(-9px) rotate(-2deg); }
 }
-.bonk-float { animation: bonk-float 4.5s ease-in-out infinite; will-change: transform; }
+@keyframes bonk-sway {
+  0%, 100% { transform: rotate(-3.5deg) translateY(0); }
+  50% { transform: rotate(3.5deg) translateY(-4px); }
+}
+@keyframes bonk-cheer {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-7px) rotate(4deg) scale(1.02); }
+  75% { transform: translateY(-3px) rotate(-4deg) scale(1.01); }
+}
+@keyframes bonk-peek {
+  0%, 100% { transform: translateY(6px) rotate(2deg); }
+  50% { transform: translateY(-3px) rotate(-1deg); }
+}
+.bonk-bob { animation: bonk-bob 4.2s ease-in-out infinite; will-change: transform; }
+.bonk-sway { animation: bonk-sway 5s ease-in-out infinite; transform-origin: bottom center; will-change: transform; }
+.bonk-cheer { animation: bonk-cheer 3.4s ease-in-out infinite; will-change: transform; }
+.bonk-peek { animation: bonk-peek 6s ease-in-out infinite; will-change: transform; }
+/* Back-compat alias (older markup used .bonk-float). */
+.bonk-float { animation: bonk-bob 4.2s ease-in-out infinite; will-change: transform; }
 .bonk-float--slow { animation-duration: 6s; }
 
 /* "!!!" energy pop for emphasis moments (winner, prize). */
@@ -2438,12 +2496,12 @@ html.lenis, html.lenis body {
 .bonk-pop { animation: bonk-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bonk-float, .bonk-pop { animation: none; }
+  .bonk-bob, .bonk-sway, .bonk-cheer, .bonk-peek, .bonk-float, .bonk-pop { animation: none; }
 }
 
 /* Gold/medal prize tier glow built from BONK yellow. */
 .bonk-prize-glow {
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--bonk-ui-yellow) 50%, transparent),
-    0 10px 30px -10px color-mix(in srgb, var(--bonk-ui-orange) 45%, transparent);
+    0 0 0 1.5px color-mix(in srgb, var(--bonk-ui-yellow) 65%, transparent),
+    0 14px 38px -12px color-mix(in srgb, var(--bonk-ui-orange) 55%, transparent);
 }
