@@ -162,7 +162,18 @@ function medalColor(i: number): string | null {
 }
 
 /** Public, read-only prize pool. Centered, medal-accented showcase. */
-function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
+function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: AwardedPrize[] }) {
+  // Once the event is complete, fold the declared winners straight into the
+  // branded prize cards (grouped by slot, so a split prize lists everyone).
+  const winnersBySlot = useMemo(() => {
+    const m = new Map<number, AwardedPrize[]>()
+    for (const a of awarded ?? []) {
+      const arr = m.get(a.slotIndex) ?? []
+      arr.push(a)
+      m.set(a.slotIndex, arr)
+    }
+    return m
+  }, [awarded])
   return (
     <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
       {/* Co-branded module header: the sponsor identity lives in the
@@ -249,6 +260,26 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
                     {prize.description}
                   </p>
                 )}
+                {(() => {
+                  const winners = winnersBySlot.get(i) ?? []
+                  if (winners.length === 0) return null
+                  return (
+                    <div className="flex flex-col gap-1 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <span className="bonk-mono text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: 'var(--tcw-accent)' }}>
+                        {winners.length > 1 ? 'Winners' : 'Winner'}
+                      </span>
+                      {winners.map((w) => (
+                        <span key={w.id} className="text-xs font-semibold">
+                          {w.xHandle ? (
+                            <XProfileLink handle={w.xHandle} />
+                          ) : (
+                            <span style={{ color: 'var(--text-primary)' }}>{w.displayName ?? 'Player'}</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           )
@@ -1534,7 +1565,12 @@ export function TournamentLive() {
         </div>
       </div>
 
-      {tournament.prizes.length > 0 && <PrizePool prizes={tournament.prizes} />}
+      {tournament.prizes.length > 0 && (
+        <PrizePool
+          prizes={tournament.prizes}
+          awarded={tournament.status === 'complete' ? snapshot.awardedPrizes : undefined}
+        />
+      )}
 
       {tournament.status === 'running' && myPlayer && myActiveMatch && (
         <MyMatchCard
@@ -1745,13 +1781,6 @@ export function TournamentLive() {
           players={snapshot.players}
           activeRound={activeRound}
         />
-      )}
-
-      {/* Prize history - only after the event is complete + prizes resolved */}
-      {tournament.status === 'complete' && snapshot.awardedPrizes.length > 0 && (
-        <div className="mt-6">
-          <AwardedPrizesHistory awarded={snapshot.awardedPrizes} />
-        </div>
       )}
 
       {/* Closing co-brand strip */}
