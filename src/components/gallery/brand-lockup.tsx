@@ -85,7 +85,10 @@ export function BrandLockup({ mobileCompact = false }: { mobileCompact?: boolean
           className={`${wordmarkCls} items-center whitespace-nowrap`}
           style={{
             padding: '0 11px',
-            fontFamily: 'var(--font-display)',
+            // Pin the wordmark to BONK Poppins (ExtraBold) so the bolder
+            // "CARD WALL" look from the tournaments header is identical on
+            // every page, regardless of the page's --font-display.
+            fontFamily: "'BonkPoppins', var(--font-display)",
             fontWeight: 800,
             fontSize: 16,
             lineHeight: 1,

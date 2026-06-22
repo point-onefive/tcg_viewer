@@ -12,7 +12,7 @@
 // that browser's own URL/localStorage.
 // ─────────────────────────────────────────────────────────────────────────
 
-import type { PollResults } from './poll'
+import type { PollOption, PollResults } from './poll'
 
 /** Card games this tool knows about. Kept loose - purely a label. */
 export type TournamentGame =
@@ -95,8 +95,12 @@ export interface Tournament {
   prizes: TournamentPrize[]
   /** When prizes were resolved to winners (ISO); null = not awarded yet. */
   prizesAwardedAt: string | null
-  /** When false, the prize-distribution poll is closed to new votes. */
+  /** When false, the player feedback poll is closed to new votes. */
   pollOpen: boolean
+  /** Custom poll heading for this event; null = use the default question. */
+  pollQuestion: string | null
+  /** Custom ballot for this event; null/empty = use the default options. */
+  pollOptions: PollOption[] | null
   createdAt: string
 }
 

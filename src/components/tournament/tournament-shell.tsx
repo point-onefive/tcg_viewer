@@ -61,7 +61,7 @@ export function TournamentShell({
                   alt="BONK"
                   width={32}
                   height={32}
-                  style={{ height: 32, width: 'auto', display: 'block' }}
+                  className="block h-[30px] w-auto sm:h-8"
                 />
               </span>
             )}
@@ -78,7 +78,7 @@ export function TournamentShell({
           <div className="flex items-center gap-2">
             {right}
             <WalletHeaderWidget />
-            <ThemeToggle size={38} />
+            <ThemeToggle size={38} mobileSize={32} />
           </div>
         </div>
       </header>

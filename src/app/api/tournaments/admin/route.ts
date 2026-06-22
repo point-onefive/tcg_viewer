@@ -9,6 +9,7 @@ import {
   adminRejectPlayer,
   adminSetDeck,
   adminGetDeck,
+  adminSetPollConfig,
   adminSetPollOpen,
   adminSetPrizes,
   adminSetResult,
@@ -40,6 +41,7 @@ type Body =
   | { action: 'start-bracket'; code: string }
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
   | { action: 'set-poll'; code: string; open: boolean }
+  | { action: 'set-poll-config'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
   | { action: 'list-waitlist' }
   | { action: 'recompute-placements' }
 
@@ -103,6 +105,10 @@ export async function POST(request: Request) {
       case 'set-poll':
         await adminSetPollOpen(body.code, body.open)
         return ok({ ok: true })
+      case 'set-poll-config': {
+        const res = await adminSetPollConfig(body.code, body.question, body.options)
+        return ok({ ok: true, ...res })
+      }
       case 'list-waitlist': {
         const entries = await listWaitlist()
         return ok({ ok: true, entries, count: entries.length })

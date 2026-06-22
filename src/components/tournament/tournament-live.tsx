@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { CalendarClock, Check, ChevronRight, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
+import { CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -15,10 +15,11 @@ import {
   loadVoterId,
   saveVotedChoice,
 } from '@/lib/tournament/client'
-import { POLL_OPTIONS, type PollResults } from '@/lib/tournament/poll'
+import { DEFAULT_POLL_QUESTION, POLL_OPTIONS, type PollOption, type PollResults } from '@/lib/tournament/poll'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
+import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot } from '@/components/tournament/bonk-ui'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
@@ -179,7 +180,7 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
       {/* Co-branded module header: the sponsor identity lives in the
           module chrome (a dark BONK section band), not as a sticker in
           the content. Title left, official BONK lockup right. */}
-      <div className="bonk-grad-night relative flex items-center justify-between gap-3 px-5 py-4">
+      <div className="bonk-section-band relative flex items-center justify-between gap-3 px-5 py-4">
         {/* Warm BONK glow so the dark band reads as orange-cosmic, not blue. */}
         <div
           aria-hidden
@@ -197,7 +198,7 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
             className="bonk-mono hidden text-[10px] font-bold uppercase tracking-[0.16em] sm:inline"
             style={{ color: 'rgba(255,255,255,0.5)' }}
           >
-            Prize sponsor
+            Powered by
           </span>
           {/* White-wordmark lockup, made for dark surfaces (BRAND.md). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -520,18 +521,16 @@ function MyMatchCard({
   )
 
   const shell = (accent: string, children: React.ReactNode) => (
-    <div className="mb-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, ${accent} 35%, transparent))` }} />
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+      <BonkModuleHeader icon={Swords} eyebrow="You're up" title="Your match" />
+      {/* Status-coded accent strip (win/loss/draw/pending) under the band. */}
+      <div style={{ height: 3, background: accent }} />
       <div className="p-5 sm:p-6">{children}</div>
     </div>
   )
 
-  const header = (
-    <div className="flex items-center gap-2 mb-1">
-      <Swords size={18} style={{ color: 'var(--tcw-accent)' }} />
-      <h3 className="font-display text-lg font-bold tracking-tight">Your match</h3>
-    </div>
-  )
+  // The section title now lives in the BONK band header.
+  const header = null
 
   const vsLine = (
     <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -629,32 +628,61 @@ function MyMatchCard({
   ))
 }
 
+/** Inline "opens in a new tab" affordance: the little box-with-arrow mark. */
+function LinkOut({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1"
+      style={{ color: 'var(--bonk-ui-yellow)', fontWeight: 700 }}
+    >
+      {children}
+      <ExternalLink size={12} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: -1 }} />
+    </a>
+  )
+}
+
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
   const discordUrl = 'https://discord.gg/9meqsjre'
-  const steps: { lead: React.ReactNode; body: React.ReactNode; danger?: boolean }[] = [
+  const [deckHelp, setDeckHelp] = useState(false)
+  type StepTone = 'default' | 'danger' | 'success'
+  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone }[] = [
     {
       lead: 'Join the waitlist',
-      body: 'Between events, connect your wallet to claim a spot for the next one. When it opens you are dropped in automatically, so there is no timer to watch.',
+      body: 'No event running yet? Connect your wallet to claim your place. The waitlist holds your spot for the upcoming tournament - when sign-ups open, you are dropped in automatically.',
     },
     {
-      lead: 'Sign up',
-      body: 'When an event is live, connect your wallet during the sign-up window to enter. Your X handle is pulled straight from your profile, so there is nothing to retype.',
+      lead: 'Sign up + submit your deck',
+      body: (
+        <>
+          When sign-ups are open, connect your wallet to enter. A deck list is{' '}
+          <strong style={{ color: '#fff' }}>required up front</strong>: build your deck in OPTCG Sim,
+          copy it to your clipboard, and paste it in. The deck you submit is the deck you play for the
+          whole event.{' '}
+          <button
+            type="button"
+            onClick={() => setDeckHelp(true)}
+            className="font-bold underline underline-offset-2"
+            style={{ color: 'var(--bonk-ui-yellow)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            How to copy your deck
+          </button>
+        </>
+      ),
     },
     {
       lead: 'Get verified',
-      body: 'An admin approves every handle. Once you\u2019re in, you can vote on the prize split.',
+      body: 'A tournament official reviews every sign-up and approves or declines it. Approved players are locked into the bracket.',
     },
-    { lead: 'Round 1 posts', body: 'When sign-ups close, the bracket goes live automatically.' },
     {
-      lead: (
-        <>
-          Play on{' '}
-          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bonk-ui-yellow)', fontWeight: 700 }}>
-            OPTCG Sim
-          </a>
-        </>
-      ),
+      lead: 'Round 1 begins',
+      body: 'As soon as the sign-up timer expires, we go straight into Round 1 - no waiting around.',
+    },
+    {
+      lead: <>Play on <LinkOut href="https://optcgsim.com/">OPTCG Sim</LinkOut></>,
       body: 'Coordinate with your opponent and always play the most recent ruleset. Each round gets a generous timer for completion.',
     },
     {
@@ -664,7 +692,28 @@ function HowItWorks() {
     {
       lead: 'Play fair',
       body: 'Any foul play or suspected cheating is a permanent ban.',
-      danger: true,
+      tone: 'danger',
+    },
+    {
+      lead: <>Set up Bonkuji <LinkOut href="https://bonkuji.com/">bonkuji.com</LinkOut></>,
+      body: (
+        <>
+          Prizes are paid out through <strong style={{ color: '#fff' }}>Bonkuji</strong>, so a free account
+          is required to collect. Sign in with your wallet, X, Google, or email - it takes about two seconds.
+          Every top prize and participation reward is distributed here.
+        </>
+      ),
+    },
+    {
+      lead: 'Share to win a prize',
+      body: (
+        <>
+          Didn&rsquo;t place top 3? You can still earn a participation prize. Post about your run on X -
+          something like &ldquo;Just played this tournament powered by BONK&rdquo; - with a screenshot,
+          replay, deck list, or just your take, and you&rsquo;re in the running.
+        </>
+      ),
+      tone: 'success',
     },
   ]
   return (
@@ -699,10 +748,10 @@ function HowItWorks() {
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/bonk/web-img/BONK_Pose_One_001_LR.png"
+            src="/bonk/web-img/BONK_Pose_Point_001_LR.png"
             alt=""
             aria-hidden
-            className="bonk-cheer hidden shrink-0 select-none sm:block"
+            className="hidden shrink-0 select-none sm:block"
             style={{ width: 104, height: 'auto', marginTop: -34, marginBottom: -20, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.5))' }}
           />
         </div>
@@ -710,9 +759,20 @@ function HowItWorks() {
         {/* Steps as glass cards over the scene - two columns on desktop. */}
         <div className="grid gap-3 sm:grid-cols-2">
           {steps.map((s, i) => {
-            const medal = s.danger
-              ? 'linear-gradient(135deg, #ff5a5a 0%, #ff0000 100%)'
-              : 'var(--bonk-grad-sun)'
+            const tone = s.tone ?? 'default'
+            const medal =
+              tone === 'danger'
+                ? 'linear-gradient(135deg, #ff5a5a 0%, #ff0000 100%)'
+                : tone === 'success'
+                  ? 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)'
+                  : 'var(--bonk-grad-sun)'
+            const leadColor = tone === 'danger' ? '#ff8a8a' : tone === 'success' ? '#86efac' : '#fff'
+            const glow =
+              tone === 'danger'
+                ? '0 6px 16px -6px rgba(255,0,0,0.7)'
+                : tone === 'success'
+                  ? '0 6px 16px -6px rgba(22,163,74,0.7)'
+                  : '0 6px 16px -6px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)'
             return (
               <div
                 key={i}
@@ -733,9 +793,7 @@ function HowItWorks() {
                     background: medal,
                     color: 'var(--bonk-midnight)',
                     fontWeight: 700,
-                    boxShadow: s.danger
-                      ? '0 6px 16px -6px rgba(255,0,0,0.7)'
-                      : '0 6px 16px -6px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)',
+                    boxShadow: glow,
                   }}
                 >
                   {i + 1}
@@ -743,7 +801,7 @@ function HowItWorks() {
                 <div className="min-w-0">
                   <div
                     className="font-display font-bold"
-                    style={{ color: s.danger ? '#ff8a8a' : '#fff', fontSize: 15, lineHeight: 1.25 }}
+                    style={{ color: leadColor, fontSize: 15, lineHeight: 1.25 }}
                   >
                     {s.lead}
                   </div>
@@ -756,7 +814,7 @@ function HowItWorks() {
           })}
         </div>
 
-        {/* Optional Discord - same glass language, Discord-accent. */}
+        {/* Discord - a place to share content + chase the rotating rewards. */}
         <a
           href={discordUrl}
           target="_blank"
@@ -772,18 +830,69 @@ function HowItWorks() {
           <DiscordLogo size={22} style={{ color: '#fff', marginTop: 1 }} />
           <span className="text-sm" style={{ color: 'rgba(255,255,255,0.82)', lineHeight: 1.5 }}>
             <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              Optional
+              Community
             </span>
             <span className="block mt-0.5">
+              Jump into{' '}
               <span className="font-display font-bold" style={{ color: '#fff' }}>
                 Discord
               </span>{' '}
-              is available if you want to screenshare, spectate, or chat during your match. Not required.
+              to screenshare, spectate, or host your matches. We&rsquo;re rolling out a rotating mix of prizes
+              and rewards over time, so share your replays, deck lists, and highlights there - creating content
+              is a great way to get noticed.
             </span>
           </span>
         </a>
       </div>
+
+      {deckHelp && <DeckHelpModal onClose={() => setDeckHelp(false)} />}
     </div>
+  )
+}
+
+/** Quick reference for exporting an OPTCG Sim deck list to paste at sign-up. */
+function DeckHelpModal({ onClose }: { onClose: () => void }) {
+  return (
+    <ModalPortal onClose={onClose} label="How to copy your deck" maxWidth={460}>
+      <div style={{ height: 4, background: 'var(--bonk-grad-sun)', flexShrink: 0 }} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+      <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
+          <h3 className="font-display font-bold">Copy your deck from OPTCG Sim</h3>
+        </div>
+        <ol className="flex flex-col gap-2.5 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <li>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>1.</span> Open your deck in the
+            OPTCG Sim deck builder.
+          </li>
+          <li>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>2.</span> Use the
+            export / <em>Copy to Clipboard</em> option. It copies the full list in OPTCG Sim&rsquo;s text
+            format (one card per line, with quantities and card codes).
+          </li>
+          <li>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>3.</span> Paste it straight
+            into the deck-list box when you sign up. Don&rsquo;t edit the text - submit it exactly as copied.
+          </li>
+        </ol>
+        <p
+          className="mt-4 rounded-md p-3 text-xs"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', lineHeight: 1.5 }}
+        >
+          Your submitted list is locked for the whole event - the deck you sign up with is the deck you play
+          every round.
+        </p>
+      </div>
+    </ModalPortal>
   )
 }
 
@@ -795,6 +904,8 @@ function HowItWorks() {
 function PollCard({
   code,
   poll,
+  question,
+  options,
   canVote,
   signedUp,
   pollOpen,
@@ -802,6 +913,8 @@ function PollCard({
 }: {
   code: string
   poll: PollResults
+  question: string
+  options: PollOption[]
   canVote: boolean
   signedUp: boolean
   pollOpen: boolean
@@ -819,7 +932,10 @@ function PollCard({
   const total = results.totalVotes
   const showResults = total > 0 || voted != null || !canVote
   // Highest vote count, so we can glow the leading option(s).
-  const leadCount = total > 0 ? Math.max(...POLL_OPTIONS.map((o) => results.counts[o.id] ?? 0)) : 0
+  const leadCount = total > 0 ? Math.max(...options.map((o) => results.counts[o.id] ?? 0)) : 0
+  // Desktop columns: keep rows balanced for any ballot size (2-6). One col
+  // on mobile (handled in CSS); 4 options read best as a 2x2.
+  const pollCols = options.length <= 3 ? options.length : options.length === 4 ? 2 : 3
 
   async function handleVote(choice: string) {
     if (!canVote || voted || busy) return
@@ -847,12 +963,16 @@ function PollCard({
   const interactive = canVote && !voted
 
   return (
-    <div className="mb-6 p-5" style={card}>
-      <div className="flex items-center justify-center gap-2 mb-1.5">
-        <PieChart size={18} style={{ color: 'var(--tcw-accent)' }} />
-        <h3 className="font-display text-lg font-bold tracking-tight">Which prize would you prefer?</h3>
-      </div>
-      <p className="mb-4 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+      <BonkModuleHeader
+        icon={PieChart}
+        eyebrow="Player feedback"
+        title="Community poll"
+        right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_003_LR.png" />}
+      />
+      <div className="p-5">
+      <h3 className="font-display text-lg font-bold tracking-tight text-center">{question}</h3>
+      <p className="mb-4 mt-1 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
         {interactive
           ? 'Cast your vote - one per player.'
           : voted
@@ -864,8 +984,11 @@ function PollCard({
                 : 'Sign up for this tournament to vote.'}
       </p>
 
-      <div className="mx-auto grid grid-cols-1 gap-3 sm:grid-cols-3" style={{ maxWidth: 660 }}>
-        {POLL_OPTIONS.map((opt) => {
+      <div
+        className="poll-grid mx-auto"
+        style={{ ['--poll-cols' as string]: pollCols, maxWidth: pollCols * 220 } as React.CSSProperties}
+      >
+        {options.map((opt) => {
           const count = results.counts[opt.id] ?? 0
           const pct = total > 0 ? Math.round((count / total) * 100) : 0
           const mine = voted === opt.id
@@ -975,6 +1098,7 @@ function PollCard({
       <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--text-muted)' }}>
         {total} total {total === 1 ? 'vote' : 'votes'}
       </p>
+      </div>
     </div>
   )
 }
@@ -1016,34 +1140,62 @@ function BonkSponsorBanner() {
           filter: 'drop-shadow(0 14px 26px rgba(23,0,28,0.3))',
         }}
       />
-      <div className="relative z-[1] flex items-center gap-5 px-6 py-7 sm:gap-8 sm:px-9 sm:py-9">
-        {/* Mascot - the winner, big and dramatic per bonkcoin.com hero scale. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/bonk/web-img/BONK_Pose_ThumbsUp_001_LR.png"
-          alt="BONK Dog"
-          className="bonk-cheer shrink-0"
+      <div className="relative z-[1] flex items-center gap-4 px-5 py-6 sm:gap-7 sm:px-8 sm:py-8">
+        {/* Mascot lives in his own bounded square so he fills the frame and any
+            clipped arm/finger reads as an intentional crop, not a figure
+            floating in empty space. Static (no float) per design. */}
+        <div
+          className="relative shrink-0 overflow-hidden"
           style={{
-            width: 'clamp(96px, 21vw, 168px)',
-            height: 'auto',
-            marginTop: -10,
-            marginBottom: -10,
-            filter: 'drop-shadow(0 16px 26px rgba(23,0,28,0.32))',
+            width: 'clamp(140px, 23vw, 252px)',
+            aspectRatio: '1 / 1',
+            borderRadius: 18,
+            background:
+              'radial-gradient(115% 115% at 50% 20%, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.10) 52%, rgba(255,255,255,0) 76%)',
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)',
           }}
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/bonk/web-img/BONK_Pose_One_001_LR.png"
+            alt="BONK Dog"
+            className="absolute select-none"
+            style={{
+              width: '132%',
+              left: '52%',
+              bottom: '-7%',
+              transform: 'translateX(-50%)',
+              filter: 'drop-shadow(0 12px 18px rgba(23,0,28,0.28))',
+            }}
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <span
-            className="bonk-mono mb-2.5 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em]"
-            style={{ background: 'rgba(23,0,28,0.14)', color: 'var(--bonk-midnight)' }}
+            className="bonk-mono mb-2.5 inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]"
+            style={{
+              background: 'var(--bonk-grad-night)',
+              color: '#fff',
+              borderRadius: 7,
+              boxShadow:
+                '0 8px 18px -8px color-mix(in srgb, var(--bonk-ui-orange) 85%, transparent), inset 0 1px 0 rgba(255,255,255,0.14)',
+            }}
           >
-            Official prize sponsor
+            {/* Static BONK mark instead of a glowing dot. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/bonk/web-img/master_logo.png"
+              alt=""
+              aria-hidden
+              style={{ height: 15, width: 'auto', display: 'block', marginLeft: -2 }}
+            />
+            Official prize partner
           </span>
           <h2
             className="bonk-display"
-            style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(26px, 5.2vw, 46px)', fontWeight: 900 }}
+            style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(22px, 5.2vw, 46px)', fontWeight: 900 }}
           >
-            BONK championship
-            <br className="hidden sm:block" /> series<span style={{ color: 'var(--bonk-red)' }}>!!!</span>
+            BONK Championship
+            <br className="hidden sm:block" /> Series<span style={{ color: 'var(--bonk-red)' }}>!!!</span>
           </h2>
           <p
             className="mt-2.5 font-semibold"
@@ -1465,7 +1617,6 @@ export function TournamentLive() {
             <img
               src="/bonk/web-img/BONK_Pose_Head_001_LR.png"
               alt="BONK Dog"
-              className="bonk-bob"
               style={{ width: 116, height: 'auto', margin: '0 auto 14px', display: 'block', filter: 'drop-shadow(0 12px 20px rgba(23,0,28,0.2))' }}
             />
             <p className="font-display text-lg font-bold">No active tournament</p>
@@ -1525,16 +1676,16 @@ export function TournamentLive() {
       {!signupOpen && <WaitlistCard />}
 
       {/* Event hero */}
-      <div className="mb-6 overflow-hidden" style={card}>
-        <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
-        <div className="p-5 sm:p-6">
+      <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+        <BonkModuleHeader
+          icon={Trophy}
+          title={tournament.name}
+          right={<StatusPill status={tournament.status} />}
+        />
+        <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-sunset.jpg" position="center 28%" className="p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="font-display text-2xl font-bold leading-none tracking-tight sm:text-3xl">{tournament.name}</h2>
-                <StatusPill status={tournament.status} />
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <MetaChip icon={Hash}>{tournament.code}</MetaChip>
                 <MetaChip icon={Swords}>{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
                 <MetaChip icon={Users}>
@@ -1551,7 +1702,7 @@ export function TournamentLive() {
             )}
           </div>
           {tournament.rules && (
-            <p className="mt-5 whitespace-pre-wrap rounded-md p-3.5 text-sm" style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p className="mt-5 whitespace-pre-wrap rounded-md p-3.5 text-sm" style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {tournament.rules}
             </p>
           )}
@@ -1562,7 +1713,7 @@ export function TournamentLive() {
               </a>
             </p>
           )}
-        </div>
+        </BonkSceneBody>
       </div>
 
       {tournament.prizes.length > 0 && (
@@ -1586,6 +1737,8 @@ export function TournamentLive() {
       <PollCard
         code={tournament.code}
         poll={snapshot.poll}
+        question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+        options={tournament.pollOptions ?? POLL_OPTIONS}
         canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
         signedUp={signedUp}
         pollOpen={tournament.pollOpen}
@@ -1597,21 +1750,13 @@ export function TournamentLive() {
       <div className={signupOpen ? 'grid gap-6 lg:grid-cols-[1fr_1.2fr]' : ''}>
         {/* Sign up */}
         {signupOpen && (
-          <div className="p-5" style={card}>
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <div className="flex items-center gap-2">
-                <UserPlus size={16} style={{ color: 'var(--tcw-accent)' }} />
-                <h3 className="font-display font-bold">Sign up</h3>
-              </div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/bonk/web-img/BONK_Pose_Wave_001_LR.png"
-                alt=""
-                aria-hidden
-                className="bonk-bob hidden shrink-0 select-none sm:block"
-                style={{ width: 66, height: 'auto', marginTop: -16, marginBottom: -16, filter: 'drop-shadow(0 10px 16px rgba(23,0,28,0.18))' }}
-              />
-            </div>
+          <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+            <BonkModuleHeader
+              icon={UserPlus}
+              title="Sign up"
+              right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Wave_001_LR.png" />}
+            />
+            <div className="p-5">
             {signedUp ? (
               <div className="flex flex-col gap-3">
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -1714,24 +1859,29 @@ export function TournamentLive() {
             {editingProfile && (
               <PlayerProfileModal onClose={() => setEditingProfile(false)} />
             )}
+            </div>
           </div>
         )}
 
         {/* Roster: balanced beside the form while enrolling, full-width
             multi-column once sign-ups close so it never orphans. */}
-        <div className="p-5" style={card}>
-          <div className="flex items-center justify-between gap-2 mb-4">
-            <div className="flex items-center gap-2">
-              <Users size={16} style={{ color: 'var(--tcw-accent)' }} />
-              <h3 className="font-display font-bold">{signupOpen ? 'Sign-ups' : 'Competitors'}</h3>
-            </div>
-            <span
-              className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
-              style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 5, background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}
-            >
-              {visiblePlayers.length}
-            </span>
-          </div>
+        <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+          <BonkModuleHeader
+            icon={Users}
+            title={signupOpen ? 'Sign-ups' : 'Competitors'}
+            right={
+              <>
+                <span
+                  className="inline-flex items-center justify-center self-center font-display text-xs font-bold tabular-nums"
+                  style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 6, background: 'rgba(255,255,255,0.16)', color: '#fff' }}
+                >
+                  {visiblePlayers.length}
+                </span>
+                <BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_001_LR.png" />
+              </>
+            }
+          />
+          <div className="p-5">
           {visiblePlayers.length === 0 ? (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No sign-ups yet.</p>
           ) : (
@@ -1769,6 +1919,7 @@ export function TournamentLive() {
               )}
             </>
           )}
+          </div>
         </div>
       </div>
 
@@ -1895,33 +2046,6 @@ export function RoundBoard({
   )
 }
 
-function SectionHeader({
-  title,
-  subtitle,
-  right,
-}: {
-  title: string
-  subtitle?: React.ReactNode
-  right?: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-      <div>
-        <div className="flex items-center gap-2">
-          <Swords size={18} style={{ color: 'var(--tcw-accent)' }} />
-          <h3 className="font-display text-lg font-bold tracking-tight">{title}</h3>
-        </div>
-        {subtitle && (
-          <p className="mt-1.5 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-            {subtitle}
-          </p>
-        )}
-      </div>
-      {right}
-    </div>
-  )
-}
-
 function SwissBoard({
   rounds,
   matches,
@@ -1961,20 +2085,20 @@ function SwissBoard({
   const totalRounds = swissRounds ?? sortedRounds.length
 
   return (
-    <div className="mt-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
-      <div className="p-5 sm:p-6">
-        <SectionHeader
-          title={`Round ${selectedRound?.number ?? 1} pairings`}
-          subtitle={
-            <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
-          }
-          right={
-            selectedRound?.status === 'active' && selectedRound.endsAt ? (
-              <CountdownStat label={`Round ${selectedRound.number} ends in`} value={roundCountdown} />
-            ) : undefined
-          }
-        />
+    <div className="mt-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      <BonkModuleHeader
+        icon={Swords}
+        title={`Round ${selectedRound?.number ?? 1} pairings`}
+        subtitle={
+          <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
+        }
+      />
+      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-dj.jpg" position="center 20%" className="p-5 sm:p-6">
+        {selectedRound?.status === 'active' && selectedRound.endsAt && (
+          <div className="mb-5 flex justify-end">
+            <CountdownStat label={`Round ${selectedRound.number} ends in`} value={roundCountdown} />
+          </div>
+        )}
 
         {sortedRounds.length > 1 && (
           <div className="flex flex-wrap gap-1.5 mb-5">
@@ -2017,7 +2141,7 @@ function SwissBoard({
         </div>
 
         {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
-      </div>
+      </BonkSceneBody>
     </div>
   )
 }
@@ -2155,28 +2279,27 @@ function ElimBracket({
   }, [columns, tournament.status, nameById])
 
   return (
-    <div className="mt-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))' }} />
-      <div className="p-5 sm:p-6">
-        <SectionHeader
-          title="Bracket"
-          subtitle={<>Single elimination · seeded · lose once and you are out.</>}
-          right={
-            champion ? (
-              <div
-                className="inline-flex items-center gap-2 px-3 py-2"
-                style={{ background: 'color-mix(in srgb, #f5b301 16%, var(--bg))', border: '1px solid color-mix(in srgb, #f5b301 45%, transparent)', borderRadius: 6 }}
-              >
-                <Trophy size={15} style={{ color: '#f5b301' }} />
-                <span className="text-sm font-bold">{formatXLabel(champion.xHandle)}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
-                  Champion
-                </span>
-              </div>
-            ) : undefined
-          }
-        />
-
+    <div className="mt-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      <BonkModuleHeader
+        icon={Swords}
+        title="Bracket"
+        subtitle={<>Single elimination · seeded · lose once and you are out.</>}
+        right={
+          champion ? (
+            <div
+              className="inline-flex items-center gap-2 px-3 py-2"
+              style={{ background: 'color-mix(in srgb, #f5b301 22%, #17001c)', border: '1px solid color-mix(in srgb, #f5b301 55%, transparent)', borderRadius: 8 }}
+            >
+              <Trophy size={15} style={{ color: '#f5b301' }} />
+              <span className="text-sm font-bold" style={{ color: '#fff' }}>{formatXLabel(champion.xHandle)}</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                Champion
+              </span>
+            </div>
+          ) : undefined
+        }
+      />
+      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-dj.jpg" position="center 20%" className="p-5 sm:p-6">
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
           DM your opponent on <XLogo /> to schedule. The admin records each result and winners advance automatically.
         </p>
@@ -2209,7 +2332,7 @@ function ElimBracket({
             ))}
           </div>
         </BracketScroller>
-      </div>
+      </BonkSceneBody>
     </div>
   )
 }

@@ -20,33 +20,24 @@ import { XLogo } from '@/components/gallery/x-logo'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
+import { BonkModuleHeader } from '@/components/tournament/bonk-ui'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
   border: '1px solid var(--border-subtle)',
-  borderRadius: 6,
+  borderRadius: 14,
   boxShadow: 'var(--shadow-card)',
 }
 
 function Shell({ count, children }: { count: number; children: React.ReactNode }) {
   return (
     <div className="mb-6 overflow-hidden" style={card}>
-      <div
-        style={{
-          height: 3,
-          background:
-            'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))',
-        }}
-      />
-      <div className="p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <BellRing size={18} style={{ color: 'var(--tcw-accent)' }} />
-            <h3 className="font-display text-lg font-bold tracking-tight">
-              Next event waitlist
-            </h3>
-          </div>
-          {count > 0 && (
+      <BonkModuleHeader
+        icon={BellRing}
+        eyebrow="Get in line"
+        title="Next event waitlist"
+        right={
+          count > 0 ? (
             <span className="inline-flex items-center gap-1.5">
               <span
                 className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
@@ -54,7 +45,7 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
                   minWidth: 22,
                   height: 22,
                   padding: '0 6px',
-                  background: 'var(--tcw-accent)',
+                  background: 'var(--bonk-grad-ui)',
                   color: '#fff',
                   borderRadius: 6,
                 }}
@@ -63,15 +54,15 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
               </span>
               <span
                 className="text-xs font-semibold uppercase tracking-wide"
-                style={{ color: 'var(--text-muted)' }}
+                style={{ color: 'rgba(255,255,255,0.6)' }}
               >
                 in line
               </span>
             </span>
-          )}
-        </div>
-        {children}
-      </div>
+          ) : undefined
+        }
+      />
+      <div className="p-5 sm:p-6">{children}</div>
     </div>
   )
 }

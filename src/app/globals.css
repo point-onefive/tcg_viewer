@@ -2381,6 +2381,12 @@ html.lenis, html.lenis body {
   --bonk-grad-ui: linear-gradient(135deg, #fdc202 0%, #ff5c01 100%);      /* ui yellow -> ui orange */
   --bonk-grad-fire: radial-gradient(125% 150% at 50% 0%, #fdaf00 0%, #ff2600 100%); /* energy / stats */
   --bonk-grad-night: linear-gradient(160deg, #2b3649 0%, #17001c 100%);   /* dark sections */
+  /* Warm "golden hour" band for daytime/light mode (sun feel, not the cool
+     night purple). Deep enough that white + yellow header text stays legible. */
+  --bonk-grad-day: linear-gradient(150deg, #c2530f 0%, #7a2408 52%, #3a1206 100%);
+
+  /* Section header band: warm daytime by default (light), night in dark. */
+  --bonk-section-band: var(--bonk-grad-day);
 
   /* Retheme the tournament accent to BONK's UI orange + yellow. Every
      tournament component already reads these vars. */
@@ -2406,6 +2412,8 @@ html.lenis, html.lenis body {
 }
 [data-theme="dark"] .bonk-theme,
 .bonk-theme[data-theme="dark"] {
+  /* Night band for dark mode. */
+  --bonk-section-band: var(--bonk-grad-night);
   background:
     radial-gradient(120% 85% at 50% -10%, color-mix(in srgb, var(--bonk-ui-orange) 30%, transparent) 0%, transparent 55%),
     radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--bonk-purple) 26%, transparent) 0%, transparent 55%),
@@ -2423,6 +2431,16 @@ html.lenis, html.lenis body {
 .bonk-grad-ui { background: var(--bonk-grad-ui); }
 .bonk-grad-fire { background: var(--bonk-grad-fire); }
 .bonk-grad-night { background: var(--bonk-grad-night); }
+/* Theme-aware section header band: warm daytime in light, night in dark. */
+.bonk-section-band { background: var(--bonk-section-band); }
+
+/* Faded container scene: two layers, one per theme, so light mode can show a
+   warmer daytime image while dark mode keeps its cosmic/night scene. */
+.bonk-scene-layer { transition: opacity 200ms ease; }
+.bonk-scene-layer--dark { opacity: 0; }
+.bonk-scene-layer--light { opacity: 0.18; }
+[data-theme="dark"] .bonk-scene-layer--dark { opacity: 0.16; }
+[data-theme="dark"] .bonk-scene-layer--light { opacity: 0; }
 
 /* Pill CTAs - BONK's buttons are fully-rounded, Space Mono, uppercase.
    Scoped override of the site's .footer-btn so every primary action on
@@ -2504,4 +2522,28 @@ html.lenis, html.lenis body {
   box-shadow:
     0 0 0 1.5px color-mix(in srgb, var(--bonk-ui-yellow) 65%, transparent),
     0 14px 38px -12px color-mix(in srgb, var(--bonk-ui-orange) 55%, transparent);
+}
+
+/* Theme toggle with a distinct mobile size: render at the inline (mobile)
+   size by default, grow to the desktop size at >= sm. */
+@media (min-width: 640px) {
+  .theme-toggle--responsive {
+    width: var(--tt-sm-size) !important;
+    height: var(--tt-sm-size) !important;
+    border-radius: 8px;
+  }
+}
+
+/* Player feedback poll ballot: one column on mobile (stacks full-width into
+   its container), then a balanced N-column grid on >= sm where N is set per
+   ballot size via the --poll-cols custom property. */
+.poll-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .poll-grid {
+    grid-template-columns: repeat(var(--poll-cols, 3), minmax(0, 1fr));
+  }
 }

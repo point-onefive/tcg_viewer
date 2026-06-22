@@ -15,6 +15,16 @@ import { ModalPortal } from '@/components/ui/modal-portal'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
+import {
+  DEFAULT_POLL_QUESTION,
+  POLL_OPTIONS,
+  POLL_MAX_OPTIONS,
+  POLL_MIN_OPTIONS,
+  POLL_LABEL_MAX,
+  POLL_BLURB_MAX,
+  POLL_QUESTION_MAX,
+  type PollOption,
+} from '@/lib/tournament/poll'
 import type { Match, Player, StandingRow, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -256,7 +266,7 @@ export function TournamentAdmin() {
     run(async () => {
       if (!code) return
       await adminApi(adminKey, { action: 'set-poll', code, open })
-      setMsg(open ? 'Prize-poll voting reopened' : 'Prize-poll voting stopped')
+      setMsg(open ? 'Poll voting reopened' : 'Poll voting stopped')
     })
 
   return (
@@ -545,7 +555,7 @@ export function TournamentAdmin() {
                     style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
                   >
                     <PieChart size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
-                    <span className="text-sm font-semibold">Prize poll</span>
+                    <span className="text-sm font-semibold">Feedback poll</span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {snapshot.poll.totalVotes} vote{snapshot.poll.totalVotes === 1 ? '' : 's'} · {pollOpen ? 'open' : 'closed'}
                     </span>
@@ -563,6 +573,29 @@ export function TournamentAdmin() {
                     </p>
                   )}
                 </div>
+
+                <PollConfigEditor
+                  key={`poll-${code}`}
+                  question={snapshot.tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+                  options={snapshot.tournament.pollOptions ?? POLL_OPTIONS}
+                  busy={busy}
+                  onSave={async (question, options) => {
+                    setBusy(true)
+                    setMsg(null)
+                    setError(null)
+                    try {
+                      const r = await adminApi(adminKey, { action: 'set-poll-config', code, question, options })
+                      setMsg(`Saved poll (${r.count ?? options.length} option${(r.count ?? options.length) === 1 ? '' : 's'})`)
+                      await refresh(adminKey)
+                      return true
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not save the poll')
+                      return false
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                />
 
                 {activeRound && activeMatches.length > 0 && (
                   <div className="p-5" style={card}>
@@ -747,6 +780,165 @@ function ordinalLabel(n: number): string {
   const names = ['1st', '2nd', '3rd']
   const base = names[n - 1] ?? `${n}th`
   return `${base} Place`
+}
+
+/**
+ * Player-feedback poll editor. Lets the host set the poll question and ballot
+ * (2-6 options) for the live event without a code change. Existing options keep
+ * their id (so a running tally survives a label tweak); brand-new options get a
+ * fresh id derived from their label on save. Mirrors PrizeEditor's dirty-guard
+ * so the 12s background refresh never clobbers an in-progress edit.
+ */
+function PollConfigEditor({
+  question: initialQuestion,
+  options: initialOptions,
+  busy,
+  onSave,
+}: {
+  question: string
+  options: PollOption[]
+  busy: boolean
+  onSave: (question: string, options: PollOption[]) => Promise<boolean>
+}) {
+  const [question, setQuestion] = useState(initialQuestion)
+  const [options, setOptions] = useState<PollOption[]>(initialOptions)
+  const [dirty, setDirty] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
+
+  const initialKey = JSON.stringify([initialQuestion, initialOptions])
+  useEffect(() => {
+    if (!dirty) {
+      setQuestion(initialQuestion)
+      setOptions(initialOptions)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialKey])
+
+  const mutateQuestion = (v: string) => {
+    setQuestion(v)
+    setDirty(true)
+  }
+  const mutateOptions = (next: PollOption[]) => {
+    setOptions(next)
+    setDirty(true)
+  }
+  const patch = (i: number, p: Partial<PollOption>) =>
+    mutateOptions(options.map((o, idx) => (idx === i ? { ...o, ...p } : o)))
+  // New options carry an empty id; the server derives a stable slug from the
+  // label on save. Existing options keep their id so their tally survives.
+  const addOption = () => mutateOptions([...options, { id: '', label: '', blurb: '' }])
+  const removeOption = (i: number) => mutateOptions(options.filter((_, idx) => idx !== i))
+
+  const reset = () => {
+    setQuestion(initialQuestion)
+    setOptions(initialOptions)
+    setDirty(false)
+    setLocalError(null)
+  }
+
+  const save = async () => {
+    const filled = options.filter((o) => o.label.trim())
+    if (filled.length < POLL_MIN_OPTIONS) {
+      setLocalError(`Add at least ${POLL_MIN_OPTIONS} options with a label.`)
+      return
+    }
+    setLocalError(null)
+    const ok = await onSave(question.trim() || DEFAULT_POLL_QUESTION, filled)
+    if (ok) setDirty(false)
+  }
+
+  return (
+    <div className="p-5" style={card}>
+      <div className="flex items-center gap-2 mb-1">
+        <PieChart size={16} style={{ color: 'var(--tcw-accent)' }} />
+        <h3 className="font-display font-bold">Poll question</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        The question + options players vote on (only signed-up players can vote). Editing a kept
+        option preserves its running tally; new options start fresh. Changes apply to the live event.
+      </p>
+
+      <label className="block text-xs mb-3">
+        <span style={{ color: 'var(--text-muted)' }}>Question</span>
+        <input
+          style={inputStyle}
+          value={question}
+          maxLength={POLL_QUESTION_MAX}
+          disabled={busy}
+          onChange={(e) => mutateQuestion(e.target.value)}
+          placeholder={DEFAULT_POLL_QUESTION}
+        />
+      </label>
+
+      <div className="flex flex-col gap-2 mb-3">
+        {options.map((opt, i) => (
+          <div
+            key={i}
+            className="p-3"
+            style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span
+                className="inline-flex items-center justify-center font-display text-[11px] font-bold"
+                style={{ minWidth: 20, height: 20, borderRadius: 5, background: 'color-mix(in srgb, var(--text-primary) 14%, transparent)', color: 'var(--text-primary)' }}
+              >
+                {i + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeOption(i)}
+                disabled={busy || options.length <= POLL_MIN_OPTIONS}
+                aria-label={`Remove option ${i + 1}`}
+                className="inline-flex items-center justify-center"
+                style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: options.length <= POLL_MIN_OPTIONS ? 'default' : 'pointer', opacity: options.length <= POLL_MIN_OPTIONS ? 0.4 : 1 }}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <input
+                style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+                value={opt.label}
+                maxLength={POLL_LABEL_MAX}
+                disabled={busy}
+                onChange={(e) => patch(i, { label: e.target.value })}
+                placeholder="Option label (e.g. Cash)"
+              />
+              <input
+                style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+                value={opt.blurb}
+                maxLength={POLL_BLURB_MAX}
+                disabled={busy}
+                onChange={(e) => patch(i, { blurb: e.target.value })}
+                placeholder="Short blurb (e.g. Straight cash prize)"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {localError && <p className="text-sm mb-3" style={{ color: '#ef4444' }}>{localError}</p>}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <AdminBtn disabled={busy || options.length >= POLL_MAX_OPTIONS} onClick={addOption}>
+          <span className="inline-flex items-center gap-1"><Plus size={12} /> Add option</span>
+        </AdminBtn>
+        <AdminBtn primary disabled={busy || !dirty} onClick={save}>
+          {dirty ? 'Save poll' : 'Saved'}
+        </AdminBtn>
+        {dirty && (
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs"
+            style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Discard changes
+          </button>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function prizesEqual(a: TournamentPrize[], b: TournamentPrize[]): boolean {

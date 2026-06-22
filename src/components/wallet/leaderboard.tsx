@@ -11,11 +11,12 @@ import { fetchLeaderboard } from '@/lib/wallet/api-client'
 import type { WalletStanding } from '@/lib/wallet/db'
 import { PlayerAvatar } from './player-avatar'
 import { PlayerProfileView } from './player-profile-view'
+import { BonkModuleHeader, BonkHeaderMascot } from '@/components/tournament/bonk-ui'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
   border: '1px solid var(--border-subtle)',
-  borderRadius: 8,
+  borderRadius: 14,
   boxShadow: 'var(--shadow-card)',
   overflow: 'hidden',
 }
@@ -214,19 +215,12 @@ export function Leaderboard() {
 
   return (
     <section aria-label="All-time leaderboard" className="mb-6" style={card}>
-      <div
-        className="flex items-center gap-2 px-4 py-3"
-        style={{
-          borderBottom: '1px solid color-mix(in srgb, #E85D2A 25%, var(--border-subtle))',
-          background: 'color-mix(in srgb, #E85D2A 8%, var(--bg-surface))',
-        }}
-      >
-        <Medal size={16} style={{ color: '#E85D2A' }} />
-        <h2 className="font-display" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
-          All-time leaderboard
-        </h2>
-        <span style={{ fontSize: 11, color: 'color-mix(in srgb, #E85D2A 55%, var(--text-muted))', fontWeight: 600 }}>wins across all events</span>
-      </div>
+      <BonkModuleHeader
+        icon={Medal}
+        title="All-time leaderboard"
+        subtitle="Wins across every Card Wall event"
+        right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_ThumbsUp_001_LR.png" />}
+      />
 
       {standings === null ? (
         <div className="flex items-center justify-center gap-2 py-8" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
