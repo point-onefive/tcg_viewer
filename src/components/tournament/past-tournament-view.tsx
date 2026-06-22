@@ -6,6 +6,7 @@ import { ChevronLeft, Hash, ListChecks, Loader2, Swords, Trophy, Users } from 'l
 import { TournamentShell } from './tournament-shell'
 import { AwardedPrizesHistory, LeaderChip, RoundBoard, StandingsTable } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
+import { DeckListBlock } from './deck-list-block'
 import { deckCardCount } from '@/lib/tournament/deck-list'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
@@ -276,16 +277,9 @@ export function PastTournamentView({ code }: { code: string }) {
                       {deckCardCount(p.deckList ?? '')} cards
                     </span>
                   </summary>
-                  <pre
-                    className="max-h-72 overflow-auto whitespace-pre-wrap p-3 text-xs"
-                    style={{
-                      borderTop: '1px solid var(--border-subtle)',
-                      color: 'var(--text-secondary)',
-                      fontFamily: 'var(--font-mono, monospace)',
-                    }}
-                  >
-                    {p.deckList}
-                  </pre>
+                  <div className="p-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <DeckListBlock deckList={p.deckList ?? ''} />
+                  </div>
                 </details>
               ))}
             </div>

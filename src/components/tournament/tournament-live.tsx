@@ -20,6 +20,7 @@ import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot } from '@/components/tournament/bonk-ui'
+import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
@@ -652,7 +653,7 @@ function HowItWorks() {
   const discordUrl = 'https://discord.gg/9meqsjre'
   const [deckHelp, setDeckHelp] = useState(false)
   type StepTone = 'default' | 'danger' | 'success'
-  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; brand?: string }[] = [
+  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
     {
       lead: 'Join the waitlist',
       body: 'No event running yet? Connect your wallet to claim your place. The waitlist holds your spot for the upcoming tournament - when sign-ups open, you are dropped in automatically.',
@@ -677,8 +678,22 @@ function HowItWorks() {
       ),
     },
     {
-      lead: <>Set up Bonkuji <LinkOut href="https://bonkuji.com/">bonkuji.com</LinkOut></>,
-      brand: '/bonk/web-img/bonkuji_logo.png',
+      lead: (
+        <span className="flex items-center gap-1.5">
+          Set up
+          <a
+            href="https://bonkuji.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/bonk/web-img/bonkuji_logo.png" alt="Bonkuji" style={{ height: 18, width: 'auto', display: 'block' }} />
+            <ExternalLink size={12} strokeWidth={2.5} style={{ color: 'var(--bonk-ui-yellow)', flexShrink: 0 }} />
+          </a>
+        </span>
+      ),
+      cta: true,
       body: (
         <>
           Prizes are paid out through Bonkuji, so a free account is required to collect. Sign in with your
@@ -733,12 +748,12 @@ function HowItWorks() {
       <div className="relative z-[1] p-5 sm:p-7">
         <div className="flex items-end justify-between gap-2 mb-5">
           <div>
-            <span className="bonk-mono text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--bonk-ui-yellow)' }}>
+            <span className="bonk-mono text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--bonk-band-kicker)' }}>
               The playbook
             </span>
             <div className="mt-1 flex items-center gap-2.5">
-              <ListChecks size={24} style={{ color: 'var(--bonk-ui-yellow)' }} />
-              <h3 className="bonk-display" style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 900, color: '#fff' }}>
+              <ListChecks size={24} style={{ color: 'var(--bonk-band-icon)' }} />
+              <h3 className="bonk-display" style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 900, color: 'var(--bonk-band-fg)' }}>
                 How it works
               </h3>
             </div>
@@ -775,10 +790,12 @@ function HowItWorks() {
                 key={i}
                 className="flex items-start gap-3 rounded-2xl p-4"
                 style={{
-                  background: s.brand
-                    ? 'linear-gradient(135deg, rgba(253,194,2,0.16) 0%, rgba(15,2,20,0.55) 60%)'
-                    : 'rgba(15,2,20,0.55)',
-                  border: s.brand ? '1px solid rgba(253,194,2,0.45)' : '1px solid rgba(255,255,255,0.1)',
+                  // Same dark glass base as every other step so the CTA reads
+                  // as one of the family; a gold border + soft outer glow marks
+                  // it as the call to action without washing the interior bright.
+                  background: 'rgba(15,2,20,0.55)',
+                  border: s.cta ? '1px solid rgba(253,194,2,0.55)' : '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: s.cta ? '0 0 26px -10px rgba(253,194,2,0.6)' : undefined,
                   backdropFilter: 'blur(8px)',
                   WebkitBackdropFilter: 'blur(8px)',
                 }}
@@ -804,17 +821,6 @@ function HowItWorks() {
                   >
                     {s.lead}
                   </div>
-                  {s.brand && (
-                    // Bonkuji's own wordmark (with the signature !!!) brands the
-                    // prize-claim CTA so it reads as the official payout platform.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.brand}
-                      alt="Bonkuji"
-                      className="mt-2 select-none"
-                      style={{ height: 22, width: 'auto', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))' }}
-                    />
-                  )}
                   <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
                     {s.body}
                   </p>
@@ -1963,12 +1969,7 @@ export function TournamentLive() {
                 {deckCardCount(ownDeckModal.text)} cards - this is the list you are
                 committed to for the whole event.
               </p>
-              <pre
-                className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)' }}
-              >
-                {ownDeckModal.text}
-              </pre>
+              <DeckListBlock deckList={ownDeckModal.text} />
             </>
           ) : (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>

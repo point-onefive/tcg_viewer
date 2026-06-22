@@ -13,6 +13,7 @@ import {
 } from '@/lib/tournament/client'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
+import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import {
@@ -1983,12 +1984,7 @@ function AdminDeckModal({
               <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
                 {deckCardCount(text)} cards
               </p>
-              <pre
-                className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)' }}
-              >
-                {text}
-              </pre>
+              <DeckListBlock deckList={text} />
             </>
           ) : (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>

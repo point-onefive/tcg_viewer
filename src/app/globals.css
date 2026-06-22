@@ -2476,7 +2476,7 @@ html.lenis, html.lenis body {
 [data-theme="dark"] .bonk-how-scene--dark { opacity: 1; }
 
 .bonk-how-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
-.bonk-how-wash--light { opacity: 1; background: linear-gradient(108deg, rgba(36, 9, 2, 0.90) 22%, rgba(150, 56, 8, 0.62) 72%, rgba(196, 92, 14, 0.42) 100%); }
+.bonk-how-wash--light { opacity: 1; background: linear-gradient(118deg, rgba(255, 120, 32, 0.50) 0%, rgba(255, 148, 52, 0.34) 52%, rgba(255, 182, 84, 0.18) 100%); }
 .bonk-how-wash--dark { opacity: 0; background: linear-gradient(108deg, rgba(18, 2, 24, 0.94) 30%, rgba(40, 8, 52, 0.7) 72%, rgba(58, 12, 72, 0.5) 100%); }
 [data-theme="dark"] .bonk-how-wash--light { opacity: 0; }
 [data-theme="dark"] .bonk-how-wash--dark { opacity: 1; }
