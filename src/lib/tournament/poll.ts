@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────
-// Prize-distribution poll
+// Player feedback poll
 //
-// Approved players vote on how the prize pot is split. The poll is scoped to
-// the *live* tournament row, so starting a fresh tournament gives a clean
-// slate automatically (no rows for the new tournament id = zero votes).
+// Approved players vote on one feedback question per event (e.g. preferred
+// prize type). The poll is scoped to the *live* tournament row, so starting a
+// fresh tournament gives a clean slate automatically (no rows for the new
+// tournament id = zero votes), and the question/options can change between
+// events by editing POLL_OPTIONS below.
 //
 // Eligibility (phase C, per-browser): any browser that completed sign-up for
 // the live event may cast one vote, deduped per-browser server-side via a
@@ -16,7 +18,7 @@
 // edited / extended in one place without touching the server or the UI.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type PollChoice = 'winner_takes_all' | 'top2' | 'top3'
+export type PollChoice = 'cash' | 'slab' | 'sealed'
 
 export interface PollOption {
   id: PollChoice
@@ -28,9 +30,9 @@ export interface PollOption {
 
 /** The ballot. Order here is the order rendered. Subject to change later. */
 export const POLL_OPTIONS: PollOption[] = [
-  { id: 'winner_takes_all', label: 'Winner takes all', blurb: '1st place takes the entire pot' },
-  { id: 'top2', label: '1st & 2nd', blurb: 'Prize split between 1st and 2nd place' },
-  { id: 'top3', label: '1st, 2nd & 3rd', blurb: 'Prize split between the top three' },
+  { id: 'cash', label: 'Cash', blurb: 'Straight cash prize' },
+  { id: 'slab', label: 'Slab', blurb: 'A graded slab from PSA or Beckett' },
+  { id: 'sealed', label: 'Sealed', blurb: 'Sealed product like packs or booster boxes' },
 ]
 
 const POLL_CHOICE_IDS = POLL_OPTIONS.map((o) => o.id)

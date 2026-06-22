@@ -850,7 +850,7 @@ function PollCard({
     <div className="mb-6 p-5" style={card}>
       <div className="flex items-center justify-center gap-2 mb-1.5">
         <PieChart size={18} style={{ color: 'var(--tcw-accent)' }} />
-        <h3 className="font-display text-lg font-bold tracking-tight">How should the prize be split?</h3>
+        <h3 className="font-display text-lg font-bold tracking-tight">Which prize would you prefer?</h3>
       </div>
       <p className="mb-4 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
         {interactive
@@ -1042,14 +1042,14 @@ function BonkSponsorBanner() {
             className="bonk-display"
             style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(26px, 5.2vw, 46px)', fontWeight: 900 }}
           >
-            BONK is fueling
-            <br className="hidden sm:block" /> the prize pool<span style={{ color: 'var(--bonk-red)' }}>!!!</span>
+            BONK championship
+            <br className="hidden sm:block" /> series<span style={{ color: 'var(--bonk-red)' }}>!!!</span>
           </h2>
           <p
             className="mt-2.5 font-semibold"
             style={{ color: 'var(--bonk-midnight)', opacity: 0.86, lineHeight: 1.45, fontSize: 'clamp(13px, 1.6vw, 16px)' }}
           >
-            Win for the community. Top 3 finishers take home the BONK-backed pool.
+            Prizes for winners, participants, and content creators.
           </p>
         </div>
       </div>
