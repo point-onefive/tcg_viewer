@@ -59,21 +59,21 @@ export function BonkModuleHeader({
           }}
         />
         <div className="relative flex min-w-0 items-center gap-2.5">
-          {Icon && <Icon size={20} style={{ color: 'var(--bonk-ui-yellow)', flexShrink: 0 }} />}
+          {Icon && <Icon size={20} style={{ color: 'var(--bonk-band-icon)', flexShrink: 0 }} />}
           <h3
             className="bonk-display shrink-0"
-            style={{ fontSize: 'clamp(17px, 3vw, 23px)', fontWeight: 900, color: '#fff', lineHeight: 1.1 }}
+            style={{ fontSize: 'clamp(17px, 3vw, 23px)', fontWeight: 900, color: 'var(--bonk-band-fg)', lineHeight: 1.1 }}
           >
             {title}
           </h3>
           {(eyebrow || subtitle) && (
             <span className="hidden min-w-0 items-center gap-2.5 sm:flex">
-              <span aria-hidden style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.28)', flexShrink: 0 }} />
-              {/* Context label always reads as the BONK yellow kicker, beside
-                  the title - matching the eyebrows used across the page. */}
+              <span aria-hidden style={{ width: 1, height: 16, background: 'var(--bonk-band-divider)', flexShrink: 0 }} />
+              {/* Context label reads as the BONK kicker beside the title:
+                  yellow on the night band, dark on the bright daytime band. */}
               <span
                 className="bonk-mono truncate text-[11px] font-bold uppercase tracking-[0.14em]"
-                style={{ color: 'var(--bonk-ui-yellow)' }}
+                style={{ color: 'var(--bonk-band-kicker)' }}
               >
                 {eyebrow ?? subtitle}
               </span>

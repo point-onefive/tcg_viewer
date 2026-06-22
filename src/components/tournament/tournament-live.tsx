@@ -188,21 +188,24 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
           style={{ background: 'radial-gradient(90% 220% at 100% 50%, color-mix(in srgb, var(--bonk-ui-orange) 32%, transparent) 0%, transparent 58%)' }}
         />
         <div className="relative flex items-center gap-2.5">
-          <Gift size={20} style={{ color: 'var(--bonk-ui-yellow)' }} />
-          <h3 className="bonk-display" style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 900, color: '#fff' }}>
+          <Gift size={20} style={{ color: 'var(--bonk-band-icon)' }} />
+          <h3 className="bonk-display" style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 900, color: 'var(--bonk-band-fg)' }}>
             Prize pool
           </h3>
         </div>
         <div className="relative flex items-center gap-3">
           <span
             className="bonk-mono hidden text-[10px] font-bold uppercase tracking-[0.16em] sm:inline"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
+            style={{ color: 'var(--bonk-band-kicker)' }}
           >
             Powered by
           </span>
-          {/* White-wordmark lockup, made for dark surfaces (BRAND.md). */}
+          {/* Theme-swapped lockup: white wordmark on the night band, the black
+              wordmark on the bright daytime band, so it stays legible (BRAND.md). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/bonk/web-img/secondary_white.png" alt="BONK" style={{ height: 28, width: 'auto', display: 'block' }} />
+          <img src="/bonk/web-img/secondary_white.png" alt="BONK" className="bonk-dark-only" style={{ height: 28, width: 'auto' }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bonk/web-img/bonk_grayscale_black.png" alt="BONK" className="bonk-light-only" style={{ height: 30, width: 'auto' }} />
         </div>
       </div>
       {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
@@ -649,7 +652,7 @@ function HowItWorks() {
   const discordUrl = 'https://discord.gg/9meqsjre'
   const [deckHelp, setDeckHelp] = useState(false)
   type StepTone = 'default' | 'danger' | 'success'
-  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone }[] = [
+  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; brand?: string }[] = [
     {
       lead: 'Join the waitlist',
       body: 'No event running yet? Connect your wallet to claim your place. The waitlist holds your spot for the upcoming tournament - when sign-ups open, you are dropped in automatically.',
@@ -674,6 +677,17 @@ function HowItWorks() {
       ),
     },
     {
+      lead: <>Set up Bonkuji <LinkOut href="https://bonkuji.com/">bonkuji.com</LinkOut></>,
+      brand: '/bonk/web-img/bonkuji_logo.png',
+      body: (
+        <>
+          Prizes are paid out through Bonkuji, so a free account is required to collect. Sign in with your
+          wallet, X, Google, or email - it takes about two seconds. Every top prize and participation reward
+          lands here.
+        </>
+      ),
+    },
+    {
       lead: 'Get verified',
       body: 'A tournament official reviews every sign-up and approves or declines it. Approved players are locked into the bracket.',
     },
@@ -690,47 +704,30 @@ function HowItWorks() {
       body: 'After your match, both players tap Win or Loss on the "Your match" card. If you agree, it logs instantly and the bracket advances. If you disagree, an admin reviews it.',
     },
     {
-      lead: 'Play fair',
-      body: 'Any foul play or suspected cheating is a permanent ban.',
-      tone: 'danger',
-    },
-    {
-      lead: <>Set up Bonkuji <LinkOut href="https://bonkuji.com/">bonkuji.com</LinkOut></>,
-      body: (
-        <>
-          Prizes are paid out through <strong style={{ color: '#fff' }}>Bonkuji</strong>, so a free account
-          is required to collect. Sign in with your wallet, X, Google, or email - it takes about two seconds.
-          Every top prize and participation reward is distributed here.
-        </>
-      ),
-    },
-    {
       lead: 'Share to win a prize',
       body: (
         <>
-          Didn&rsquo;t place top 3? You can still earn a participation prize. Post about your run on X -
-          something like &ldquo;Just played this tournament powered by BONK&rdquo; - with a screenshot,
-          replay, deck list, or just your take, and you&rsquo;re in the running.
+          Didn&rsquo;t place top 3? You can still earn a participation prize. Share your run on X - a
+          screenshot, a replay, your deck list, or just your take - and you&rsquo;re in the running.
         </>
       ),
       tone: 'success',
     },
+    {
+      lead: 'Play fair',
+      body: 'Any foul play or suspected cheating is a permanent ban.',
+      tone: 'danger',
+    },
   ]
   return (
     <div className="relative mb-6 overflow-hidden" style={{ ...card, borderRadius: 16, border: 'none' }}>
-      {/* Faded BONK scene background (the DJ "for the pack" energy) with a
-          dark cosmic overlay so copy stays crisp. Brings the section to life
-          the way bonkcoin.com leans on full-bleed dog scenes. */}
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{ backgroundImage: 'url(/bonk/scenes/scene-dj.jpg)', backgroundSize: 'cover', backgroundPosition: 'center 28%' }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(108deg, rgba(18,2,24,0.94) 30%, rgba(40,8,52,0.7) 72%, rgba(58,12,72,0.5) 100%)' }}
-      />
+      {/* Full-bleed BONK scene + wash, swapped per theme: the warm bonkcoin.com
+          sunrise (daytime) in light mode, the cosmic DJ "for the pack" scene in
+          dark mode. The wash keeps the heading + glass step cards legible. */}
+      <div aria-hidden className="bonk-how-scene bonk-how-scene--light" />
+      <div aria-hidden className="bonk-how-scene bonk-how-scene--dark" />
+      <div aria-hidden className="bonk-how-wash bonk-how-wash--light" />
+      <div aria-hidden className="bonk-how-wash bonk-how-wash--dark" />
       <div style={{ position: 'relative', height: 3, background: 'var(--bonk-grad-sun)' }} />
 
       <div className="relative z-[1] p-5 sm:p-7">
@@ -778,8 +775,10 @@ function HowItWorks() {
                 key={i}
                 className="flex items-start gap-3 rounded-2xl p-4"
                 style={{
-                  background: 'rgba(15,2,20,0.55)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: s.brand
+                    ? 'linear-gradient(135deg, rgba(253,194,2,0.16) 0%, rgba(15,2,20,0.55) 60%)'
+                    : 'rgba(15,2,20,0.55)',
+                  border: s.brand ? '1px solid rgba(253,194,2,0.45)' : '1px solid rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(8px)',
                   WebkitBackdropFilter: 'blur(8px)',
                 }}
@@ -805,6 +804,17 @@ function HowItWorks() {
                   >
                     {s.lead}
                   </div>
+                  {s.brand && (
+                    // Bonkuji's own wordmark (with the signature !!!) brands the
+                    // prize-claim CTA so it reads as the official payout platform.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={s.brand}
+                      alt="Bonkuji"
+                      className="mt-2 select-none"
+                      style={{ height: 22, width: 'auto', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))' }}
+                    />
+                  )}
                   <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
                     {s.body}
                   </p>
@@ -967,7 +977,7 @@ function PollCard({
       <BonkModuleHeader
         icon={PieChart}
         eyebrow="Player feedback"
-        title="Community poll"
+        title="Community Poll"
         right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_003_LR.png" />}
       />
       <div className="p-5">
@@ -1682,7 +1692,7 @@ export function TournamentLive() {
           title={tournament.name}
           right={<StatusPill status={tournament.status} />}
         />
-        <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-sunset.jpg" position="center 28%" className="p-5 sm:p-6">
+        <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -1873,7 +1883,7 @@ export function TournamentLive() {
               <>
                 <span
                   className="inline-flex items-center justify-center self-center font-display text-xs font-bold tabular-nums"
-                  style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 6, background: 'rgba(255,255,255,0.16)', color: '#fff' }}
+                  style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 6, background: 'var(--bonk-band-chip-bg)', color: 'var(--bonk-band-chip-fg)' }}
                 >
                   {visiblePlayers.length}
                 </span>
@@ -2093,7 +2103,7 @@ function SwissBoard({
           <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
         }
       />
-      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-dj.jpg" position="center 20%" className="p-5 sm:p-6">
+      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
         {selectedRound?.status === 'active' && selectedRound.endsAt && (
           <div className="mb-5 flex justify-end">
             <CountdownStat label={`Round ${selectedRound.number} ends in`} value={roundCountdown} />
@@ -2299,7 +2309,7 @@ function ElimBracket({
           ) : undefined
         }
       />
-      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-dj.jpg" position="center 20%" className="p-5 sm:p-6">
+      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
           DM your opponent on <XLogo /> to schedule. The admin records each result and winners advance automatically.
         </p>

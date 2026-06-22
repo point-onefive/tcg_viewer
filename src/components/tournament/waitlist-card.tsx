@@ -45,8 +45,8 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
                   minWidth: 22,
                   height: 22,
                   padding: '0 6px',
-                  background: 'var(--bonk-grad-ui)',
-                  color: '#fff',
+                  background: 'var(--bonk-band-chip-bg)',
+                  color: 'var(--bonk-band-chip-fg)',
                   borderRadius: 6,
                 }}
               >
@@ -54,7 +54,7 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
               </span>
               <span
                 className="text-xs font-semibold uppercase tracking-wide"
-                style={{ color: 'rgba(255,255,255,0.6)' }}
+                style={{ color: 'var(--bonk-band-kicker)' }}
               >
                 in line
               </span>
