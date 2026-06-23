@@ -2466,7 +2466,7 @@ html.lenis, html.lenis body {
    warmer daytime image while dark mode keeps its cosmic/night scene. */
 .bonk-scene-layer { transition: opacity 200ms ease; }
 .bonk-scene-layer--dark { opacity: 0; }
-.bonk-scene-layer--light { opacity: 0.18; }
+.bonk-scene-layer--light { opacity: 0.08; }
 [data-theme="dark"] .bonk-scene-layer--dark { opacity: 0.16; }
 [data-theme="dark"] .bonk-scene-layer--light { opacity: 0; }
 
