@@ -537,7 +537,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
               navigates between simple/multi-print/errata/low-confidence
               variants; the bar's blank space absorbs the difference. */}
           <div
-            className="lb-bottom-bar relative z-20 w-full flex flex-col items-center justify-start gap-2 pb-6 pt-4"
+            className="lb-bottom-bar relative z-20 w-full flex flex-col items-center justify-start gap-2.5 pb-6 pt-7"
             onClick={(e) => e.stopPropagation()}
             style={{ flexShrink: 0 }}
           >
@@ -684,7 +684,9 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                       </span>
                     )}
                     {img?.distribution && (
-                      <span className="truncate">{img.distribution}</span>
+                      <span className="lb-set-chip">
+                        <span className="lb-set-chip__text">{img.distribution}</span>
+                      </span>
                     )}
                   </div>
                 )

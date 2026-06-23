@@ -1933,6 +1933,32 @@ html.lenis, html.lenis body {
   opacity: 0.92;
 }
 
+/* Set / print-context chip in the bottom bar. Replaces the cramped,
+   cheap-looking muted caption with a tasteful pill that reads as an
+   intentional label and stands clear of the card above. */
+.lb-set-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: var(--lb-surface);
+  border: 1px solid var(--lb-border);
+  color: var(--lb-fg);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.lb-set-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .lb-close-btn {
   position: absolute;
   top: 24px;
