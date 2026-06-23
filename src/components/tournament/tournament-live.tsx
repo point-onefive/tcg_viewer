@@ -303,7 +303,7 @@ export function LeaderChip({ player }: { player: Player }) {
   if (!player.leaderCardId) return null
   return (
     <span
-      className="shrink-0 inline-flex items-center gap-1.5"
+      className="inline-flex min-w-0 shrink items-center gap-1.5"
       title={player.leaderName ?? player.leaderCardId}
     >
       {player.leaderImage && (
@@ -315,6 +315,7 @@ export function LeaderChip({ player }: { player: Player }) {
           style={{
             width: 22,
             height: 22,
+            flexShrink: 0,
             borderRadius: 4,
             objectFit: 'cover',
             objectPosition: 'top center',
@@ -325,7 +326,7 @@ export function LeaderChip({ player }: { player: Player }) {
       )}
       <span
         className="hidden truncate text-[11px] font-semibold sm:inline"
-        style={{ color: 'var(--text-secondary)', maxWidth: 110 }}
+        style={{ color: 'var(--text-secondary)', maxWidth: 96 }}
       >
         {player.leaderName ?? player.leaderCardId}
       </span>
@@ -2620,7 +2621,7 @@ function BracketSlot({
 function PlayerRow({ player, index }: { player: Player; index: number }) {
   return (
     <li
-      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm"
+      className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-2.5 py-2 text-sm"
       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
     >
       <span
