@@ -2569,7 +2569,7 @@ html.lenis, html.lenis body {
   color: #fff;
   font-weight: 900;
   font-size: clamp(30px, 8.4vw, 66px);
-  line-height: 1;
+  line-height: 1.08;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.32), 0 8px 30px rgba(0, 0, 0, 0.30);
 }
 .bonk-hero__bang { color: var(--bonk-red); margin-left: 0.18em; }
