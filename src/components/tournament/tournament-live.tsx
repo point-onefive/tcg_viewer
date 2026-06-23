@@ -1121,6 +1121,9 @@ function PollCard({
 function BonkHero() {
   return (
     <section className="bonk-hero" aria-label="BONK Championship Series">
+      {/* Desktop-only faded cosmic scene to fill the wide real estate. Masked
+          toward the left so the headline keeps full contrast. */}
+      <div aria-hidden className="bonk-hero__scene" />
       <div aria-hidden className="bonk-hero__embers" />
       <div aria-hidden className="bonk-hero__glow" />
       {/* Mascot is a direct child of the full-bleed section (not the padded

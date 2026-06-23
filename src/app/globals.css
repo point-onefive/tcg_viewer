@@ -2626,6 +2626,27 @@ html.lenis, html.lenis body {
 }
 [data-theme="dark"] .bonk-hero__embers { opacity: 1; }
 
+/* Desktop-only faded cosmic scene behind the hero copy. Fills the wide
+   desktop real estate; hidden on mobile/tablet where the gradient + mascot
+   already fill the frame. Dark theme only - the light hero keeps its clean
+   orange gradient. Masked to fade out toward the left so the headline keeps
+   full contrast, reading strongest on the right behind the mascot glow. */
+.bonk-hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url(/bonk/scenes/scene-astronaut.jpg);
+  background-size: cover;
+  background-position: center 38%;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 44%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 44%, #000 100%);
+}
+@media (min-width: 1024px) {
+  [data-theme="dark"] .bonk-hero__scene { opacity: 0.22; }
+}
+
 /* Faded container scene: two layers, one per theme, so light mode can show a
    warmer daytime image while dark mode keeps its cosmic/night scene. */
 .bonk-scene-layer { transition: opacity 200ms ease; }
