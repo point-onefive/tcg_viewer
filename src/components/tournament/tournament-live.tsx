@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -1835,9 +1835,25 @@ function DeckListField({
       <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
         In OPTCG Sim, open your deck and hit{' '}
         <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Copy Deck list to Clipboard</span>,
-        then paste it here. This is the deck you are locked into for the whole
-        event - it can&rsquo;t be changed once submitted.
+        then paste it here.
       </p>
+      <div
+        className="flex items-start gap-1.5 rounded-md px-2.5 py-2 text-xs"
+        style={{
+          background: 'color-mix(in srgb, #f59e0b 10%, var(--bg))',
+          border: '1px solid color-mix(in srgb, #f59e0b 32%, transparent)',
+          color: 'var(--text-secondary)',
+          lineHeight: 1.5,
+        }}
+      >
+        <AlertTriangle size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} aria-hidden />
+        <span>
+          <strong style={{ color: 'var(--text-primary)' }}>Submissions are final.</strong>{' '}
+          You can&rsquo;t edit this list after submitting, so double-check it and keep
+          your own copy. Make sure your deck is legal under the latest ruleset before
+          you submit.
+        </span>
+      </div>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
