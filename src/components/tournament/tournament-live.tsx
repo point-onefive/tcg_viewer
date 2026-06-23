@@ -1123,6 +1123,14 @@ function BonkHero() {
     <section className="bonk-hero" aria-label="BONK Championship Series">
       <div aria-hidden className="bonk-hero__embers" />
       <div aria-hidden className="bonk-hero__glow" />
+      {/* Mascot is a direct child of the full-bleed section (not the padded
+          wrap) so right:0 lands it flush against the true container edge. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/bonk/web-img/BONK_Pose_One_001_LR.png"
+        alt="BONK Dog"
+        className="bonk-hero__mascot select-none"
+      />
       <div className="bonk-hero__wrap">
         <div className="bonk-hero__inner">
           <div className="bonk-hero__copy">
@@ -1139,12 +1147,6 @@ function BonkHero() {
               Prizes for winners, participants, and content creators.
             </p>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/bonk/web-img/BONK_Pose_One_001_LR.png"
-            alt="BONK Dog"
-            className="bonk-hero__mascot select-none"
-          />
         </div>
       </div>
     </section>

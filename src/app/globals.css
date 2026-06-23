@@ -2502,10 +2502,11 @@ html.lenis, html.lenis body {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  /* Light / day: warm sunrise with a soft sun glow top-right. */
+  /* Light / day: deep warm orange (rich enough for white copy), warm highlight
+     top-right. */
   background:
-    radial-gradient(125% 150% at 85% 4%, rgba(255, 255, 255, 0.58) 0%, transparent 42%),
-    linear-gradient(157deg, #ffc63c 0%, #ff8f25 50%, #ff6610 100%);
+    radial-gradient(120% 150% at 88% 6%, rgba(255, 198, 124, 0.32) 0%, transparent 48%),
+    linear-gradient(157deg, #ff8124 0%, #ff5c01 54%, #ec5200 100%);
   border-bottom: 1px solid color-mix(in srgb, var(--bonk-ui-orange) 42%, transparent);
 }
 [data-theme="dark"] .bonk-hero {
@@ -2565,27 +2566,21 @@ html.lenis, html.lenis body {
 .bonk-hero__badge img { height: 15px; width: auto; display: block; margin-left: -2px; }
 .bonk-hero__title {
   margin-top: 16px;
-  color: var(--bonk-midnight);
+  color: #fff;
   font-weight: 900;
   font-size: clamp(30px, 8.4vw, 66px);
   line-height: 1;
-}
-[data-theme="dark"] .bonk-hero__title {
-  color: #fff;
-  text-shadow: 0 6px 34px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.32), 0 8px 30px rgba(0, 0, 0, 0.30);
 }
 .bonk-hero__bang { color: var(--bonk-red); margin-left: 0.06em; }
 .bonk-hero__sub {
   margin-top: 16px;
-  color: color-mix(in srgb, var(--bonk-midnight) 84%, transparent);
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
   font-size: clamp(13px, 1.7vw, 17px);
   line-height: 1.5;
   max-width: 34ch;
-}
-[data-theme="dark"] .bonk-hero__sub {
-  color: rgba(255, 255, 255, 0.84);
-  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
 }
 /* Flush to the right edge: the PNG's raised arm reaches the canvas edge with
    no margin, so any negative offset clips the hand. right:0 lands the arm on
@@ -2608,8 +2603,8 @@ html.lenis, html.lenis body {
   height: 130%;
   z-index: 0;
   pointer-events: none;
-  /* Light: a soft white halo so the orange dog separates from the warm bg. */
-  background: radial-gradient(46% 46% at 62% 54%, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+  /* Light: a soft warm-white halo so the orange dog separates from the bg. */
+  background: radial-gradient(48% 48% at 62% 55%, rgba(255, 240, 220, 0.42) 0%, transparent 70%);
 }
 [data-theme="dark"] .bonk-hero__glow {
   background: radial-gradient(46% 46% at 64% 50%, rgba(255, 92, 1, 0.42) 0%, transparent 72%);
