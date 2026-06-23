@@ -1880,7 +1880,7 @@ export function TournamentLive() {
         <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
           <BonkModuleHeader
             icon={Users}
-            title={signupOpen ? 'Sign-ups' : 'Competitors'}
+            title={signupOpen ? 'Registered' : 'Competitors'}
             right={
               <>
                 <span
