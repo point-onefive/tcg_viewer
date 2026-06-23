@@ -91,10 +91,14 @@ export function PricePanel({ wallCardId, collection = 'one-piece' }: PricePanelP
               <div className="lbp-price">{formatUsd(heroValue)}</div>
               <div className="lbp-hero-meta">
                 <span className="lbp-hero-label">{heroLabel}</span>
-                {listings ? (
+                {/* Listing counts are only shown for the eBay source, where they
+                    reflect a real active-listings query. The TCGPlayer feed
+                    reports a near-constant page-size default (mostly 25), so it
+                    is not a trustworthy per-card count and is omitted. */}
+                {isEbaySource && listings ? (
                   <>
                     <span className="lbp-hero-dot">·</span>
-                    <span title={isEbaySource ? 'NM single listings filtered' : 'Total NM listings across SKUs'}>
+                    <span title="NM single listings filtered">
                       {listings.toLocaleString()} listing{listings === 1 ? '' : 's'}
                     </span>
                   </>
