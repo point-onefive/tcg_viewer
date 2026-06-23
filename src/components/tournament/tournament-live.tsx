@@ -1233,27 +1233,22 @@ function BonkSponsorBanner() {
 function BonkFooter() {
   return (
     <div
-      className="bonk-grad-night relative mt-8 overflow-hidden"
+      className="relative mt-8 overflow-hidden"
       style={{
         borderRadius: 20,
         boxShadow: '0 24px 60px -24px rgba(23,0,28,0.7)',
       }}
     >
-      {/* Faded cosmic scene - "never surrenders" energy under the message. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ backgroundImage: 'url(/bonk/scenes/scene-sunset.jpg)', backgroundSize: 'cover', backgroundPosition: 'center 60%', opacity: 0.5 }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ background: 'linear-gradient(100deg, rgba(15,2,20,0.9) 38%, rgba(15,2,20,0.62) 78%, rgba(15,2,20,0.45) 100%)' }}
-      />
+      {/* Scene + wash swap per theme (warm daytime in light, cosmic sunset at
+          night), matching the how-it-works strip so the footer adapts too. */}
+      <div aria-hidden className="bonk-foot-scene bonk-foot-scene--light pointer-events-none" />
+      <div aria-hidden className="bonk-foot-scene bonk-foot-scene--dark pointer-events-none" />
+      <div aria-hidden className="bonk-foot-wash bonk-foot-wash--light pointer-events-none" />
+      <div aria-hidden className="bonk-foot-wash bonk-foot-wash--dark pointer-events-none" />
       {/* Warm light source bottom-left, the way BONK lights its dark scenes. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
+        className="bonk-dark-only pointer-events-none absolute inset-0"
         style={{ background: 'radial-gradient(70% 130% at 12% 100%, color-mix(in srgb, var(--bonk-ui-orange) 38%, transparent) 0%, transparent 60%)' }}
       />
       <div className="relative z-[1] flex flex-col items-center gap-5 px-6 py-8 text-center sm:flex-row sm:gap-7 sm:px-10 sm:text-left">
@@ -1265,10 +1260,10 @@ function BonkFooter() {
           style={{ width: 'clamp(96px, 18vw, 128px)', height: 'auto', marginTop: -14, marginBottom: -14, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.45))' }}
         />
         <div className="min-w-0 flex-1">
-          <p className="bonk-display" style={{ color: '#fff', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
-            BONK Dog is a winner<span style={{ color: 'var(--bonk-ui-yellow)' }}>!!!</span>
+          <p className="bonk-display" style={{ color: 'var(--bonk-band-fg)', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
+            BONK Dog is a winner<span style={{ color: 'var(--bonk-foot-bang)' }}>!!!</span>
           </p>
-          <p className="mt-2 text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+          <p className="mt-2 text-sm font-medium" style={{ color: 'color-mix(in srgb, var(--bonk-band-fg) 76%, transparent)', lineHeight: 1.5 }}>
             He wins for the community, never gives up, and never surrenders. This
             event&rsquo;s prize pool is proudly backed by BONK.
           </p>

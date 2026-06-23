@@ -2398,6 +2398,8 @@ html.lenis, html.lenis body {
      light mode, light-on-dark in dark mode. */
   --bonk-band-chip-bg: rgba(23, 0, 28, 0.14);
   --bonk-band-chip-fg: var(--bonk-midnight);
+  /* Closing footer exclamation: brand-red bang on the daytime wash. */
+  --bonk-foot-bang: var(--bonk-red);
 
   /* Retheme the tournament accent to BONK's UI orange + yellow. Every
      tournament component already reads these vars. */
@@ -2431,6 +2433,8 @@ html.lenis, html.lenis body {
   --bonk-band-divider: rgba(255, 255, 255, 0.28);
   --bonk-band-chip-bg: rgba(255, 255, 255, 0.16);
   --bonk-band-chip-fg: #ffffff;
+  /* Yellow bang pops against the night footer. */
+  --bonk-foot-bang: var(--bonk-ui-yellow);
   background:
     radial-gradient(120% 85% at 50% -10%, color-mix(in srgb, var(--bonk-ui-orange) 30%, transparent) 0%, transparent 55%),
     radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--bonk-purple) 26%, transparent) 0%, transparent 55%),
@@ -2480,6 +2484,21 @@ html.lenis, html.lenis body {
 .bonk-how-wash--dark { opacity: 0; background: linear-gradient(108deg, rgba(18, 2, 24, 0.94) 30%, rgba(40, 8, 52, 0.7) 72%, rgba(58, 12, 72, 0.5) 100%); }
 [data-theme="dark"] .bonk-how-wash--light { opacity: 0; }
 [data-theme="dark"] .bonk-how-wash--dark { opacity: 1; }
+
+/* Closing co-brand footer scene/wash. Mirrors the how-it-works toggle so the
+   strip reads as warm daytime in light mode and a cosmic sunset at night,
+   instead of staying locked to the dark "night" gradient. */
+.bonk-foot-scene { position: absolute; inset: 0; background-size: cover; transition: opacity 200ms ease; }
+.bonk-foot-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); background-position: center 40%; opacity: 1; }
+.bonk-foot-scene--dark { background-image: url(/bonk/scenes/scene-sunset.jpg); background-position: center 60%; opacity: 0; }
+[data-theme="dark"] .bonk-foot-scene--light { opacity: 0; }
+[data-theme="dark"] .bonk-foot-scene--dark { opacity: 1; }
+
+.bonk-foot-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
+.bonk-foot-wash--light { opacity: 1; background: linear-gradient(100deg, rgba(255, 120, 32, 0.46) 28%, rgba(255, 160, 60, 0.32) 74%, rgba(255, 188, 92, 0.2) 100%); }
+.bonk-foot-wash--dark { opacity: 0; background: linear-gradient(100deg, rgba(15, 2, 20, 0.9) 38%, rgba(15, 2, 20, 0.62) 78%, rgba(15, 2, 20, 0.45) 100%); }
+[data-theme="dark"] .bonk-foot-wash--light { opacity: 0; }
+[data-theme="dark"] .bonk-foot-wash--dark { opacity: 1; }
 
 /* Pill CTAs - BONK's buttons are fully-rounded, Space Mono, uppercase.
    Scoped override of the site's .footer-btn so every primary action on
