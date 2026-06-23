@@ -1150,7 +1150,7 @@ function BonkSponsorBanner() {
         <div
           className="relative shrink-0 overflow-hidden"
           style={{
-            width: 'clamp(140px, 23vw, 252px)',
+            width: 'clamp(116px, 23vw, 252px)',
             aspectRatio: '1 / 1',
             borderRadius: 18,
             background:
@@ -1174,7 +1174,7 @@ function BonkSponsorBanner() {
         </div>
         <div className="min-w-0 flex-1">
           <span
-            className="bonk-mono mb-2.5 inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]"
+            className="bonk-mono mb-2.5 inline-flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] sm:text-[11px] sm:tracking-[0.14em]"
             style={{
               background: 'var(--bonk-grad-night)',
               color: '#fff',
@@ -1198,7 +1198,7 @@ function BonkSponsorBanner() {
             style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(22px, 5.2vw, 46px)', fontWeight: 900 }}
           >
             BONK Championship
-            <br className="hidden sm:block" /> Series<span style={{ color: 'var(--bonk-red)' }}>!!!</span>
+            <br className="hidden sm:block" /> Series<span style={{ color: 'var(--bonk-red)', marginLeft: '0.12em' }}>!!!</span>
           </h2>
           <p
             className="mt-2.5 font-semibold"
