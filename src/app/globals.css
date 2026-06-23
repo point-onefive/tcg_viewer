@@ -2489,13 +2489,13 @@ html.lenis, html.lenis body {
    strip reads as warm daytime in light mode and a cosmic sunset at night,
    instead of staying locked to the dark "night" gradient. */
 .bonk-foot-scene { position: absolute; inset: 0; background-size: cover; transition: opacity 200ms ease; }
-.bonk-foot-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); background-position: center 40%; opacity: 1; }
+.bonk-foot-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); background-position: center 40%; opacity: 0; }
 .bonk-foot-scene--dark { background-image: url(/bonk/scenes/scene-sunset.jpg); background-position: center 60%; opacity: 0; }
 [data-theme="dark"] .bonk-foot-scene--light { opacity: 0; }
 [data-theme="dark"] .bonk-foot-scene--dark { opacity: 1; }
 
 .bonk-foot-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
-.bonk-foot-wash--light { opacity: 1; background: linear-gradient(100deg, rgba(255, 120, 32, 0.46) 28%, rgba(255, 160, 60, 0.32) 74%, rgba(255, 188, 92, 0.2) 100%); }
+.bonk-foot-wash--light { opacity: 1; background: linear-gradient(105deg, #ff7d22 0%, #ff9a3c 55%, #ffb24f 100%); }
 .bonk-foot-wash--dark { opacity: 0; background: linear-gradient(100deg, rgba(15, 2, 20, 0.9) 38%, rgba(15, 2, 20, 0.62) 78%, rgba(15, 2, 20, 0.45) 100%); }
 [data-theme="dark"] .bonk-foot-wash--light { opacity: 0; }
 [data-theme="dark"] .bonk-foot-wash--dark { opacity: 1; }

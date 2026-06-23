@@ -194,20 +194,6 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
             Prize pool
           </h3>
         </div>
-        <div className="relative flex items-center gap-3">
-          <span
-            className="bonk-mono hidden text-[10px] font-bold uppercase tracking-[0.16em] sm:inline"
-            style={{ color: 'var(--bonk-band-kicker)' }}
-          >
-            Powered by
-          </span>
-          {/* Theme-swapped lockup: white wordmark on the night band, the black
-              wordmark on the bright daytime band, so it stays legible (BRAND.md). */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/bonk/web-img/secondary_white.png" alt="BONK" className="bonk-dark-only" style={{ height: 28, width: 'auto' }} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/bonk/web-img/bonk_grayscale_black.png" alt="BONK" className="bonk-light-only" style={{ height: 30, width: 'auto' }} />
-        </div>
       </div>
       {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
       <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
@@ -1692,7 +1678,7 @@ export function TournamentLive() {
         <BonkModuleHeader
           icon={Trophy}
           title={tournament.name}
-          right={<StatusPill status={tournament.status} />}
+          right={<span className="hidden sm:block"><StatusPill status={tournament.status} /></span>}
         />
         <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">

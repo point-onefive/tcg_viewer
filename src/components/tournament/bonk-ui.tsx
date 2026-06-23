@@ -61,7 +61,7 @@ export function BonkModuleHeader({
         <div className="relative flex min-w-0 items-center gap-2.5">
           {Icon && <Icon size={20} style={{ color: 'var(--bonk-band-icon)', flexShrink: 0 }} />}
           <h3
-            className="bonk-display shrink-0"
+            className="bonk-display min-w-0 truncate"
             style={{ fontSize: 'clamp(17px, 3vw, 23px)', fontWeight: 900, color: 'var(--bonk-band-fg)', lineHeight: 1.1 }}
           >
             {title}
