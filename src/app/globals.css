@@ -2408,22 +2408,22 @@ html.lenis, html.lenis body {
   --bonk-grad-fire: radial-gradient(125% 150% at 50% 0%, #fdaf00 0%, #ff2600 100%); /* energy / stats */
   --bonk-grad-night: linear-gradient(160deg, #2b3649 0%, #17001c 100%);   /* dark sections */
 
-  /* Section header band. Light/day mode uses the brand-approved UI Yellow ->
-     UI Orange gradient (BRAND.md "gradient backgrounds"); dark mode uses the
-     Grey -> Black night gradient. */
-  --bonk-section-band: var(--bonk-grad-ui);
+  /* Section header band. Light/day mode uses a deep BONK-orange gradient (rich
+     enough for white copy to read); dark mode uses the Grey -> Black night
+     gradient. */
+  --bonk-section-band: linear-gradient(135deg, #ff7d22 0%, #ff5c01 55%, #f04e00 100%);
 
-  /* Theme-aware header text. On the bright daytime band, copy is dark
-     (midnight) for legibility - mirroring the brand's black-on-yellow lockups.
-     Dark mode keeps white title + yellow kicker on the night band. */
-  --bonk-band-fg: var(--bonk-midnight);
-  --bonk-band-icon: var(--bonk-midnight);
-  --bonk-band-kicker: rgba(23, 0, 28, 0.62);
-  --bonk-band-divider: rgba(23, 0, 28, 0.22);
-  /* Small chip/badge sitting on the band (counts, status). Dark-on-bright in
-     light mode, light-on-dark in dark mode. */
-  --bonk-band-chip-bg: rgba(23, 0, 28, 0.14);
-  --bonk-band-chip-fg: var(--bonk-midnight);
+  /* Header text. Both themes carry WHITE titles on the saturated band - light
+     mode reads as white-on-orange (BONK's own lockup language), dark mode as
+     white-on-night. A subtle shadow (see .bonk-section-band h3) keeps the
+     light-mode white crisp on the orange. */
+  --bonk-band-fg: #ffffff;
+  --bonk-band-icon: #ffffff;
+  --bonk-band-kicker: rgba(255, 255, 255, 0.92);
+  --bonk-band-divider: rgba(255, 255, 255, 0.34);
+  /* Small chip/badge sitting on the band (counts, status). */
+  --bonk-band-chip-bg: rgba(0, 0, 0, 0.22);
+  --bonk-band-chip-fg: #ffffff;
   /* Closing footer exclamation: brand-red bang on the daytime wash. */
   --bonk-foot-bang: var(--bonk-red);
 
@@ -2480,6 +2480,12 @@ html.lenis, html.lenis body {
 .bonk-grad-night { background: var(--bonk-grad-night); }
 /* Theme-aware section header band: warm daytime in light, night in dark. */
 .bonk-section-band { background: var(--bonk-section-band); }
+/* White band titles get a faint shadow so they stay crisp on the bright
+   orange daytime band. Removed on the dark night band where it isn't needed. */
+.bonk-theme .bonk-section-band h3,
+.bonk-theme .bonk-band-title { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.30); }
+[data-theme="dark"] .bonk-theme .bonk-section-band h3,
+[data-theme="dark"] .bonk-theme .bonk-band-title { text-shadow: none; }
 
 /* Show one element in light mode, another in dark mode (e.g. swap a white
    logo for a colored/dark one so it stays legible on the themed band). */
@@ -2488,19 +2494,27 @@ html.lenis, html.lenis body {
 [data-theme="dark"] .bonk-theme .bonk-light-only { display: none; }
 [data-theme="dark"] .bonk-theme .bonk-dark-only { display: block; }
 
-/* ─── Full-bleed cosmic hero (mirrors bonkuji.com landing) ───────────────
-   Edge-to-edge dark space banner that sits flush under the page header.
-   Intentionally dark in BOTH themes - it's a hero, not a content band - with
-   a warm orange glow + faint embers and a peeking BONK Dog on the right. */
+/* ─── Full-bleed hero (mirrors bonkuji.com landing) ─────────────────────
+   Edge-to-edge banner that sits flush under the page header with a peeking
+   BONK Dog on the right. Theme-aware: a warm sunrise in light/day mode, the
+   cosmic bonkuji space scene at night. */
 .bonk-hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  /* Light / day: warm sunrise with a soft sun glow top-right. */
+  background:
+    radial-gradient(125% 150% at 85% 4%, rgba(255, 255, 255, 0.58) 0%, transparent 42%),
+    linear-gradient(157deg, #ffc63c 0%, #ff8f25 50%, #ff6610 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--bonk-ui-orange) 42%, transparent);
+}
+[data-theme="dark"] .bonk-hero {
+  /* Night / cosmic. */
   background:
     radial-gradient(115% 130% at 92% 6%, rgba(255, 92, 1, 0.30) 0%, transparent 50%),
     radial-gradient(95% 120% at 3% 100%, rgba(121, 51, 188, 0.55) 0%, transparent 60%),
     linear-gradient(157deg, #2b0c3c 0%, #190021 52%, #200034 100%);
-  border-bottom: 1px solid color-mix(in srgb, var(--bonk-ui-orange) 26%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--bonk-ui-orange) 26%, transparent);
 }
 .bonk-hero__wrap {
   position: relative;
@@ -2551,30 +2565,40 @@ html.lenis, html.lenis body {
 .bonk-hero__badge img { height: 15px; width: auto; display: block; margin-left: -2px; }
 .bonk-hero__title {
   margin-top: 16px;
-  color: #fff;
+  color: var(--bonk-midnight);
   font-weight: 900;
   font-size: clamp(30px, 8.4vw, 66px);
   line-height: 1;
+}
+[data-theme="dark"] .bonk-hero__title {
+  color: #fff;
   text-shadow: 0 6px 34px rgba(0, 0, 0, 0.45);
 }
 .bonk-hero__bang { color: var(--bonk-red); margin-left: 0.06em; }
 .bonk-hero__sub {
   margin-top: 16px;
-  color: rgba(255, 255, 255, 0.84);
-  font-weight: 500;
+  color: color-mix(in srgb, var(--bonk-midnight) 84%, transparent);
+  font-weight: 600;
   font-size: clamp(13px, 1.7vw, 17px);
   line-height: 1.5;
   max-width: 34ch;
 }
+[data-theme="dark"] .bonk-hero__sub {
+  color: rgba(255, 255, 255, 0.84);
+  font-weight: 500;
+}
+/* Flush to the right edge: the PNG's raised arm reaches the canvas edge with
+   no margin, so any negative offset clips the hand. right:0 lands the arm on
+   the frame edge cleanly. */
 .bonk-hero__mascot {
   position: absolute;
-  right: clamp(-18px, -1vw, 0px);
+  right: 0;
   bottom: 0;
-  width: clamp(150px, 40vw, 400px);
+  width: clamp(156px, 41vw, 400px);
   height: auto;
   z-index: 1;
   pointer-events: none;
-  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.32));
 }
 .bonk-hero__glow {
   position: absolute;
@@ -2582,15 +2606,20 @@ html.lenis, html.lenis body {
   bottom: -16%;
   width: 64%;
   height: 130%;
-  background: radial-gradient(46% 46% at 64% 50%, rgba(255, 92, 1, 0.42) 0%, transparent 72%);
   z-index: 0;
   pointer-events: none;
+  /* Light: a soft white halo so the orange dog separates from the warm bg. */
+  background: radial-gradient(46% 46% at 62% 54%, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+}
+[data-theme="dark"] .bonk-hero__glow {
+  background: radial-gradient(46% 46% at 64% 50%, rgba(255, 92, 1, 0.42) 0%, transparent 72%);
 }
 .bonk-hero__embers {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  opacity: 0; /* embers read only on the dark night hero */
   background-image:
     radial-gradient(2px 2px at 24% 32%, rgba(255, 184, 96, 0.55), transparent),
     radial-gradient(1.5px 1.5px at 62% 22%, rgba(255, 140, 60, 0.5), transparent),
@@ -2600,6 +2629,7 @@ html.lenis, html.lenis body {
     radial-gradient(1.5px 1.5px at 88% 38%, rgba(255, 170, 80, 0.45), transparent);
   background-repeat: no-repeat;
 }
+[data-theme="dark"] .bonk-hero__embers { opacity: 1; }
 
 /* Faded container scene: two layers, one per theme, so light mode can show a
    warmer daytime image while dark mode keeps its cosmic/night scene. */

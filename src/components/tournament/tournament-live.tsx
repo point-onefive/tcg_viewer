@@ -740,7 +740,7 @@ function HowItWorks() {
             </span>
             <div className="mt-1 flex items-center gap-2.5">
               <ListChecks size={24} style={{ color: 'var(--bonk-band-icon)' }} />
-              <h3 className="bonk-display" style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 900, color: 'var(--bonk-band-fg)' }}>
+              <h3 className="bonk-display bonk-band-title" style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 900, color: 'var(--bonk-band-fg)' }}>
                 How it works
               </h3>
             </div>
@@ -1186,7 +1186,7 @@ function BonkFooter() {
           style={{ width: 'clamp(96px, 18vw, 128px)', height: 'auto', marginTop: -14, marginBottom: -14, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.45))' }}
         />
         <div className="min-w-0 flex-1">
-          <p className="bonk-display" style={{ color: 'var(--bonk-band-fg)', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
+          <p className="bonk-display bonk-band-title" style={{ color: 'var(--bonk-band-fg)', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
             BONK Dog is a winner<span style={{ color: 'var(--bonk-foot-bang)' }}>!!!</span>
           </p>
           <p className="mt-2 text-sm font-medium" style={{ color: 'color-mix(in srgb, var(--bonk-band-fg) 76%, transparent)', lineHeight: 1.5 }}>
