@@ -637,7 +637,7 @@ function LinkOut({ href, children }: { href: string; children: React.ReactNode }
 
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
-  const discordUrl = 'https://discord.gg/9meqsjre'
+  const discordUrl = 'https://discord.gg/x6s9gf3Dh'
   const [deckHelp, setDeckHelp] = useState(false)
   type StepTone = 'default' | 'danger' | 'success'
   const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
