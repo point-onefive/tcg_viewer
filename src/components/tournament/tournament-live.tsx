@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
+import { CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -1112,103 +1112,42 @@ function PollCard({
  * tease. Palette + mascot usage follow public/bonk/BRAND.md (BONK Dog is
  * "a winner!!!"; red reserved for the "!!!"; gradient brings BONK to life).
  */
-function BonkSponsorBanner() {
+/**
+ * Full-bleed cosmic hero, mirroring the bonkuji.com landing hero: an
+ * edge-to-edge dark space banner (no pill container) with a big left-aligned
+ * headline, a peeking BONK Dog on the right, warm orange glow + embers. Sits
+ * flush under the page header and spans the viewport width.
+ */
+function BonkHero() {
   return (
-    <div
-      className="bonk-pop bonk-grad-sun relative mb-6 overflow-hidden"
-      style={{
-        borderRadius: 20,
-        boxShadow: '0 24px 60px -20px color-mix(in srgb, var(--bonk-ui-orange) 75%, transparent)',
-      }}
-    >
-      {/* Soft sunburst glow behind the dog, like the bonkcoin.com hero. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(60% 120% at 18% 60%, rgba(255,255,255,0.45) 0%, transparent 55%)' }}
-      />
-      {/* Signature BONK "!!!" energy bleeding off the right edge. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/bonk/web-img/3d-exclamation-marks.png"
-        alt=""
-        aria-hidden
-        className="bonk-sway pointer-events-none absolute hidden select-none sm:block"
-        style={{
-          right: -10,
-          top: -22,
-          height: '150%',
-          width: 'auto',
-          opacity: 0.95,
-          filter: 'drop-shadow(0 14px 26px rgba(23,0,28,0.3))',
-        }}
-      />
-      <div className="relative z-[1] flex items-center gap-4 px-5 py-6 sm:gap-7 sm:px-8 sm:py-8">
-        {/* Mascot lives in his own bounded square so he fills the frame and any
-            clipped arm/finger reads as an intentional crop, not a figure
-            floating in empty space. Static (no float) per design. */}
-        <div
-          className="relative shrink-0 overflow-hidden"
-          style={{
-            width: 'clamp(116px, 23vw, 252px)',
-            aspectRatio: '1 / 1',
-            borderRadius: 18,
-            background:
-              'radial-gradient(115% 115% at 50% 20%, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.10) 52%, rgba(255,255,255,0) 76%)',
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)',
-          }}
-        >
+    <section className="bonk-hero" aria-label="BONK Championship Series">
+      <div aria-hidden className="bonk-hero__embers" />
+      <div aria-hidden className="bonk-hero__glow" />
+      <div className="bonk-hero__wrap">
+        <div className="bonk-hero__inner">
+          <div className="bonk-hero__copy">
+            <span className="bonk-hero__badge bonk-mono">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden />
+              Official prize partner
+            </span>
+            <h1 className="bonk-hero__title bonk-display">
+              BONK Championship<br className="hidden sm:block" /> Series
+              <span className="bonk-hero__bang">!!!</span>
+            </h1>
+            <p className="bonk-hero__sub">
+              Prizes for winners, participants, and content creators.
+            </p>
+          </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/bonk/web-img/BONK_Pose_One_001_LR.png"
             alt="BONK Dog"
-            className="absolute select-none"
-            style={{
-              width: '132%',
-              left: '52%',
-              bottom: '-7%',
-              transform: 'translateX(-50%)',
-              filter: 'drop-shadow(0 12px 18px rgba(23,0,28,0.28))',
-            }}
+            className="bonk-hero__mascot select-none"
           />
         </div>
-        <div className="min-w-0 flex-1">
-          <span
-            className="bonk-mono mb-2.5 inline-flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] sm:text-[11px] sm:tracking-[0.14em]"
-            style={{
-              background: 'var(--bonk-grad-night)',
-              color: '#fff',
-              borderRadius: 7,
-              boxShadow:
-                '0 8px 18px -8px color-mix(in srgb, var(--bonk-ui-orange) 85%, transparent), inset 0 1px 0 rgba(255,255,255,0.14)',
-            }}
-          >
-            {/* Static BONK mark instead of a glowing dot. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/bonk/web-img/master_logo.png"
-              alt=""
-              aria-hidden
-              style={{ height: 15, width: 'auto', display: 'block', marginLeft: -2 }}
-            />
-            Official prize partner
-          </span>
-          <h2
-            className="bonk-display"
-            style={{ color: 'var(--bonk-midnight)', fontSize: 'clamp(22px, 5.2vw, 46px)', fontWeight: 900 }}
-          >
-            BONK Championship
-            <br className="hidden sm:block" /> Series<span style={{ color: 'var(--bonk-red)', marginLeft: '0.12em' }}>!!!</span>
-          </h2>
-          <p
-            className="mt-2.5 font-semibold"
-            style={{ color: 'var(--bonk-midnight)', opacity: 0.86, lineHeight: 1.45, fontSize: 'clamp(13px, 1.6vw, 16px)' }}
-          >
-            Prizes for winners, participants, and content creators.
-          </p>
-        </div>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -1278,8 +1217,6 @@ export function TournamentLive() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
-  // Whether the "Why connect a wallet?" explainer modal is open.
-  const [showWalletInfo, setShowWalletInfo] = useState(false)
   // Whether the profile editor modal is open (for adding an X handle before
   // sign-up). Mirrors the waitlist card's add-handle flow.
   const [editingProfile, setEditingProfile] = useState(false)
@@ -1514,101 +1451,9 @@ export function TournamentLive() {
     }
   }
 
-  const lede = (
-    <>
-      <p
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(12px, 3.2vw, 24px)',
-          fontStyle: 'italic',
-          fontWeight: 700,
-          lineHeight: 1.3,
-          color: 'var(--text-secondary)',
-        }}
-      >
-        <span style={{ color: 'var(--tcw-accent)', fontWeight: 800, marginRight: 3 }}>“</span>
-        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: 'var(--tcw-accent)' }} aria-label="wallet" />,{' '}
-        <br className="sm:hidden" />
-        link your <XLogo /> handle for authenticity
-        <span style={{ color: 'var(--tcw-accent)', fontWeight: 800, marginLeft: 3 }}>”</span>
-      </p>
-
-      <button
-        type="button"
-        onClick={() => setShowWalletInfo(true)}
-        className="inline-flex items-center gap-1 mt-3 text-xs font-semibold transition-opacity hover:opacity-80"
-        style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-      >
-        <Wallet size={12} aria-hidden style={{ opacity: 0.8 }} />
-        Why connect a wallet?
-      </button>
-
-      {showWalletInfo && (
-        <ModalPortal onClose={() => setShowWalletInfo(false)} label="Why connect a wallet?" maxWidth={400}>
-          {/* Close button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
-            <button
-              onClick={() => setShowWalletInfo(false)}
-              aria-label="Close"
-              style={{
-                background: 'var(--bg)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '50%',
-                width: 30,
-                height: 30,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: '50%',
-                margin: '0 auto 14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'color-mix(in srgb, var(--tcw-accent) 16%, var(--bg))',
-                color: 'var(--tcw-accent)',
-              }}
-            >
-              <Wallet size={24} aria-hidden />
-            </div>
-            <h2
-              className="font-display"
-              style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.01em', textAlign: 'center', marginBottom: 12 }}
-            >
-              Why connect a wallet?
-            </h2>
-            <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-secondary)', textAlign: 'left' }}>
-              Think of it as a username you already own. Connecting your wallet just
-              proves it&apos;s you, then you sign a quick message to confirm. It&apos;s
-              completely free, never touches a blockchain, and there&apos;s no payment
-              or gas fee, ever.
-            </p>
-            <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-secondary)', textAlign: 'left', marginTop: 12 }}>
-              We only use it to keep your win/loss record tied to you across events.
-              Linking your <XLogo size="0.9em" /> handle on top just adds a familiar
-              face so opponents know who they&apos;re playing.
-            </p>
-          </div>
-        </ModalPortal>
-      )}
-    </>
-  )
-
   if (loadError && !snapshot) {
     return (
-      <TournamentShell lede={lede} bonk>
+      <TournamentShell hero={<BonkHero />} bonk>
         <div className="mx-auto" style={{ maxWidth: 1080 }}>
           <div className="mx-auto mb-6 max-w-md p-8 text-center" style={card}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1640,7 +1485,7 @@ export function TournamentLive() {
 
   if (!snapshot || !tournament) {
     return (
-      <TournamentShell lede={lede} bonk>
+      <TournamentShell hero={<BonkHero />} bonk>
         <div className="flex justify-center py-20 gap-2" style={{ color: 'var(--text-muted)' }}>
           <Loader2 size={18} className="animate-spin" /> Loading…
         </div>
@@ -1649,11 +1494,8 @@ export function TournamentLive() {
   }
 
   return (
-    <TournamentShell lede={lede} bonk>
+    <TournamentShell hero={<BonkHero />} bonk>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
-      {/* BONK sponsor banner - sets the co-brand tone up top */}
-      <BonkSponsorBanner />
-
       {/* Global leaderboard across all tournaments */}
       <Leaderboard />
 

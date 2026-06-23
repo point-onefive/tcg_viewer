@@ -21,12 +21,15 @@ const ctrlBase: React.CSSProperties = {
 export function TournamentShell({
   children,
   lede,
+  hero,
   right,
   bonk = false,
 }: {
   children: React.ReactNode
   /** Optional italic tagline + pill row shown under the header. */
   lede?: React.ReactNode
+  /** Optional full-bleed hero banner rendered flush under the header. */
+  hero?: React.ReactNode
   /** Optional extra controls in the header's right cluster. */
   right?: React.ReactNode
   /** Apply the BONK sponsorship theme (scoped palette, fonts, gradient). */
@@ -82,6 +85,8 @@ export function TournamentShell({
           </div>
         </div>
       </header>
+
+      {hero}
 
       {lede && (
         <section aria-label="About this page" className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center">
