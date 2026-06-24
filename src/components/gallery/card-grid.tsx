@@ -192,7 +192,19 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       setWindowHeight(window.innerHeight)
     }
     window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
+    // `resize` covers most cases, but some surfaces only fire other
+    // events: iOS Safari can fire `orientationchange` before/without a
+    // reliable `resize`, foldables resize the visual viewport when the
+    // hinge state changes, and the address bar collapse fires
+    // visualViewport resize. Listening to all three keeps the wall in
+    // sync without waiting for a manual refresh.
+    window.addEventListener('orientationchange', onResize)
+    window.visualViewport?.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+      window.visualViewport?.removeEventListener('resize', onResize)
+    }
   }, [])
 
   // Pinch-to-zoom: two-finger gesture maps to the same 1–12 zoom scale used
@@ -485,11 +497,16 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       if (rowMeta[index] === 'header') return 56
       const padding = 32
       const gap = gapForColumns(columns)
-      const containerWidth = Math.min(window.innerWidth, 1800) - padding
+      // Drive off the tracked windowWidth (not a live window.innerWidth
+      // read) so this callback's identity changes whenever the viewport
+      // width changes. Card rows aren't measured via ResizeObserver, so
+      // a stale estimate is the row's actual height - it MUST track width
+      // or cards overlap/gap after an orientation flip or window resize.
+      const containerWidth = Math.min(windowWidth, 1800) - padding
       const cardWidth = (containerWidth - gap * (columns - 1)) / columns
       return Math.round(cardWidth * (7 / 5)) + gap
     },
-    [columns, rowMeta]
+    [columns, rowMeta, windowWidth]
   )
 
   const virtualizer = useWindowVirtualizer({
@@ -499,6 +516,15 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     scrollMargin: headerH,
     measureElement: (el) => el.getBoundingClientRect().height,
   })
+
+  // Card rows are positioned purely from estimateSize (only header rows
+  // are DOM-measured), and react-virtual caches row sizes by index. When
+  // the viewport changes size, that cache is stale, so force a remeasure
+  // whenever the dimensions or column count change. Without this the wall
+  // keeps the pre-resize row heights until a manual refresh.
+  useEffect(() => {
+    virtualizer.measure()
+  }, [windowWidth, windowHeight, columns, virtualizer])
 
   if (!mounted) {
     return <div style={{ minHeight: '100vh' }} />
