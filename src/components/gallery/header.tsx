@@ -1393,7 +1393,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             }}
           >
             <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 2 }}>“</span>
-            Find something you didn’t know existed
+            Building the Bloomberg Terminal of TCG
             <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 2 }}>”</span>
           </span>
         </div>
