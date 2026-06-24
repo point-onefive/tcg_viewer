@@ -1376,6 +1376,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
 
   return (
     <header
+      data-gallery-header
       className="fixed top-0 left-0 right-0 z-50 overflow-visible"
       style={{
         // Heavier background-color so we can lean less on backdrop-filter,
