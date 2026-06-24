@@ -1060,7 +1060,7 @@ function PollCard({
                       </span>
                     </>
                   ) : (
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--tcw-accent)' }}>
+                    <span className="w-full text-center text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--tcw-accent)' }}>
                       Vote
                     </span>
                   )}

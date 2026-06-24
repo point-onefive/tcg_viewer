@@ -43,9 +43,7 @@ export function TournamentShell({
       <header
         className="sticky top-0 z-30"
         style={{
-          background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
-          backdropFilter: 'blur(18px) saturate(140%)',
-          WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+          background: 'var(--bg)',
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
