@@ -120,6 +120,11 @@ export function SiteNavMenu({
   // top bar on every page regardless of how tall that page's sticky
   // header is (sealed has two rows; the tool pages have one).
   const [sheetTop, setSheetTop] = useState(topOffset)
+  // Right offset (px from the viewport's right edge) so the sheet drops
+  // straight down under the hamburger trigger instead of centering on the
+  // page. On mobile the trigger sits near the right edge, so a small right
+  // offset still reads as a near-full-width sheet.
+  const [sheetRight, setSheetRight] = useState(0)
   const pathname = usePathname()
   const activeCollection = useStore((s) => s.activeCollection)
   const tierPool = useStore((s) => s.tierPool)
@@ -142,7 +147,10 @@ export function SiteNavMenu({
     document.body.style.overflow = 'hidden'
     const measure = () => {
       const r = triggerRef.current?.getBoundingClientRect()
-      if (r) setSheetTop(Math.round(r.bottom + 6))
+      if (r) {
+        setSheetTop(Math.round(r.bottom + 6))
+        setSheetRight(Math.round(window.innerWidth - r.right))
+      }
     }
     measure()
     window.addEventListener('resize', measure)
@@ -200,11 +208,12 @@ export function SiteNavMenu({
             id="site-nav-menu"
             role="menu"
             aria-label="Site menu"
-            className="fixed left-0 right-0 mx-auto flex flex-col gap-2.5 overflow-y-auto px-4 pb-4 pt-3"
+            className="fixed flex flex-col gap-2.5 overflow-y-auto px-4 pb-4 pt-3"
             style={{
               top: sheetTop,
+              right: sheetRight,
               zIndex: 56,
-              maxWidth: 520,
+              maxWidth: 'min(520px, calc(100vw - 16px))',
               maxHeight: `calc(100dvh - ${sheetTop}px)`,
               background: 'var(--bg-surface)',
               borderBottom: '1px solid var(--border-subtle)',
