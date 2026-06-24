@@ -1052,6 +1052,58 @@ function CollectionPicker({
   )
 }
 
+/**
+ * Boolean toggle row for the Filters panel's View section. Unlike
+ * FacetOptionRow (a single-select list where a bare checkmark reads fine),
+ * these are independent on/off switches, so each renders a persistent
+ * checkbox box that's visible whether or not it's checked.
+ */
+function ToggleRow({
+  label,
+  checked,
+  onClick,
+}: {
+  label: string
+  checked: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      onClick={onClick}
+      className="w-full flex items-center gap-2.5 px-2.5 text-xs font-medium text-left transition-colors"
+      style={{ height: 32, borderRadius: 5, background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer' }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'transparent'
+      }}
+    >
+      <span
+        aria-hidden
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: 4,
+          flexShrink: 0,
+          background: checked ? 'var(--text-primary)' : 'transparent',
+          border: checked
+            ? '1px solid var(--text-primary)'
+            : '1px solid color-mix(in srgb, var(--text-primary) 32%, transparent)',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
+        }}
+      >
+        <Check size={11} strokeWidth={3} style={{ color: 'var(--bg)', opacity: checked ? 1 : 0 }} />
+      </span>
+      <span className="flex-1">{label}</span>
+    </button>
+  )
+}
+
 /** Labeled section inside the consolidated Filters panel. */
 function PanelSection({
   label,
@@ -1647,15 +1699,15 @@ export function Header({ sets, artists, characters }: HeaderProps) {
                 <div className="flex flex-col" style={{ ...ctrl, padding: 4 }}>
                   {showVariantToggles && (
                     <>
-                      <FacetOptionRow label="Alt art only" selected={onlyAltArt} onClick={() => setOnlyAltArt(!onlyAltArt)} />
-                      <FacetOptionRow label="Flatten the wall" selected={flattenWall} onClick={() => setFlattenWall(!flattenWall)} />
+                      <ToggleRow label="Alt art only" checked={onlyAltArt} onClick={() => setOnlyAltArt(!onlyAltArt)} />
+                      <ToggleRow label="Flatten the wall" checked={flattenWall} onClick={() => setFlattenWall(!flattenWall)} />
                     </>
                   )}
                   {isOnePiece && (
-                    <FacetOptionRow label="Pre-errata only" selected={onlyErrata} onClick={() => setOnlyErrata(!onlyErrata)} />
+                    <ToggleRow label="Pre-errata only" checked={onlyErrata} onClick={() => setOnlyErrata(!onlyErrata)} />
                   )}
                   {hasPricing && (
-                    <FacetOptionRow label="Show prices" selected={showTilePrices} onClick={() => setShowTilePrices(!showTilePrices)} />
+                    <ToggleRow label="Show prices" checked={showTilePrices} onClick={() => setShowTilePrices(!showTilePrices)} />
                   )}
                 </div>
               </PanelSection>
