@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -1343,6 +1343,19 @@ export function TournamentLive() {
     [snapshot?.players],
   )
 
+  // "Signed up" reflects only fully approved players. Pending sign-ups and
+  // waitlist converts (both stored as approval_status 'pending') surface
+  // separately as "in queue" so the headline count isn't inflated by people
+  // who haven't been approved yet.
+  const approvedCount = useMemo(
+    () => visiblePlayers.filter((p) => p.approvalStatus === 'approved').length,
+    [visiblePlayers],
+  )
+  const queuedCount = useMemo(
+    () => visiblePlayers.filter((p) => p.approvalStatus === 'pending').length,
+    [visiblePlayers],
+  )
+
   const signupOpen = Boolean(
     tournament?.status === 'enrolling' &&
       tournament.enrollClosesAt &&
@@ -1577,10 +1590,16 @@ export function TournamentLive() {
                 <MetaChip icon={Hash} iconColor="var(--bonk-ui-yellow)">{tournament.code}</MetaChip>
                 <MetaChip icon={Swords} iconColor="var(--bonk-ui-orange)">{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
                 <MetaChip icon={Users} iconColor="var(--bonk-pink)">
-                  {visiblePlayers.length}
+                  {approvedCount}
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
                   <span className="hidden sm:inline"> signed up</span>
                 </MetaChip>
+                {queuedCount > 0 && (
+                  <MetaChip icon={Hourglass} iconColor="var(--bonk-ui-yellow)">
+                    {queuedCount}
+                    <span className="hidden sm:inline"> in queue</span>
+                  </MetaChip>
+                )}
                 <MetaChip icon={Check} iconColor="#22c55e">
                   <span className="sm:hidden">Verified</span>
                   <span className="hidden sm:inline">Admin-verified</span>
