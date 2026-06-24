@@ -129,18 +129,21 @@ function MetaChip({
   icon: Icon,
   children,
   hideOnMobile = false,
+  iconColor = 'var(--text-muted)',
 }: {
   icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>
   children: React.ReactNode
   /** Drop the chip below `sm` so the meta row stays on one mobile line. */
   hideOnMobile?: boolean
+  /** Leading-icon tint. A subtle brand-palette pop so the row isn't flat grey. */
+  iconColor?: string
 }) {
   return (
     <span
       className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'flex sm:inline-flex'} w-full items-center gap-1.5 px-3 text-xs font-semibold sm:w-auto`}
       style={{ height: HERO_STAT_H, background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, color: 'var(--text-secondary)' }}
     >
-      <Icon size={14} style={{ color: 'var(--text-muted)' }} />
+      <Icon size={14} style={{ color: iconColor }} />
       {children}
     </span>
   )
@@ -1562,14 +1565,14 @@ export function TournamentLive() {
               {/* Mobile: even 2-col grid so the chips read as a tidy block
                   instead of an orphaned, lopsided wrap. Desktop: inline row. */}
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-                <MetaChip icon={Hash}>{tournament.code}</MetaChip>
-                <MetaChip icon={Swords}>{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
-                <MetaChip icon={Users}>
+                <MetaChip icon={Hash} iconColor="var(--bonk-ui-yellow)">{tournament.code}</MetaChip>
+                <MetaChip icon={Swords} iconColor="var(--bonk-ui-orange)">{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
+                <MetaChip icon={Users} iconColor="var(--bonk-pink)">
                   {visiblePlayers.length}
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
                   <span className="hidden sm:inline"> signed up</span>
                 </MetaChip>
-                <MetaChip icon={Check}>
+                <MetaChip icon={Check} iconColor="#22c55e">
                   <span className="sm:hidden">Verified</span>
                   <span className="hidden sm:inline">Admin-verified</span>
                 </MetaChip>
