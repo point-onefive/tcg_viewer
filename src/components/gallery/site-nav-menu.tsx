@@ -166,12 +166,6 @@ export function SiteNavMenu({
   const rowClass =
     'footer-btn inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium'
 
-  // The paired makers share a row, so they get tighter padding, a hair
-  // smaller text, and no wrapping to keep both on a single line (and at
-  // the same height as the full-width rows) even on narrow phones.
-  const makerRowClass =
-    'footer-btn inline-flex items-center justify-center gap-1.5 px-2 py-2.5 text-[13px] font-medium whitespace-nowrap'
-
   return (
     <>
       <div className="flex shrink-0 items-center gap-1.5">
@@ -255,34 +249,29 @@ export function SiteNavMenu({
               </Link>
             )}
 
-            {/* The two makers sit side by side - they're a matched pair of
-                creation tools, so grouping them reads cleaner than two
-                full-width rows. */}
-            <div className="flex gap-2.5">
-              <Link
-                href="/tier-list"
-                onClick={() => setOpen(false)}
-                className={`${makerRowClass} flex-1`}
-                style={rowStyle('/tier-list')}
-                aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
-              >
-                <Layers size={16} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
-                <span>Tier List Maker</span>
-                {tierPoolCount > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                    style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
-                  >
-                    {tierPoolCount}
-                  </span>
-                )}
-              </Link>
+            <Link
+              href="/tier-list"
+              onClick={() => setOpen(false)}
+              className={rowClass}
+              style={rowStyle('/tier-list')}
+              aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
+            >
+              <Layers size={16} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
+              <span>Tier List Maker</span>
+              {tierPoolCount > 0 && (
+                <span
+                  className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+                  style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
+                >
+                  {tierPoolCount}
+                </span>
+              )}
+            </Link>
 
-              <Link href="/chart-race" onClick={() => setOpen(false)} className={`${makerRowClass} flex-1`} style={rowStyle('/chart-race')} aria-label="Chart Race maker">
-                <LineChart size={16} strokeWidth={2.25} aria-hidden />
-                <span>Chart Race Maker</span>
-              </Link>
-            </div>
+            <Link href="/chart-race" onClick={() => setOpen(false)} className={rowClass} style={rowStyle('/chart-race')} aria-label="Chart Race maker">
+              <LineChart size={16} strokeWidth={2.25} aria-hidden />
+              <span>Chart Race Maker</span>
+            </Link>
 
             <Link href="/help" onClick={() => setOpen(false)} className={rowClass} style={rowStyle('/help')} aria-label="How it works">
               <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
