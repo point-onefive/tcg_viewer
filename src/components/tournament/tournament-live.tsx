@@ -1241,9 +1241,12 @@ export function TournamentLive() {
   // Post-entry deck submission (waitlist conversions who entered without one)
   // and viewing one's own locked list during the event.
   const [submitDeckBusy, setSubmitDeckBusy] = useState(false)
-  const [ownDeckModal, setOwnDeckModal] = useState<
-    { loading: true } | { loading: false; text: string | null } | null
-  >(null)
+  // The caller's own locked list, fetched inline (no modal) and shown right in
+  // the Sign up panel once they're signed up with a deck on file.
+  const [ownDeck, setOwnDeck] = useState<{ loading: boolean; text: string | null }>({
+    loading: false,
+    text: null,
+  })
   // Roster starts capped (top N) with a "Load more" so a big field doesn't
   // dominate the page; one tap reveals everyone.
   const [rosterExpanded, setRosterExpanded] = useState(false)
@@ -1450,17 +1453,28 @@ export function TournamentLive() {
     }
   }
 
-  // Pull up the caller's own locked list (private to the owner + host).
-  async function viewOwnDeck() {
-    if (!tournament) return
-    setOwnDeckModal({ loading: true })
-    try {
-      const res = await apiOwnDeck(tournament.code)
-      setOwnDeckModal({ loading: false, text: res.deckList })
-    } catch {
-      setOwnDeckModal({ loading: false, text: null })
+  // Auto-load the caller's own locked list inline (private to the owner + host)
+  // once they're signed up with a deck on file - no modal, it renders right in
+  // the Sign up panel's open space.
+  useEffect(() => {
+    const code = tournament?.code
+    if (!code || !myPlayer || owesDeckList) {
+      setOwnDeck({ loading: false, text: null })
+      return
     }
-  }
+    let cancelled = false
+    setOwnDeck({ loading: true, text: null })
+    apiOwnDeck(code)
+      .then((res) => {
+        if (!cancelled) setOwnDeck({ loading: false, text: res.deckList })
+      })
+      .catch(() => {
+        if (!cancelled) setOwnDeck({ loading: false, text: null })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tournament?.code, myPlayer, owesDeckList])
 
   if (loadError && !snapshot) {
     return (
@@ -1622,15 +1636,21 @@ export function TournamentLive() {
                       )}
                     </button>
                   </div>
-                ) : myPlayer ? (
-                  <button
-                    type="button"
-                    onClick={() => void viewOwnDeck()}
-                    className="inline-flex items-center gap-1.5 self-start text-xs font-semibold transition-opacity hover:opacity-80"
-                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                  >
-                    <ListChecks size={13} aria-hidden /> View my locked deck list
-                  </button>
+                ) : myPlayer && ownDeck.loading ? (
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <Loader2 size={15} className="animate-spin" /> Loading your deck list…
+                  </div>
+                ) : myPlayer && ownDeck.text ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                      <ListChecks size={13} aria-hidden style={{ color: 'var(--tcw-accent)' }} />
+                      Your locked deck list
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+                        - {deckCardCount(ownDeck.text)} cards, committed for the whole event
+                      </span>
+                    </div>
+                    <DeckListBlock deckList={ownDeck.text} maxHeight={420} />
+                  </div>
                 ) : null}
               </div>
             ) : walletStatus === 'loading' ? (
@@ -1787,44 +1807,6 @@ export function TournamentLive() {
 
       {/* Closing co-brand strip */}
       <BonkFooter />
-
-      {ownDeckModal && (
-        <ModalPortal onClose={() => setOwnDeckModal(null)} label="Your deck list" maxWidth={460}>
-          <div style={{ height: 4, background: 'var(--bonk-grad-sun)', flexShrink: 0 }} />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
-            <button
-              onClick={() => setOwnDeckModal(null)}
-              aria-label="Close"
-              style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
-              <h3 className="font-display font-bold">Your locked deck list</h3>
-            </div>
-            {ownDeckModal.loading ? (
-              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-                <Loader2 size={15} className="animate-spin" /> Loading…
-              </div>
-            ) : ownDeckModal.text ? (
-              <>
-                <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {deckCardCount(ownDeckModal.text)} cards - this is the list you are
-                  committed to for the whole event.
-                </p>
-                <DeckListBlock deckList={ownDeckModal.text} />
-              </>
-            ) : (
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                No deck list on file yet.
-              </p>
-            )}
-          </div>
-        </ModalPortal>
-      )}
       </div>
     </TournamentShell>
   )
