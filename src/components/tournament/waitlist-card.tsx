@@ -67,7 +67,7 @@ function Shell({ count, children }: { count: number; children: React.ReactNode }
   )
 }
 
-export function WaitlistCard() {
+export function WaitlistCard({ note }: { note?: string }) {
   const { status, profile } = useWalletAuth()
 
   const [busy, setBusy] = useState(false)
@@ -116,8 +116,8 @@ export function WaitlistCard() {
       className="mt-2 text-sm text-center"
       style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}
     >
-      Sign-ups for the current event are closed. Join the waitlist and you&rsquo;ll
-      be auto-entered (pending approval) the moment the next tournament opens.
+      {note ??
+        'Sign-ups for the current event are closed. Join the waitlist and you\u2019ll be auto-entered (pending approval) the moment the next tournament opens.'}
     </p>
   )
 
