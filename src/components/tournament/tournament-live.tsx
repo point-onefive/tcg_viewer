@@ -1589,7 +1589,7 @@ export function TournamentLive() {
       {/* Next-event waitlist. Shown when the current event is not actively
           enrolling, OR when it is enrolling but already full - either way new
           arrivals can still queue for the next one. */}
-      {(!signupOpen || isFull) && (
+      {(!signupOpen || (isFull && !signedUp)) && (
         <WaitlistCard
           note={
             signupOpen && isFull
