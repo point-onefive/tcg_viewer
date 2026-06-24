@@ -1081,7 +1081,7 @@ function PollCard({
                 type="button"
                 onClick={() => handleVote(opt.id)}
                 disabled={busy != null}
-                className="footer-btn"
+                className="press-btn"
                 style={{ ...baseStyle, cursor: busy ? 'wait' : 'pointer' }}
               >
                 {inner}
