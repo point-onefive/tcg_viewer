@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hourglass, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -1587,19 +1587,15 @@ export function TournamentLive() {
               {/* Mobile: even 2-col grid so the chips read as a tidy block
                   instead of an orphaned, lopsided wrap. Desktop: inline row. */}
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <MetaChip icon={Hash} iconColor="var(--bonk-ui-yellow)">{tournament.code}</MetaChip>
                 <MetaChip icon={Swords} iconColor="var(--bonk-ui-orange)">{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
-                <MetaChip icon={Users} iconColor="var(--bonk-pink)">
+                <MetaChip icon={Users} iconColor="#22c55e">
                   {approvedCount}
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
-                  <span className="hidden sm:inline"> signed up</span>
+                  <span className="hidden sm:inline"> registered</span>
                 </MetaChip>
-                <MetaChip icon={Hourglass} iconColor="var(--bonk-ui-yellow)">
-                  {queuedCount}
-                  <span className="hidden sm:inline"> in queue</span>
-                </MetaChip>
-                <MetaChip icon={Check} iconColor="#22c55e">
-                  <span className="sm:hidden">Verified</span>
-                  <span className="hidden sm:inline">Admin-verified</span>
+                <MetaChip icon={Hourglass} iconColor="var(--bonk-ui-orange)">
+                  {queuedCount} in queue
                 </MetaChip>
               </div>
             </div>
