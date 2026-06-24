@@ -137,7 +137,7 @@ function MetaChip({
 }) {
   return (
     <span
-      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1.5 px-3 text-xs font-semibold`}
+      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'flex sm:inline-flex'} w-full items-center gap-1.5 px-3 text-xs font-semibold sm:w-auto`}
       style={{ height: HERO_STAT_H, background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, color: 'var(--text-secondary)' }}
     >
       <Icon size={14} style={{ color: 'var(--text-muted)' }} />
@@ -1557,9 +1557,11 @@ export function TournamentLive() {
           right={<span className="hidden sm:block"><StatusPill status={tournament.status} /></span>}
         />
         <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+              {/* Mobile: even 2-col grid so the chips read as a tidy block
+                  instead of an orphaned, lopsided wrap. Desktop: inline row. */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                 <MetaChip icon={Hash}>{tournament.code}</MetaChip>
                 <MetaChip icon={Swords}>{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
                 <MetaChip icon={Users}>
@@ -1567,7 +1569,10 @@ export function TournamentLive() {
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
                   <span className="hidden sm:inline"> signed up</span>
                 </MetaChip>
-                <MetaChip icon={Check} hideOnMobile>Admin-verified</MetaChip>
+                <MetaChip icon={Check}>
+                  <span className="sm:hidden">Verified</span>
+                  <span className="hidden sm:inline">Admin-verified</span>
+                </MetaChip>
               </div>
             </div>
             {signupOpen && <CountdownStat label="Sign-ups close in" value={signupCountdown} />}
