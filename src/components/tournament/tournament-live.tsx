@@ -741,12 +741,20 @@ function HowItWorks() {
     },
     {
       lead: 'Play fair',
-      body: 'Any foul play or suspected cheating is a permanent ban.',
+      body: (
+        <>
+          Any foul play or suspected cheating is a permanent ban.{' '}
+          <strong style={{ color: '#ff8a8a' }}>
+            If a deck is challenged and the submitted list does not match the deck
+            played, that match is an automatic forfeit.
+          </strong>
+        </>
+      ),
       tone: 'danger',
     },
   ]
   return (
-    <div className="relative mb-6 overflow-hidden" style={{ ...card, borderRadius: 16, border: 'none' }}>
+    <div id="tournament-playbook" className="relative mb-6 scroll-mt-24 overflow-hidden" style={{ ...card, borderRadius: 16, border: 'none' }}>
       {/* Full-bleed BONK scene + wash, swapped per theme: the warm bonkcoin.com
           sunrise (daytime) in light mode, the cosmic DJ "for the pack" scene in
           dark mode. The wash keeps the heading + glass step cards legible. */}
@@ -1889,7 +1897,14 @@ function DeckListField({
           <strong style={{ color: 'var(--text-primary)' }}>Submissions are final.</strong>{' '}
           You can&rsquo;t edit this list after submitting, so double-check it and keep
           your own copy. Make sure your deck is legal under the latest ruleset before
-          you submit.
+          you submit.{' '}
+          <a
+            href="#tournament-playbook"
+            className="font-bold underline underline-offset-2"
+            style={{ color: '#f59e0b' }}
+          >
+            Read the tournament rules.
+          </a>
         </span>
       </div>
       <textarea
