@@ -674,7 +674,7 @@ function HowItWorks() {
             className="inline-flex items-center gap-1"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/bonk/web-img/bonkuji_logo.png" alt="Bonkuji" style={{ height: 18, width: 'auto', display: 'block' }} />
+            <img src="/bonk/web-img/bonkuji_logo.png" alt="Bonkuji" className="bonkuji-breathe" style={{ height: 18, width: 'auto', display: 'block' }} />
             <ExternalLink size={12} strokeWidth={2.5} style={{ color: 'var(--bonk-ui-yellow)', flexShrink: 0 }} />
           </a>
         </span>

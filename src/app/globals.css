@@ -2756,8 +2756,27 @@ html.lenis, html.lenis body {
 }
 .bonk-pop { animation: bonk-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
+/* Bonkuji "set up your account" CTA: the logo gently breathes (slight scale +
+   warm glow) so the one place players need to go to collect prizes draws the
+   eye. Transform/filter only, so it never reflows the step text beside it. */
+@keyframes bonkuji-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(253, 194, 2, 0));
+  }
+  50% {
+    transform: scale(1.07);
+    filter: drop-shadow(0 0 9px rgba(253, 194, 2, 0.6));
+  }
+}
+.bonkuji-breathe {
+  animation: bonkuji-breathe 2.6s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, filter;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bonk-bob, .bonk-sway, .bonk-cheer, .bonk-peek, .bonk-float, .bonk-pop { animation: none; }
+  .bonk-bob, .bonk-sway, .bonk-cheer, .bonk-peek, .bonk-float, .bonk-pop, .bonkuji-breathe { animation: none; }
 }
 
 /* Gold/medal prize tier glow built from BONK yellow. */
