@@ -187,9 +187,21 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     setMounted(true)
     setWindowWidth(window.innerWidth)
     setWindowHeight(window.innerHeight)
-    const onResize = () => {
+    let timer = 0
+    const apply = () => {
       setWindowWidth(window.innerWidth)
       setWindowHeight(window.innerHeight)
+    }
+    // Debounce viewport updates. Changing the column count rebuilds the
+    // row grouping, which remounts every visible tile's <Image> and
+    // restarts its load. During a continuous resize (window drag, devtools
+    // device toggle, the resize burst on rotate) that firing-every-frame
+    // would cancel in-flight loads over and over, so tiles never finish
+    // and the wall looks empty. Waiting for the viewport to settle lets the
+    // grid reflow exactly once, after which the newly-visible tiles load.
+    const onResize = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(apply, 150)
     }
     window.addEventListener('resize', onResize)
     // `resize` covers most cases, but some surfaces only fire other
@@ -201,6 +213,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     window.addEventListener('orientationchange', onResize)
     window.visualViewport?.addEventListener('resize', onResize)
     return () => {
+      window.clearTimeout(timer)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('orientationchange', onResize)
       window.visualViewport?.removeEventListener('resize', onResize)
