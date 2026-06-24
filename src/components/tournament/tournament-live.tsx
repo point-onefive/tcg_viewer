@@ -1787,27 +1787,39 @@ export function TournamentLive() {
 
       {ownDeckModal && (
         <ModalPortal onClose={() => setOwnDeckModal(null)} label="Your deck list" maxWidth={460}>
-          <div className="flex items-center gap-2 mb-3">
-            <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
-            <h3 className="font-display font-bold">Your locked deck list</h3>
+          <div style={{ height: 4, background: 'var(--bonk-grad-sun)', flexShrink: 0 }} />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
+            <button
+              onClick={() => setOwnDeckModal(null)}
+              aria-label="Close"
+              style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+            >
+              <X size={16} />
+            </button>
           </div>
-          {ownDeckModal.loading ? (
-            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-              <Loader2 size={15} className="animate-spin" /> Loading…
+          <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
+              <h3 className="font-display font-bold">Your locked deck list</h3>
             </div>
-          ) : ownDeckModal.text ? (
-            <>
-              <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {deckCardCount(ownDeckModal.text)} cards - this is the list you are
-                committed to for the whole event.
+            {ownDeckModal.loading ? (
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                <Loader2 size={15} className="animate-spin" /> Loading…
+              </div>
+            ) : ownDeckModal.text ? (
+              <>
+                <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {deckCardCount(ownDeckModal.text)} cards - this is the list you are
+                  committed to for the whole event.
+                </p>
+                <DeckListBlock deckList={ownDeckModal.text} />
+              </>
+            ) : (
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                No deck list on file yet.
               </p>
-              <DeckListBlock deckList={ownDeckModal.text} />
-            </>
-          ) : (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              No deck list on file yet.
-            </p>
-          )}
+            )}
+          </div>
         </ModalPortal>
       )}
       </div>

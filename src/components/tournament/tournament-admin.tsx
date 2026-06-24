@@ -1948,8 +1948,19 @@ function AdminDeckModal({
 
   return (
     <ModalPortal onClose={onClose} label="Deck list" maxWidth={480}>
+      <div style={{ height: 4, background: 'var(--bonk-grad-sun)', flexShrink: 0 }} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+      <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
       <div className="flex items-center gap-2 mb-3">
-        <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
+        <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display font-bold">{formatXLabel(player.xHandle)} - deck list</h3>
       </div>
       {loading ? (
@@ -2013,6 +2024,7 @@ function AdminDeckModal({
           )}
         </>
       )}
+      </div>
     </ModalPortal>
   )
 }
