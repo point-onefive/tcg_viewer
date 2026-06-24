@@ -1594,7 +1594,7 @@ export function TournamentLive() {
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
                   <span className="hidden sm:inline"> registered</span>
                 </MetaChip>
-                <MetaChip icon={Hourglass} iconColor="var(--bonk-ui-orange)">
+                <MetaChip icon={Hourglass} iconColor="var(--bonk-pink)">
                   {queuedCount} in queue
                 </MetaChip>
               </div>
