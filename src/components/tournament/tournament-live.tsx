@@ -818,7 +818,7 @@ function HowItWorks() {
 
         {/* Community: matches + content live in Discord, but invite links
             expire - so we never link Discord directly. Point people to X
-            (which never expires) for the current invite. */}
+            (which never expires) to get added to the players chat. */}
         <div
           className="mt-3 flex items-start gap-3 rounded-2xl px-4 py-3.5"
           style={{
@@ -834,18 +834,21 @@ function HowItWorks() {
               Community
             </span>
             <span className="block mt-0.5">
+              Matches, screenshares, and spectating all happen in our{' '}
+              <span className="font-display font-bold" style={{ color: '#fff' }}>Discord</span>.
               Reach out on{' '}
               <a
                 href={xProfileUrl('point_onefive')}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Reach out on X"
-                className="inline-flex items-center"
-                style={{ color: 'var(--tcw-accent)', verticalAlign: 'baseline' }}
+                style={{ color: '#fff', textDecoration: 'none' }}
               >
-                <XLogo size="1.05em" title="X" />
+                <XLogo size="1.1em" title="X" />
               </a>{' '}
               to be added to the players chat for further instructions and invites.
+              Share your replays, deck lists, and highlights there - creating content
+              is a great way to get noticed.
             </span>
           </span>
         </div>
