@@ -142,19 +142,24 @@ function MetaChip({
   )
 }
 
-/** Framed countdown stat (sign-ups closing / round ending). */
+/**
+ * Framed countdown stat (sign-ups closing / round ending). Label + timer sit on
+ * a single row to keep the box short, so it doesn't tower over the meta chips
+ * beside it in the hero. Full width on mobile (label left, timer right); content
+ * width on desktop.
+ */
 function CountdownStat({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="w-full shrink-0 px-4 py-2.5 text-center sm:w-auto"
-      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, minWidth: 132 }}
+      className="flex w-full shrink-0 items-center justify-between gap-3 px-3.5 py-2 sm:w-auto sm:justify-start"
+      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
     >
-      <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
+      <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
         {label}
-      </div>
-      <div className="bonk-mono text-2xl font-bold tabular-nums leading-tight" style={{ color: 'var(--tcw-accent)' }}>
+      </span>
+      <span className="bonk-mono text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--tcw-accent)' }}>
         {value}
-      </div>
+      </span>
     </div>
   )
 }
