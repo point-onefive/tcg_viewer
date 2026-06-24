@@ -24,6 +24,12 @@ interface ModalPortalProps {
   maxWidth?: number
   /** If false, clicking the backdrop will not close. Default true. */
   closeOnBackdrop?: boolean
+  /**
+   * Optional class on the modal card. The modal renders through a portal on
+   * document.body, outside any themed wrapper, so pass e.g. `bonk-theme` here
+   * to make the card inherit a page-specific palette/section tokens.
+   */
+  className?: string
 }
 
 export function ModalPortal({
@@ -32,6 +38,7 @@ export function ModalPortal({
   label,
   maxWidth = 420,
   closeOnBackdrop = true,
+  className,
 }: ModalPortalProps) {
   const [mounted, setMounted] = useState(false)
 
@@ -76,6 +83,7 @@ export function ModalPortal({
         }}
       >
         <div
+          className={className}
           style={{
             display: 'flex',
             flexDirection: 'column',

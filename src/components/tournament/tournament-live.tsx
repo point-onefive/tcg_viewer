@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -19,7 +19,7 @@ import { DEFAULT_POLL_QUESTION, POLL_OPTIONS, type PollOption, type PollResults 
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
-import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot } from '@/components/tournament/bonk-ui'
+import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose } from '@/components/tournament/bonk-ui'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
@@ -862,22 +862,13 @@ function HowItWorks() {
 /** Quick reference for exporting an OPTCG Sim deck list to paste at sign-up. */
 function DeckHelpModal({ onClose }: { onClose: () => void }) {
   return (
-    <ModalPortal onClose={onClose} label="How to copy your deck" maxWidth={460}>
-      <div style={{ height: 4, background: 'var(--bonk-grad-sun)', flexShrink: 0 }} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
-        >
-          <X size={16} />
-        </button>
-      </div>
-      <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
-          <h3 className="font-display font-bold">Copy your deck from OPTCG Sim</h3>
-        </div>
+    <ModalPortal onClose={onClose} label="How to copy your deck" maxWidth={460} className="bonk-theme">
+      <BonkModuleHeader
+        icon={ListChecks}
+        title="Copy your deck"
+        right={<BonkModalClose onClose={onClose} />}
+      />
+      <div style={{ padding: '20px 24px 24px', overflowY: 'auto' }}>
         <ol className="flex flex-col gap-2.5 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           <li>
             <span className="font-bold" style={{ color: 'var(--text-primary)' }}>1.</span> Open your deck in the

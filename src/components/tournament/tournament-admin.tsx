@@ -12,6 +12,7 @@ import {
   saveAdminKey,
 } from '@/lib/tournament/client'
 import { ModalPortal } from '@/components/ui/modal-portal'
+import { BonkModuleHeader, BonkModalClose } from '@/components/tournament/bonk-ui'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
@@ -1947,22 +1948,13 @@ function AdminDeckModal({
   }
 
   return (
-    <ModalPortal onClose={onClose} label="Deck list" maxWidth={480}>
-      <div style={{ height: 4, background: 'var(--bonk-grad-sun)', flexShrink: 0 }} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
-        >
-          <X size={16} />
-        </button>
-      </div>
-      <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
-      <div className="flex items-center gap-2 mb-3">
-        <ListChecks size={18} style={{ color: 'var(--tcw-accent)' }} />
-        <h3 className="font-display font-bold">{formatXLabel(player.xHandle)} - deck list</h3>
-      </div>
+    <ModalPortal onClose={onClose} label="Deck list" maxWidth={480} className="bonk-theme">
+      <BonkModuleHeader
+        icon={ListChecks}
+        title={`${formatXLabel(player.xHandle)} - deck list`}
+        right={<BonkModalClose onClose={onClose} />}
+      />
+      <div style={{ padding: '20px 24px 24px', overflowY: 'auto' }}>
       {loading ? (
         <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
           <Loader2 size={15} className="animate-spin" /> Loading…

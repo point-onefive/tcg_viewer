@@ -13,6 +13,7 @@
 // (see globals.css), so these only render correctly inside the themed shell.
 
 import type React from 'react'
+import { X } from 'lucide-react'
 
 type IconType = React.ComponentType<{ size?: number; style?: React.CSSProperties }>
 
@@ -85,6 +86,36 @@ export function BonkModuleHeader({
       {/* Sun-gradient hairline ties the dark header to the bright body. */}
       <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
     </>
+  )
+}
+
+/**
+ * Close button sized to sit in a `BonkModuleHeader` `right` slot. A translucent
+ * dark disc with a white glyph reads cleanly on both the daytime orange band
+ * and the dark night band, so themed modals get a native-feeling close affordance.
+ */
+export function BonkModalClose({ onClose }: { onClose: () => void }) {
+  return (
+    <button
+      onClick={onClose}
+      aria-label="Close"
+      className="relative self-center"
+      style={{
+        background: 'rgba(0, 0, 0, 0.26)',
+        border: '1px solid rgba(255, 255, 255, 0.28)',
+        borderRadius: '50%',
+        width: 30,
+        height: 30,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        color: '#fff',
+        flexShrink: 0,
+      }}
+    >
+      <X size={16} />
+    </button>
   )
 }
 
