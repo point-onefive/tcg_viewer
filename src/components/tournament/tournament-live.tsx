@@ -1346,10 +1346,15 @@ export function TournamentLive() {
   const activeRound = snapshot?.rounds.find((r) => r.status === 'active')
   const roundCountdown = useCountdown(activeRound?.endsAt ?? null)
 
-  const visiblePlayers = useMemo(
-    () => (snapshot?.players ?? []).filter((p) => p.approvalStatus !== 'rejected'),
-    [snapshot?.players],
-  )
+  const visiblePlayers = useMemo(() => {
+    const active = (snapshot?.players ?? []).filter((p) => p.approvalStatus !== 'rejected')
+    // Verified (approved) players float to the top; within each group everyone
+    // keeps their original sign-up order (Array.sort is stable).
+    return [...active].sort(
+      (a, b) =>
+        (a.approvalStatus === 'approved' ? 0 : 1) - (b.approvalStatus === 'approved' ? 0 : 1),
+    )
+  }, [snapshot?.players])
 
   // "Signed up" reflects only fully approved players. Pending sign-ups and
   // waitlist converts (both stored as approval_status 'pending') surface
