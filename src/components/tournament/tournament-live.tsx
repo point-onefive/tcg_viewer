@@ -1933,13 +1933,18 @@ function DeckListField({
           You can&rsquo;t edit this list after submitting, so double-check it and keep
           your own copy. Make sure your deck is legal under the latest ruleset before
           you submit.{' '}
-          <a
-            href="#tournament-playbook"
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById('tournament-playbook')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
             className="font-bold underline underline-offset-2"
-            style={{ color: '#f59e0b' }}
+            style={{ color: '#f59e0b', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
           >
             Read the tournament rules.
-          </a>
+          </button>
         </span>
       </div>
       <textarea
