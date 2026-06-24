@@ -1370,6 +1370,14 @@ export function TournamentLive() {
       new Date(tournament.enrollClosesAt) > new Date(),
   )
 
+  // Roster is at capacity (matches the server-side cap check, which counts every
+  // non-rejected sign-up). When full, newcomers can't enter even though the
+  // sign-up timer is still running, so we steer them to the next-event waitlist
+  // instead of a dead-end "tournament is full" error.
+  const isFull = Boolean(
+    tournament?.maxPlayers != null && visiblePlayers.length >= tournament.maxPlayers,
+  )
+
   useEffect(() => {
     const el = rosterListRef.current
     if (!el) return
@@ -1578,9 +1586,18 @@ export function TournamentLive() {
         </Link>
       </div>
 
-      {/* Next-event waitlist. Shown only when the current event is not actively
-          enrolling, so it never competes with the live sign-up form below. */}
-      {!signupOpen && <WaitlistCard />}
+      {/* Next-event waitlist. Shown when the current event is not actively
+          enrolling, OR when it is enrolling but already full - either way new
+          arrivals can still queue for the next one. */}
+      {(!signupOpen || isFull) && (
+        <WaitlistCard
+          note={
+            signupOpen && isFull
+              ? 'This event is full. Join the waitlist and you\u2019ll be auto-entered (pending approval) the moment the next tournament opens.'
+              : undefined
+          }
+        />
+      )}
 
       {/* Event hero */}
       <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
@@ -1698,6 +1715,24 @@ export function TournamentLive() {
                     <DeckListBlock deckList={ownDeck.text} maxHeight={420} />
                   </div>
                 ) : null}
+              </div>
+            ) : isFull ? (
+              <div
+                className="flex flex-col gap-2 rounded-md px-3.5 py-3"
+                style={{
+                  background: 'color-mix(in srgb, var(--bonk-pink) 10%, var(--bg))',
+                  border: '1px solid color-mix(in srgb, var(--bonk-pink) 28%, transparent)',
+                }}
+              >
+                <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                  This tournament is full.
+                </p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  The roster
+                  {tournament.maxPlayers ? ` of ${tournament.maxPlayers}` : ''} is set, so
+                  sign-ups are closed. Hop on the next-event waitlist above and you&rsquo;ll be
+                  auto-entered (pending approval) the moment the next tournament opens.
+                </p>
               </div>
             ) : walletStatus === 'loading' ? (
               <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
