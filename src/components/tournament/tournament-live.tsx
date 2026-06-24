@@ -637,7 +637,6 @@ function LinkOut({ href, children }: { href: string; children: React.ReactNode }
 
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
-  const discordUrl = 'https://discord.gg/x6s9gf3Dh'
   const [deckHelp, setDeckHelp] = useState(false)
   type StepTone = 'default' | 'danger' | 'success'
   const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
@@ -816,36 +815,6 @@ function HowItWorks() {
             )
           })}
         </div>
-
-        {/* Discord - a place to share content + chase the rotating rewards. */}
-        <a
-          href={discordUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group mt-3 flex items-start gap-3 rounded-2xl px-4 py-3.5 transition-transform hover:-translate-y-0.5"
-          style={{
-            background: 'rgba(88,101,242,0.22)',
-            border: '1px solid rgba(88,101,242,0.5)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          }}
-        >
-          <DiscordLogo size={22} style={{ color: '#fff', marginTop: 1 }} />
-          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.82)', lineHeight: 1.5 }}>
-            <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              Community
-            </span>
-            <span className="block mt-0.5">
-              Jump into{' '}
-              <span className="font-display font-bold" style={{ color: '#fff' }}>
-                Discord
-              </span>{' '}
-              to screenshare, spectate, or host your matches. We&rsquo;re rolling out a rotating mix of prizes
-              and rewards over time, so share your replays, deck lists, and highlights there - creating content
-              is a great way to get noticed.
-            </span>
-          </span>
-        </a>
       </div>
 
       {deckHelp && <DeckHelpModal onClose={() => setDeckHelp(false)} />}
@@ -1766,6 +1735,40 @@ export function TournamentLive() {
           )}
           </div>
         </div>
+      </div>
+
+      {/* Community: matches, screenshares, and spectating happen in Discord,
+          but invite links expire - so we never link Discord directly. Point
+          people to X (which never expires) to grab the current invite. */}
+      <div
+        className="mb-6 flex items-start gap-3 rounded-2xl px-4 py-3.5"
+        style={{
+          background: 'color-mix(in srgb, #5865f2 16%, var(--bg))',
+          border: '1px solid color-mix(in srgb, #5865f2 42%, transparent)',
+        }}
+      >
+        <DiscordLogo size={22} style={{ color: 'var(--text-primary)', marginTop: 1, flexShrink: 0 }} />
+        <span className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--text-muted)' }}>
+            Community
+          </span>
+          <span className="block mt-0.5">
+            Matches, screenshares, and spectating all happen in our{' '}
+            <span className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>Discord</span>.
+            Invite links expire, so message{' '}
+            <a
+              href={xProfileUrl('point_onefive')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold whitespace-nowrap"
+              style={{ color: 'var(--tcw-accent)', textDecoration: 'none' }}
+            >
+              <XLogo /> @point_onefive
+            </a>{' '}
+            on X for the current invite. Share your replays, deck lists, and highlights there - creating
+            content is a great way to get noticed and chase the rotating rewards.
+          </span>
+        </span>
       </div>
 
       {/* Round board */}
