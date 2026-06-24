@@ -20,8 +20,8 @@ import {
   Upload,
   X,
 } from 'lucide-react'
-import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { BrandLockup } from '@/components/gallery/brand-lockup'
+import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
 import { useChartRace } from '@/lib/chart-race-store'
 import {
   normalizeRows,
@@ -121,7 +121,7 @@ function SectionLabel({
   right?: React.ReactNode
 }) {
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-3">
+    <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
       <div className="flex items-center gap-2">
         <Icon size={14} strokeWidth={2.25} style={{ color: BRAND }} aria-hidden />
         <h2
@@ -146,7 +146,11 @@ function SectionLabel({
           background: 'linear-gradient(90deg, color-mix(in srgb, #E85D2A 45%, transparent), transparent)',
         }}
       />
-      {right}
+      {right && (
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+          {right}
+        </div>
+      )}
     </div>
   )
 }
@@ -913,9 +917,9 @@ export function ChartRaceMaker() {
         fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
       }}
     >
-      {/* ── Sticky header, mirrored from the tier-list maker. ──── */}
+      {/* ── Uniform site top bar (brand · theme · hamburger). ──── */}
       <header
-        className="sticky top-0 z-20 py-3"
+        className="sticky top-0 z-30"
         style={{
           background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
           backdropFilter: 'blur(18px) saturate(140%)',
@@ -923,46 +927,20 @@ export function ChartRaceMaker() {
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4" style={{ maxWidth: 1800 }}>
-          <div className="flex flex-wrap items-center gap-3">
-            <BrandLockup />
-            <div
-              aria-hidden
-              className="hidden sm:block"
-              style={{ width: 1, height: 22, background: 'var(--text-muted)', opacity: 0.4, margin: '0 4px' }}
-            />
-            <div className="flex items-center gap-2">
-              <LineChart size={18} strokeWidth={2.25} style={{ color: BRAND }} aria-hidden />
-              <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">Chart Race</h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ThemeToggle />
-            <button
-              type="button"
-              onClick={handleExportPng}
-              disabled={!canPlay || exporting}
-              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-              style={{ ...ctrlBase, height: 30, opacity: !canPlay || exporting ? 0.5 : 1 }}
-            >
-              <Download size={14} aria-hidden />
-              {exporting ? 'Saving…' : 'PNG'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setImportOpen((v) => !v)}
-              className="footer-btn"
-              style={uploadChip}
-            >
-              <FileUp size={14} aria-hidden />
-              Import data
-            </button>
-          </div>
+        <div className="mx-auto flex items-center justify-between gap-3 px-4" style={{ maxWidth: 1800, height: 56 }}>
+          <BrandLockup />
+          <SiteNavMenu topOffset={56} />
         </div>
       </header>
 
+      {/* Centered page title, directly under the nav. */}
+      <div className="mx-auto flex items-center justify-center gap-2 px-4 pt-5" style={{ maxWidth: 1800 }}>
+        <LineChart size={20} strokeWidth={2.25} style={{ color: BRAND, flexShrink: 0 }} aria-hidden />
+        <h1 className="font-display text-lg font-bold tracking-tight sm:text-xl">Chart Race</h1>
+      </div>
+
       {/* ── Snarky lede, mirroring the tier-list page voice. ───── */}
-      <section aria-label="About this page" className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center">
+      <section aria-label="About this page" className="mx-auto max-w-3xl px-4 pt-3 pb-2 text-center">
         <p
           style={{
             fontFamily: 'var(--font-display)',
@@ -998,6 +976,30 @@ export function ChartRaceMaker() {
           <span>Runs in your browser</span>
         </p>
       </section>
+
+      {/* Page-specific actions, below the lede - two equal-width buttons,
+          centered and capped so they don't sprawl on desktop. */}
+      <div className="mx-auto flex items-center justify-center gap-2 px-4 pt-4" style={{ maxWidth: 460 }}>
+        <button
+          type="button"
+          onClick={handleExportPng}
+          disabled={!canPlay || exporting}
+          className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium"
+          style={{ ...ctrlBase, height: 34, opacity: !canPlay || exporting ? 0.5 : 1 }}
+        >
+          <Download size={14} aria-hidden />
+          {exporting ? 'Saving…' : 'PNG'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setImportOpen((v) => !v)}
+          className="footer-btn flex-1 justify-center"
+          style={{ ...uploadChip, height: 34, justifyContent: 'center' }}
+        >
+          <FileUp size={14} aria-hidden />
+          Import data
+        </button>
+      </div>
 
       <div className="mx-auto px-4 pt-6" style={{ maxWidth: 1800 }}>
         {/* ── Import panel (collapsible) ───────────────────────── */}

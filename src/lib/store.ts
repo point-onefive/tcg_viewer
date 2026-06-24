@@ -203,7 +203,7 @@ async function track(action: 'pin' | 'unpin', pin: Pin) {
 export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
-      theme: 'light',
+      theme: 'dark',
       toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),
       activeCollection: 'one-piece',

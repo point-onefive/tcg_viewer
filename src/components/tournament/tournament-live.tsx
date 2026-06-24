@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { CalendarClock, Check, ChevronRight, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users, Wallet, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -15,10 +15,12 @@ import {
   loadVoterId,
   saveVotedChoice,
 } from '@/lib/tournament/client'
-import { POLL_OPTIONS, type PollResults } from '@/lib/tournament/poll'
+import { DEFAULT_POLL_QUESTION, POLL_OPTIONS, type PollOption, type PollResults } from '@/lib/tournament/poll'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
+import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose } from '@/components/tournament/bonk-ui'
+import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
@@ -35,6 +37,10 @@ const SIGNED_UP_KEY = 'tcw_tournament_signed_up'
 // cap is rounded UP from this to a whole number of grid rows (see useRosterCap)
 // so the collapsed roster never leaves an orphaned, half-empty last row.
 const ROSTER_MIN_VISIBLE = 5
+// When the caller's locked deck list renders inline beside the roster (signed
+// up), reveal more rows by default so the Registered panel fills a height
+// comparable to the deck list instead of leaving a big blank gap under it.
+const ROSTER_MIN_VISIBLE_WITH_DECK = 12
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -114,41 +120,53 @@ function placeAccent(i: number): { bg: string; fg: string } {
   return { bg: 'color-mix(in srgb, var(--text-primary) 14%, transparent)', fg: 'var(--text-primary)' }
 }
 
+// Shared height for the hero meta row, so the detail chips and the countdown
+// stat are all the same size and sit on one latitude.
+const HERO_STAT_H = 36
+
 /** Small labeled fact chip used in the event hero meta row. */
 function MetaChip({
   icon: Icon,
   children,
   hideOnMobile = false,
+  iconColor = 'var(--text-muted)',
 }: {
   icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>
   children: React.ReactNode
   /** Drop the chip below `sm` so the meta row stays on one mobile line. */
   hideOnMobile?: boolean
+  /** Leading-icon tint. A subtle brand-palette pop so the row isn't flat grey. */
+  iconColor?: string
 }) {
   return (
     <span
-      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1 px-2 py-0.5 text-[11px] font-semibold sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs`}
-      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 5, color: 'var(--text-secondary)' }}
+      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'flex sm:inline-flex'} w-full items-center gap-1.5 px-3 text-xs font-semibold sm:w-auto`}
+      style={{ height: HERO_STAT_H, background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, color: 'var(--text-secondary)' }}
     >
-      <Icon size={12} style={{ color: 'var(--text-muted)' }} />
+      <Icon size={14} style={{ color: iconColor }} />
       {children}
     </span>
   )
 }
 
-/** Framed countdown stat (sign-ups closing / round ending). */
+/**
+ * Framed countdown stat (sign-ups closing / round ending). Label + timer sit on
+ * a single row to keep the box short, so it doesn't tower over the meta chips
+ * beside it in the hero. Full width on mobile (label left, timer right); content
+ * width on desktop.
+ */
 function CountdownStat({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="w-full shrink-0 px-4 py-2.5 text-center sm:w-auto"
-      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, minWidth: 132 }}
+      className="flex w-full shrink-0 items-center justify-between gap-2.5 px-3 sm:w-auto sm:justify-start"
+      style={{ height: HERO_STAT_H, background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
     >
-      <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
+      <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
         {label}
-      </div>
-      <div className="font-display text-2xl font-bold tabular-nums leading-tight" style={{ color: '#E85D2A' }}>
+      </span>
+      <span className="bonk-mono text-base font-bold tabular-nums leading-none" style={{ color: 'var(--tcw-accent)' }}>
         {value}
-      </div>
+      </span>
     </div>
   )
 }
@@ -162,16 +180,52 @@ function medalColor(i: number): string | null {
 }
 
 /** Public, read-only prize pool. Centered, medal-accented showcase. */
-function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
+function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: AwardedPrize[] }) {
+  // Once the event is complete, fold the declared winners straight into the
+  // branded prize cards (grouped by slot, so a split prize lists everyone).
+  const winnersBySlot = useMemo(() => {
+    const m = new Map<number, AwardedPrize[]>()
+    for (const a of awarded ?? []) {
+      const arr = m.get(a.slotIndex) ?? []
+      arr.push(a)
+      m.set(a.slotIndex, arr)
+    }
+    return m
+  }, [awarded])
   return (
-    <div className="mb-6 p-5" style={card}>
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Gift size={18} style={{ color: '#E85D2A' }} />
-        <h3 className="font-display text-lg font-bold tracking-tight">Prize pool</h3>
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      {/* Co-branded module header: the sponsor identity lives in the
+          module chrome (a dark BONK section band), not as a sticker in
+          the content. Title left, official BONK lockup right. */}
+      <div className="bonk-section-band relative flex items-center justify-between gap-3 px-5 py-4">
+        {/* Warm BONK glow so the dark band reads as orange-cosmic, not blue. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: 'radial-gradient(90% 220% at 100% 50%, color-mix(in srgb, var(--bonk-ui-orange) 32%, transparent) 0%, transparent 58%)' }}
+        />
+        <div className="relative flex items-center gap-2.5">
+          <Gift size={20} style={{ color: 'var(--bonk-band-icon)' }} />
+          <h3 className="bonk-display" style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 900, color: 'var(--bonk-band-fg)' }}>
+            Prize pool
+          </h3>
+        </div>
+        {/* Official "powered by BONK" linear lockup, sized to sit beside the
+            title without crowding it on mobile (clamped) or wrapping. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/bonk/web-img/powered_by_bonk_linear_white.png"
+          alt="powered by BONK"
+          className="relative block w-auto shrink-0"
+          style={{ height: 'clamp(20px, 4vw, 30px)' }}
+        />
       </div>
+      {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
+      <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
+
       <div
-        className="flex flex-wrap justify-center"
-        style={{ gap: 16, maxWidth: 800, margin: '0 auto' }}
+        className="flex flex-wrap justify-center p-5"
+        style={{ gap: 16, maxWidth: 832, margin: '0 auto' }}
       >
         {prizes.map((prize, i) => {
           const accent = placeAccent(i)
@@ -179,15 +233,15 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
           return (
             <div
               key={i}
-              className="flex flex-col overflow-hidden"
+              className={`flex flex-col overflow-hidden${i === 0 ? ' bonk-prize-glow' : ''}`}
               style={{
                 width: 'min(100%, 240px)',
                 flex: '0 0 auto',
                 background: 'var(--bg)',
                 border: '1px solid var(--border-subtle)',
                 borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
-                borderRadius: 6,
-                boxShadow: medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
+                borderRadius: 12,
+                boxShadow: i === 0 ? undefined : medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
               }}
             >
               {prize.image && (
@@ -222,6 +276,26 @@ function PrizePool({ prizes }: { prizes: TournamentPrize[] }) {
                     {prize.description}
                   </p>
                 )}
+                {(() => {
+                  const winners = winnersBySlot.get(i) ?? []
+                  if (winners.length === 0) return null
+                  return (
+                    <div className="flex flex-col gap-1 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <span className="bonk-mono text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: 'var(--tcw-accent)' }}>
+                        {winners.length > 1 ? 'Winners' : 'Winner'}
+                      </span>
+                      {winners.map((w) => (
+                        <span key={w.id} className="text-xs font-semibold">
+                          {w.xHandle ? (
+                            <XProfileLink handle={w.xHandle} />
+                          ) : (
+                            <span style={{ color: 'var(--text-primary)' }}>{w.displayName ?? 'Player'}</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           )
@@ -240,7 +314,7 @@ export function LeaderChip({ player }: { player: Player }) {
   if (!player.leaderCardId) return null
   return (
     <span
-      className="shrink-0 inline-flex items-center gap-1.5"
+      className="inline-flex min-w-0 shrink items-center gap-1.5"
       title={player.leaderName ?? player.leaderCardId}
     >
       {player.leaderImage && (
@@ -252,6 +326,7 @@ export function LeaderChip({ player }: { player: Player }) {
           style={{
             width: 22,
             height: 22,
+            flexShrink: 0,
             borderRadius: 4,
             objectFit: 'cover',
             objectPosition: 'top center',
@@ -262,7 +337,7 @@ export function LeaderChip({ player }: { player: Player }) {
       )}
       <span
         className="hidden truncate text-[11px] font-semibold sm:inline"
-        style={{ color: 'var(--text-secondary)', maxWidth: 110 }}
+        style={{ color: 'var(--text-secondary)', maxWidth: 96 }}
       >
         {player.leaderName ?? player.leaderCardId}
       </span>
@@ -462,18 +537,16 @@ function MyMatchCard({
   )
 
   const shell = (accent: string, children: React.ReactNode) => (
-    <div className="mb-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, ${accent} 35%, transparent))` }} />
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+      <BonkModuleHeader icon={Swords} eyebrow="You're up" title="Your match" />
+      {/* Status-coded accent strip (win/loss/draw/pending) under the band. */}
+      <div style={{ height: 3, background: accent }} />
       <div className="p-5 sm:p-6">{children}</div>
     </div>
   )
 
-  const header = (
-    <div className="flex items-center gap-2 mb-1">
-      <Swords size={18} style={{ color: '#E85D2A' }} />
-      <h3 className="font-display text-lg font-bold tracking-tight">Your match</h3>
-    </div>
-  )
+  // The section title now lives in the BONK band header.
+  const header = null
 
   const vsLine = (
     <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -535,12 +608,12 @@ function MyMatchCard({
   // I already reported - waiting on my opponent.
   if (myReport) {
     const mine = myReport === 'win' ? 'a win' : myReport === 'loss' ? 'a loss' : 'a draw'
-    return shell('#E85D2A', (
+    return shell('var(--tcw-accent)', (
       <>
         {header}
         {vsLine}
         <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          <Loader2 size={15} className="animate-spin" style={{ color: '#E85D2A' }} />
+          <Loader2 size={15} className="animate-spin" style={{ color: 'var(--tcw-accent)' }} />
           You reported {mine}. Waiting for {oppLabel} to confirm.
         </div>
         <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -553,12 +626,12 @@ function MyMatchCard({
   }
 
   // Default: opponent may have reported; show the buttons.
-  return shell('#E85D2A', (
+  return shell('var(--tcw-accent)', (
     <>
       {header}
       {vsLine}
       {theirReport && (
-        <p className="mt-3 rounded-md px-3 py-2 text-xs" style={{ background: 'color-mix(in srgb, #E85D2A 8%, var(--bg))', border: '1px solid color-mix(in srgb, #E85D2A 22%, transparent)', color: 'var(--text-secondary)' }}>
+        <p className="mt-3 rounded-md px-3 py-2 text-xs" style={{ background: 'color-mix(in srgb, var(--tcw-accent) 8%, var(--bg))', border: '1px solid color-mix(in srgb, var(--tcw-accent) 22%, transparent)', color: 'var(--text-secondary)' }}>
           {oppLabel} reported {theirReport === 'win' ? 'a win' : theirReport === 'loss' ? 'a loss' : 'a draw'}. Report your result to confirm - if it matches, the bracket advances right away.
         </p>
       )}
@@ -571,32 +644,85 @@ function MyMatchCard({
   ))
 }
 
+/** Inline "opens in a new tab" affordance: the little box-with-arrow mark. */
+function LinkOut({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1"
+      style={{ color: 'var(--bonk-ui-yellow)', fontWeight: 700 }}
+    >
+      {children}
+      <ExternalLink size={12} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: -1 }} />
+    </a>
+  )
+}
+
 /** Punchy "how the event runs" explainer so there are no surprises. */
 function HowItWorks() {
-  const discordUrl = 'https://discord.gg/9meqsjre'
-  const steps: { lead: React.ReactNode; body: React.ReactNode; danger?: boolean }[] = [
+  const [deckHelp, setDeckHelp] = useState(false)
+  type StepTone = 'default' | 'danger' | 'success'
+  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
     {
       lead: 'Join the waitlist',
-      body: 'Between events, connect your wallet to claim a spot for the next one. When it opens you are dropped in automatically, so there is no timer to watch.',
+      body: 'No event running yet? Connect your wallet to claim your place. The waitlist holds your spot for the upcoming tournament - when sign-ups open, you are dropped in automatically.',
     },
     {
-      lead: 'Sign up',
-      body: 'When an event is live, connect your wallet during the sign-up window to enter. Your X handle is pulled straight from your profile, so there is nothing to retype.',
+      lead: 'Sign up + submit your deck',
+      body: (
+        <>
+          When sign-ups are open, connect your wallet to enter. A deck list is{' '}
+          <strong style={{ color: '#fff' }}>required up front</strong>: build your deck in OPTCG Sim,
+          copy it to your clipboard, and paste it in. The deck you submit is the deck you play for the
+          whole event.{' '}
+          <button
+            type="button"
+            onClick={() => setDeckHelp(true)}
+            className="font-bold underline underline-offset-2"
+            style={{ color: 'var(--bonk-ui-yellow)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            How to copy your deck
+          </button>
+        </>
+      ),
+    },
+    {
+      lead: (
+        <span className="flex items-center gap-1.5">
+          Set up
+          <a
+            href="https://bonkuji.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/bonk/web-img/bonkuji_logo.png" alt="Bonkuji" className="bonkuji-breathe" style={{ height: 18, width: 'auto', display: 'block' }} />
+            <ExternalLink size={12} strokeWidth={2.5} style={{ color: 'var(--bonk-ui-yellow)', flexShrink: 0 }} />
+          </a>
+        </span>
+      ),
+      cta: true,
+      body: (
+        <>
+          Prizes are paid out through Bonkuji, so a free account is required to collect. Sign in with your
+          wallet, X, Google, or email - it takes about two seconds. Every top prize and participation reward
+          lands here.
+        </>
+      ),
     },
     {
       lead: 'Get verified',
-      body: 'An admin approves every handle. Once you\u2019re in, you can vote on the prize split.',
+      body: 'A tournament official reviews every sign-up and approves or declines it. Approved players are locked into the bracket.',
     },
-    { lead: 'Round 1 posts', body: 'When sign-ups close, the bracket goes live automatically.' },
     {
-      lead: (
-        <>
-          Play on{' '}
-          <a href="https://optcgsim.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#E85D2A' }}>
-            OPTCG Sim
-          </a>
-        </>
-      ),
+      lead: 'Round 1 begins',
+      body: 'As soon as the sign-up timer expires, we go straight into Round 1 - no waiting around.',
+    },
+    {
+      lead: <>Play on <LinkOut href="https://optcgsim.com/">OPTCG Sim</LinkOut></>,
       body: 'Coordinate with your opponent and always play the most recent ruleset. Each round gets a generous timer for completion.',
     },
     {
@@ -604,82 +730,194 @@ function HowItWorks() {
       body: 'After your match, both players tap Win or Loss on the "Your match" card. If you agree, it logs instantly and the bracket advances. If you disagree, an admin reviews it.',
     },
     {
+      lead: 'Share to win a prize',
+      body: (
+        <>
+          Didn&rsquo;t place top 3? You can still earn a participation prize. Share your run on X - a
+          screenshot, a replay, your deck list, or just your take - and you&rsquo;re in the running.
+        </>
+      ),
+      tone: 'success',
+    },
+    {
       lead: 'Play fair',
       body: 'Any foul play or suspected cheating is a permanent ban.',
-      danger: true,
+      tone: 'danger',
     },
   ]
   return (
-    <div className="mb-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
-      <div className="p-5 sm:p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <ListChecks size={18} style={{ color: '#E85D2A' }} />
-          <h3 className="font-display text-lg font-bold tracking-tight">How it works</h3>
+    <div className="relative mb-6 overflow-hidden" style={{ ...card, borderRadius: 16, border: 'none' }}>
+      {/* Full-bleed BONK scene + wash, swapped per theme: the warm bonkcoin.com
+          sunrise (daytime) in light mode, the cosmic DJ "for the pack" scene in
+          dark mode. The wash keeps the heading + glass step cards legible. */}
+      <div aria-hidden className="bonk-how-scene bonk-how-scene--light" />
+      <div aria-hidden className="bonk-how-scene bonk-how-scene--dark" />
+      <div aria-hidden className="bonk-how-wash bonk-how-wash--light" />
+      <div aria-hidden className="bonk-how-wash bonk-how-wash--dark" />
+      <div style={{ position: 'relative', height: 3, background: 'var(--bonk-grad-sun)' }} />
+
+      <div className="relative z-[1] p-5 sm:p-7">
+        <div className="flex items-end justify-between gap-2 mb-5">
+          <div>
+            <span className="bonk-mono text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--bonk-band-kicker)' }}>
+              The playbook
+            </span>
+            <div className="mt-1 flex items-center gap-2.5">
+              <ListChecks size={24} style={{ color: 'var(--bonk-band-icon)' }} />
+              <h3 className="bonk-display bonk-band-title" style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 900, color: 'var(--bonk-band-fg)' }}>
+                How it works
+              </h3>
+            </div>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/bonk/web-img/BONK_Pose_Point_001_LR.png"
+            alt=""
+            aria-hidden
+            className="hidden shrink-0 select-none sm:block"
+            style={{ width: 104, height: 'auto', marginTop: -34, marginBottom: -20, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.5))' }}
+          />
         </div>
-        <div className="flex flex-col gap-2.5">
+
+        {/* Steps as glass cards over the scene - two columns on desktop. */}
+        <div className="grid gap-3 sm:grid-cols-2">
           {steps.map((s, i) => {
-            const accent = s.danger ? '#ef4444' : '#E85D2A'
+            const tone = s.tone ?? 'default'
+            const medal =
+              tone === 'danger'
+                ? 'linear-gradient(135deg, #ff5a5a 0%, #ff0000 100%)'
+                : tone === 'success'
+                  ? 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)'
+                  : 'var(--bonk-grad-sun)'
+            const leadColor = tone === 'danger' ? '#ff8a8a' : tone === 'success' ? '#86efac' : '#fff'
+            const glow =
+              tone === 'danger'
+                ? '0 6px 16px -6px rgba(255,0,0,0.7)'
+                : tone === 'success'
+                  ? '0 6px 16px -6px rgba(22,163,74,0.7)'
+                  : '0 6px 16px -6px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)'
             return (
-              <div key={i} className="flex items-start gap-2.5">
+              <div
+                key={i}
+                className="flex items-start gap-3 rounded-2xl p-4"
+                style={{
+                  // Same dark glass base as every other step so the CTA reads
+                  // as one of the family; a gold border + soft outer glow marks
+                  // it as the call to action without washing the interior bright.
+                  background: 'rgba(15,2,20,0.55)',
+                  border: s.cta ? '1px solid rgba(253,194,2,0.55)' : '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: s.cta ? '0 0 26px -10px rgba(253,194,2,0.6)' : undefined,
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                }}
+              >
                 <span
-                  className="shrink-0 inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                  className="bonk-mono shrink-0 inline-flex items-center justify-center text-sm font-bold tabular-nums"
                   style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
-                    background: `color-mix(in srgb, ${accent} 12%, var(--bg))`,
-                    border: `1px solid color-mix(in srgb, ${accent} 28%, transparent)`,
-                    color: accent,
-                    marginTop: 1,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 999,
+                    background: medal,
+                    color: 'var(--bonk-midnight)',
+                    fontWeight: 700,
+                    boxShadow: glow,
                   }}
                 >
                   {i + 1}
                 </span>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  <span className="font-display font-bold" style={{ color: s.danger ? '#ef4444' : 'var(--text-primary)' }}>
+                <div className="min-w-0">
+                  <div
+                    className="font-display font-bold"
+                    style={{ color: leadColor, fontSize: 15, lineHeight: 1.25 }}
+                  >
                     {s.lead}
-                  </span>
-                  <span className="mx-1.5" style={{ color: 'var(--text-muted)' }}>·</span>
-                  {s.body}
-                </p>
+                  </div>
+                  <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
+                    {s.body}
+                  </p>
+                </div>
               </div>
             )
           })}
         </div>
+
+        {/* Community: matches + content live in Discord, but invite links
+            expire - so we never link Discord directly. Point people to X
+            (which never expires) to get added to the players chat. */}
         <div
-          className="mt-4 pt-4"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}
+          className="mt-3 flex items-start gap-3 rounded-2xl px-4 py-3.5"
+          style={{
+            background: 'rgba(88,101,242,0.22)',
+            border: '1px solid rgba(88,101,242,0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
         >
-          <a
-            href={discordUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-start gap-3 rounded-md px-3 py-2.5 transition-opacity hover:opacity-90"
-            style={{
-              background: 'color-mix(in srgb, #5865F2 10%, var(--bg))',
-              border: '1px solid color-mix(in srgb, #5865F2 22%, transparent)',
-            }}
-          >
-            <DiscordLogo size={20} style={{ color: '#5865F2', marginTop: 1 }} />
-            <span className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <span
-                className="font-display text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Optional
-              </span>
-              <span className="block mt-0.5">
-                <span className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>
-                  Discord
-                </span>{' '}
-                is available if you want to screenshare, spectate, or chat during your match. Not required.
-              </span>
+          <DiscordLogo size={22} style={{ color: '#fff', marginTop: 1, flexShrink: 0 }} />
+          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.82)', lineHeight: 1.5 }}>
+            <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Community
             </span>
-          </a>
+            <span className="block mt-0.5">
+              Matches, screenshares, and spectating all happen in our{' '}
+              <span className="font-display font-bold" style={{ color: '#fff' }}>Discord</span>.
+              Reach out on{' '}
+              <a
+                href={xProfileUrl('point_onefive')}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Reach out on X"
+                style={{ color: '#fff', textDecoration: 'none' }}
+              >
+                <XLogo size="1.1em" title="X" />
+              </a>{' '}
+              to be added to the players chat for further instructions and invites.
+              Share your replays, deck lists, and highlights there - creating content
+              is a great way to get noticed.
+            </span>
+          </span>
         </div>
       </div>
+
+      {deckHelp && <DeckHelpModal onClose={() => setDeckHelp(false)} />}
     </div>
+  )
+}
+
+/** Quick reference for exporting an OPTCG Sim deck list to paste at sign-up. */
+function DeckHelpModal({ onClose }: { onClose: () => void }) {
+  return (
+    <ModalPortal onClose={onClose} label="How to copy your deck" maxWidth={460} className="bonk-theme">
+      <BonkModuleHeader
+        icon={ListChecks}
+        title="Copy your deck"
+        right={<BonkModalClose onClose={onClose} />}
+      />
+      <div style={{ padding: '20px 24px 24px', overflowY: 'auto' }}>
+        <ol className="flex flex-col gap-2.5 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <li>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>1.</span> Open your deck in the
+            OPTCG Sim deck builder.
+          </li>
+          <li>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>2.</span> Use the
+            export / <em>Copy to Clipboard</em> option. It copies the full list in OPTCG Sim&rsquo;s text
+            format (one card per line, with quantities and card codes).
+          </li>
+          <li>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>3.</span> Paste it straight
+            into the deck-list box when you sign up. Don&rsquo;t edit the text - submit it exactly as copied.
+          </li>
+        </ol>
+        <p
+          className="mt-4 rounded-md p-3 text-xs"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', lineHeight: 1.5 }}
+        >
+          Your submitted list is locked for the whole event - the deck you sign up with is the deck you play
+          every round.
+        </p>
+      </div>
+    </ModalPortal>
   )
 }
 
@@ -691,6 +929,8 @@ function HowItWorks() {
 function PollCard({
   code,
   poll,
+  question,
+  options,
   canVote,
   signedUp,
   pollOpen,
@@ -698,6 +938,8 @@ function PollCard({
 }: {
   code: string
   poll: PollResults
+  question: string
+  options: PollOption[]
   canVote: boolean
   signedUp: boolean
   pollOpen: boolean
@@ -715,7 +957,10 @@ function PollCard({
   const total = results.totalVotes
   const showResults = total > 0 || voted != null || !canVote
   // Highest vote count, so we can glow the leading option(s).
-  const leadCount = total > 0 ? Math.max(...POLL_OPTIONS.map((o) => results.counts[o.id] ?? 0)) : 0
+  const leadCount = total > 0 ? Math.max(...options.map((o) => results.counts[o.id] ?? 0)) : 0
+  // Desktop columns: keep rows balanced for any ballot size (2-6). One col
+  // on mobile (handled in CSS); 4 options read best as a 2x2.
+  const pollCols = options.length <= 3 ? options.length : options.length === 4 ? 2 : 3
 
   async function handleVote(choice: string) {
     if (!canVote || voted || busy) return
@@ -743,12 +988,16 @@ function PollCard({
   const interactive = canVote && !voted
 
   return (
-    <div className="mb-6 p-5" style={card}>
-      <div className="flex items-center justify-center gap-2 mb-1.5">
-        <PieChart size={18} style={{ color: '#E85D2A' }} />
-        <h3 className="font-display text-lg font-bold tracking-tight">How should the prize be split?</h3>
-      </div>
-      <p className="mb-4 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+      <BonkModuleHeader
+        icon={PieChart}
+        eyebrow="Player feedback"
+        title="Community Poll"
+        right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_003_LR.png" />}
+      />
+      <div className="p-5">
+      <h3 className="font-display text-lg font-bold tracking-tight text-center">{question}</h3>
+      <p className="mb-4 mt-1 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
         {interactive
           ? 'Cast your vote - one per player.'
           : voted
@@ -760,8 +1009,11 @@ function PollCard({
                 : 'Sign up for this tournament to vote.'}
       </p>
 
-      <div className="mx-auto grid grid-cols-1 gap-3 sm:grid-cols-3" style={{ maxWidth: 660 }}>
-        {POLL_OPTIONS.map((opt) => {
+      <div
+        className="poll-grid mx-auto"
+        style={{ ['--poll-cols' as string]: pollCols, maxWidth: pollCols * 220 } as React.CSSProperties}
+      >
+        {options.map((opt) => {
           const count = results.counts[opt.id] ?? 0
           const pct = total > 0 ? Math.round((count / total) * 100) : 0
           const mine = voted === opt.id
@@ -781,7 +1033,7 @@ function PollCard({
                     height: 4,
                     width: `${pct}%`,
                     background: mine
-                      ? '#E85D2A'
+                      ? 'var(--tcw-accent)'
                       : winning
                         ? '#22c55e'
                         : 'color-mix(in srgb, var(--text-primary) 22%, transparent)',
@@ -792,7 +1044,7 @@ function PollCard({
               <div className="relative flex flex-1 flex-col gap-1.5">
                 <div className="flex items-start justify-between gap-1.5">
                   <span className="font-display text-sm font-bold leading-tight">{opt.label}</span>
-                  {mine && <Check size={14} strokeWidth={3} style={{ color: '#E85D2A', flexShrink: 0 }} />}
+                  {mine && <Check size={14} strokeWidth={3} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />}
                 </div>
                 <span className="flex-1 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.35 }}>
                   {opt.blurb}
@@ -802,13 +1054,13 @@ function PollCard({
                     <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
                   ) : showResults ? (
                     <>
-                      <span className="font-display text-2xl font-bold leading-none tabular-nums">{pct}%</span>
-                      <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                      <span className="bonk-mono text-2xl font-bold leading-none tabular-nums">{pct}%</span>
+                      <span className="bonk-mono text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
                         {count} {count === 1 ? 'vote' : 'votes'}
                       </span>
                     </>
                   ) : (
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#E85D2A' }}>
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--tcw-accent)' }}>
                       Vote
                     </span>
                   )}
@@ -830,7 +1082,7 @@ function PollCard({
               winning
                 ? '#22c55e'
                 : mine
-                  ? 'color-mix(in srgb, #E85D2A 55%, transparent)'
+                  ? 'color-mix(in srgb, var(--tcw-accent) 55%, transparent)'
                   : 'var(--border-subtle)'
             }`,
             boxShadow: winning
@@ -848,7 +1100,7 @@ function PollCard({
                 type="button"
                 onClick={() => handleVote(opt.id)}
                 disabled={busy != null}
-                className="footer-btn"
+                className="press-btn"
                 style={{ ...baseStyle, cursor: busy ? 'wait' : 'pointer' }}
               >
                 {inner}
@@ -871,6 +1123,117 @@ function PollCard({
       <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--text-muted)' }}>
         {total} total {total === 1 ? 'vote' : 'votes'}
       </p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * BONK sponsorship banner. Co-brand announcement at the top of the live
+ * page: "powered by BONK" lockup, the BONK Dog mascot, and the prize
+ * tease. Palette + mascot usage follow public/bonk/BRAND.md (BONK Dog is
+ * "a winner!!!"; red reserved for the "!!!"; gradient brings BONK to life).
+ */
+/**
+ * Full-bleed cosmic hero, mirroring the bonkuji.com landing hero: an
+ * edge-to-edge dark space banner (no pill container) with a big left-aligned
+ * headline, a peeking BONK Dog on the right, warm orange glow + embers. Sits
+ * flush under the page header and spans the viewport width.
+ */
+function BonkHero() {
+  return (
+    <section className="bonk-hero" aria-label="BONK Championship Series">
+      {/* Desktop-only faded cosmic scene to fill the wide real estate. Masked
+          toward the left so the headline keeps full contrast. */}
+      <div aria-hidden className="bonk-hero__scene" />
+      <div aria-hidden className="bonk-hero__embers" />
+      <div aria-hidden className="bonk-hero__glow" />
+      {/* Mascot is a direct child of the full-bleed section (not the padded
+          wrap) so right:0 lands it flush against the true container edge. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/bonk/web-img/BONK_Pose_One_001_LR.png"
+        alt="BONK Dog"
+        className="bonk-hero__mascot select-none"
+      />
+      <div className="bonk-hero__wrap">
+        <div className="bonk-hero__inner">
+          <div className="bonk-hero__copy">
+            <span className="bonk-hero__badge bonk-mono">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden />
+              Official prize partner
+            </span>
+            <h1 className="bonk-hero__title bonk-display">
+              BONK Championship<br className="hidden sm:block" /> Series
+              <span className="bonk-hero__bang">!!!</span>
+            </h1>
+            <p className="bonk-hero__sub">
+              Prizes for winners, participants, and content creators.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Closing co-brand strip. Bookends the page opposite the sponsor banner:
+ * BONK Dog (peace), the brand's own community line, and an attributed
+ * "powered by BONK" lockup linking out to bonkcoin.com.
+ */
+function BonkFooter() {
+  return (
+    <div
+      className="relative mt-8 overflow-hidden"
+      style={{
+        borderRadius: 20,
+        boxShadow: '0 24px 60px -24px rgba(23,0,28,0.7)',
+      }}
+    >
+      {/* Scene + wash swap per theme (warm daytime in light, cosmic sunset at
+          night), matching the how-it-works strip so the footer adapts too. */}
+      <div aria-hidden className="bonk-foot-scene bonk-foot-scene--light pointer-events-none" />
+      <div aria-hidden className="bonk-foot-scene bonk-foot-scene--dark pointer-events-none" />
+      <div aria-hidden className="bonk-foot-wash bonk-foot-wash--light pointer-events-none" />
+      <div aria-hidden className="bonk-foot-wash bonk-foot-wash--dark pointer-events-none" />
+      {/* Warm light source bottom-left, the way BONK lights its dark scenes. */}
+      <div
+        aria-hidden
+        className="bonk-dark-only pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(70% 130% at 12% 100%, color-mix(in srgb, var(--bonk-ui-orange) 38%, transparent) 0%, transparent 60%)' }}
+      />
+      <div className="relative z-[1] flex flex-col items-center gap-5 px-6 py-8 text-center sm:flex-row sm:gap-7 sm:px-10 sm:text-left">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/bonk/web-img/BONK_Pose_Peace_001_LR.png"
+          alt="BONK Dog"
+          className="bonk-sway shrink-0"
+          style={{ width: 'clamp(96px, 18vw, 128px)', height: 'auto', marginTop: -14, marginBottom: -14, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.45))' }}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="bonk-display bonk-band-title" style={{ color: 'var(--bonk-band-fg)', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
+            BONK Dog is a winner<span style={{ color: 'var(--bonk-foot-bang)' }}>!!!</span>
+          </p>
+          <p className="mt-2 text-sm font-medium" style={{ color: 'color-mix(in srgb, var(--bonk-band-fg) 76%, transparent)', lineHeight: 1.5 }}>
+            He wins for the community, never gives up, and never surrenders. This
+            event&rsquo;s prize pool is proudly backed by BONK.
+          </p>
+        </div>
+        <a
+          href="https://bonkcoin.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bonk-mono shrink-0 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.08em] transition-transform hover:-translate-y-0.5"
+          style={{ background: 'var(--bonk-grad-ui)', color: '#fff', boxShadow: '0 10px 26px -10px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)' }}
+          aria-label="Learn more about BONK at bonkcoin.com"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden style={{ height: 26, width: 'auto', display: 'block' }} />
+          bonkcoin.com
+        </a>
+      </div>
     </div>
   )
 }
@@ -881,8 +1244,6 @@ export function TournamentLive() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
-  // Whether the "Why connect a wallet?" explainer modal is open.
-  const [showWalletInfo, setShowWalletInfo] = useState(false)
   // Whether the profile editor modal is open (for adding an X handle before
   // sign-up). Mirrors the waitlist card's add-handle flow.
   const [editingProfile, setEditingProfile] = useState(false)
@@ -896,9 +1257,12 @@ export function TournamentLive() {
   // Post-entry deck submission (waitlist conversions who entered without one)
   // and viewing one's own locked list during the event.
   const [submitDeckBusy, setSubmitDeckBusy] = useState(false)
-  const [ownDeckModal, setOwnDeckModal] = useState<
-    { loading: true } | { loading: false; text: string | null } | null
-  >(null)
+  // The caller's own locked list, fetched inline (no modal) and shown right in
+  // the Sign up panel once they're signed up with a deck on file.
+  const [ownDeck, setOwnDeck] = useState<{ loading: boolean; text: string | null }>({
+    loading: false,
+    text: null,
+  })
   // Roster starts capped (top N) with a "Load more" so a big field doesn't
   // dominate the page; one tap reveals everyone.
   const [rosterExpanded, setRosterExpanded] = useState(false)
@@ -1001,9 +1365,10 @@ export function TournamentLive() {
     // Re-attach when the list mounts (players load) or its grid template
     // changes (sign-up vs competitors uses a different minmax).
   }, [visiblePlayers.length, signupOpen])
+  const rosterMin = ownDeck.text ? ROSTER_MIN_VISIBLE_WITH_DECK : ROSTER_MIN_VISIBLE
   const rosterCap = useMemo(
-    () => Math.ceil(ROSTER_MIN_VISIBLE / rosterCols) * rosterCols,
-    [rosterCols],
+    () => Math.ceil(rosterMin / rosterCols) * rosterCols,
+    [rosterCols, rosterMin],
   )
 
   // Signed up if this browser recorded it for the current event, OR the
@@ -1105,116 +1470,44 @@ export function TournamentLive() {
     }
   }
 
-  // Pull up the caller's own locked list (private to the owner + host).
-  async function viewOwnDeck() {
-    if (!tournament) return
-    setOwnDeckModal({ loading: true })
-    try {
-      const res = await apiOwnDeck(tournament.code)
-      setOwnDeckModal({ loading: false, text: res.deckList })
-    } catch {
-      setOwnDeckModal({ loading: false, text: null })
+  // Auto-load the caller's own locked list inline (private to the owner + host)
+  // once they're signed up with a deck on file - no modal, it renders right in
+  // the Sign up panel's open space. Keyed on the stable player *id* (not the
+  // myPlayer object, which gets a fresh reference on every snapshot poll) so it
+  // fetches once instead of flashing blank->filled on each refresh. Existing
+  // text is kept while any re-fetch is in flight, so the panel never blanks.
+  const myPlayerId = myPlayer?.id ?? null
+  useEffect(() => {
+    const code = tournament?.code
+    if (!code || !myPlayerId || owesDeckList) {
+      setOwnDeck({ loading: false, text: null })
+      return
     }
-  }
-
-  const lede = (
-    <>
-      <p
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(12px, 3.2vw, 24px)',
-          fontStyle: 'italic',
-          fontWeight: 700,
-          lineHeight: 1.3,
-          color: 'var(--text-secondary)',
-        }}
-      >
-        <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>“</span>
-        Sign in with your <Wallet width="0.95em" height="0.95em" style={{ display: 'inline-block', verticalAlign: '-0.12em', color: '#E85D2A' }} aria-label="wallet" />,{' '}
-        <br className="sm:hidden" />
-        link your <XLogo /> handle for authenticity
-        <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>”</span>
-      </p>
-
-      <button
-        type="button"
-        onClick={() => setShowWalletInfo(true)}
-        className="inline-flex items-center gap-1 mt-3 text-xs font-semibold transition-opacity hover:opacity-80"
-        style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-      >
-        <Wallet size={12} aria-hidden style={{ opacity: 0.8 }} />
-        Why connect a wallet?
-      </button>
-
-      {showWalletInfo && (
-        <ModalPortal onClose={() => setShowWalletInfo(false)} label="Why connect a wallet?" maxWidth={400}>
-          {/* Close button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
-            <button
-              onClick={() => setShowWalletInfo(false)}
-              aria-label="Close"
-              style={{
-                background: 'var(--bg)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '50%',
-                width: 30,
-                height: 30,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <div style={{ padding: '0 24px 24px', overflowY: 'auto' }}>
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: '50%',
-                margin: '0 auto 14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'color-mix(in srgb, #E85D2A 16%, var(--bg))',
-                color: '#E85D2A',
-              }}
-            >
-              <Wallet size={24} aria-hidden />
-            </div>
-            <h2
-              className="font-display"
-              style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.01em', textAlign: 'center', marginBottom: 12 }}
-            >
-              Why connect a wallet?
-            </h2>
-            <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-secondary)', textAlign: 'left' }}>
-              Think of it as a username you already own. Connecting your wallet just
-              proves it&apos;s you, then you sign a quick message to confirm. It&apos;s
-              completely free, never touches a blockchain, and there&apos;s no payment
-              or gas fee, ever.
-            </p>
-            <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-secondary)', textAlign: 'left', marginTop: 12 }}>
-              We only use it to keep your win/loss record tied to you across events.
-              Linking your <XLogo size="0.9em" /> handle on top just adds a familiar
-              face so opponents know who they&apos;re playing.
-            </p>
-          </div>
-        </ModalPortal>
-      )}
-    </>
-  )
+    let cancelled = false
+    setOwnDeck((prev) => ({ loading: prev.text == null, text: prev.text }))
+    apiOwnDeck(code)
+      .then((res) => {
+        if (!cancelled) setOwnDeck({ loading: false, text: res.deckList })
+      })
+      .catch(() => {
+        if (!cancelled) setOwnDeck((prev) => ({ loading: false, text: prev.text }))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tournament?.code, myPlayerId, owesDeckList])
 
   if (loadError && !snapshot) {
     return (
-      <TournamentShell lede={lede}>
+      <TournamentShell hero={<BonkHero />} bonk>
         <div className="mx-auto" style={{ maxWidth: 1080 }}>
           <div className="mx-auto mb-6 max-w-md p-8 text-center" style={card}>
-            <Trophy size={32} style={{ color: '#E85D2A', margin: '0 auto 12px' }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/bonk/web-img/BONK_Pose_Head_001_LR.png"
+              alt="BONK Dog"
+              style={{ width: 116, height: 'auto', margin: '0 auto 14px', display: 'block', filter: 'drop-shadow(0 12px 20px rgba(23,0,28,0.2))' }}
+            />
             <p className="font-display text-lg font-bold">No active tournament</p>
             <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {loadError.includes('No tournament') ? 'Check back when the next event opens, or get in line below.' : loadError}
@@ -1227,7 +1520,7 @@ export function TournamentLive() {
               className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
               style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
             >
-              <Trophy size={15} style={{ color: '#E85D2A' }} aria-hidden /> Browse past events
+              <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Browse past events
               <ChevronRight size={15} aria-hidden />
             </Link>
           </div>
@@ -1238,7 +1531,7 @@ export function TournamentLive() {
 
   if (!snapshot || !tournament) {
     return (
-      <TournamentShell lede={lede}>
+      <TournamentShell hero={<BonkHero />} bonk>
         <div className="flex justify-center py-20 gap-2" style={{ color: 'var(--text-muted)' }}>
           <Loader2 size={18} className="animate-spin" /> Loading…
         </div>
@@ -1247,7 +1540,7 @@ export function TournamentLive() {
   }
 
   return (
-    <TournamentShell lede={lede}>
+    <TournamentShell hero={<BonkHero />} bonk>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
       {/* Global leaderboard across all tournaments */}
       <Leaderboard />
@@ -1259,7 +1552,7 @@ export function TournamentLive() {
           className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
           style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
         >
-          <Trophy size={15} style={{ color: '#E85D2A' }} aria-hidden /> Past events
+          <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Past events
           <ChevronRight size={15} aria-hidden />
         </Link>
       </div>
@@ -1269,24 +1562,29 @@ export function TournamentLive() {
       {!signupOpen && <WaitlistCard />}
 
       {/* Event hero */}
-      <div className="mb-6 overflow-hidden" style={card}>
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
-        <div className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+        <BonkModuleHeader
+          icon={Trophy}
+          title={tournament.name}
+          right={<span className="hidden sm:block"><StatusPill status={tournament.status} /></span>}
+        />
+        <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="font-display text-2xl font-bold leading-none tracking-tight sm:text-3xl">{tournament.name}</h2>
-                <StatusPill status={tournament.status} />
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <MetaChip icon={Hash}>{tournament.code}</MetaChip>
-                <MetaChip icon={Swords}>{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
-                <MetaChip icon={Users}>
+              {/* Mobile: even 2-col grid so the chips read as a tidy block
+                  instead of an orphaned, lopsided wrap. Desktop: inline row. */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <MetaChip icon={Hash} iconColor="var(--bonk-ui-yellow)">{tournament.code}</MetaChip>
+                <MetaChip icon={Swords} iconColor="var(--bonk-ui-orange)">{tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
+                <MetaChip icon={Users} iconColor="var(--bonk-pink)">
                   {visiblePlayers.length}
                   {tournament.maxPlayers ? ` / ${tournament.maxPlayers}` : ''}
                   <span className="hidden sm:inline"> signed up</span>
                 </MetaChip>
-                <MetaChip icon={Check} hideOnMobile>Admin-verified</MetaChip>
+                <MetaChip icon={Check} iconColor="#22c55e">
+                  <span className="sm:hidden">Verified</span>
+                  <span className="hidden sm:inline">Admin-verified</span>
+                </MetaChip>
               </div>
             </div>
             {signupOpen && <CountdownStat label="Sign-ups close in" value={signupCountdown} />}
@@ -1295,21 +1593,19 @@ export function TournamentLive() {
             )}
           </div>
           {tournament.rules && (
-            <p className="mt-5 whitespace-pre-wrap rounded-md p-3.5 text-sm" style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p className="mt-5 whitespace-pre-wrap rounded-md p-3.5 text-sm" style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {tournament.rules}
             </p>
           )}
           {tournament.contactUrl && (
             <p className="mt-3 text-sm">
-              <a href={tournament.contactUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold" style={{ color: '#E85D2A' }}>
+              <a href={tournament.contactUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold" style={{ color: 'var(--tcw-accent)' }}>
                 <CalendarClock size={14} /> Coordination link (Discord / stream)
               </a>
             </p>
           )}
-        </div>
+        </BonkSceneBody>
       </div>
-
-      {tournament.prizes.length > 0 && <PrizePool prizes={tournament.prizes} />}
 
       {tournament.status === 'running' && myPlayer && myActiveMatch && (
         <MyMatchCard
@@ -1322,25 +1618,16 @@ export function TournamentLive() {
         />
       )}
 
-      <PollCard
-        code={tournament.code}
-        poll={snapshot.poll}
-        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
-        signedUp={signedUp}
-        pollOpen={tournament.pollOpen}
-        onVoted={refresh}
-      />
-
-      <HowItWorks />
-
-      <div className={signupOpen ? 'grid gap-6 lg:grid-cols-[1fr_1.2fr]' : ''}>
+      <div className={signupOpen ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
         {/* Sign up */}
         {signupOpen && (
-          <div className="p-5" style={card}>
-            <div className="flex items-center gap-2 mb-4">
-              <UserPlus size={16} style={{ color: '#E85D2A' }} />
-              <h3 className="font-display font-bold">Sign up</h3>
-            </div>
+          <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+            <BonkModuleHeader
+              icon={UserPlus}
+              title="Sign up"
+              right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Wave_001_LR.png" />}
+            />
+            <div className="p-5">
             {signedUp ? (
               <div className="flex flex-col gap-3">
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -1350,7 +1637,7 @@ export function TournamentLive() {
                 </p>
                 {owesDeckList ? (
                   <div className="flex flex-col gap-2 rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid rgba(232,93,42,0.4)' }}>
-                    <p className="text-xs font-bold" style={{ color: '#E85D2A' }}>
+                    <p className="text-xs font-bold" style={{ color: 'var(--tcw-accent)' }}>
                       One more step: submit your deck list before the bracket is
                       drawn, or you can&rsquo;t be paired.
                     </p>
@@ -1363,8 +1650,8 @@ export function TournamentLive() {
                     <button
                       onClick={() => void doSubmitDeck()}
                       disabled={submitDeckBusy}
-                      className="footer-btn py-2 text-sm font-bold"
-                      style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: submitDeckBusy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                      className="footer-btn bonk-cta py-2 text-sm font-bold"
+                      style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: submitDeckBusy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
                       {submitDeckBusy ? (
                         <>
@@ -1375,15 +1662,21 @@ export function TournamentLive() {
                       )}
                     </button>
                   </div>
-                ) : myPlayer ? (
-                  <button
-                    type="button"
-                    onClick={() => void viewOwnDeck()}
-                    className="inline-flex items-center gap-1.5 self-start text-xs font-semibold transition-opacity hover:opacity-80"
-                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                  >
-                    <ListChecks size={13} aria-hidden /> View my locked deck list
-                  </button>
+                ) : myPlayer && ownDeck.loading ? (
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <Loader2 size={15} className="animate-spin" /> Loading your deck list…
+                  </div>
+                ) : myPlayer && ownDeck.text ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                      <ListChecks size={13} aria-hidden style={{ color: 'var(--tcw-accent)' }} />
+                      Your locked deck list
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+                        - {deckCardCount(ownDeck.text)} cards, committed for the whole event
+                      </span>
+                    </div>
+                    <DeckListBlock deckList={ownDeck.text} maxHeight={420} />
+                  </div>
                 ) : null}
               </div>
             ) : walletStatus === 'loading' ? (
@@ -1406,8 +1699,8 @@ export function TournamentLive() {
                 </p>
                 <button
                   onClick={() => setEditingProfile(true)}
-                  className="footer-btn py-2.5 text-sm font-bold"
-                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6 }}
+                  className="footer-btn bonk-cta py-2.5 text-sm font-bold"
+                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6 }}
                 >
                   Add X handle
                 </button>
@@ -1427,8 +1720,8 @@ export function TournamentLive() {
                 <button
                   onClick={() => void doEnroll()}
                   disabled={busy}
-                  className="footer-btn py-2.5 text-sm font-bold"
-                  style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  className="footer-btn bonk-cta py-2.5 text-sm font-bold"
+                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {busy ? (
                     <>
@@ -1443,24 +1736,29 @@ export function TournamentLive() {
             {editingProfile && (
               <PlayerProfileModal onClose={() => setEditingProfile(false)} />
             )}
+            </div>
           </div>
         )}
 
         {/* Roster: balanced beside the form while enrolling, full-width
             multi-column once sign-ups close so it never orphans. */}
-        <div className="p-5" style={card}>
-          <div className="flex items-center justify-between gap-2 mb-4">
-            <div className="flex items-center gap-2">
-              <Users size={16} style={{ color: '#E85D2A' }} />
-              <h3 className="font-display font-bold">{signupOpen ? 'Sign-ups' : 'Competitors'}</h3>
-            </div>
-            <span
-              className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
-              style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 5, background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}
-            >
-              {visiblePlayers.length}
-            </span>
-          </div>
+        <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+          <BonkModuleHeader
+            icon={Users}
+            title={signupOpen ? 'Registered' : 'Competitors'}
+            right={
+              <>
+                <span
+                  className="inline-flex items-center justify-center self-center font-display text-xs font-bold tabular-nums"
+                  style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 6, background: 'var(--bonk-band-chip-bg)', color: 'var(--bonk-band-chip-fg)' }}
+                >
+                  {visiblePlayers.length}
+                </span>
+                <BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_001_LR.png" />
+              </>
+            }
+          />
+          <div className="p-5">
           {visiblePlayers.length === 0 ? (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No sign-ups yet.</p>
           ) : (
@@ -1498,8 +1796,29 @@ export function TournamentLive() {
               )}
             </>
           )}
+          </div>
         </div>
       </div>
+
+      {tournament.prizes.length > 0 && (
+        <PrizePool
+          prizes={tournament.prizes}
+          awarded={tournament.status === 'complete' ? snapshot.awardedPrizes : undefined}
+        />
+      )}
+
+      <PollCard
+        code={tournament.code}
+        poll={snapshot.poll}
+        question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+        options={tournament.pollOptions ?? POLL_OPTIONS}
+        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
+        signedUp={signedUp}
+        pollOpen={tournament.pollOpen}
+        onVoted={refresh}
+      />
+
+      <HowItWorks />
 
       {/* Round board */}
       {tournament.status !== 'enrolling' && snapshot.matches.length > 0 && (
@@ -1512,43 +1831,8 @@ export function TournamentLive() {
         />
       )}
 
-      {/* Prize history - only after the event is complete + prizes resolved */}
-      {tournament.status === 'complete' && snapshot.awardedPrizes.length > 0 && (
-        <div className="mt-6">
-          <AwardedPrizesHistory awarded={snapshot.awardedPrizes} />
-        </div>
-      )}
-
-      {ownDeckModal && (
-        <ModalPortal onClose={() => setOwnDeckModal(null)} label="Your deck list" maxWidth={460}>
-          <div className="flex items-center gap-2 mb-3">
-            <ListChecks size={16} style={{ color: '#E85D2A' }} />
-            <h3 className="font-display font-bold">Your locked deck list</h3>
-          </div>
-          {ownDeckModal.loading ? (
-            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-              <Loader2 size={15} className="animate-spin" /> Loading…
-            </div>
-          ) : ownDeckModal.text ? (
-            <>
-              <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {deckCardCount(ownDeckModal.text)} cards - this is the list you are
-                committed to for the whole event.
-              </p>
-              <pre
-                className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)' }}
-              >
-                {ownDeckModal.text}
-              </pre>
-            </>
-          ) : (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              No deck list on file yet.
-            </p>
-          )}
-        </ModalPortal>
-      )}
+      {/* Closing co-brand strip */}
+      <BonkFooter />
       </div>
     </TournamentShell>
   )
@@ -1572,14 +1856,30 @@ function DeckListField({
   return (
     <div className="flex flex-col gap-1.5">
       <label className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-        <ListChecks size={13} style={{ color: '#E85D2A' }} /> Deck list (required)
+        <ListChecks size={13} style={{ color: 'var(--tcw-accent)' }} /> Deck list (required)
       </label>
       <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
         In OPTCG Sim, open your deck and hit{' '}
         <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Copy Deck list to Clipboard</span>,
-        then paste it here. This is the deck you are locked into for the whole
-        event - it can&rsquo;t be changed once submitted.
+        then paste it here.
       </p>
+      <div
+        className="flex items-start gap-1.5 rounded-md px-2.5 py-2 text-xs"
+        style={{
+          background: 'color-mix(in srgb, #f59e0b 10%, var(--bg))',
+          border: '1px solid color-mix(in srgb, #f59e0b 32%, transparent)',
+          color: 'var(--text-secondary)',
+          lineHeight: 1.5,
+        }}
+      >
+        <AlertTriangle size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} aria-hidden />
+        <span>
+          <strong style={{ color: 'var(--text-primary)' }}>Submissions are final.</strong>{' '}
+          You can&rsquo;t edit this list after submitting, so double-check it and keep
+          your own copy. Make sure your deck is legal under the latest ruleset before
+          you submit.
+        </span>
+      </div>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -1628,33 +1928,6 @@ export function RoundBoard({
   )
 }
 
-function SectionHeader({
-  title,
-  subtitle,
-  right,
-}: {
-  title: string
-  subtitle?: React.ReactNode
-  right?: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-      <div>
-        <div className="flex items-center gap-2">
-          <Swords size={18} style={{ color: '#E85D2A' }} />
-          <h3 className="font-display text-lg font-bold tracking-tight">{title}</h3>
-        </div>
-        {subtitle && (
-          <p className="mt-1.5 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-            {subtitle}
-          </p>
-        )}
-      </div>
-      {right}
-    </div>
-  )
-}
-
 function SwissBoard({
   rounds,
   matches,
@@ -1694,20 +1967,20 @@ function SwissBoard({
   const totalRounds = swissRounds ?? sortedRounds.length
 
   return (
-    <div className="mt-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
-      <div className="p-5 sm:p-6">
-        <SectionHeader
-          title={`Round ${selectedRound?.number ?? 1} pairings`}
-          subtitle={
-            <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
-          }
-          right={
-            selectedRound?.status === 'active' && selectedRound.endsAt ? (
-              <CountdownStat label={`Round ${selectedRound.number} ends in`} value={roundCountdown} />
-            ) : undefined
-          }
-        />
+    <div className="mt-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      <BonkModuleHeader
+        icon={Swords}
+        title={`Round ${selectedRound?.number ?? 1} pairings`}
+        subtitle={
+          <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
+        }
+      />
+      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
+        {selectedRound?.status === 'active' && selectedRound.endsAt && (
+          <div className="mb-5 flex justify-end">
+            <CountdownStat label={`Round ${selectedRound.number} ends in`} value={roundCountdown} />
+          </div>
+        )}
 
         {sortedRounds.length > 1 && (
           <div className="flex flex-wrap gap-1.5 mb-5">
@@ -1750,7 +2023,7 @@ function SwissBoard({
         </div>
 
         {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
-      </div>
+      </BonkSceneBody>
     </div>
   )
 }
@@ -1760,7 +2033,7 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
   return (
     <div className="mt-6">
       <div className="flex items-center gap-2 mb-3">
-        <Trophy size={15} style={{ color: '#E85D2A' }} />
+        <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} />
         <h4 className="font-display text-sm font-bold uppercase tracking-wider">
           {complete ? 'Final standings' : 'Standings'}
         </h4>
@@ -1888,28 +2161,27 @@ function ElimBracket({
   }, [columns, tournament.status, nameById])
 
   return (
-    <div className="mt-6 overflow-hidden" style={card}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))' }} />
-      <div className="p-5 sm:p-6">
-        <SectionHeader
-          title="Bracket"
-          subtitle={<>Single elimination · seeded · lose once and you are out.</>}
-          right={
-            champion ? (
-              <div
-                className="inline-flex items-center gap-2 px-3 py-2"
-                style={{ background: 'color-mix(in srgb, #f5b301 16%, var(--bg))', border: '1px solid color-mix(in srgb, #f5b301 45%, transparent)', borderRadius: 6 }}
-              >
-                <Trophy size={15} style={{ color: '#f5b301' }} />
-                <span className="text-sm font-bold">{formatXLabel(champion.xHandle)}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
-                  Champion
-                </span>
-              </div>
-            ) : undefined
-          }
-        />
-
+    <div className="mt-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      <BonkModuleHeader
+        icon={Swords}
+        title="Bracket"
+        subtitle={<>Single elimination · seeded · lose once and you are out.</>}
+        right={
+          champion ? (
+            <div
+              className="inline-flex items-center gap-2 px-3 py-2"
+              style={{ background: 'color-mix(in srgb, #f5b301 22%, #17001c)', border: '1px solid color-mix(in srgb, #f5b301 55%, transparent)', borderRadius: 8 }}
+            >
+              <Trophy size={15} style={{ color: '#f5b301' }} />
+              <span className="text-sm font-bold" style={{ color: '#fff' }}>{formatXLabel(champion.xHandle)}</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                Champion
+              </span>
+            </div>
+          ) : undefined
+        }
+      />
+      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
           DM your opponent on <XLogo /> to schedule. The admin records each result and winners advance automatically.
         </p>
@@ -1942,7 +2214,7 @@ function ElimBracket({
             ))}
           </div>
         </BracketScroller>
-      </div>
+      </BonkSceneBody>
     </div>
   )
 }
@@ -2021,11 +2293,11 @@ function BracketScroller({ children }: { children: React.ReactNode }) {
             marginRight: 2,
             borderRadius: '50%',
             background: 'var(--bg)',
-            border: '1px solid color-mix(in srgb, #E85D2A 45%, var(--border-subtle))',
+            border: '1px solid color-mix(in srgb, var(--tcw-accent) 45%, var(--border-subtle))',
             boxShadow: 'var(--shadow-card)',
           }}
         >
-          <ChevronRight size={16} style={{ color: '#E85D2A' }} />
+          <ChevronRight size={16} style={{ color: 'var(--tcw-accent)' }} />
         </span>
       </div>
     </div>
@@ -2224,7 +2496,7 @@ function BracketSlot({
 function PlayerRow({ player, index }: { player: Player; index: number }) {
   return (
     <li
-      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm"
+      className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-2.5 py-2 text-sm"
       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
     >
       <span
@@ -2236,7 +2508,6 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
       <span className="min-w-0 flex-1">
         <XProfileLink handle={player.xHandle} className="truncate block" />
       </span>
-      <LeaderChip player={player} />
       {player.approvalStatus === 'pending' && (
         <span
           className="shrink-0 text-[10px] uppercase tracking-wider font-bold"

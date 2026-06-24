@@ -18,21 +18,27 @@ const MoonIcon = ({ s = 14 }: { s?: number }) => (
   </svg>
 )
 
-export function ThemeToggle({ size = 30 }: { size?: number }) {
+export function ThemeToggle({ size = 30, mobileSize }: { size?: number; mobileSize?: number }) {
   const { theme, toggleTheme } = useStore()
   const iconSize = Math.round(size * 0.47)
+  // When a distinct mobileSize is given, render at that size below `sm` and
+  // grow to `size` at >= sm via a scoped CSS rule (see globals.css). Keeps the
+  // tournament header controls compact on phones without affecting desktop.
+  const responsive = mobileSize != null && mobileSize !== size
+  const base = responsive ? (mobileSize as number) : size
 
   return (
     <button
       onClick={toggleTheme}
-      className="footer-btn flex items-center justify-center cursor-pointer"
+      className={`footer-btn flex items-center justify-center cursor-pointer${responsive ? ' theme-toggle--responsive' : ''}`}
       style={{
         background: 'var(--bg-surface)',
         color: 'var(--text-secondary)',
         border: '1px solid var(--border-subtle)',
-        borderRadius: size >= 34 ? 8 : 6,
-        width: size,
-        height: size,
+        borderRadius: base >= 34 ? 8 : 6,
+        width: base,
+        height: base,
+        ...(responsive ? ({ ['--tt-sm-size' as string]: `${size}px` } as React.CSSProperties) : {}),
       }}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
     >

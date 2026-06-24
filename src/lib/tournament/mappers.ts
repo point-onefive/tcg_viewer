@@ -12,6 +12,7 @@ import type {
   TournamentGame,
   TournamentStatus,
 } from './types'
+import type { PollOption } from './poll'
 
 /** Defensively coerce the JSONB `prizes` column into clean domain objects. */
 function rowToPrizes(raw: unknown): TournamentPrize[] {
@@ -23,6 +24,20 @@ function rowToPrizes(raw: unknown): TournamentPrize[] {
       description: typeof p.description === 'string' ? p.description : '',
       image: typeof p.image === 'string' && p.image ? p.image : null,
     }))
+}
+
+/** Coerce the JSONB `poll_options` column; null when absent/empty/invalid. */
+function rowToPollOptions(raw: unknown): PollOption[] | null {
+  if (!Array.isArray(raw)) return null
+  const options = raw
+    .filter((o): o is Record<string, unknown> => Boolean(o) && typeof o === 'object')
+    .map((o) => ({
+      id: typeof o.id === 'string' ? o.id : '',
+      label: typeof o.label === 'string' ? o.label : '',
+      blurb: typeof o.blurb === 'string' ? o.blurb : '',
+    }))
+    .filter((o) => o.id && o.label)
+  return options.length > 0 ? options : null
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -51,6 +66,8 @@ export function rowToTournament(r: any): Tournament {
     prizesAwardedAt: r.prizes_awarded_at ?? null,
     // Default open when the column is absent (pre-migration) or null.
     pollOpen: r.poll_open ?? true,
+    pollQuestion: typeof r.poll_question === 'string' && r.poll_question.trim() ? r.poll_question : null,
+    pollOptions: rowToPollOptions(r.poll_options),
     createdAt: r.created_at,
   }
 }

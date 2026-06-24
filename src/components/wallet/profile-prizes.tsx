@@ -8,7 +8,7 @@
 // still-changing pool), so what shows here can never be rewritten by a later
 // edit to a tournament's prize pool.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Gift } from 'lucide-react'
 
 interface WonPrize {
@@ -160,14 +160,46 @@ function PrizesEmptyPreview() {
   )
 }
 
+const TIP_W = 200
+
 function PrizeBadge({ prize }: { prize: WonPrize }) {
   const medal = medalColor(prize.rank)
   const tooltip = [prize.title, prize.tournamentName, prize.description]
     .filter(Boolean)
     .join(' - ')
 
+  const rootRef = useRef<HTMLDivElement>(null)
+  // Horizontal offset (relative to the badge) for the hover card, computed on
+  // hover so the card is clamped inside the modal's scroll container and never
+  // overflows / gets clipped at the left or right edge. Defaults to centered.
+  const [tipLeft, setTipLeft] = useState<number>(-(TIP_W / 2 - 42))
+
+  const positionTip = () => {
+    const root = rootRef.current
+    if (!root) return
+    let scroller: HTMLElement | null = root.parentElement
+    while (scroller && scroller !== document.body) {
+      const oy = getComputedStyle(scroller).overflowY
+      if (oy === 'auto' || oy === 'scroll') break
+      scroller = scroller.parentElement
+    }
+    const bounds = (scroller ?? document.documentElement).getBoundingClientRect()
+    const r = root.getBoundingClientRect()
+    const pad = 8
+    const center = r.left + r.width / 2
+    let leftVp = center - TIP_W / 2
+    leftVp = Math.max(bounds.left + pad, Math.min(leftVp, bounds.right - pad - TIP_W))
+    setTipLeft(leftVp - r.left)
+  }
+
   return (
-    <div className="group relative" style={{ width: 84 }}>
+    <div
+      ref={rootRef}
+      className="group relative"
+      style={{ width: 84 }}
+      onMouseEnter={positionTip}
+      onFocusCapture={positionTip}
+    >
       <div
         className="flex flex-col overflow-hidden"
         style={{
@@ -210,10 +242,11 @@ function PrizeBadge({ prize }: { prize: WonPrize }) {
         </div>
       </div>
 
-      {/* Hover card: the context an image can't carry. */}
+      {/* Hover card: the context an image can't carry. Clamped on hover so it
+          always stays within the modal's bounds (see positionTip). */}
       <div
-        className="pointer-events-none absolute left-1/2 z-20 hidden -translate-x-1/2 group-hover:block"
-        style={{ bottom: 'calc(100% + 8px)', width: 200 }}
+        className="pointer-events-none absolute z-20 hidden group-hover:block"
+        style={{ bottom: 'calc(100% + 8px)', width: TIP_W, left: tipLeft }}
       >
         <div
           className="p-2.5 text-left"

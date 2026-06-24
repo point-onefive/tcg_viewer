@@ -16,6 +16,10 @@ data/
 public/cards/
 public/cards-*/
 
+# Full BONK brand kit archive - kept local only (the app uses the
+# optimized subset committed under public/bonk/). See public/bonk/BRAND.md.
+brand-kit/
+
 # Secrets - NEVER commit these
 .env
 .env.local

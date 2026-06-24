@@ -75,9 +75,11 @@ export function WalletConnectButton({
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,
-    padding: compact ? '7px 10px' : '8px 14px',
-    minHeight: 38,
-    borderRadius: 8,
+    // Compact (mobile) sits at 32px so it aligns with the other header
+    // controls; full size stays 38px on desktop.
+    padding: compact ? '6px 9px' : '8px 14px',
+    minHeight: compact ? 32 : 38,
+    borderRadius: compact ? 6 : 8,
     fontSize: 13,
     fontWeight: 700,
     cursor: 'pointer',
@@ -115,7 +117,7 @@ export function WalletConnectButton({
       <div style={{ position: 'relative' }}>
         <button
           onClick={() => setShowMenu((v) => !v)}
-          style={{ ...btnBase, padding: compact ? '4px' : '5px 12px 5px 6px', background: 'var(--bg-surface)' }}
+          style={{ ...btnBase, padding: compact ? '3px' : '5px 12px 5px 6px', background: 'var(--bg-surface)' }}
           aria-label="Profile menu"
           aria-expanded={showMenu}
         >
@@ -124,7 +126,7 @@ export function WalletConnectButton({
             xHandle={profile.xHandle}
             avatarUrl={profile.avatarUrl}
             walletAddress={profile.walletAddress}
-            size={28}
+            size={compact ? 24 : 28}
           />
           {!compact && <span>{displayName}</span>}
           <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />

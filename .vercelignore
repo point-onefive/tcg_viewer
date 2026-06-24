@@ -5,6 +5,10 @@ public/cards-*/
 # Raw scraped data (not needed for build)
 data/
 
+# Full BONK brand kit archive (the app only uses the optimized subset in
+# public/bonk/). Kept in-repo for reference; excluded from the deploy.
+brand-kit/
+
 # Build artifacts
 .next/
 node_modules/

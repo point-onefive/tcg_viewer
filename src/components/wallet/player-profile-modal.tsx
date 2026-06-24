@@ -239,7 +239,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                         ? 'Add an X handle above to use your X profile picture.'
                         : handleUnchanged && hasSavedSnapshot
                           ? 'Using your saved X profile picture.'
-                          : 'Your X profile picture is fetched and saved when you hit Save.'}
+                          : 'Your X profile picture is fetched when you hit Save.'}
                   </span>
                 </div>
 

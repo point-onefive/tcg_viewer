@@ -12,9 +12,21 @@ import {
   saveAdminKey,
 } from '@/lib/tournament/client'
 import { ModalPortal } from '@/components/ui/modal-portal'
+import { BonkModuleHeader, BonkModalClose } from '@/components/tournament/bonk-ui'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
+import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
+import {
+  DEFAULT_POLL_QUESTION,
+  POLL_OPTIONS,
+  POLL_MAX_OPTIONS,
+  POLL_MIN_OPTIONS,
+  POLL_LABEL_MAX,
+  POLL_BLURB_MAX,
+  POLL_QUESTION_MAX,
+  type PollOption,
+} from '@/lib/tournament/poll'
 import type { Match, Player, StandingRow, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -256,7 +268,7 @@ export function TournamentAdmin() {
     run(async () => {
       if (!code) return
       await adminApi(adminKey, { action: 'set-poll', code, open })
-      setMsg(open ? 'Prize-poll voting reopened' : 'Prize-poll voting stopped')
+      setMsg(open ? 'Poll voting reopened' : 'Poll voting stopped')
     })
 
   return (
@@ -264,7 +276,7 @@ export function TournamentAdmin() {
       <div className="mx-auto max-w-2xl flex flex-col gap-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Crown size={20} style={{ color: '#E85D2A' }} />
+            <Crown size={20} style={{ color: 'var(--tcw-accent)' }} />
             <h2 className="font-display text-xl font-bold">Tournament admin</h2>
           </div>
           {unlocked && (
@@ -304,7 +316,7 @@ export function TournamentAdmin() {
               type="submit"
               disabled={!adminKey.trim() || unlockBusy}
               className="footer-btn py-2 text-sm font-bold inline-flex items-center justify-center gap-2"
-              style={{ background: '#E85D2A', color: '#fff', borderRadius: 6, opacity: !adminKey.trim() || unlockBusy ? 0.6 : 1 }}
+              style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: !adminKey.trim() || unlockBusy ? 0.6 : 1 }}
             >
               {unlockBusy && <Loader2 size={14} className="animate-spin" />}
               {unlockBusy ? 'Verifying…' : 'Unlock'}
@@ -353,7 +365,7 @@ export function TournamentAdmin() {
               }}
             >
               <div className="flex items-center gap-2">
-                <Trophy size={16} style={{ color: '#E85D2A' }} />
+                <Trophy size={16} style={{ color: 'var(--tcw-accent)' }} />
                 <h3 className="font-display font-bold">Start fresh tournament</h3>
               </div>
               <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="Tournament name" />
@@ -396,7 +408,7 @@ export function TournamentAdmin() {
             {/* Next event waitlist - queued profiles, NOT current sign-ups */}
             <div className="p-5" style={card}>
               <div className="flex items-center gap-2">
-                <Hourglass size={16} style={{ color: '#E85D2A' }} />
+                <Hourglass size={16} style={{ color: 'var(--tcw-accent)' }} />
                 <h3 className="font-display font-bold">Next event waitlist</h3>
                 <span className="ml-auto inline-flex items-center gap-1.5">
                   <span
@@ -405,7 +417,7 @@ export function TournamentAdmin() {
                       minWidth: 22,
                       height: 22,
                       padding: '0 6px',
-                      background: '#E85D2A',
+                      background: 'var(--tcw-accent)',
                       color: '#fff',
                       borderRadius: 6,
                     }}
@@ -506,7 +518,7 @@ export function TournamentAdmin() {
                       className="mt-4 flex items-center gap-2 px-3 py-2.5"
                       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
                     >
-                      <Swords size={15} style={{ color: '#E85D2A', flexShrink: 0 }} />
+                      <Swords size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
                       <span className="text-sm font-semibold">
                         Round {activeRound?.number ?? roundsPlayed} of {totalRounds} in progress
                       </span>
@@ -544,8 +556,8 @@ export function TournamentAdmin() {
                     className="mt-4 flex flex-wrap items-center gap-2 px-3 py-2.5"
                     style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
                   >
-                    <PieChart size={15} style={{ color: '#E85D2A', flexShrink: 0 }} />
-                    <span className="text-sm font-semibold">Prize poll</span>
+                    <PieChart size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+                    <span className="text-sm font-semibold">Feedback poll</span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {snapshot.poll.totalVotes} vote{snapshot.poll.totalVotes === 1 ? '' : 's'} · {pollOpen ? 'open' : 'closed'}
                     </span>
@@ -564,11 +576,34 @@ export function TournamentAdmin() {
                   )}
                 </div>
 
+                <PollConfigEditor
+                  key={`poll-${code}`}
+                  question={snapshot.tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+                  options={snapshot.tournament.pollOptions ?? POLL_OPTIONS}
+                  busy={busy}
+                  onSave={async (question, options) => {
+                    setBusy(true)
+                    setMsg(null)
+                    setError(null)
+                    try {
+                      const r = await adminApi(adminKey, { action: 'set-poll-config', code, question, options })
+                      setMsg(`Saved poll (${r.count ?? options.length} option${(r.count ?? options.length) === 1 ? '' : 's'})`)
+                      await refresh(adminKey)
+                      return true
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not save the poll')
+                      return false
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                />
+
                 {activeRound && activeMatches.length > 0 && (
                   <div className="p-5" style={card}>
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
-                        <Swords size={16} style={{ color: '#E85D2A' }} />
+                        <Swords size={16} style={{ color: 'var(--tcw-accent)' }} />
                         <h3 className="font-display font-bold">Round {activeRound.number} decisions</h3>
                       </div>
                       <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
@@ -749,6 +784,165 @@ function ordinalLabel(n: number): string {
   return `${base} Place`
 }
 
+/**
+ * Player-feedback poll editor. Lets the host set the poll question and ballot
+ * (2-6 options) for the live event without a code change. Existing options keep
+ * their id (so a running tally survives a label tweak); brand-new options get a
+ * fresh id derived from their label on save. Mirrors PrizeEditor's dirty-guard
+ * so the 12s background refresh never clobbers an in-progress edit.
+ */
+function PollConfigEditor({
+  question: initialQuestion,
+  options: initialOptions,
+  busy,
+  onSave,
+}: {
+  question: string
+  options: PollOption[]
+  busy: boolean
+  onSave: (question: string, options: PollOption[]) => Promise<boolean>
+}) {
+  const [question, setQuestion] = useState(initialQuestion)
+  const [options, setOptions] = useState<PollOption[]>(initialOptions)
+  const [dirty, setDirty] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
+
+  const initialKey = JSON.stringify([initialQuestion, initialOptions])
+  useEffect(() => {
+    if (!dirty) {
+      setQuestion(initialQuestion)
+      setOptions(initialOptions)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialKey])
+
+  const mutateQuestion = (v: string) => {
+    setQuestion(v)
+    setDirty(true)
+  }
+  const mutateOptions = (next: PollOption[]) => {
+    setOptions(next)
+    setDirty(true)
+  }
+  const patch = (i: number, p: Partial<PollOption>) =>
+    mutateOptions(options.map((o, idx) => (idx === i ? { ...o, ...p } : o)))
+  // New options carry an empty id; the server derives a stable slug from the
+  // label on save. Existing options keep their id so their tally survives.
+  const addOption = () => mutateOptions([...options, { id: '', label: '', blurb: '' }])
+  const removeOption = (i: number) => mutateOptions(options.filter((_, idx) => idx !== i))
+
+  const reset = () => {
+    setQuestion(initialQuestion)
+    setOptions(initialOptions)
+    setDirty(false)
+    setLocalError(null)
+  }
+
+  const save = async () => {
+    const filled = options.filter((o) => o.label.trim())
+    if (filled.length < POLL_MIN_OPTIONS) {
+      setLocalError(`Add at least ${POLL_MIN_OPTIONS} options with a label.`)
+      return
+    }
+    setLocalError(null)
+    const ok = await onSave(question.trim() || DEFAULT_POLL_QUESTION, filled)
+    if (ok) setDirty(false)
+  }
+
+  return (
+    <div className="p-5" style={card}>
+      <div className="flex items-center gap-2 mb-1">
+        <PieChart size={16} style={{ color: 'var(--tcw-accent)' }} />
+        <h3 className="font-display font-bold">Poll question</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        The question + options players vote on (only signed-up players can vote). Editing a kept
+        option preserves its running tally; new options start fresh. Changes apply to the live event.
+      </p>
+
+      <label className="block text-xs mb-3">
+        <span style={{ color: 'var(--text-muted)' }}>Question</span>
+        <input
+          style={inputStyle}
+          value={question}
+          maxLength={POLL_QUESTION_MAX}
+          disabled={busy}
+          onChange={(e) => mutateQuestion(e.target.value)}
+          placeholder={DEFAULT_POLL_QUESTION}
+        />
+      </label>
+
+      <div className="flex flex-col gap-2 mb-3">
+        {options.map((opt, i) => (
+          <div
+            key={i}
+            className="p-3"
+            style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span
+                className="inline-flex items-center justify-center font-display text-[11px] font-bold"
+                style={{ minWidth: 20, height: 20, borderRadius: 5, background: 'color-mix(in srgb, var(--text-primary) 14%, transparent)', color: 'var(--text-primary)' }}
+              >
+                {i + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeOption(i)}
+                disabled={busy || options.length <= POLL_MIN_OPTIONS}
+                aria-label={`Remove option ${i + 1}`}
+                className="inline-flex items-center justify-center"
+                style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: options.length <= POLL_MIN_OPTIONS ? 'default' : 'pointer', opacity: options.length <= POLL_MIN_OPTIONS ? 0.4 : 1 }}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <input
+                style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+                value={opt.label}
+                maxLength={POLL_LABEL_MAX}
+                disabled={busy}
+                onChange={(e) => patch(i, { label: e.target.value })}
+                placeholder="Option label (e.g. Cash)"
+              />
+              <input
+                style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+                value={opt.blurb}
+                maxLength={POLL_BLURB_MAX}
+                disabled={busy}
+                onChange={(e) => patch(i, { blurb: e.target.value })}
+                placeholder="Short blurb (e.g. Straight cash prize)"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {localError && <p className="text-sm mb-3" style={{ color: '#ef4444' }}>{localError}</p>}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <AdminBtn disabled={busy || options.length >= POLL_MAX_OPTIONS} onClick={addOption}>
+          <span className="inline-flex items-center gap-1"><Plus size={12} /> Add option</span>
+        </AdminBtn>
+        <AdminBtn primary disabled={busy || !dirty} onClick={save}>
+          {dirty ? 'Save poll' : 'Saved'}
+        </AdminBtn>
+        {dirty && (
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs"
+            style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Discard changes
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function prizesEqual(a: TournamentPrize[], b: TournamentPrize[]): boolean {
   return JSON.stringify(a) === JSON.stringify(b)
 }
@@ -809,7 +1003,7 @@ function PrizeEditor({
   return (
     <div className="p-5" style={card}>
       <div className="flex items-center gap-2 mb-1">
-        <Gift size={16} style={{ color: '#E85D2A' }} />
+        <Gift size={16} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display font-bold">Prize pool</h3>
       </div>
       <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
@@ -1222,8 +1416,8 @@ function PlayerCapPicker({
                 padding: '7px 10px',
                 borderRadius: 6,
                 cursor: 'pointer',
-                background: active ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
-                border: `1px solid ${active ? '#E85D2A' : 'var(--border-subtle)'}`,
+                background: active ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg)',
+                border: `1px solid ${active ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
               }}
             >
               <span className="block font-display text-base font-bold leading-none">{size}</span>
@@ -1244,8 +1438,8 @@ function PlayerCapPicker({
             padding: '7px 10px',
             borderRadius: 6,
             cursor: 'pointer',
-            background: custom ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
-            border: `1px solid ${custom ? '#E85D2A' : 'var(--border-subtle)'}`,
+            background: custom ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg)',
+            border: `1px solid ${custom ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
           }}
         >
           <span className="block font-display text-base font-bold leading-none">∙∙∙</span>
@@ -1287,14 +1481,14 @@ function FormatCard({
       aria-pressed={active}
       className="flex flex-col gap-1.5 p-3 text-left transition-colors"
       style={{
-        background: active ? 'color-mix(in srgb, #E85D2A 12%, var(--bg))' : 'var(--bg)',
-        border: `1px solid ${active ? '#E85D2A' : 'var(--border-subtle)'}`,
+        background: active ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg)',
+        border: `1px solid ${active ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
         borderRadius: 6,
         cursor: 'pointer',
       }}
     >
       <span className="inline-flex items-center gap-1.5 font-display text-sm font-bold">
-        <Icon size={15} style={{ color: active ? '#E85D2A' : 'var(--text-muted)' }} />
+        <Icon size={15} style={{ color: active ? 'var(--tcw-accent)' : 'var(--text-muted)' }} />
         {title}
       </span>
       <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -1322,7 +1516,7 @@ function AdminBtn({
       onClick={onClick}
       className="footer-btn px-3 py-1.5 text-xs font-bold"
       style={{
-        background: primary ? '#E85D2A' : 'var(--bg)',
+        background: primary ? 'var(--tcw-accent)' : 'var(--bg)',
         color: primary ? '#fff' : 'var(--text-primary)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 6,
@@ -1336,7 +1530,7 @@ function AdminBtn({
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string }> = {
-    enrolling: { label: 'Sign-ups open', color: '#E85D2A' },
+    enrolling: { label: 'Sign-ups open', color: 'var(--tcw-accent)' },
     running: { label: 'Live', color: '#22c55e' },
     complete: { label: 'Complete', color: '#8b93a1' },
   }
@@ -1409,7 +1603,7 @@ function AdminMatchRow({
       const who = r1 ? p1Label : p2Label
       const what = r1 ?? r2
       return {
-        tone: '#E85D2A',
+        tone: 'var(--tcw-accent)',
         label: 'Reported',
         text: `${who} reported ${what}. Awaiting the other player.`,
       }
@@ -1663,7 +1857,7 @@ function ParticipantRow({
           style={
             player.hasDeckList
               ? { color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 7px', borderRadius: 5 }
-              : { color: '#E85D2A', background: 'rgba(232,93,42,0.15)', padding: '2px 7px', borderRadius: 5 }
+              : { color: 'var(--tcw-accent)', background: 'rgba(232,93,42,0.15)', padding: '2px 7px', borderRadius: 5 }
           }
         >
           {player.hasDeckList ? 'Deck ✓' : 'No deck'}
@@ -1754,11 +1948,13 @@ function AdminDeckModal({
   }
 
   return (
-    <ModalPortal onClose={onClose} label="Deck list" maxWidth={480}>
-      <div className="flex items-center gap-2 mb-3">
-        <ListChecks size={16} style={{ color: '#E85D2A' }} />
-        <h3 className="font-display font-bold">{formatXLabel(player.xHandle)} - deck list</h3>
-      </div>
+    <ModalPortal onClose={onClose} label="Deck list" maxWidth={480} className="bonk-theme">
+      <BonkModuleHeader
+        icon={ListChecks}
+        title={`${formatXLabel(player.xHandle)} - deck list`}
+        right={<BonkModalClose onClose={onClose} />}
+      />
+      <div style={{ padding: '20px 24px 24px', overflowY: 'auto' }}>
       {loading ? (
         <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
           <Loader2 size={15} className="animate-spin" /> Loading…
@@ -1791,12 +1987,7 @@ function AdminDeckModal({
               <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
                 {deckCardCount(text)} cards
               </p>
-              <pre
-                className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)' }}
-              >
-                {text}
-              </pre>
+              <DeckListBlock deckList={text} />
             </>
           ) : (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -1825,6 +2016,7 @@ function AdminDeckModal({
           )}
         </>
       )}
+      </div>
     </ModalPortal>
   )
 }

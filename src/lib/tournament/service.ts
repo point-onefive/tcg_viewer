@@ -40,7 +40,14 @@ import type {
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { validateDeckList } from './deck-list'
 import { extractLeader } from './leader'
-import { emptyPollResults, isPollChoice, type PollResults } from './poll'
+import {
+  emptyPollResults,
+  isValidChoice,
+  normalizePollConfig,
+  POLL_OPTIONS,
+  type PollOption,
+  type PollResults,
+} from './poll'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Service layer: all tournament mutations + reads. Route handlers call these.
@@ -1010,8 +1017,11 @@ export async function recomputeAllPlacements(): Promise<number> {
  * loads. Votes are scoped to `tournament_id`, so a new tournament starts the
  * poll fresh with no extra work.
  */
-async function fetchPollResults(tournamentId: string): Promise<PollResults> {
-  const results = emptyPollResults()
+async function fetchPollResults(
+  tournamentId: string,
+  options: PollOption[] = POLL_OPTIONS,
+): Promise<PollResults> {
+  const results = emptyPollResults(options)
   try {
     const sb = getServiceClient()
     const { data, error } = await sb
@@ -1047,10 +1057,12 @@ export async function castPollVote(
   if (!voterId || voterId.length > 128) {
     throw new TournamentError('Could not identify your browser - try refreshing.')
   }
-  if (!isPollChoice(choice)) {
+  const row = await getLiveTournamentRow()
+  // Validate the choice against THIS event's ballot (custom or default).
+  const options = rowToTournament(row).pollOptions ?? POLL_OPTIONS
+  if (!isValidChoice(options, choice)) {
     throw new TournamentError('Pick one of the available options.')
   }
-  const row = await getLiveTournamentRow()
   if (row.poll_open === false) {
     throw new TournamentError('Voting for this poll has closed.', 403)
   }
@@ -1065,7 +1077,34 @@ export async function castPollVote(
     }
     throw new TournamentError(`Could not record your vote: ${error.message}`, 500)
   }
-  return fetchPollResults(row.id)
+  return fetchPollResults(row.id, options)
+}
+
+/**
+ * Replace the live/active event's poll question + ballot. Host-only. Options
+ * are validated + slugged in `normalizePollConfig`; changing the ballot does
+ * not delete past votes (they simply stop being counted once their option id
+ * is gone), so reuse ids only when you intend to keep a running tally.
+ */
+export async function adminSetPollConfig(
+  code: string,
+  question: unknown,
+  options: unknown,
+): Promise<{ count: number }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  let normalized: { question: string; options: PollOption[] }
+  try {
+    normalized = normalizePollConfig(question, options)
+  } catch (e) {
+    throw new TournamentError(e instanceof Error ? e.message : 'Invalid poll configuration.')
+  }
+  const { error } = await sb
+    .from('tournaments')
+    .update({ poll_question: normalized.question, poll_options: normalized.options })
+    .eq('id', row.id)
+  if (error) throw new TournamentError(`Could not update the poll: ${error.message}`, 500)
+  return { count: normalized.options.length }
 }
 
 // ── Snapshot (public read) ──────────────────────────────────────────────--
@@ -1077,7 +1116,7 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     fetchPlayers(tournament.id),
     fetchRounds(tournament.id),
     fetchMatches(tournament.id),
-    fetchPollResults(tournament.id),
+    fetchPollResults(tournament.id, tournament.pollOptions ?? POLL_OPTIONS),
     fetchAwardedPrizes(tournament.id),
   ])
   const sb = getServiceClient()

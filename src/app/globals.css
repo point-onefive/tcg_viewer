@@ -42,6 +42,12 @@
   --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.3);
   --border-subtle: rgba(0, 0, 0, 0.06);
   --overlay: rgba(245, 243, 240, 0.92);
+  /* Tournament accent (Card Wall default). Overridden inside .bonk-theme
+     so the sponsored /tournaments page can swap to BONK's palette without
+     touching any component. Every tournament component reads
+     var(--tcw-accent) instead of the literal Card Wall orange. */
+  --tcw-accent: #E85D2A;
+  --tcw-accent-2: #f5b301;
   /* Lightbox tokens (theme-aware) */
   --lb-backdrop-1: rgba(245, 243, 240, 0.97);
   --lb-backdrop-2: rgba(220, 215, 206, 1);
@@ -67,6 +73,8 @@
   --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 2px rgba(255, 255, 255, 0.08);
   --shadow-lightbox: 0 32px 80px rgba(0, 0, 0, 0.6);
   --border-subtle: rgba(255, 255, 255, 0.06);
+  --tcw-accent: #E85D2A;
+  --tcw-accent-2: #f5b301;
   /* Lightbox tokens (dark) */
   --lb-backdrop-1: rgba(18, 18, 28, 0.97);
   --lb-backdrop-2: rgba(0, 0, 0, 1);
@@ -768,7 +776,9 @@ html.lenis, html.lenis body {
 .sb-main {
   max-width: 1800px;
   margin: 0 auto;
-  padding: 0 16px 24px;
+  /* Top padding keeps the collection band off the page title / scrubber
+     so the masthead reads as its own zone, not smashed into content. */
+  padding: 18px 16px 24px;
 }
 
 .sb-collection-band {
@@ -899,6 +909,24 @@ html.lenis, html.lenis body {
 .sb-sort__select option {
   color: var(--text-primary);
   background: var(--bg-surface);
+}
+/* On phones the search + sort controls each take a full-width row so
+   the toolbar reads as two clean stacked fields, instead of a wide
+   search above a short sort dropdown stranded against empty space. */
+@media (max-width: 560px) {
+  .sb-search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+  .sb-sort {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .sb-sort__select {
+    flex: 1 1 auto;
+    width: 100%;
+    background-position: right center;
+  }
 }
 .sb-empty__link {
   color: var(--text-primary);
@@ -1407,114 +1435,6 @@ html.lenis, html.lenis body {
   box-shadow: none;
 }
 
-/* ─── Tier-list chart "blip" border ────────────────────────────────
-   A thin brand-orange outline that's mostly dim, with a single
-   brief brightness flash once per loop -- like a status LED or a
-   sonar ping. Designed deliberately for the GIF export pipeline:
-
-   - Solid colour (no gradients) -> quantizes cleanly into the
-     GIF's 256-colour palette with no banding.
-   - One shape (a rounded rectangle outline) that never moves ->
-     most frames are pixel-identical to each other, so the GIF
-     encoder's per-frame compression actually helps.
-   - Two visual states (dim baseline + bright peak) with a short
-     ramp between them -> palette only needs ~6-8 orange shades
-     for the whole loop instead of one shade per frame.
-
-   The on-page version (this file) and the GIF version (see
-   src/lib/chart-export.ts) use the same opacity curve and the
-   same loop length, so the exported file looks exactly like what
-   you preview on the page. */
-/* `@property` declares `--chart-grad-angle` as a typed angle CSS
-   variable so the browser can interpolate it smoothly during the
-   keyframe animation. Without @property, custom properties default
-   to the universal type and animate by string-swap (jumping the
-   conic-gradient from one angle to the next on each frame), which
-   looks juddery. With @property + linear timing, the gradient
-   slides around the frame at a constant rate. Supported in
-   Chromium/Safari since 2022 and Firefox 128+ (mid-2024); for any
-   older browser the variable just sits at its initial value and
-   the gradient stays static -- still on-brand, no jank. */
-@property --chart-grad-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes chart-grad-spin {
-  to { --chart-grad-angle: 360deg; }
-}
-
-.chart-frame-animated {
-  position: relative;
-  isolation: isolate;
-}
-
-/* Rotating gradient ring drawn in the 2px gap between the chart's
-   own 1px border and the inner content panels. Palette is sampled
-   from the site mascot (public/images/site-logo.png):
-     #E85D2A - brand orange (hat)
-     #9DEAFA - goggle cyan
-     #1763E6 - jeans royal blue
-   The three brand colours read as "us" without going full rainbow
-   like the generic CSS-trick examples on YouTube. Closing the loop
-   with #E85D2A keeps the conic gradient seamless as it rotates -- no
-   visible "seam" line where 0deg meets 360deg.
-
-   Technique = standard "gradient border via mask":
-     1. Conic gradient fills the whole pseudo-element (inset:0).
-     2. `padding: 2px` + `box-sizing: border-box` carves a 2px ring
-        between the element's border edge and content box.
-     3. The two-layer mask (one in `border-box`, one in `content-box`)
-        with `mask-composite: exclude` punches out the inner content
-        box, leaving only the 2px ring visible.
-   The chart's `overflow: hidden` would clip any negative-inset
-   pseudo, so the mask trick is the only way to get a sharp ring
-   *inside* the padding box.
-
-   z-index:-1 + parent's `isolation: isolate` puts the pseudo behind
-   the chart's content panels (the tier rows have their own opaque
-   backgrounds that cover the interior of the ring) but above the
-   chart frame's own background -- exposes the ring at the very edge
-   only. Same architecture as the old blip border. */
-.chart-frame-animated::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
-  padding: 2px;
-  z-index: -1;
-  /* Chart's CSS border-radius is 12px; subtract 1 so the gradient
-     ring's outer curve sits cleanly just inside the chart's own
-     1px border without a visible corner-radius mismatch. */
-  border-radius: 11px;
-  pointer-events: none;
-  background: conic-gradient(
-    from var(--chart-grad-angle),
-    #E85D2A,
-    #9DEAFA,
-    #1763E6,
-    #E85D2A
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: chart-grad-spin 6s linear infinite;
-}
-
-/* Reduced-motion users get the gradient ring frozen at a hand-
-   picked angle -- still shows the brand palette, no rotation. The
-   value (140deg) was chosen so the orange-cyan transition wraps
-   the top edge, which reads best for the static fallback. */
-@media (prefers-reduced-motion: reduce) {
-  .chart-frame-animated::before {
-    animation: none;
-    --chart-grad-angle: 140deg;
-  }
-}
-
 /* ─── Live tournament "breathe" cue ────────────────────────────────
    When a tournament is enrolling or running, the Tournaments button
    (and, on mobile, the hamburger that hides it) pulses a soft red ring
@@ -1923,6 +1843,32 @@ html.lenis, html.lenis body {
 .lb-hud-btn--active:hover {
   background: var(--lb-active-bg);
   opacity: 0.92;
+}
+
+/* Set / print-context chip in the bottom bar. Replaces the cramped,
+   cheap-looking muted caption with a tasteful pill that reads as an
+   intentional label and stands clear of the card above. */
+.lb-set-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: var(--lb-surface);
+  border: 1px solid var(--lb-border);
+  color: var(--lb-fg);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.lb-set-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lb-close-btn {
@@ -2337,4 +2283,441 @@ html.lenis, html.lenis body {
   outline: none;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   BONK x The Card Wall - sponsored /tournaments theme
+   Scoped to .bonk-theme so the rest of the site is untouched. Palette,
+   type and rules mirror brand.bonkcoin.com (see public/bonk/BRAND.md).
+   ═══════════════════════════════════════════════════════════════════ */
 
+/* Poppins - BONK primary typeface (geometric, web-safe weights). */
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 400; font-display: swap; src: url('/bonk/fonts/web/Poppins-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 500; font-display: swap; src: url('/bonk/fonts/web/Poppins-Medium.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 600; font-display: swap; src: url('/bonk/fonts/web/Poppins-SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 700; font-display: swap; src: url('/bonk/fonts/web/Poppins-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 800; font-display: swap; src: url('/bonk/fonts/web/Poppins-ExtraBold.ttf') format('truetype'); }
+@font-face { font-family: 'BonkPoppins'; font-style: normal; font-weight: 900; font-display: swap; src: url('/bonk/fonts/web/Poppins-Black.ttf') format('truetype'); }
+/* Space Mono - BONK detail face for data, filters, timers, codes. */
+@font-face { font-family: 'BonkMono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/bonk/fonts/web/SpaceMono-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'BonkMono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/bonk/fonts/web/SpaceMono-Bold.ttf') format('truetype'); }
+
+.bonk-theme {
+  /* Core BONK palette (BRAND.md). Red stays reserved for !!! + accents. */
+  --bonk-white: #ffffff;
+  --bonk-yellow: #ffe208;
+  --bonk-orange: #fc8e03;
+  --bonk-red: #ff0000;
+  --bonk-ui-yellow: #fdc202;
+  --bonk-ui-orange: #ff5c01;
+  --bonk-nude: #f7bd9f;
+  --bonk-pink: #fa7ef3;
+  --bonk-purple: #7933bc;
+  --bonk-midnight: #17001c;
+  --bonk-grey: #2b3649;
+
+  /* Signature gradients measured live from bonkcoin.com + brand.bonkcoin.com. */
+  --bonk-grad-sun: linear-gradient(135deg, #ffe208 0%, #fc8e03 100%);     /* yellow -> orange (hero "happy") */
+  --bonk-grad-ui: linear-gradient(135deg, #fdc202 0%, #ff5c01 100%);      /* ui yellow -> ui orange */
+  --bonk-grad-fire: radial-gradient(125% 150% at 50% 0%, #fdaf00 0%, #ff2600 100%); /* energy / stats */
+  --bonk-grad-night: linear-gradient(160deg, #2b3649 0%, #17001c 100%);   /* dark sections */
+
+  /* Section header band. Light/day mode uses a deep BONK-orange gradient (rich
+     enough for white copy to read); dark mode uses the Grey -> Black night
+     gradient. */
+  --bonk-section-band: linear-gradient(135deg, #ff7d22 0%, #ff5c01 55%, #f04e00 100%);
+
+  /* Header text. Both themes carry WHITE titles on the saturated band - light
+     mode reads as white-on-orange (BONK's own lockup language), dark mode as
+     white-on-night. A subtle shadow (see .bonk-section-band h3) keeps the
+     light-mode white crisp on the orange. */
+  --bonk-band-fg: #ffffff;
+  --bonk-band-icon: #ffffff;
+  --bonk-band-kicker: rgba(255, 255, 255, 0.92);
+  --bonk-band-divider: rgba(255, 255, 255, 0.34);
+  /* Small chip/badge sitting on the band (counts, status). */
+  --bonk-band-chip-bg: rgba(0, 0, 0, 0.22);
+  --bonk-band-chip-fg: #ffffff;
+  /* Closing footer exclamation: brand-red bang on the daytime wash. */
+  --bonk-foot-bang: var(--bonk-red);
+
+  /* Retheme the tournament accent to BONK's UI orange + yellow. Every
+     tournament component already reads these vars. */
+  --tcw-accent: var(--bonk-ui-orange);
+  --tcw-accent-2: var(--bonk-ui-yellow);
+
+  /* Typography swap, scoped to the page. */
+  --font-display: 'BonkPoppins', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'BonkPoppins', 'Inter', system-ui, sans-serif;
+  --font-bonk-mono: 'BonkMono', ui-monospace, monospace;
+
+  font-family: var(--font-body);
+}
+
+/* Gradient background wash - "we like gradient backgrounds to bring
+   BONK to life". Layered behind content; respects light/dark toggle. */
+.bonk-theme {
+  position: relative;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--bonk-ui-yellow) 26%, transparent) 0%, transparent 55%),
+    radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--bonk-ui-orange) 20%, transparent) 0%, transparent 50%),
+    var(--bg);
+}
+[data-theme="dark"] .bonk-theme,
+.bonk-theme[data-theme="dark"] {
+  /* Night band for dark mode. */
+  --bonk-section-band: var(--bonk-grad-night);
+  --bonk-band-fg: #ffffff;
+  --bonk-band-icon: var(--bonk-ui-yellow);
+  --bonk-band-kicker: var(--bonk-ui-yellow);
+  --bonk-band-divider: rgba(255, 255, 255, 0.28);
+  --bonk-band-chip-bg: rgba(255, 255, 255, 0.16);
+  --bonk-band-chip-fg: #ffffff;
+  /* Yellow bang pops against the night footer. */
+  --bonk-foot-bang: var(--bonk-ui-yellow);
+  background:
+    radial-gradient(120% 85% at 50% -10%, color-mix(in srgb, var(--bonk-ui-orange) 30%, transparent) 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--bonk-purple) 26%, transparent) 0%, transparent 55%),
+    var(--bg);
+}
+
+/* Mono details: timers, codes, stat numerals (BONK uses Space Mono here). */
+.bonk-mono { font-family: var(--font-bonk-mono, 'BonkMono', ui-monospace, monospace); letter-spacing: -0.02em; }
+
+/* Heavy display type - BONK headings are big + bold Poppins. */
+.bonk-display { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+
+/* Section gradient surfaces. */
+.bonk-grad-sun { background: var(--bonk-grad-sun); }
+.bonk-grad-ui { background: var(--bonk-grad-ui); }
+.bonk-grad-fire { background: var(--bonk-grad-fire); }
+.bonk-grad-night { background: var(--bonk-grad-night); }
+/* Theme-aware section header band: warm daytime in light, night in dark. */
+.bonk-section-band { background: var(--bonk-section-band); }
+/* White band titles get a faint shadow so they stay crisp on the bright
+   orange daytime band. Removed on the dark night band where it isn't needed. */
+.bonk-theme .bonk-section-band h3,
+.bonk-theme .bonk-band-title { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.30); }
+[data-theme="dark"] .bonk-theme .bonk-section-band h3,
+[data-theme="dark"] .bonk-theme .bonk-band-title { text-shadow: none; }
+
+/* Show one element in light mode, another in dark mode (e.g. swap a white
+   logo for a colored/dark one so it stays legible on the themed band). */
+.bonk-theme .bonk-light-only { display: block; }
+.bonk-theme .bonk-dark-only { display: none; }
+[data-theme="dark"] .bonk-theme .bonk-light-only { display: none; }
+[data-theme="dark"] .bonk-theme .bonk-dark-only { display: block; }
+
+/* ─── Full-bleed hero (mirrors bonkuji.com landing) ─────────────────────
+   Edge-to-edge banner that sits flush under the page header with a peeking
+   BONK Dog on the right. Theme-aware: a warm sunrise in light/day mode, the
+   cosmic bonkuji space scene at night. */
+.bonk-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* Light / day: deep warm orange (rich enough for white copy), warm highlight
+     top-right. */
+  background:
+    radial-gradient(120% 150% at 88% 6%, rgba(255, 198, 124, 0.32) 0%, transparent 48%),
+    linear-gradient(157deg, #ff8124 0%, #ff5c01 54%, #ec5200 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--bonk-ui-orange) 42%, transparent);
+}
+[data-theme="dark"] .bonk-hero {
+  /* Night / cosmic. */
+  background:
+    radial-gradient(115% 130% at 92% 6%, rgba(255, 92, 1, 0.30) 0%, transparent 50%),
+    radial-gradient(95% 120% at 3% 100%, rgba(121, 51, 188, 0.55) 0%, transparent 60%),
+    linear-gradient(157deg, #2b0c3c 0%, #190021 52%, #200034 100%);
+  border-bottom-color: color-mix(in srgb, var(--bonk-ui-orange) 26%, transparent);
+}
+.bonk-hero__wrap {
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+  max-width: 1800px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+@media (min-width: 640px) {
+  .bonk-hero__wrap { padding-left: 32px; padding-right: 32px; }
+}
+.bonk-hero__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(300px, 42vw, 440px);
+}
+.bonk-hero__copy {
+  position: relative;
+  z-index: 2;
+  max-width: min(640px, 68%);
+  padding: 30px 0;
+}
+@media (max-width: 480px) {
+  .bonk-hero__copy { max-width: 72%; }
+}
+.bonk-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+@media (min-width: 640px) {
+  .bonk-hero__badge { font-size: 11.5px; letter-spacing: 0.14em; }
+}
+.bonk-hero__badge img { height: 15px; width: auto; display: block; margin-left: -2px; }
+.bonk-hero__title {
+  margin-top: 16px;
+  color: #fff;
+  font-weight: 900;
+  font-size: clamp(30px, 8.4vw, 66px);
+  line-height: 1.08;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.32), 0 8px 30px rgba(0, 0, 0, 0.30);
+}
+.bonk-hero__bang { color: var(--bonk-red); margin-left: 0.18em; }
+.bonk-hero__sub {
+  margin-top: 16px;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+  font-size: clamp(13px, 1.7vw, 17px);
+  line-height: 1.5;
+  max-width: 34ch;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+/* Flush to the right edge: the PNG's raised arm reaches the canvas edge with
+   no margin, so any negative offset clips the hand. right:0 lands the arm on
+   the frame edge cleanly. */
+.bonk-hero__mascot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: clamp(156px, 41vw, 400px);
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.32));
+}
+.bonk-hero__glow {
+  position: absolute;
+  right: -6%;
+  bottom: -16%;
+  width: 64%;
+  height: 130%;
+  z-index: 0;
+  pointer-events: none;
+  /* Light: a soft warm-white halo so the orange dog separates from the bg. */
+  background: radial-gradient(48% 48% at 62% 55%, rgba(255, 240, 220, 0.42) 0%, transparent 70%);
+}
+[data-theme="dark"] .bonk-hero__glow {
+  background: radial-gradient(46% 46% at 64% 50%, rgba(255, 92, 1, 0.42) 0%, transparent 72%);
+}
+.bonk-hero__embers {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0; /* embers read only on the dark night hero */
+  background-image:
+    radial-gradient(2px 2px at 24% 32%, rgba(255, 184, 96, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 62% 22%, rgba(255, 140, 60, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 78% 64%, rgba(255, 205, 128, 0.45), transparent),
+    radial-gradient(2px 2px at 42% 74%, rgba(255, 150, 70, 0.45), transparent),
+    radial-gradient(1px 1px at 52% 48%, rgba(255, 222, 150, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 88% 38%, rgba(255, 170, 80, 0.45), transparent);
+  background-repeat: no-repeat;
+}
+[data-theme="dark"] .bonk-hero__embers { opacity: 1; }
+
+/* Desktop-only faded cosmic scene behind the hero copy. Fills the wide
+   desktop real estate; hidden on mobile/tablet where the gradient + mascot
+   already fill the frame. Dark theme only - the light hero keeps its clean
+   orange gradient. Masked to fade out toward the left so the headline keeps
+   full contrast, reading strongest on the right behind the mascot glow. */
+.bonk-hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url(/bonk/scenes/scene-astronaut.jpg);
+  background-size: cover;
+  background-position: center 38%;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 44%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 44%, #000 100%);
+}
+@media (min-width: 1024px) {
+  [data-theme="dark"] .bonk-hero__scene { opacity: 0.22; }
+}
+
+/* Faded container scene: two layers, one per theme, so light mode can show a
+   warmer daytime image while dark mode keeps its cosmic/night scene. */
+.bonk-scene-layer { transition: opacity 200ms ease; }
+.bonk-scene-layer--dark { opacity: 0; }
+.bonk-scene-layer--light { opacity: 0.08; }
+[data-theme="dark"] .bonk-scene-layer--dark { opacity: 0.16; }
+[data-theme="dark"] .bonk-scene-layer--light { opacity: 0; }
+
+/* "How it works" full-bleed panel. Light/day mode shows the warm bonkcoin.com
+   sunrise scene under a warm wash; dark mode shows the cosmic DJ scene under a
+   purple-night wash. Both keep the white heading + glass step cards legible. */
+.bonk-how-scene { position: absolute; inset: 0; background-size: cover; background-position: center 30%; transition: opacity 200ms ease; }
+.bonk-how-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); opacity: 1; }
+.bonk-how-scene--dark { background-image: url(/bonk/scenes/scene-dj.jpg); opacity: 0; }
+[data-theme="dark"] .bonk-how-scene--light { opacity: 0; }
+[data-theme="dark"] .bonk-how-scene--dark { opacity: 1; }
+
+.bonk-how-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
+.bonk-how-wash--light { opacity: 1; background: linear-gradient(118deg, rgba(255, 120, 32, 0.50) 0%, rgba(255, 148, 52, 0.34) 52%, rgba(255, 182, 84, 0.18) 100%); }
+.bonk-how-wash--dark { opacity: 0; background: linear-gradient(108deg, rgba(18, 2, 24, 0.94) 30%, rgba(40, 8, 52, 0.7) 72%, rgba(58, 12, 72, 0.5) 100%); }
+[data-theme="dark"] .bonk-how-wash--light { opacity: 0; }
+[data-theme="dark"] .bonk-how-wash--dark { opacity: 1; }
+
+/* Closing co-brand footer scene/wash. Mirrors the how-it-works toggle so the
+   strip reads as warm daytime in light mode and a cosmic sunset at night,
+   instead of staying locked to the dark "night" gradient. */
+.bonk-foot-scene { position: absolute; inset: 0; background-size: cover; transition: opacity 200ms ease; }
+.bonk-foot-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); background-position: center 40%; opacity: 0; }
+.bonk-foot-scene--dark { background-image: url(/bonk/scenes/scene-sunset.jpg); background-position: center 60%; opacity: 0; }
+[data-theme="dark"] .bonk-foot-scene--light { opacity: 0; }
+[data-theme="dark"] .bonk-foot-scene--dark { opacity: 1; }
+
+.bonk-foot-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
+.bonk-foot-wash--light { opacity: 1; background: linear-gradient(105deg, #ff7d22 0%, #ff9a3c 55%, #ffb24f 100%); }
+.bonk-foot-wash--dark { opacity: 0; background: linear-gradient(100deg, rgba(15, 2, 20, 0.9) 38%, rgba(15, 2, 20, 0.62) 78%, rgba(15, 2, 20, 0.45) 100%); }
+[data-theme="dark"] .bonk-foot-wash--light { opacity: 0; }
+[data-theme="dark"] .bonk-foot-wash--dark { opacity: 1; }
+
+/* Pill CTAs - BONK's buttons are fully-rounded, Space Mono, uppercase.
+   Scoped override of the site's .footer-btn so every primary action on
+   the tournaments page adopts the BONK button language (beats the inline
+   border-radius via !important, only inside the themed page). */
+.bonk-theme .footer-btn,
+.bonk-theme .bonk-cta {
+  border-radius: 999px !important;
+  font-family: var(--font-bonk-mono) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+/* Primary (orange-filled) CTA: glow on hover instead of the muted site hover. */
+.bonk-theme .bonk-cta {
+  background: var(--bonk-grad-ui) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--bonk-ui-orange) 75%, transparent);
+}
+.bonk-theme .bonk-cta:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px -8px color-mix(in srgb, var(--bonk-ui-orange) 85%, transparent);
+}
+
+/* Co-brand lockup: PARTNER  x  X  x  BONK. Per brand.bonkcoin.com the
+   clear space around the "x" separator is BONK-width / 3 (~10px at our
+   32px mark), applied symmetrically via the flex gap. */
+.bonk-lockup { display: inline-flex; align-items: center; gap: 10px; margin-left: 4px; }
+.bonk-lockup__x {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8em;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+/* ── Mascot motion. Distinct keyframes so no two dogs move alike. ──────── */
+@keyframes bonk-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-9px) rotate(-2deg); }
+}
+@keyframes bonk-sway {
+  0%, 100% { transform: rotate(-3.5deg) translateY(0); }
+  50% { transform: rotate(3.5deg) translateY(-4px); }
+}
+@keyframes bonk-cheer {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-7px) rotate(4deg) scale(1.02); }
+  75% { transform: translateY(-3px) rotate(-4deg) scale(1.01); }
+}
+@keyframes bonk-peek {
+  0%, 100% { transform: translateY(6px) rotate(2deg); }
+  50% { transform: translateY(-3px) rotate(-1deg); }
+}
+.bonk-bob { animation: bonk-bob 4.2s ease-in-out infinite; will-change: transform; }
+.bonk-sway { animation: bonk-sway 5s ease-in-out infinite; transform-origin: bottom center; will-change: transform; }
+.bonk-cheer { animation: bonk-cheer 3.4s ease-in-out infinite; will-change: transform; }
+.bonk-peek { animation: bonk-peek 6s ease-in-out infinite; will-change: transform; }
+/* Back-compat alias (older markup used .bonk-float). */
+.bonk-float { animation: bonk-bob 4.2s ease-in-out infinite; will-change: transform; }
+.bonk-float--slow { animation-duration: 6s; }
+
+/* "!!!" energy pop for emphasis moments (winner, prize). */
+@keyframes bonk-pop {
+  0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(1.12) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.bonk-pop { animation: bonk-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Bonkuji "set up your account" CTA: the logo gently breathes (slight scale +
+   warm glow) so the one place players need to go to collect prizes draws the
+   eye. Transform/filter only, so it never reflows the step text beside it. */
+@keyframes bonkuji-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(253, 194, 2, 0));
+  }
+  50% {
+    transform: scale(1.07);
+    filter: drop-shadow(0 0 9px rgba(253, 194, 2, 0.6));
+  }
+}
+.bonkuji-breathe {
+  animation: bonkuji-breathe 2.6s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bonk-bob, .bonk-sway, .bonk-cheer, .bonk-peek, .bonk-float, .bonk-pop, .bonkuji-breathe { animation: none; }
+}
+
+/* Gold/medal prize tier glow built from BONK yellow. */
+.bonk-prize-glow {
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--bonk-ui-yellow) 65%, transparent),
+    0 14px 38px -12px color-mix(in srgb, var(--bonk-ui-orange) 55%, transparent);
+}
+
+/* Theme toggle with a distinct mobile size: render at the inline (mobile)
+   size by default, grow to the desktop size at >= sm. */
+@media (min-width: 640px) {
+  .theme-toggle--responsive {
+    width: var(--tt-sm-size) !important;
+    height: var(--tt-sm-size) !important;
+    border-radius: 8px;
+  }
+}
+
+/* Player feedback poll ballot: one column on mobile (stacks full-width into
+   its container), then a balanced N-column grid on >= sm where N is set per
+   ballot size via the --poll-cols custom property. */
+.poll-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .poll-grid {
+    grid-template-columns: repeat(var(--poll-cols, 3), minmax(0, 1fr));
+  }
+}
