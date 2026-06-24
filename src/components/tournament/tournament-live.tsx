@@ -37,6 +37,10 @@ const SIGNED_UP_KEY = 'tcw_tournament_signed_up'
 // cap is rounded UP from this to a whole number of grid rows (see useRosterCap)
 // so the collapsed roster never leaves an orphaned, half-empty last row.
 const ROSTER_MIN_VISIBLE = 5
+// When the caller's locked deck list renders inline beside the roster (signed
+// up), reveal more rows by default so the Registered panel fills a height
+// comparable to the deck list instead of leaving a big blank gap under it.
+const ROSTER_MIN_VISIBLE_WITH_DECK = 12
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -1340,9 +1344,10 @@ export function TournamentLive() {
     // Re-attach when the list mounts (players load) or its grid template
     // changes (sign-up vs competitors uses a different minmax).
   }, [visiblePlayers.length, signupOpen])
+  const rosterMin = ownDeck.text ? ROSTER_MIN_VISIBLE_WITH_DECK : ROSTER_MIN_VISIBLE
   const rosterCap = useMemo(
-    () => Math.ceil(ROSTER_MIN_VISIBLE / rosterCols) * rosterCols,
-    [rosterCols],
+    () => Math.ceil(rosterMin / rosterCols) * rosterCols,
+    [rosterCols, rosterMin],
   )
 
   // Signed up if this browser recorded it for the current event, OR the
@@ -1446,26 +1451,30 @@ export function TournamentLive() {
 
   // Auto-load the caller's own locked list inline (private to the owner + host)
   // once they're signed up with a deck on file - no modal, it renders right in
-  // the Sign up panel's open space.
+  // the Sign up panel's open space. Keyed on the stable player *id* (not the
+  // myPlayer object, which gets a fresh reference on every snapshot poll) so it
+  // fetches once instead of flashing blank->filled on each refresh. Existing
+  // text is kept while any re-fetch is in flight, so the panel never blanks.
+  const myPlayerId = myPlayer?.id ?? null
   useEffect(() => {
     const code = tournament?.code
-    if (!code || !myPlayer || owesDeckList) {
+    if (!code || !myPlayerId || owesDeckList) {
       setOwnDeck({ loading: false, text: null })
       return
     }
     let cancelled = false
-    setOwnDeck({ loading: true, text: null })
+    setOwnDeck((prev) => ({ loading: prev.text == null, text: prev.text }))
     apiOwnDeck(code)
       .then((res) => {
         if (!cancelled) setOwnDeck({ loading: false, text: res.deckList })
       })
       .catch(() => {
-        if (!cancelled) setOwnDeck({ loading: false, text: null })
+        if (!cancelled) setOwnDeck((prev) => ({ loading: false, text: prev.text }))
       })
     return () => {
       cancelled = true
     }
-  }, [tournament?.code, myPlayer, owesDeckList])
+  }, [tournament?.code, myPlayerId, owesDeckList])
 
   if (loadError && !snapshot) {
     return (
