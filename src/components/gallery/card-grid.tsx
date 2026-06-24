@@ -328,7 +328,29 @@ export function CardGrid({ cards, sets }: CardGridProps) {
   // Pre-compute the active header height once per render - used for
   // the layout spacer below the fixed header, the virtualizer's
   // scrollMargin, and the column-fitting math.
-  const headerH = headerHeightFor(windowWidth, hasChips)
+  //
+  // We MEASURE the real fixed header at runtime rather than trusting the
+  // GALLERY_HEADER_H_* constants. Those constants drifted every time the
+  // header markup changed and silently clipped the first set band under the
+  // bar (a bug that recurred several times). The constant is now only a
+  // first-paint fallback until the measurement lands. The +1 guards against
+  // sub-pixel rounding leaving a hairline of the band under the header.
+  const [measuredHeaderH, setMeasuredHeaderH] = useState<number | null>(null)
+  useEffect(() => {
+    if (!mounted) return
+    const el = document.querySelector('[data-gallery-header]') as HTMLElement | null
+    if (!el) return
+    const measure = () => setMeasuredHeaderH(Math.ceil(el.getBoundingClientRect().height) + 1)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [mounted])
+  const headerH = measuredHeaderH ?? headerHeightFor(windowWidth, hasChips)
 
   // Filter logic lives in @/lib/card-filter so the lightbox viewer
   // can apply the exact same filter on the same inputs - that's what
@@ -521,7 +543,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       className={`mx-auto px-4 md:px-4${columns >= DENSE_COLUMNS ? ' wall--dense' : ''}`}
       style={{ maxWidth: 1800 }}
     >
-      {/* Spacer matches the fixed header (208px mobile, 88px desktop). */}
+      {/* Spacer matches the live-measured fixed header height (see headerH). */}
       <div style={{ height: headerH }} />
 
       {/* Collection title - top-level grouping (collection > set).
