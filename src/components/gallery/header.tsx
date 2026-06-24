@@ -1464,7 +1464,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search name, code, or card text…"
+            placeholder={windowWidth < 640 ? 'Search…' : 'Search name, code, or card text…'}
             className="w-full h-full pl-3 pr-8 text-xs outline-none"
             style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
             aria-label="Search cards"
@@ -1504,10 +1504,24 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           )}
         </button>
 
-        {/* Inline zoom · tablet/desktop only; phones use the panel's Card
-            size section so this row stays uncluttered. */}
-        <div className="hidden sm:flex shrink-0">
-          <ZoomControl zoom={zoom} setZoom={setZoom} ctrl={ctrl} max={zoomMax} style={{ width: 168 }} />
+      </div>
+
+      {/* ── Card size · its own full-width row (mobile + desktop) ─────────
+          The zoom scrub is the wall's signature interaction, so it lives
+          out in the open on every viewport rather than buried in the
+          Filters panel. Label + filled track makes its purpose obvious. */}
+      <div
+        className="mx-auto flex items-center gap-3 px-4"
+        style={{ maxWidth: 1800, height: 44, borderTop: '1px solid var(--border-subtle)' }}
+      >
+        <span
+          className="text-[10px] font-semibold uppercase tracking-[0.16em] shrink-0"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Card size
+        </span>
+        <div className="flex-1 min-w-0">
+          <ZoomControl zoom={zoom} setZoom={setZoom} ctrl={ctrl} max={zoomMax} />
         </div>
       </div>
 
@@ -1515,13 +1529,19 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           Drops straight under the Filters button (right-anchored like the
           nav sheet) so it reads as a near-full-width sheet on phones and a
           tidy panel on desktop. Re-hosts every existing facet control as a
-          labeled section - logic unchanged, just decluttered. */}
+          labeled section - logic unchanged, just decluttered.
+          Portaled to <body> so it escapes the header's z-50 stacking
+          context; otherwise the card grid paints over the backdrop and
+          outside-clicks fall through to the wall instead of closing. */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <>
       <AnimatePresence>
         {filterOpen && (
           <motion.div
             key="gallery-filter-backdrop"
             className="fixed inset-0"
-            style={{ zIndex: 55, background: 'color-mix(in srgb, var(--bg) 55%, transparent)' }}
+            style={{ zIndex: 60, background: 'color-mix(in srgb, var(--bg) 55%, transparent)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1543,7 +1563,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             style={{
               top: filterPos.top,
               right: filterPos.right,
-              zIndex: 56,
+              zIndex: 61,
               width: 'min(380px, calc(100vw - 16px))',
               maxHeight: `calc(100dvh - ${filterPos.top}px)`,
               background: 'var(--bg-surface)',
@@ -1559,10 +1579,6 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.2, ease: HEADER_DROPDOWN_EASE }}
           >
-            <PanelSection label="Card size">
-              <ZoomControl zoom={zoom} setZoom={setZoom} ctrl={ctrl} max={zoomMax} />
-            </PanelSection>
-
             <PanelSection label="Set">
               <div className="flex">
                 <FacetPopover
@@ -1744,6 +1760,9 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           </motion.div>
         )}
       </AnimatePresence>
+          </>,
+          document.body,
+        )}
 
       {/* Active-filter chip strip - visible whenever at least one filter
           is on. Lives in the fixed header (not the scrollable card wall)

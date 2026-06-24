@@ -31,8 +31,8 @@ const CARD_RATIO = 7 / 5 // height / width
 // even if this stack changes. CHIP_ROW_H is added when a filter chip is
 // visible - the chip strip lives in the fixed header (not the scrollable
 // content) so the padding must grow with it.
-export const GALLERY_HEADER_H_MOBILE = 96
-export const GALLERY_HEADER_H_DESKTOP = 96
+export const GALLERY_HEADER_H_MOBILE = 140
+export const GALLERY_HEADER_H_DESKTOP = 140
 const CHIP_ROW_H = 34 // height of the filter-chip row (6px top + 6px bottom + 22px content)
 
 const HEADER_H_MOBILE = GALLERY_HEADER_H_MOBILE
