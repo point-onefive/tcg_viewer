@@ -21,22 +21,18 @@ interface CardGridProps {
 }
 
 const CARD_RATIO = 7 / 5 // height / width
-// The fixed header height depends on breakpoint. On mobile every
-// collection gets the same persistent rows under the brand bar:
+// The fixed header is now a uniform two-row stack on every viewport:
 //
-//   desktop : 48 brand + 40 filter toolbar                  =  88
-//   mobile  : 48 brand + 40 collection/search/set
-//                      + 40 facets
-//                      + 40 sort/artist/character
-//                      + 40 zoom scrubber                   = 208
+//   52 top bar (logo + quick-actions + nav) + 44 slim filter bar = 96
 //
-// card-grid uses this for the spacer below the fixed header and for
-// the virtualizer scrollMargin. Keep in sync if mobile rows change.
-// CHIP_ROW_H is added on top of the base heights when any filter chip
-// is visible - the chip strip now lives in the fixed header (not the
-// scrollable content) so the padding must grow with it.
-export const GALLERY_HEADER_H_MOBILE = 208
-export const GALLERY_HEADER_H_DESKTOP = 88
+// These constants are only a FIRST-PAINT FALLBACK. The real header is
+// measured at runtime (data-gallery-header + ResizeObserver below), so
+// the spacer and virtualizer scrollMargin always track the live height
+// even if this stack changes. CHIP_ROW_H is added when a filter chip is
+// visible - the chip strip lives in the fixed header (not the scrollable
+// content) so the padding must grow with it.
+export const GALLERY_HEADER_H_MOBILE = 96
+export const GALLERY_HEADER_H_DESKTOP = 96
 const CHIP_ROW_H = 34 // height of the filter-chip row (6px top + 6px bottom + 22px content)
 
 const HEADER_H_MOBILE = GALLERY_HEADER_H_MOBILE
@@ -558,8 +554,8 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         }}
       >
         <div
-          className="text-[10px] tracking-[0.22em] uppercase mb-1"
-          style={{ color: 'var(--text-muted)' }}
+          className="text-[10px] font-semibold tracking-[0.22em] uppercase mb-1"
+          style={{ color: '#E85D2A' }}
         >
           Collection
         </div>
