@@ -1092,6 +1092,12 @@ function ZoomControl({
   max: number
   style?: React.CSSProperties
 }) {
+  const v = Math.min(zoom, max)
+  // Fill the track up to the thumb with the accent so the slider reads as
+  // a deliberate progress control instead of a faint line with a thumb
+  // stranded far left at low zoom (which looked like empty dead space).
+  const pct = max > 1 ? ((v - 1) / (max - 1)) * 100 : 0
+  const trackFill = `linear-gradient(to right, var(--text-primary) 0%, var(--text-primary) ${pct}%, var(--border-subtle) ${pct}%, var(--border-subtle) 100%)`
   return (
     <div className="flex items-center gap-2 px-3" style={{ ...ctrl, height: 30, ...style }}>
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
@@ -1105,10 +1111,11 @@ function ZoomControl({
         min={1}
         max={max}
         step={1}
-        value={Math.min(zoom, max)}
+        value={v}
         onChange={(e) => setZoom(Number(e.target.value))}
         className="zoom-slider flex-1"
         aria-label="Card size"
+        style={{ background: trackFill }}
       />
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
         <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
