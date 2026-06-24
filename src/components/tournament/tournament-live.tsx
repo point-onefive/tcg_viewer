@@ -120,6 +120,10 @@ function placeAccent(i: number): { bg: string; fg: string } {
   return { bg: 'color-mix(in srgb, var(--text-primary) 14%, transparent)', fg: 'var(--text-primary)' }
 }
 
+// Shared height for the hero meta row, so the detail chips and the countdown
+// stat are all the same size and sit on one latitude.
+const HERO_STAT_H = 36
+
 /** Small labeled fact chip used in the event hero meta row. */
 function MetaChip({
   icon: Icon,
@@ -133,10 +137,10 @@ function MetaChip({
 }) {
   return (
     <span
-      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1 px-2 py-0.5 text-[11px] font-semibold sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs`}
-      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 5, color: 'var(--text-secondary)' }}
+      className={`${hideOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1.5 px-3 text-xs font-semibold`}
+      style={{ height: HERO_STAT_H, background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, color: 'var(--text-secondary)' }}
     >
-      <Icon size={12} style={{ color: 'var(--text-muted)' }} />
+      <Icon size={14} style={{ color: 'var(--text-muted)' }} />
       {children}
     </span>
   )
@@ -151,13 +155,13 @@ function MetaChip({
 function CountdownStat({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="flex w-full shrink-0 items-center justify-between gap-3 px-3.5 py-2 sm:w-auto sm:justify-start"
-      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+      className="flex w-full shrink-0 items-center justify-between gap-2.5 px-3 sm:w-auto sm:justify-start"
+      style={{ height: HERO_STAT_H, background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
     >
       <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--text-muted)' }}>
         {label}
       </span>
-      <span className="bonk-mono text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--tcw-accent)' }}>
+      <span className="bonk-mono text-base font-bold tabular-nums leading-none" style={{ color: 'var(--tcw-accent)' }}>
         {value}
       </span>
     </div>
@@ -1553,7 +1557,7 @@ export function TournamentLive() {
           right={<span className="hidden sm:block"><StatusPill status={tournament.status} /></span>}
         />
         <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <MetaChip icon={Hash}>{tournament.code}</MetaChip>
