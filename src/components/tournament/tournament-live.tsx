@@ -815,6 +815,42 @@ function HowItWorks() {
             )
           })}
         </div>
+
+        {/* Community: matches + content live in Discord, but invite links
+            expire - so we never link Discord directly. Point people to X
+            (which never expires) for the current invite. */}
+        <div
+          className="mt-3 flex items-start gap-3 rounded-2xl px-4 py-3.5"
+          style={{
+            background: 'rgba(88,101,242,0.22)',
+            border: '1px solid rgba(88,101,242,0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
+          <DiscordLogo size={22} style={{ color: '#fff', marginTop: 1, flexShrink: 0 }} />
+          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.82)', lineHeight: 1.5 }}>
+            <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Community
+            </span>
+            <span className="block mt-0.5">
+              Matches, screenshares, and spectating all happen in our{' '}
+              <span className="font-display font-bold" style={{ color: '#fff' }}>Discord</span>.
+              Invite links expire, so message{' '}
+              <a
+                href={xProfileUrl('point_onefive')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold whitespace-nowrap"
+                style={{ color: '#fff', textDecoration: 'underline' }}
+              >
+                <XLogo /> @point_onefive
+              </a>{' '}
+              on X for the current invite. Share your replays, deck lists, and highlights
+              there - creating content is a great way to get noticed.
+            </span>
+          </span>
+        </div>
       </div>
 
       {deckHelp && <DeckHelpModal onClose={() => setDeckHelp(false)} />}
@@ -1530,13 +1566,6 @@ export function TournamentLive() {
         </BonkSceneBody>
       </div>
 
-      {tournament.prizes.length > 0 && (
-        <PrizePool
-          prizes={tournament.prizes}
-          awarded={tournament.status === 'complete' ? snapshot.awardedPrizes : undefined}
-        />
-      )}
-
       {tournament.status === 'running' && myPlayer && myActiveMatch && (
         <MyMatchCard
           code={tournament.code}
@@ -1548,20 +1577,7 @@ export function TournamentLive() {
         />
       )}
 
-      <PollCard
-        code={tournament.code}
-        poll={snapshot.poll}
-        question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
-        options={tournament.pollOptions ?? POLL_OPTIONS}
-        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
-        signedUp={signedUp}
-        pollOpen={tournament.pollOpen}
-        onVoted={refresh}
-      />
-
-      <HowItWorks />
-
-      <div className={signupOpen ? 'grid gap-6 lg:grid-cols-[1fr_1.2fr]' : ''}>
+      <div className={signupOpen ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
         {/* Sign up */}
         {signupOpen && (
           <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
@@ -1737,39 +1753,25 @@ export function TournamentLive() {
         </div>
       </div>
 
-      {/* Community: matches, screenshares, and spectating happen in Discord,
-          but invite links expire - so we never link Discord directly. Point
-          people to X (which never expires) to grab the current invite. */}
-      <div
-        className="mb-6 flex items-start gap-3 rounded-2xl px-4 py-3.5"
-        style={{
-          background: 'color-mix(in srgb, #5865f2 16%, var(--bg))',
-          border: '1px solid color-mix(in srgb, #5865f2 42%, transparent)',
-        }}
-      >
-        <DiscordLogo size={22} style={{ color: 'var(--text-primary)', marginTop: 1, flexShrink: 0 }} />
-        <span className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--text-muted)' }}>
-            Community
-          </span>
-          <span className="block mt-0.5">
-            Matches, screenshares, and spectating all happen in our{' '}
-            <span className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>Discord</span>.
-            Invite links expire, so message{' '}
-            <a
-              href={xProfileUrl('point_onefive')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold whitespace-nowrap"
-              style={{ color: 'var(--tcw-accent)', textDecoration: 'none' }}
-            >
-              <XLogo /> @point_onefive
-            </a>{' '}
-            on X for the current invite. Share your replays, deck lists, and highlights there - creating
-            content is a great way to get noticed and chase the rotating rewards.
-          </span>
-        </span>
-      </div>
+      {tournament.prizes.length > 0 && (
+        <PrizePool
+          prizes={tournament.prizes}
+          awarded={tournament.status === 'complete' ? snapshot.awardedPrizes : undefined}
+        />
+      )}
+
+      <PollCard
+        code={tournament.code}
+        poll={snapshot.poll}
+        question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+        options={tournament.pollOptions ?? POLL_OPTIONS}
+        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
+        signedUp={signedUp}
+        pollOpen={tournament.pollOpen}
+        onVoted={refresh}
+      />
+
+      <HowItWorks />
 
       {/* Round board */}
       {tournament.status !== 'enrolling' && snapshot.matches.length > 0 && (
