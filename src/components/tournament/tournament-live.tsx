@@ -834,20 +834,18 @@ function HowItWorks() {
               Community
             </span>
             <span className="block mt-0.5">
-              Matches, screenshares, and spectating all happen in our{' '}
-              <span className="font-display font-bold" style={{ color: '#fff' }}>Discord</span>.
-              Invite links expire, so message{' '}
+              Reach out on{' '}
               <a
                 href={xProfileUrl('point_onefive')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold whitespace-nowrap"
-                style={{ color: '#fff', textDecoration: 'underline' }}
+                aria-label="Reach out on X"
+                className="inline-flex items-center"
+                style={{ color: 'var(--tcw-accent)', verticalAlign: 'baseline' }}
               >
-                <XLogo /> @point_onefive
+                <XLogo size="1.05em" title="X" />
               </a>{' '}
-              on X for the current invite. Share your replays, deck lists, and highlights
-              there - creating content is a great way to get noticed.
+              to be added to the players chat for further instructions and invites.
             </span>
           </span>
         </div>
