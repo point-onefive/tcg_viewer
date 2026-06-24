@@ -3,12 +3,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ThemeToggle } from './theme-toggle'
 import { BrandLockup } from './brand-lockup'
+import { SiteNavMenu } from './site-nav-menu'
 import Link from 'next/link'
-import { Bookmark, HelpCircle, Layers, LineChart, Menu, X, Check, ChevronDown, Package, Trophy } from 'lucide-react'
+import { Bookmark, Layers, X, Check, ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { useStore, type Collection } from '@/lib/store'
-import { apiActiveStatus } from '@/lib/tournament/client'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
 import { COLLECTION_FACETS, facetLabel, type FacetOption } from '@/lib/collection-facets'
@@ -172,75 +171,6 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
 
 function formatCardType(t: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
-}
-
-/**
- * Polls the cheap `/active/status` probe so the nav can flag a live
- * tournament (enrolling or running) without pulling the full snapshot.
- * 60s cadence + an on-focus re-check: long enough to be near-free
- * site-wide, fresh enough that the badge appears shortly after an admin
- * opens sign-ups. Fails closed (no badge) on any error.
- */
-function useTournamentLive(): boolean {
-  const [live, setLive] = useState(false)
-  useEffect(() => {
-    let cancelled = false
-    const check = async () => {
-      const { live: isLive } = await apiActiveStatus()
-      if (!cancelled) setLive(isLive)
-    }
-    check()
-    const t = window.setInterval(check, 60_000)
-    const onFocus = () => check()
-    window.addEventListener('focus', onFocus)
-    return () => {
-      cancelled = true
-      clearInterval(t)
-      window.removeEventListener('focus', onFocus)
-    }
-  }, [])
-  return live
-}
-
-/** Corner heartbeat for icon-only triggers (no room for a word). */
-function LiveDot() {
-  return (
-    <span
-      aria-hidden
-      className="live-dot absolute rounded-full"
-      style={{
-        top: -3,
-        right: -3,
-        width: 9,
-        height: 9,
-        background: '#ef4444',
-        boxShadow: '0 0 0 2px var(--bg)',
-      }}
-    />
-  )
-}
-
-/** "LIVE" pill for the labelled Tournaments triggers. */
-function LivePill() {
-  return (
-    <span
-      className="inline-flex items-center gap-1 text-[9px] font-bold uppercase leading-none"
-      style={{
-        padding: '2px 5px',
-        borderRadius: 4,
-        background: '#ef4444',
-        color: '#fff',
-        letterSpacing: '0.08em',
-      }}
-    >
-      <span
-        aria-hidden
-        className="live-dot rounded-full"
-        style={{ width: 5, height: 5, background: '#fff' }}
-      />
-      Live
-    </span>
-  )
 }
 
 /**
@@ -498,11 +428,8 @@ function CharacterPicker({
     return head
   }, [characters, query, selected, selectedSet, activeLetter, letterIndex])
 
-  // Mobile/fluid row: keep the trigger label short and static so a
-  // long name or "N characters" never collides with the count badge.
-  const triggerLabel = fluid
-    ? 'Chars'
-    : count === 0
+  const triggerLabel =
+    count === 0
       ? 'Characters'
       : count === 1
         ? selected[0]
@@ -516,8 +443,8 @@ function CharacterPicker({
       open={open}
       onOpenChange={setOpen}
       flexShell
-      wrapperClassName="relative shrink-0 overflow-visible"
-      triggerClassName="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap"
+      wrapperClassName={fluid ? 'relative w-full min-w-0 overflow-visible' : 'relative shrink-0 overflow-visible'}
+      triggerClassName={`footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium outline-none whitespace-nowrap${fluid ? ' w-full' : ''}`}
       triggerStyle={{ ...(isActive ? ctrlActive : ctrl) }}
       triggerChildren={
         <>
@@ -527,7 +454,7 @@ function CharacterPicker({
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               minWidth: 0,
-              maxWidth: 160,
+              ...(fluid ? { flex: 1, textAlign: 'left' } : { maxWidth: 160 }),
             }}
           >
             {triggerLabel}
@@ -541,7 +468,7 @@ function CharacterPicker({
                 height: 16,
                 padding: '0 4px',
                 borderRadius: 999,
-                background: fluid ? 'var(--text-primary)' : 'var(--bg)',
+                background: 'var(--text-primary)',
                 color: fluid ? 'var(--bg)' : 'var(--text-primary)',
                 flexShrink: 0,
               }}
@@ -1126,135 +1053,129 @@ function CollectionPicker({
 }
 
 /**
- * Overflow menu for secondary view toggles (Alt art, Flatten, Errata,
- * Prices) and optionally Language. Mobile uses label "More" with
- * language inside; desktop uses label "View" with language kept inline.
+ * Boolean toggle row for the Filters panel's View section. Unlike
+ * FacetOptionRow (a single-select list where a bare checkmark reads fine),
+ * these are independent on/off switches, so each renders a persistent
+ * checkbox box that's visible whether or not it's checked.
  */
-function ViewFiltersMenu({
-  label = 'More',
-  includeLanguage = true,
-  showVariantToggles,
-  isOnePiece,
-  onlyAltArt,
-  setOnlyAltArt,
-  flattenWall,
-  setFlattenWall,
-  onlyErrata,
-  setOnlyErrata,
-  showTilePrices,
-  setShowTilePrices,
-  hasPricing,
-  language,
-  setLanguage,
-  ctrl,
-  ctrlActive,
+function ToggleRow({
+  label,
+  checked,
+  onClick,
 }: {
-  label?: string
-  includeLanguage?: boolean
-  showVariantToggles: boolean
-  isOnePiece: boolean
-  onlyAltArt: boolean
-  setOnlyAltArt: (v: boolean) => void
-  flattenWall: boolean
-  setFlattenWall: (v: boolean) => void
-  onlyErrata: boolean
-  setOnlyErrata: (v: boolean) => void
-  showTilePrices: boolean
-  setShowTilePrices: (v: boolean) => void
-  hasPricing: boolean
-  language: LanguagePickerValue
-  setLanguage: (v: LanguagePickerValue) => void
-  ctrl: React.CSSProperties
-  ctrlActive: React.CSSProperties
+  label: string
+  checked: boolean
+  onClick: () => void
 }) {
-  const [open, setOpen] = useState(false)
-
-  const activeCount =
-    (onlyAltArt ? 1 : 0) +
-    (flattenWall ? 1 : 0) +
-    (onlyErrata ? 1 : 0) +
-    (showTilePrices ? 1 : 0)
-  const isActive = activeCount > 0
-  const menuName = label === 'View' ? 'View options' : 'More filters'
-
   return (
-    <HeaderDropdown
-      ariaLabel={activeCount > 0 ? `${menuName} (${activeCount} active)` : menuName}
-      ariaHaspopup="menu"
-      align="right"
-      open={open}
-      onOpenChange={setOpen}
-      triggerStyle={isActive ? ctrlActive : ctrl}
-      triggerChildren={
-        <>
-          {label}
-          {activeCount > 0 && (
-            <span
-              className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-              style={{
-                minWidth: 16,
-                height: 16,
-                padding: '0 4px',
-                borderRadius: 999,
-                background: 'var(--text-primary)',
-                color: 'var(--bg)',
-              }}
-            >
-              {activeCount}
-            </span>
-          )}
-          <DropdownChevron open={open} />
-        </>
-      }
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      onClick={onClick}
+      className="w-full flex items-center gap-2.5 px-2.5 text-xs font-medium text-left transition-colors"
+      style={{ height: 32, borderRadius: 5, background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer' }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'color-mix(in srgb, var(--text-primary) 8%, transparent)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'transparent'
+      }}
     >
-      {showVariantToggles && (
-        <>
-          <FacetOptionRow
-            label="Alt art"
-            selected={onlyAltArt}
-            onClick={() => setOnlyAltArt(!onlyAltArt)}
-          />
-          <FacetOptionRow
-            label="Flatten"
-            selected={flattenWall}
-            onClick={() => setFlattenWall(!flattenWall)}
-          />
-        </>
-      )}
-      {isOnePiece && (
-        <FacetOptionRow
-          label="Pre Errata"
-          selected={onlyErrata}
-          onClick={() => setOnlyErrata(!onlyErrata)}
-        />
-      )}
-      {hasPricing && (
-        <FacetOptionRow
-          label="Prices"
-          selected={showTilePrices}
-          onClick={() => setShowTilePrices(!showTilePrices)}
-        />
-      )}
-      {includeLanguage && isOnePiece && (
-        <div
-          className="px-2.5 py-2"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}
-        >
-          <div
-            className="text-[10px] font-semibold uppercase tracking-wide mb-1.5"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Language
-          </div>
-          <LanguageToggle
-            language={language}
-            setLanguage={setLanguage}
-            ctrl={ctrl}
-            fullWidth
-          />
-        </div>
-      )}
-    </HeaderDropdown>
+      <span
+        aria-hidden
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: 4,
+          flexShrink: 0,
+          background: checked ? 'var(--text-primary)' : 'transparent',
+          border: checked
+            ? '1px solid var(--text-primary)'
+            : '1px solid color-mix(in srgb, var(--text-primary) 32%, transparent)',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
+        }}
+      >
+        <Check size={11} strokeWidth={3} style={{ color: 'var(--bg)', opacity: checked ? 1 : 0 }} />
+      </span>
+      <span className="flex-1">{label}</span>
+    </button>
+  )
+}
+
+/** Labeled section inside the consolidated Filters panel. */
+function PanelSection({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div
+        className="text-[10px] font-semibold uppercase tracking-[0.16em]"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        {label}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+/**
+ * Card-density slider, shared by the desktop inline control and the
+ * Filters panel's "Card size" section. `max` tracks the per-viewport
+ * column cap (denser on desktop than on phones) so the whole slider
+ * travel maps to a visible change.
+ */
+function ZoomControl({
+  zoom,
+  setZoom,
+  ctrl,
+  max,
+  style,
+}: {
+  zoom: number
+  setZoom: (z: number) => void
+  ctrl: React.CSSProperties
+  max: number
+  style?: React.CSSProperties
+}) {
+  const v = Math.min(zoom, max)
+  // Fill the track up to the thumb with the accent so the slider reads as
+  // a deliberate progress control instead of a faint line with a thumb
+  // stranded far left at low zoom (which looked like empty dead space).
+  const pct = max > 1 ? ((v - 1) / (max - 1)) * 100 : 0
+  const trackFill = `linear-gradient(to right, var(--text-primary) 0%, var(--text-primary) ${pct}%, var(--border-subtle) ${pct}%, var(--border-subtle) 100%)`
+  return (
+    <div className="flex items-center gap-2 px-3" style={{ ...ctrl, height: 30, ...style }}>
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+        <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+      </svg>
+      <input
+        type="range"
+        min={1}
+        max={max}
+        step={1}
+        value={v}
+        onChange={(e) => setZoom(Number(e.target.value))}
+        className="zoom-slider flex-1"
+        aria-label="Card size"
+        style={{ background: trackFill }}
+      />
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+        <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+      </svg>
+    </div>
   )
 }
 
@@ -1318,30 +1239,85 @@ export function Header({ sets, artists, characters }: HeaderProps) {
       : []),
     ...(hasPricing ? [{ value: 'price-desc', label: 'Price ↓' }] : []),
   ]
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const tournamentLive = useTournamentLive()
+  // Consolidated Filters panel. Anchored under its trigger like the
+  // shared nav sheet so it drops straight down on every viewport.
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterBtnRef = useRef<HTMLButtonElement>(null)
+  const [filterPos, setFilterPos] = useState<{ top: number; right: number }>({ top: 96, right: 0 })
 
-  // While the mobile menu overlay is open, lock body scroll and let
-  // Escape close it - reinforces that it's a focused modal layer, not
-  // inline page content. Backdrop click also closes (below).
+  // Track viewport width so the zoom slider's max matches the grid's
+  // per-viewport column cap (desktop allows a denser wall than phones).
+  const [windowWidth, setWindowWidth] = useState(1280)
   useEffect(() => {
-    if (!mobileOpen) return
+    const onResize = () => setWindowWidth(window.innerWidth)
+    onResize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  const zoomMax = windowWidth >= 1024 ? 29 : 13
+
+  // While the Filters panel is open, lock body scroll, keep it pinned
+  // under the trigger, and close on Escape (backdrop tap closes too).
+  useEffect(() => {
+    if (!filterOpen) return
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileOpen(false)
+    const measure = () => {
+      const r = filterBtnRef.current?.getBoundingClientRect()
+      if (r) {
+        setFilterPos({
+          top: Math.round(r.bottom + 6),
+          right: Math.round(window.innerWidth - r.right),
+        })
+      }
     }
+    measure()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFilterOpen(false)
+    }
+    window.addEventListener('resize', measure)
+    window.addEventListener('scroll', measure, true)
     document.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = prevOverflow
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('scroll', measure, true)
       document.removeEventListener('keydown', onKey)
     }
-  }, [mobileOpen])
+  }, [filterOpen])
 
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
   // Tier-list queue count is global (the tier list maker is collection-agnostic).
   const tierPoolCount = tierPool.length
+
+  // Count of active narrowing filters (everything that earns a chip,
+  // excluding the always-visible search box). Drives the Filters button
+  // badge so the user can see at a glance that filters are applied even
+  // with the panel closed.
+  const activeFilterCount =
+    (activeSet ? 1 : 0) +
+    (activeCardType ? 1 : 0) +
+    (activeRarity ? 1 : 0) +
+    (activeColor ? 1 : 0) +
+    (activeSubtype ? 1 : 0) +
+    (activeArtist ? 1 : 0) +
+    activeCharacters.length +
+    (onlyAltArt ? 1 : 0) +
+    (onlyErrata ? 1 : 0) +
+    (flattenWall ? 1 : 0)
+
+  const anyChipFilter = activeFilterCount > 0 || searchQuery.trim().length > 0
+
+  // Reset every narrowing filter (plus sort) back to default. Search is
+  // left alone since it lives in the bar, not the panel.
+  const clearAllFilters = () => {
+    setActiveSet(null); setActiveRarity(null); setActiveColor(null)
+    setActiveCardType(null); setActiveSubtype(null); setActiveArtist(null)
+    clearCharacters()
+    setOnlyAltArt(false); setOnlyErrata(false); setFlattenWall(false)
+    setWallSort('default')
+  }
 
   // Shared style token · matches logo's rounded-rect language.
   // Border uses color-mix against --text-primary (rather than the
@@ -1388,18 +1364,20 @@ export function Header({ sets, artists, characters }: HeaderProps) {
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
+      {/* ── Top bar · unified with the rest of the site ────────────────
+          Logo + tagline + gallery quick-actions (Tiers / Board) + the
+          shared SiteNavMenu (theme + hamburger). Identical chrome to
+          every other page so the home page reads as part of the set. */}
       <div
-        className="relative z-[60] nav:z-auto mx-auto flex items-center justify-between gap-6 px-4 md:px-4"
-        style={{ maxWidth: 1800, height: 48 }}
+        className="mx-auto flex items-center justify-between gap-4 px-4"
+        style={{ maxWidth: 1800, height: 52 }}
       >
-        {/* Brand cluster - canonical logo lives in BrandLockup so every
-            page renders the identical mark (see brand-lockup.tsx). */}
         <BrandLockup />
 
-        {/* Tagline · shows only on wider viewports to avoid crowding controls */}
+        {/* Tagline · wide screens only so it never crowds the controls. */}
         <div
           aria-hidden
-          className="hidden xl:flex flex-1 items-center justify-center pointer-events-none select-none"
+          className="hidden lg:flex flex-1 items-center justify-center pointer-events-none select-none"
           style={{ minWidth: 0 }}
         >
           <span
@@ -1415,196 +1393,43 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             }}
           >
             <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 2 }}>“</span>
-            Find something you didn’t know existed
+            Building the Bloomberg Terminal of TCG
             <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 2 }}>”</span>
           </span>
         </div>
 
-        {/* ── Desktop row-1 cluster · grouped by size + role ──
-            Layout (left → right): [Help] [X] [Theme] | [Tiers] [Board].
-            Three 30×30 icon-only utilities first (informational,
-            social, personal preference - the "meta" stuff that
-            doesn't change your data), then the two labeled action
-            buttons that operate on your collection. Grouping by size
-            keeps the cluster from looking interleaved, and the size
-            escalation left-to-right naturally pulls the eye toward
-            the primary actions on the right. Filters live in row 2
-            below; this row stays reserved for site-level actions
-            only. */}
-        <div className="hidden nav:flex items-center gap-2">
-          {/* How-it-works · compact ? icon pointing to /help, which
-              replaced the deprecated first-visit guided tour. */}
-          <Link
-            href="/help"
-            className="footer-btn inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="How it works"
-            title="How it works"
-          >
-            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
-          </Link>
-
-          {/* Feedback / X - compact icon-only so it sits comfortably in the nav */}
-          <a
-            href="https://x.com/point_onefive"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer-btn inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="Feedback on X (@point_onefive)"
-            title="Feedback & suggestions"
-          >
-            <svg width="11" height="11" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
-              <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
-            </svg>
-          </a>
-
-          <ThemeToggle />
-
+        {/* Right cluster · gallery quick-actions + shared nav. Tiers and
+            Board stay as compact icon buttons (high-frequency gallery
+            actions, not navigation); every page destination lives in the
+            hamburger for cross-page uniformity. */}
+        <div className="flex shrink-0 items-center gap-1.5">
           <Link
             href="/tier-list"
-            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-            style={{
-              ...ctrl,
-              height: 30,
-              background: tierPoolCount > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
-              color: tierPoolCount > 0 ? 'var(--bg)' : 'var(--text-primary)',
-              transition: 'background 0.2s ease, color 0.2s ease',
-            }}
-            aria-label={tierPoolCount > 0 ? `Open tier list maker (${tierPoolCount} queued)` : 'Open tier list maker'}
+            className="footer-btn relative inline-flex items-center justify-center"
+            style={{ ...ctrl, width: 36, height: 36 }}
+            aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
             title="Tier list maker"
           >
-            <Layers size={12} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
-            Tiers
+            <Layers size={15} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
             {tierPoolCount > 0 && (
               <span
-                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 4, background: 'var(--bg)', color: 'var(--text-primary)' }}
+                className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
+                style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
               >
                 {tierPoolCount}
               </span>
             )}
           </Link>
 
-          {/* Sealed: icon-only at nav, label from xl (same overflow fix).
-              Booster boxes are a One-Piece-only product surface, so the
-              trigger only appears while the One Piece collection is active. */}
-          {isOnePiece && (
-            <>
-              <Link
-                href="/sealed"
-                className="footer-btn inline-flex items-center justify-center xl:hidden"
-                style={{ ...ctrl, width: 30, height: 30 }}
-                aria-label="Booster box price dashboard"
-                title="Booster box prices"
-              >
-                <Package size={12} strokeWidth={2.25} aria-hidden />
-              </Link>
-              <Link
-                href="/sealed"
-                className="footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-                style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-                aria-label="Booster box price dashboard"
-                title="Booster box prices"
-              >
-                <Package size={12} strokeWidth={2.25} aria-hidden />
-                Sealed
-              </Link>
-            </>
-          )}
-
-          {/* Chart race: icon-only at nav to keep the cluster from
-              overflowing 1440–1600px viewports. Full label from xl. */}
-          <Link
-            href="/chart-race"
-            className="footer-btn inline-flex items-center justify-center xl:hidden"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="Chart Race maker"
-            title="Chart Race maker"
-          >
-            <LineChart size={12} strokeWidth={2.25} aria-hidden />
-          </Link>
-          <Link
-            href="/chart-race"
-            className="footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-            style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-            aria-label="Chart Race maker"
-            title="Chart Race maker"
-          >
-            <LineChart size={12} strokeWidth={2.25} aria-hidden />
-            Chart Race
-          </Link>
-
-          {/* Tournaments: One-Piece-only event surface, so the trigger
-              only appears while the One Piece collection is active. */}
-          {isOnePiece && (
-            <>
-              <Link
-                href="/tournaments"
-                className={`footer-btn relative inline-flex items-center justify-center xl:hidden${tournamentLive ? ' tournament-live-breathe' : ''}`}
-                style={{ ...ctrl, width: 30, height: 30 }}
-                aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
-                title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
-              >
-                <Trophy size={12} strokeWidth={2.25} aria-hidden />
-                {tournamentLive && <LiveDot />}
-              </Link>
-              <Link
-                href="/tournaments"
-                className={`footer-btn hidden xl:inline-flex items-center gap-1.5 px-3 text-xs font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
-                style={{ ...ctrl, height: 30, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-                aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
-                title={tournamentLive ? 'Tournament live now' : 'Tournaments'}
-              >
-                <Trophy size={12} strokeWidth={2.25} aria-hidden />
-                Tournaments
-                {tournamentLive && <LivePill />}
-              </Link>
-            </>
-          )}
-
-          {/* Board trigger · last in the cluster so its variable-
-              width count badge grows away from siblings, never into
-              them. */}
-          <button
-            className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-            style={{
-              ...ctrl,
-              height: 30,
-              background: pinnedCount > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
-              color: pinnedCount > 0 ? 'var(--bg)' : 'var(--text-primary)',
-              transition: 'background 0.2s ease, color 0.2s ease',
-            }}
-            onClick={() => setBoardOpen(true)}
-            aria-label={`Open board (${pinnedCount} pinned)`}
-          >
-            <Bookmark size={12} strokeWidth={2} fill={pinnedCount > 0 ? 'currentColor' : 'none'} />
-            Board
-            {pinnedCount > 0 && (
-              <span
-                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 4, background: 'var(--bg)', color: 'var(--text-primary)' }}
-              >
-                {pinnedCount}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* ── Mobile right cluster ──
-            Keep this row minimal: Theme + Tiers + hamburger. Sealed,
-            Chart Race, and Tournaments live in the mobile sheet only -
-            six 32px chips overflowed narrow phones once Tournaments
-            landed. Board stays here only when pins exist (actionable). */}
-        <div className="flex nav:hidden items-center gap-1.5 shrink-0">
           {pinnedCount > 0 && (
             <button
               className="footer-btn relative inline-flex items-center justify-center"
-              style={{ ...ctrl, width: 32, height: 32 }}
+              style={{ ...ctrl, width: 36, height: 36 }}
               onClick={() => setBoardOpen(true)}
               aria-label={`Board (${pinnedCount} pinned)`}
+              title="Board"
             >
-              <Bookmark size={14} strokeWidth={2} fill="currentColor" />
+              <Bookmark size={15} strokeWidth={2} fill="currentColor" />
               <span
                 className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
                 style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
@@ -1614,73 +1439,32 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             </button>
           )}
 
-          <ThemeToggle />
-
-          <Link
-            href="/tier-list"
-            className="footer-btn relative inline-flex items-center justify-center"
-            style={{ ...ctrl, width: 32, height: 32 }}
-            aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
-            title="Tier list maker"
-          >
-            <Layers size={14} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
-            {tierPoolCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
-                style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
-              >
-                {tierPoolCount}
-              </span>
-            )}
-          </Link>
-
-          {/* Hamburger · Tournaments is sheet-only on mobile, so when an
-              event is live the cue rides the hamburger (the thing that
-              reveals it). Suppressed while the sheet is open - the
-              Tournaments link inside carries its own LIVE pill there. */}
-          <button
-            className={`footer-btn relative inline-flex items-center justify-center${tournamentLive && !mobileOpen ? ' tournament-live-breathe' : ''}`}
-            style={{ ...ctrl, width: 32, height: 32 }}
-            onClick={() => setMobileOpen((o) => !o)}
-            aria-label={
-              mobileOpen
-                ? 'Close menu'
-                : tournamentLive
-                  ? 'Open menu (tournament live now)'
-                  : 'Open menu'
-            }
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-nav-menu"
-          >
-            {mobileOpen ? <X size={15} /> : <Menu size={15} />}
-            {tournamentLive && !mobileOpen && <LiveDot />}
-          </button>
+          <SiteNavMenu topOffset={52} />
         </div>
       </div>
 
-      {/* ── Mobile row-2 · Collection + Search + Set ───────────────────
-          Collection gets its own picker here (not buried in More) so
-          switching TCGs is always one tap. Search flexes in the middle;
-          Set anchors right like before. */}
+      {/* ── Filter bar · slim, consolidated ─────────────────────────────
+          One row on every viewport: Collection pill + Search + the single
+          Filters button (opens the panel) + an inline zoom on wider
+          screens. Replaces the old 5-row mobile / crammed desktop
+          toolbars. */}
       <div
-        className="nav:hidden flex items-center gap-2 px-4 min-w-0 overflow-visible"
-        style={{
-          height: 40,
-          borderTop: '1px solid var(--border-subtle)',
-        }}
+        className="mx-auto flex items-center gap-2 px-4 min-w-0"
+        style={{ maxWidth: 1800, height: 44, borderTop: '1px solid var(--border-subtle)' }}
       >
         <CollectionPicker
           activeCollection={activeCollection}
           setActiveCollection={setActiveCollection}
           ctrl={ctrl}
-          triggerMaxWidth={108}
+          triggerMaxWidth={132}
         />
+
         <div className="relative flex-1 min-w-0" style={{ height: 30 }}>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Name, code, or card text…"
+            placeholder={windowWidth < 640 ? 'Search…' : 'Search name, code, or card text…'}
             className="w-full h-full pl-3 pr-8 text-xs outline-none"
             style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
             aria-label="Search cards"
@@ -1691,655 +1475,299 @@ export function Header({ sets, artists, characters }: HeaderProps) {
               onClick={() => setSearchQuery('')}
               aria-label="Clear search"
               className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
-              style={{
-                right: 6,
-                width: 16,
-                height: 16,
-                borderRadius: 999,
-                background: 'var(--text-primary)',
-                color: 'var(--bg)',
-                cursor: 'pointer',
-                border: 'none',
-                padding: 0,
-              }}
+              style={{ right: 6, width: 16, height: 16, borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)', cursor: 'pointer', border: 'none', padding: 0 }}
             >
               <X size={10} strokeWidth={3} />
             </button>
           )}
         </div>
 
-        {/* Set selector · custom popover, same as desktop. Native mobile
-            selects paint an OS menu that overlaps the trigger, ignores
-            site styling, and doesn't toggle closed when the trigger is
-            tapped again - all reported as bugs. The popover scrolls
-            internally (menuMaxHeight) so the 50-set list stays usable
-            on touch. Anchored right because it sits at the row's right
-            edge. */}
-        <FacetPopover
-          placeholder="All Sets"
-          ariaLabel="Filter by set"
-          value={activeSet}
-          onChange={setActiveSet}
-          options={sets.map((s) => ({
-            value: s.setCode,
-            label: `${s.setCode} · ${s.setName}`,
-          }))}
-          ctrl={ctrl}
-          ctrlActive={ctrlActive}
-          menuMinWidth={230}
-          menuMaxHeight={360}
-          triggerMaxWidth={110}
-          menuAlign="right"
-        />
-      </div>
-
-      {/* ── Mobile row-3 · primary facets + More menu ──────────────────
-          Card type / Rarity / Color stay visible as the three highest-
-          frequency filters. Secondary toggles (Alt art, Flatten, Errata,
-          Language) live behind a single "More" pill so the row fits
-          narrow viewports without a horizontal scrollbar. */}
-      <div
-        className="nav:hidden flex items-center gap-2 px-4 min-w-0 overflow-visible"
-        style={{
-          height: 40,
-          borderTop: '1px solid var(--border-subtle)',
-        }}
-      >
-        {/* Custom popovers (matching desktop) instead of native selects -
-            the OS menu overlapped the trigger, clashed with site styling,
-            and wouldn't toggle closed on a second tap. Fluid mode splits
-            the row width between them. Compact labels ("Type" not "All
-            types") keep every trigger readable on a 360px row; the menu's
-            clear row still reads the full "All …" label. */}
-        <FacetPopover
-          placeholder="Type"
-          clearLabel="All types"
-          ariaLabel="Filter by card type"
-          value={activeCardType}
-          onChange={setActiveCardType}
-          options={facets.cardTypes}
-          ctrl={ctrl}
-          ctrlActive={ctrlActive}
-          menuMinWidth={150}
-          fluid
-        />
-        <FacetPopover
-          placeholder="Rarity"
-          clearLabel="All rarities"
-          ariaLabel="Filter by rarity"
-          value={activeRarity}
-          onChange={setActiveRarity}
-          options={facets.rarities}
-          ctrl={ctrl}
-          ctrlActive={ctrlActive}
-          menuMinWidth={180}
-          menuMaxHeight={320}
-          fluid
-        />
-        <FacetPopover
-          placeholder="Color"
-          clearLabel="All colors"
-          ariaLabel="Filter by color"
-          value={activeColor}
-          onChange={setActiveColor}
-          options={facets.colors}
-          ctrl={ctrl}
-          ctrlActive={ctrlActive}
-          menuMinWidth={150}
-          fluid
-          menuAlign="right"
-        />
-        {facets.subtypes && (
-          <FacetPopover
-            placeholder="Era"
-            clearLabel="All subtypes"
-            ariaLabel="Filter by subtype / era"
-            value={activeSubtype}
-            onChange={setActiveSubtype}
-            options={facets.subtypes}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            menuMinWidth={170}
-            menuMaxHeight={320}
-            fluid
-            menuAlign="right"
-          />
-        )}
-        <ViewFiltersMenu
-          showVariantToggles={showVariantToggles}
-          isOnePiece={isOnePiece}
-          onlyAltArt={onlyAltArt}
-          setOnlyAltArt={setOnlyAltArt}
-          flattenWall={flattenWall}
-          setFlattenWall={setFlattenWall}
-          onlyErrata={onlyErrata}
-          setOnlyErrata={setOnlyErrata}
-          showTilePrices={showTilePrices}
-          setShowTilePrices={setShowTilePrices}
-          hasPricing={hasPricing}
-          language={language}
-          setLanguage={setLanguage}
-          ctrl={ctrl}
-          ctrlActive={ctrlActive}
-        />
-      </div>
-
-      {/* ── Mobile row-4 · Sort + Artist + Character ───────────────────
-          Secondary narrowing controls. The zoom scrubber used to share
-          this row but got cramped into whatever width was left over;
-          it now lives on its own full-width row below so the whole
-          slider travel is usable on a phone. */}
-      <div
-        className="nav:hidden flex items-center gap-2 px-4 overflow-visible"
-        style={{
-          height: 40,
-          borderTop: '1px solid var(--border-subtle)',
-        }}
-      >
-        {/* Sort - same custom popover as desktop */}
-        <FacetPopover
-          placeholder="Sort: Default"
-          ariaLabel="Sort cards"
-          value={wallSort === 'default' ? null : wallSort}
-          onChange={(v) => setWallSort((v ?? 'default') as typeof wallSort)}
-          options={sortOptions}
-          ctrl={ctrl}
-          ctrlActive={ctrlActive}
-          menuMinWidth={150}
-          fluid
-        />
-
-        {artists.length > 0 && (
-          <ArtistTypeahead
-            value={activeArtist}
-            onChange={setActiveArtist}
-            artists={artists}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-          />
-        )}
-
-        {characters.length > 0 && (
-          <CharacterPicker
-            characters={characters}
-            selected={activeCharacters}
-            onToggle={toggleCharacter}
-            onClear={clearCharacters}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            fluid
-            menuAlign="right"
-          />
-        )}
-      </div>
-
-      {/* ── Mobile row-5 · full-width zoom scrubber ─────────────────────
-          Card size is the control users reach for most on a phone, so
-          it gets the entire row width instead of being squeezed beside
-          Sort/Character. Mirrors the tier-list maker's full-width
-          scrubber treatment for cross-page consistency. */}
-      <div
-        className="nav:hidden flex items-center px-4 overflow-visible"
-        style={{
-          height: 40,
-          borderTop: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div
-          className="flex items-center gap-2 w-full px-3"
-          style={{ ...ctrl, height: 30 }}
+        <button
+          ref={filterBtnRef}
+          type="button"
+          onClick={() => setFilterOpen((o) => !o)}
+          className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium shrink-0"
+          style={{ ...(activeFilterCount > 0 ? ctrlActive : ctrl), height: 30 }}
+          aria-haspopup="dialog"
+          aria-expanded={filterOpen}
+          aria-controls="gallery-filter-panel"
         >
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-            <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-          </svg>
-          <input
-            /* max is 13 on mobile (vs 29 on desktop, see row-2
-               slider). card-grid caps mobile output at 14 columns
-               because the desktop ceiling of 30 cols produced
-               unreadable ~10x14px tiles on phones - aligning the
-               slider's max with that cap means the entire slider
-               travel maps to a visible change instead of having a
-               silent dead zone past tick 13. */
-            type="range" min={1} max={13} step={1} value={Math.min(zoom, 13)}
-            onChange={(e) => setZoom(Number(e.target.value))}
-            className="zoom-slider flex-1" aria-label="Zoom level"
-          />
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-            <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-          </svg>
+          <SlidersHorizontal size={13} strokeWidth={2.25} aria-hidden />
+          <span>Filters</span>
+          {activeFilterCount > 0 && (
+            <span
+              className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
+              style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
+            >
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+
+      </div>
+
+      {/* ── Card size · its own full-width row (mobile + desktop) ─────────
+          The zoom scrub is the wall's signature interaction, so it lives
+          out in the open on every viewport rather than buried in the
+          Filters panel. Label + filled track makes its purpose obvious. */}
+      <div
+        className="mx-auto flex items-center gap-3 px-4"
+        style={{ maxWidth: 1800, height: 44, borderTop: '1px solid var(--border-subtle)' }}
+      >
+        <span
+          className="text-[10px] font-semibold uppercase tracking-[0.16em] shrink-0"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Card size
+        </span>
+        <div className="flex-1 min-w-0">
+          <ZoomControl zoom={zoom} setZoom={setZoom} ctrl={ctrl} max={zoomMax} />
         </div>
       </div>
 
-      {/* ── Desktop row-2 filter cluster · nav+ only ───────────────
-          All the gallery-narrowing controls live here so the brand
-          row stays uncluttered. Subtle top border separates it from
-          row 1 as a visual sub-toolbar without adding background
-          weight.
-
-          Gated on the custom `nav` breakpoint (1440px) rather than
-          Tailwind's `lg`/`xl` defaults because the full inline row
-          (Collection + Set + facets + Characters + View menu +
-          Language + Sort + search + zoom) needs ~1300-1400px at rest.
-          Secondary toggles (Alt art, Flatten, Errata, Prices) live
-          in the View menu so the language pill and search input are
-          never flex-crushed. Below 1440 the same controls live in
-          three persistent mobile rows below. See --breakpoint-nav
-          in globals.css for the rationale. */}
-      <div
-        className="hidden nav:block"
-        style={{ borderTop: '1px solid var(--border-subtle)' }}
-      >
-        <div
-          className="mx-auto flex items-center gap-2 px-4 min-w-0 overflow-x-auto no-scrollbar"
-          style={{ maxWidth: 1800, height: 40 }}
-        >
-          <CollectionPicker
-            activeCollection={activeCollection}
-            setActiveCollection={setActiveCollection}
-            ctrl={ctrl}
-          />
-
-          {/* Set Filter · custom popover (not <select>) so the menu
-              stays inside the page DOM and scrolls internally. The
-              native <select> overlay on macOS Chrome is a platform
-              popup that can extend past the page viewport up into
-              the browser chrome / above the tabs - visually jarring
-              and inconsistent with the Card type / Color popovers
-              right next to it which already use this component. */}
-          <FacetPopover
-            placeholder="All Sets"
-            ariaLabel="Filter by set"
-            value={activeSet}
-            onChange={setActiveSet}
-            options={sets.map((s) => ({
-              value: s.setCode,
-              label: `${s.setCode} · ${s.setName}`,
-            }))}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            menuMinWidth={220}
-            // Cap height to ~12 rows. With 50+ sets the panel would
-            // otherwise be ~1500px tall; this keeps it firmly inside
-            // the page and lets the user scroll within the popover.
-            menuMaxHeight={360}
-            // Match the old native select's effective width budget
-            // so the row layout doesn't shift when a long set name
-            // is selected.
-            triggerMaxWidth={180}
-          />
-
-          {/* Per-collection facet filters · Card type / Rarity / Color
-              come from `COLLECTION_FACETS[activeCollection]` so each
-              TCG sees its own curated vocabulary. Custom popovers
-              (not native <select>) keep menus inside site styling -
-              macOS Chrome's native dropdown overlay paints an opaque
-              white panel that ignores dark mode and feels foreign next
-              to the rest of the header. Mobile uses the same popovers
-              in fluid mode for consistent toggle + attached-menu UX. */}
-          <FacetPopover
-            placeholder="All types"
-            ariaLabel="Filter by card type"
-            value={activeCardType}
-            onChange={setActiveCardType}
-            options={facets.cardTypes}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            menuMinWidth={150}
-          />
-          <FacetPopover
-            placeholder="All rarities"
-            ariaLabel="Filter by rarity"
-            value={activeRarity}
-            onChange={setActiveRarity}
-            options={facets.rarities}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            menuMinWidth={180}
-            menuMaxHeight={320}
-          />
-          <FacetPopover
-            placeholder="All colors"
-            ariaLabel="Filter by color"
-            value={activeColor}
-            onChange={setActiveColor}
-            options={facets.colors}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            menuMinWidth={150}
-          />
-          {facets.subtypes && (
-            <FacetPopover
-              placeholder="All subtypes"
-              ariaLabel="Filter by subtype / era"
-              value={activeSubtype}
-              onChange={setActiveSubtype}
-              options={facets.subtypes}
-              ctrl={ctrl}
-              ctrlActive={ctrlActive}
-              menuMinWidth={170}
-              menuMaxHeight={320}
-            />
-          )}
-          {artists.length > 0 && (
-            <ArtistTypeahead
-              value={activeArtist}
-              onChange={setActiveArtist}
-              artists={artists}
-              ctrl={ctrl}
-              ctrlActive={ctrlActive}
-            />
-          )}
-          {characters.length > 0 && (
-            <CharacterPicker
-              characters={characters}
-              selected={activeCharacters}
-              onToggle={toggleCharacter}
-              onClear={clearCharacters}
-              ctrl={ctrl}
-              ctrlActive={ctrlActive}
-            />
-          )}
-          {(showVariantToggles || isOnePiece || hasPricing) && (
-            <ViewFiltersMenu
-              label="View"
-              includeLanguage={false}
-              showVariantToggles={showVariantToggles}
-              isOnePiece={isOnePiece}
-              onlyAltArt={onlyAltArt}
-              setOnlyAltArt={setOnlyAltArt}
-              flattenWall={flattenWall}
-              setFlattenWall={setFlattenWall}
-              onlyErrata={onlyErrata}
-              setOnlyErrata={setOnlyErrata}
-              showTilePrices={showTilePrices}
-              setShowTilePrices={setShowTilePrices}
-              hasPricing={hasPricing}
-              language={language}
-              setLanguage={setLanguage}
-              ctrl={ctrl}
-              ctrlActive={ctrlActive}
-            />
-          )}
-          {isOnePiece && (
-            <LanguageToggle
-              language={language}
-              setLanguage={setLanguage}
-              ctrl={ctrl}
-            />
-          )}
-
-          {/* Sort picker · same custom popover as the facet filters so it
-              toggles closed on re-click, sits flush under the trigger, and
-              highlights when a non-default sort is active (the old native
-              select gave no hint that a sticky sort was applied). */}
-          <FacetPopover
-            placeholder="Sort"
-            clearLabel="Sort: Default"
-            ariaLabel="Sort cards"
-            value={wallSort === 'default' ? null : wallSort}
-            onChange={(v) => setWallSort((v ?? 'default') as typeof wallSort)}
-            options={sortOptions}
-            ctrl={ctrl}
-            ctrlActive={ctrlActive}
-            menuMinWidth={150}
-          />
-
-          {/* Search.
-              Width sized to fit the entire placeholder at rest.
-              "Name, code, or card text…" at text-xs (12px Inter) is
-              ~150px of glyph run; with pl-3 (12px) + pr-7 (28px for
-              the clear-button cap) the input needs ≥190px of outer
-              width or the placeholder truncates to "Name, code, or
-              card tex" - the bug screenshot that triggered this
-              fix. w-56 (224px) leaves ~34px of breathing room so
-              the ellipsis renders cleanly across Inter weight
-              variations. Focus still expands by ~64px so users
-              typing a longer query get more visible characters
-              without the placeholder ever appearing truncated at
-              rest. */}
-          <div
-            className="relative shrink-0 w-56 transition-[width] duration-300 focus-within:w-72"
-            style={{ height: 30 }}
-          >
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              /* Placeholder hints at the card-text coverage so users
-                 discover they can search rules text ("when attacking",
-                 "blocker") instead of just names. If you reword this,
-                 re-check the parent container's w-* class above -
-                 the width was sized to this exact string. */
-              placeholder="Name, code, or card text…"
-              className="w-full h-full pl-3 pr-7 text-xs outline-none"
-              style={{ ...(searchQuery.trim() ? ctrlActive : ctrl), height: 30 }}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Clear search"
-                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
-                style={{
-                  right: 6,
-                  width: 16,
-                  height: 16,
-                  borderRadius: 999,
-                  background: 'var(--text-primary)',
-                  color: 'var(--bg)',
-                  cursor: 'pointer',
-                  border: 'none',
-                  padding: 0,
-                }}
-              >
-                <X size={10} strokeWidth={3} />
-              </button>
-            )}
-          </div>
-
-          {/* Spacer pushes the zoom widget to the right edge - keeps
-              filters left-aligned (logical reading order) and the
-              tactile zoom slider away from the click-heavy filter
-              group so users don't bump it by mistake. */}
-          <div className="flex-1" />
-
-          {/* Zoom slider */}
-          <div
-            className="flex items-center gap-2 px-3"
-            style={{ ...ctrl, height: 30 }}
-          >
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-              <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-            </svg>
-            <input
-              /* Max matches MAX_COLUMNS in card-grid so the rightmost
-                 tick maps to the densest grid (≈30 columns). Widened
-                 from 72→110px so the extra range still has enough
-                 pixels per tick to grab. */
-              type="range" min={1} max={29} step={1} value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="zoom-slider" aria-label="Zoom level" style={{ width: 110 }}
-            />
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-              <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-              <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Mobile nav menu · overlay dropdown ───────────────────────────
-          Renders as a focused modal layer, NOT inline page flow. A
-          backdrop dims + blurs everything below the brand row so the
-          menu reads as a drop-down (the brand row stays crisp at z-60,
-          above the backdrop). Closes on backdrop tap, the X, or Escape;
-          body scroll is locked while open (see effect above). */}
+      {/* ── Filters panel · backdrop + anchored sheet ───────────────────
+          Drops straight under the Filters button (right-anchored like the
+          nav sheet) so it reads as a near-full-width sheet on phones and a
+          tidy panel on desktop. Re-hosts every existing facet control as a
+          labeled section - logic unchanged, just decluttered.
+          Portaled to <body> so it escapes the header's z-50 stacking
+          context; otherwise the card grid paints over the backdrop and
+          outside-clicks fall through to the wall instead of closing. */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <>
       <AnimatePresence>
-        {mobileOpen && (
+        {filterOpen && (
           <motion.div
-            key="mobile-nav-backdrop"
-            className="nav:hidden fixed left-0 right-0 bottom-0"
-            style={{
-              top: 48,
-              zIndex: 55,
-              background: 'color-mix(in srgb, var(--bg) 30%, rgba(0,0,0,0.6))',
-              backdropFilter: 'blur(3px)',
-              WebkitBackdropFilter: 'blur(3px)',
-            }}
+            key="gallery-filter-backdrop"
+            className="fixed inset-0"
+            style={{ zIndex: 60, background: 'color-mix(in srgb, var(--bg) 55%, transparent)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: HEADER_DROPDOWN_EASE }}
-            onClick={() => setMobileOpen(false)}
+            onClick={() => setFilterOpen(false)}
             aria-hidden
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {mobileOpen && (
-        <motion.div
-          key="mobile-nav-menu"
-          id="mobile-nav-menu"
-          role="menu"
-          aria-label="Site menu"
-          className="nav:hidden fixed left-0 right-0 px-4 pb-4 pt-3 flex flex-col gap-2.5 overflow-y-auto"
-          style={{
-            top: 48,
-            zIndex: 56,
-            maxHeight: 'calc(100dvh - 48px)',
-            background: 'var(--bg-surface)',
-            borderBottom: '1px solid var(--border-subtle)',
-            borderBottomLeftRadius: 16,
-            borderBottomRightRadius: 16,
-            boxShadow: 'var(--shadow-card)',
-          }}
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.2, ease: HEADER_DROPDOWN_EASE }}
-        >
-          {/* NOTE: The mobile sheet used to be the home for every
-              filter on the page (including a Collection picker). We've
-              since promoted them all to persistent rows directly under
-              the brand row:
-                row-2: Collection + Search + Set
-                row-3: Card type + Rarity + Color + More
-                row-4: Sort + Artist + Character
-                row-5: Zoom slider
-              So this sheet is now purely the meta nav links below - the
-              Collection picker lives in row-2 and reading "One Piece" as
-              a menu item here was confusing. */}
-
-          <Link
-            href="/tier-list"
-            onClick={() => setMobileOpen(false)}
-            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
-            style={{ ...ctrl }}
-            aria-label={tierPoolCount > 0 ? `Open tier list maker (${tierPoolCount} queued)` : 'Open tier list maker'}
+        {filterOpen && (
+          <motion.div
+            key="gallery-filter-panel"
+            id="gallery-filter-panel"
+            role="dialog"
+            aria-label="Filters"
+            className="fixed flex flex-col gap-4 overflow-y-auto px-4 pb-4 pt-4"
+            style={{
+              top: filterPos.top,
+              right: filterPos.right,
+              zIndex: 61,
+              width: 'min(380px, calc(100vw - 16px))',
+              maxHeight: `calc(100dvh - ${filterPos.top}px)`,
+              background: 'var(--bg-surface)',
+              borderBottom: '1px solid var(--border-subtle)',
+              borderLeft: '1px solid var(--border-subtle)',
+              borderRight: '1px solid var(--border-subtle)',
+              borderBottomLeftRadius: 16,
+              borderBottomRightRadius: 16,
+              boxShadow: 'var(--shadow-card)',
+            }}
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2, ease: HEADER_DROPDOWN_EASE }}
           >
-            <Layers size={16} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
-            <span>Tier List Maker</span>
-            {tierPoolCount > 0 && (
-              <span
-                className="inline-flex items-center justify-center text-[10px] font-bold leading-none"
-                style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
-              >
-                {tierPoolCount}
-              </span>
+            <PanelSection label="Set">
+              <div className="flex">
+                <FacetPopover
+                  placeholder="All Sets"
+                  ariaLabel="Filter by set"
+                  value={activeSet}
+                  onChange={setActiveSet}
+                  options={sets.map((s) => ({ value: s.setCode, label: `${s.setCode} · ${s.setName}` }))}
+                  ctrl={ctrl}
+                  ctrlActive={ctrlActive}
+                  menuMinWidth={230}
+                  menuMaxHeight={360}
+                  fluid
+                />
+              </div>
+            </PanelSection>
+
+            <PanelSection label="Type">
+              <div className="flex">
+                <FacetPopover
+                  placeholder="All types"
+                  ariaLabel="Filter by card type"
+                  value={activeCardType}
+                  onChange={setActiveCardType}
+                  options={facets.cardTypes}
+                  ctrl={ctrl}
+                  ctrlActive={ctrlActive}
+                  menuMinWidth={150}
+                  fluid
+                />
+              </div>
+            </PanelSection>
+
+            <PanelSection label="Rarity">
+              <div className="flex">
+                <FacetPopover
+                  placeholder="All rarities"
+                  ariaLabel="Filter by rarity"
+                  value={activeRarity}
+                  onChange={setActiveRarity}
+                  options={facets.rarities}
+                  ctrl={ctrl}
+                  ctrlActive={ctrlActive}
+                  menuMinWidth={180}
+                  menuMaxHeight={320}
+                  fluid
+                />
+              </div>
+            </PanelSection>
+
+            <PanelSection label="Color">
+              <div className="flex">
+                <FacetPopover
+                  placeholder="All colors"
+                  ariaLabel="Filter by color"
+                  value={activeColor}
+                  onChange={setActiveColor}
+                  options={facets.colors}
+                  ctrl={ctrl}
+                  ctrlActive={ctrlActive}
+                  menuMinWidth={150}
+                  fluid
+                />
+              </div>
+            </PanelSection>
+
+            {facets.subtypes && (
+              <PanelSection label="Era / subtype">
+                <div className="flex">
+                  <FacetPopover
+                    placeholder="All subtypes"
+                    ariaLabel="Filter by subtype / era"
+                    value={activeSubtype}
+                    onChange={setActiveSubtype}
+                    options={facets.subtypes}
+                    ctrl={ctrl}
+                    ctrlActive={ctrlActive}
+                    menuMinWidth={170}
+                    menuMaxHeight={320}
+                    fluid
+                  />
+                </div>
+              </PanelSection>
             )}
-          </Link>
 
-          {/* Booster boxes are One-Piece-only, so this link only shows
-              while the One Piece collection is active. */}
-          {isOnePiece && (
-            <Link
-              href="/sealed"
-              onClick={() => setMobileOpen(false)}
-              className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
-              style={{ ...ctrl }}
-              aria-label="Booster box dashboard"
+            {artists.length > 0 && (
+              <PanelSection label="Artist">
+                <div className="flex">
+                  <ArtistTypeahead
+                    value={activeArtist}
+                    onChange={setActiveArtist}
+                    artists={artists}
+                    ctrl={ctrl}
+                    ctrlActive={ctrlActive}
+                  />
+                </div>
+              </PanelSection>
+            )}
+
+            {characters.length > 0 && (
+              <PanelSection label="Characters">
+                <div className="flex">
+                  <CharacterPicker
+                    characters={characters}
+                    selected={activeCharacters}
+                    onToggle={toggleCharacter}
+                    onClear={clearCharacters}
+                    ctrl={ctrl}
+                    ctrlActive={ctrlActive}
+                    fluid
+                  />
+                </div>
+              </PanelSection>
+            )}
+
+            <PanelSection label="Sort">
+              <div className="flex">
+                <FacetPopover
+                  placeholder="Sort: Default"
+                  ariaLabel="Sort cards"
+                  value={wallSort === 'default' ? null : wallSort}
+                  onChange={(v) => setWallSort((v ?? 'default') as typeof wallSort)}
+                  options={sortOptions}
+                  ctrl={ctrl}
+                  ctrlActive={ctrlActive}
+                  menuMinWidth={150}
+                  fluid
+                />
+              </div>
+            </PanelSection>
+
+            {(showVariantToggles || isOnePiece || hasPricing) && (
+              <PanelSection label="View">
+                <div className="flex flex-col" style={{ ...ctrl, padding: 4 }}>
+                  {showVariantToggles && (
+                    <>
+                      <ToggleRow label="Alt art only" checked={onlyAltArt} onClick={() => setOnlyAltArt(!onlyAltArt)} />
+                      <ToggleRow label="Flatten the wall" checked={flattenWall} onClick={() => setFlattenWall(!flattenWall)} />
+                    </>
+                  )}
+                  {isOnePiece && (
+                    <ToggleRow label="Pre-errata only" checked={onlyErrata} onClick={() => setOnlyErrata(!onlyErrata)} />
+                  )}
+                  {hasPricing && (
+                    <ToggleRow label="Show prices" checked={showTilePrices} onClick={() => setShowTilePrices(!showTilePrices)} />
+                  )}
+                </div>
+              </PanelSection>
+            )}
+
+            {isOnePiece && (
+              <PanelSection label="Language">
+                <LanguageToggle language={language} setLanguage={setLanguage} ctrl={ctrl} fullWidth />
+              </PanelSection>
+            )}
+
+            <div
+              className="sticky bottom-0 flex items-center gap-2 pt-2"
+              style={{ background: 'var(--bg-surface)' }}
             >
-              <Package size={16} strokeWidth={2.25} aria-hidden />
-              <span>Booster Boxes</span>
-            </Link>
-          )}
-
-          <Link
-            href="/chart-race"
-            onClick={() => setMobileOpen(false)}
-            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
-            style={{ ...ctrl }}
-            aria-label="Chart Race maker"
-          >
-            <LineChart size={16} strokeWidth={2.25} aria-hidden />
-            <span>Chart Race Maker</span>
-          </Link>
-
-          {/* Tournaments are One-Piece-only, so this link only shows
-              while the One Piece collection is active. */}
-          {isOnePiece && (
-            <Link
-              href="/tournaments"
-              onClick={() => setMobileOpen(false)}
-              className={`footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium${tournamentLive ? ' tournament-live-breathe' : ''}`}
-              style={{ ...ctrl }}
-              aria-label={tournamentLive ? 'Tournaments (live now)' : 'Tournaments'}
-            >
-              <Trophy size={16} strokeWidth={2.25} aria-hidden />
-              <span>Tournaments</span>
-              {tournamentLive && <LivePill />}
-            </Link>
-          )}
-
-          {/* How-it-works link · groups with Feedback so the two
-              "meta" actions sit at the bottom of the mobile sheet,
-              separated from the filter/action controls above. */}
-          <Link
-            href="/help"
-            onClick={() => setMobileOpen(false)}
-            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
-            style={{ ...ctrl }}
-            aria-label="How it works"
-          >
-            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
-            <span>How it works</span>
-          </Link>
-
-          {/* Feedback link - give the X handle a visible home in mobile nav */}
-          <a
-            href="https://x.com/point_onefive"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setMobileOpen(false)}
-            className="footer-btn inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium"
-            style={{ ...ctrl }}
-            aria-label="Feedback on X (@point_onefive)"
-          >
-            <svg width="12" height="12" viewBox="0 0 1200 1227" fill="currentColor" aria-hidden>
-              <path d="M714.2 519.3 1160.9 0H1055L667.1 450.9 357.3 0H0l468.5 681.8L0 1226.4h105.9L515.5 750.2l327.3 476.2H1200L714.2 519.3Zm-145 168.5-47.5-67.9L144 79.7h162.6l305 436.2 47.5 67.9 395.9 566.3H892.4L569.2 687.8Z" />
-            </svg>
-            <span>Feedback (@point_onefive)</span>
-          </a>
-        </motion.div>
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                disabled={activeFilterCount === 0}
+                className="footer-btn inline-flex flex-1 items-center justify-center px-3 py-2 text-xs font-semibold"
+                style={{ ...ctrl, opacity: activeFilterCount === 0 ? 0.5 : 1 }}
+              >
+                Clear all{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterOpen(false)}
+                className="footer-btn inline-flex flex-1 items-center justify-center px-3 py-2 text-xs font-semibold"
+                style={{ background: 'var(--text-primary)', color: 'var(--bg)', borderRadius: 6, border: 'none' }}
+              >
+                Done
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
+          </>,
+          document.body,
+        )}
 
       {/* Active-filter chip strip - visible whenever at least one filter
           is on. Lives in the fixed header (not the scrollable card wall)
           so the current filter state is always visible while browsing. */}
-      {(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || activeCharacters.length > 0 || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim()) && (
+      {anyChipFilter && (
         <div
           className="flex items-center gap-1.5 px-4"
           style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 6, paddingBottom: 6 }}
@@ -2398,10 +1826,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           <button
             type="button"
             onClick={() => {
-              setActiveSet(null); setActiveRarity(null); setActiveColor(null)
-              setActiveCardType(null); setActiveSubtype(null); setActiveArtist(null)
-              clearCharacters()
-              setOnlyAltArt(false); setOnlyErrata(false); setFlattenWall(false)
+              clearAllFilters()
               setSearchQuery('')
             }}
             className="ml-1 text-[10px] tracking-[0.14em] uppercase shrink-0"
