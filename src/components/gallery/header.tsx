@@ -5,8 +5,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { BrandLockup } from './brand-lockup'
 import { SiteNavMenu } from './site-nav-menu'
-import Link from 'next/link'
-import { Bookmark, Layers, X, Check, ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { Bookmark, X, Check, ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { useStore, type Collection } from '@/lib/store'
 import { CardSet, LanguagePickerValue } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/store'
@@ -1198,7 +1197,6 @@ export function Header({ sets, artists, characters }: HeaderProps) {
     activeCollection, setActiveCollection,
     zoom, setZoom,
     pinned, setBoardOpen,
-    tierPool,
   } = useStore()
 
   // Every TCG gets Card type / Rarity / Color facets, populated from
@@ -1288,8 +1286,6 @@ export function Header({ sets, artists, characters }: HeaderProps) {
 
   // Pin count is per-collection (matches board panel behaviour).
   const pinnedCount = pinned.filter((p) => p.collection === activeCollection).length
-  // Tier-list queue count is global (the tier list maker is collection-agnostic).
-  const tierPoolCount = tierPool.length
 
   // Count of active narrowing filters (everything that earns a chip,
   // excluding the always-visible search box). Drives the Filters button
@@ -1398,46 +1394,29 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           </span>
         </div>
 
-        {/* Right cluster · gallery quick-actions + shared nav. Tiers and
-            Board stay as compact icon buttons (high-frequency gallery
-            actions, not navigation); every page destination lives in the
-            hamburger for cross-page uniformity. */}
+        {/* Right cluster · the Board quick-action + shared nav. The Board
+            is a high-frequency gallery action (pin cards from the lightbox,
+            review them here), so it stays a compact icon button on the wall.
+            Every page destination - including the tier list maker - lives in
+            the hamburger for cross-page uniformity. */}
         <div className="flex shrink-0 items-center gap-1.5">
-          <Link
-            href="/tier-list"
+          <button
             className="footer-btn relative inline-flex items-center justify-center"
             style={{ ...ctrl, width: 36, height: 36 }}
-            aria-label={tierPoolCount > 0 ? `Tier list maker (${tierPoolCount} queued)` : 'Tier list maker'}
-            title="Tier list maker"
+            onClick={() => setBoardOpen(true)}
+            aria-label={pinnedCount > 0 ? `Board (${pinnedCount} pinned)` : 'Board'}
+            title="Board"
           >
-            <Layers size={15} strokeWidth={2.25} aria-hidden fill={tierPoolCount > 0 ? 'currentColor' : 'none'} />
-            {tierPoolCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
-                style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
-              >
-                {tierPoolCount}
-              </span>
-            )}
-          </Link>
-
-          {pinnedCount > 0 && (
-            <button
-              className="footer-btn relative inline-flex items-center justify-center"
-              style={{ ...ctrl, width: 36, height: 36 }}
-              onClick={() => setBoardOpen(true)}
-              aria-label={`Board (${pinnedCount} pinned)`}
-              title="Board"
-            >
-              <Bookmark size={15} strokeWidth={2} fill="currentColor" />
+            <Bookmark size={15} strokeWidth={2} fill={pinnedCount > 0 ? 'currentColor' : 'none'} />
+            {pinnedCount > 0 && (
               <span
                 className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[9px] font-bold"
                 style={{ minWidth: 14, height: 14, padding: '0 3px', borderRadius: 999, background: 'var(--text-primary)', color: 'var(--bg)' }}
               >
                 {pinnedCount}
               </span>
-            </button>
-          )}
+            )}
+          </button>
 
           <SiteNavMenu topOffset={52} />
         </div>
