@@ -2485,7 +2485,6 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
       <span className="min-w-0 flex-1">
         <XProfileLink handle={player.xHandle} className="truncate block" />
       </span>
-      <LeaderChip player={player} />
       {player.approvalStatus === 'pending' && (
         <span
           className="shrink-0 text-[10px] uppercase tracking-wider font-bold"
