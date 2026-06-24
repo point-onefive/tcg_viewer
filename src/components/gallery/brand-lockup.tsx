@@ -16,11 +16,25 @@
  * `sm` breakpoint (the wordmark + beta tag hide), so a cramped mobile
  * header (e.g. the tournaments bar) stays on a single row.
  */
-export function BrandLockup({ mobileCompact = false }: { mobileCompact?: boolean }) {
+export function BrandLockup({
+  mobileCompact = false,
+  hideBetaMobile = false,
+}: {
+  mobileCompact?: boolean
+  /**
+   * Hide just the "beta" tag below `sm` (keeping the full wordmark). Used
+   * by the tournament bar, where the BONK co-brand lockup needs the extra
+   * horizontal room on phones.
+   */
+  hideBetaMobile?: boolean
+}) {
   // When compact, the wordmark + beta only appear at >= sm; below that the
   // mark is the mascot chip alone.
   const wordmarkCls = mobileCompact ? 'hidden sm:inline-flex' : 'inline-flex'
-  const betaCls = mobileCompact ? 'hidden select-none sm:inline-flex' : 'inline-flex select-none'
+  const betaCls =
+    mobileCompact || hideBetaMobile
+      ? 'hidden select-none sm:inline-flex'
+      : 'inline-flex select-none'
   return (
     <div className="flex items-center gap-2">
       <a

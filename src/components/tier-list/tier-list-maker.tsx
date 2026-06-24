@@ -51,8 +51,8 @@ import {
   copyBlobToClipboard,
   downloadBlob,
 } from '@/lib/chart-export'
-import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { BrandLockup } from '@/components/gallery/brand-lockup'
+import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
 
 // `TierDef`, `TierCard`, `TierCardKind`, and `defaultTiers()` now
 // live in `@/lib/tier-list-types` so the Zustand store can reference
@@ -166,6 +166,7 @@ function SectionLabel({
   icon: Icon,
   label,
   right,
+  rightFullWidth = false,
 }: {
   icon: React.ComponentType<{
     size?: number
@@ -175,9 +176,14 @@ function SectionLabel({
   }>
   label: string
   right?: React.ReactNode
+  // When true the action cluster drops to its own full-width row on
+  // mobile (used by the Pool / Chart sections whose scrubber wants the
+  // whole row). When false (default) small button clusters stay inline
+  // on the same row as the label, right-aligned - no lopsided stacking.
+  rightFullWidth?: boolean
 }) {
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-3">
+    <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
       <div className="flex items-center gap-2">
         <Icon size={14} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
         <h2
@@ -203,15 +209,63 @@ function SectionLabel({
             'linear-gradient(to right, color-mix(in srgb, #E85D2A 50%, transparent), transparent)',
         }}
       />
-      {/* On phones the action cluster takes its own full-width row
-          under the label (label row stays clean, controls wrap into
-          tidy lines). From sm up it sits inline after the rule, as
-          before. */}
       {right && (
-        <div className="ml-auto flex w-full flex-wrap items-center gap-2 sm:ml-0 sm:w-auto sm:gap-3">
+        <div
+          className={
+            rightFullWidth
+              ? 'ml-auto flex w-full flex-wrap items-center gap-2 sm:ml-0 sm:w-auto sm:gap-3'
+              : 'ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3'
+          }
+        >
           {right}
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * Tile-size scrubber shared by the Pool and Chart sections. On mobile it
+ * spans the full width of its control row (the slider flexes to fill the
+ * space between the two grid icons) instead of being cramped to one side;
+ * on desktop it collapses to a compact fixed-width control.
+ */
+function ZoomScrubber({
+  value,
+  onChange,
+  label,
+}: {
+  value: number
+  onChange: (v: number) => void
+  label: string
+}) {
+  return (
+    <div
+      className="flex w-full items-center gap-2 px-3 sm:w-auto"
+      style={{ ...ctrlBase, height: 30 }}
+    >
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+        <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6" />
+      </svg>
+      <input
+        type="range"
+        min={1}
+        max={13}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="zoom-slider w-full sm:w-20"
+        aria-label={label}
+      />
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+        <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
+      </svg>
     </div>
   )
 }
@@ -1241,44 +1295,11 @@ export function TierListMaker() {
 
   // ─── Chart export ────────────────────────────────────────────────
   // `chartFrameRef` points at the bordered chart container that the
-  // PNG export pipeline snapshots. The CSS gradient ring lives on
-  // the chart's `::before` (z-index -1, inset:0, the
-  // `chart-grad-spin` keyframes rotating `--chart-grad-angle`), so
-  // html-to-image captures whatever angle the gradient is at the
-  // exact moment of capture. Since we no longer export an animated
-  // GIF, that single still frame is the whole point -- the
-  // rotation just makes the on-screen preview eye-catching, while
-  // the PNG bakes in one frozen angle of the brand-palette ring.
+  // PNG export pipeline snapshots (Copy PNG / Save PNG).
   // See src/lib/chart-export.ts.
   const chartFrameRef = useRef<HTMLDivElement | null>(null)
   const [exporting, setExporting] = useState<'png' | 'copy' | null>(null)
   const [exportFlash, setExportFlash] = useState<string | null>(null)
-  // Rotating gradient ring around the chart -- mascot-palette
-  // conic-gradient (hat orange · goggle cyan · jeans royal blue)
-  // spinning once every 6s. Defaults OFF -- it's an opt-in flourish
-  // for users who want the eye-catching version for a social share,
-  // not the default visual treatment. Preference persists to
-  // localStorage so users who turn it on don't have to redo the
-  // toggle every page visit. Reading localStorage is deferred to a
-  // post-mount effect to avoid an SSR / hydration mismatch (the
-  // server has no `localStorage`).
-  const [borderAnimated, setBorderAnimated] = useState(false)
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem('tier-list:border-animated')
-      if (stored === '1') setBorderAnimated(true)
-    } catch {
-      // localStorage may throw in private windows / quota-full;
-      // leaving the default is fine.
-    }
-  }, [])
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('tier-list:border-animated', borderAnimated ? '1' : '0')
-    } catch {
-      // see note above
-    }
-  }, [borderAnimated])
   const exportFlashTimerRef = useRef<number | null>(null)
   useEffect(() => {
     return () => {
@@ -1425,19 +1446,13 @@ export function TierListMaker() {
         fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
       }}
     >
-      {/* px-4 lives on the *inner* maxWidth div, not the outer
-          <header>, so the header's horizontal bounds line up
-          exactly with the main content wrapper below (which also
-          uses `mx-auto px-4` capped at the same 1800px). When px-4
-          sits on the outer element instead, the inner content can
-          grow to the full 1800px while the main content tops out
-          16px narrower, leaving the nav buttons further left and
-          right than the content on wide viewports. The 1800px cap
-          matches the gallery + sealed + tournament shells so the
-          nav bar is the same width on every page (header.tsx +
-          card-grid.tsx both put px-4 inside the same maxWidth). */}
+      {/* Uniform site top bar: just the brand mark, the theme toggle,
+          and the hamburger. Every destination lives inside the menu, so
+          this bar is identical on every page. The page's own title +
+          actions sit in the sub-bar directly below (which scrolls away),
+          keeping the sticky chrome minimal. */}
       <header
-        className="sticky top-0 z-20 py-3"
+        className="sticky top-0 z-30"
         style={{
           background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
           backdropFilter: 'blur(18px) saturate(140%)',
@@ -1445,61 +1460,20 @@ export function TierListMaker() {
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4" style={{ maxWidth: 1800 }}>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Brand cluster: logo + beta tag stay tightly paired (gap-2)
-                so they read as one identity unit, distinct from the page
-                title that follows past the divider. */}
-            <BrandLockup />
-            {/* Vertical rule separates site identity (brand + beta) from
-                page identity (Tier list maker). Same divider language the
-                main nav uses between filter and zoom controls. */}
-            <div
-              aria-hidden
-              className="hidden sm:block"
-              style={{
-                width: 1,
-                height: 22,
-                background: 'var(--text-muted)',
-                opacity: 0.4,
-                margin: '0 4px',
-              }}
-            />
-            <div className="flex items-center gap-2">
-              <Layers size={18} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
-              <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">
-                Tier list maker
-              </h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ThemeToggle />
-            <button
-              type="button"
-              onClick={() => setEditorOpen((v) => !v)}
-              className="footer-btn inline-flex items-center px-3 text-xs font-medium"
-              style={{ ...ctrlBase, height: 30 }}
-            >
-              {editorOpen ? 'Hide tier editor' : 'Edit tiers'}
-            </button>
-            <label htmlFor={`${formId}-file`} className="footer-btn" style={uploadChip}>
-              <Upload size={14} aria-hidden />
-              Upload images
-              <input
-                id={`${formId}-file`}
-                type="file"
-                accept="image/*"
-                multiple
-                className="sr-only"
-                onChange={(e) => {
-                  addFiles(e.target.files)
-                  e.target.value = ''
-                }}
-              />
-            </label>
-          </div>
+        <div className="mx-auto flex items-center justify-between gap-3 px-4" style={{ maxWidth: 1800, height: 56 }}>
+          <BrandLockup />
+          <SiteNavMenu topOffset={56} />
         </div>
       </header>
+
+      {/* Centered page title, directly under the nav. The snarky lede
+          and the page actions stack beneath it (see below). */}
+      <div className="mx-auto flex items-center justify-center gap-2 px-4 pt-5" style={{ maxWidth: 1800 }}>
+        <Layers size={20} strokeWidth={2.25} style={{ color: '#E85D2A', flexShrink: 0 }} aria-hidden />
+        <h1 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+          Tier list maker
+        </h1>
+      </div>
 
       {/* Snarky page lede. Sets the tone the moment you land: this
           is free, this is irreverent, the rest of the internet is
@@ -1522,7 +1496,7 @@ export function TierListMaker() {
           (~360px) using the dev-tools device emulator. */}
       <section
         aria-label="About this page"
-        className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center"
+        className="mx-auto max-w-3xl px-4 pt-3 pb-2 text-center"
       >
         <p
           style={{
@@ -1574,6 +1548,34 @@ export function TierListMaker() {
           <span>Runs in your browser</span>
         </p>
       </section>
+
+      {/* Page-specific actions, below the lede - two equal-width buttons,
+          centered and capped so they don't sprawl on desktop. */}
+      <div className="mx-auto flex items-center justify-center gap-2 px-4 pt-4" style={{ maxWidth: 460 }}>
+        <button
+          type="button"
+          onClick={() => setEditorOpen((v) => !v)}
+          className="footer-btn inline-flex flex-1 items-center justify-center px-3 text-xs font-medium"
+          style={{ ...ctrlBase, height: 34 }}
+        >
+          {editorOpen ? 'Hide tier editor' : 'Edit tiers'}
+        </button>
+        <label htmlFor={`${formId}-file`} className="footer-btn flex-1 justify-center" style={{ ...uploadChip, height: 34, justifyContent: 'center' }}>
+          <Upload size={14} aria-hidden />
+          Upload images
+          <input
+            id={`${formId}-file`}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(e) => {
+              addFiles(e.target.files)
+              e.target.value = ''
+            }}
+          />
+        </label>
+      </div>
 
       <div className="mx-auto px-4 pt-6" style={{ maxWidth: 1800 }}>
         {editorOpen && (
@@ -1668,43 +1670,21 @@ export function TierListMaker() {
             <SectionLabel
               icon={Inbox}
               label="Pool"
+              rightFullWidth
               right={
                 <>
-                  {/* Zoom scrubber - same visual language as card wall */}
-                  <div
-                    className="flex items-center gap-2 px-3 shrink-0"
-                    style={{ ...ctrlBase, height: 30 }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                      <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                    </svg>
-                    <input
-                      type="range" min={1} max={13} step={1} value={poolZoom}
-                      onChange={(e) => setPoolZoom(Number(e.target.value))}
-                      className="zoom-slider" aria-label="Pool tile size"
-                      style={{ width: 80 }}
-                    />
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                      <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                    </svg>
-                  </div>
+                  <ZoomScrubber value={poolZoom} onChange={setPoolZoom} label="Pool tile size" />
                   {/* Paste is a desktop gesture; on phones the hint just
                       ate a whole header line, so it hides below sm. */}
                   <span className="hidden text-xs sm:inline" style={{ color: 'var(--text-muted)' }}>
                     {pasteHint}
                   </span>
                   {cards.some((c) => c.tierId === null) && (
-                    <>
+                    <div className="flex w-full items-center gap-2 sm:w-auto">
                       <button
                         type="button"
                         onClick={toggleSelectMode}
-                        className="footer-btn inline-flex items-center gap-1 px-2.5 text-xs font-semibold"
+                        className="footer-btn inline-flex flex-1 items-center justify-center gap-1 px-2.5 text-xs font-semibold sm:flex-none"
                         style={{
                           ...ctrlBase,
                           height: 30,
@@ -1719,13 +1699,13 @@ export function TierListMaker() {
                         <button
                           type="button"
                           onClick={clearBankOnly}
-                          className="footer-btn inline-flex items-center px-2.5 text-xs font-semibold"
+                          className="footer-btn inline-flex flex-1 items-center justify-center px-2.5 text-xs font-semibold sm:flex-none"
                           style={{ ...ctrlBase, height: 30 }}
                         >
                           Clear pool
                         </button>
                       )}
-                    </>
+                    </div>
                   )}
                 </>
               }
@@ -1844,6 +1824,7 @@ export function TierListMaker() {
           <SectionLabel
             icon={Trophy}
             label="Chart"
+            rightFullWidth
             right={(() => {
               const hasChartedCards = cards.some((c) => c.tierId !== null)
               // Disable export when the board is totally empty
@@ -1860,31 +1841,8 @@ export function TierListMaker() {
                 ? '#1f7a3f'
                 : 'var(--text-muted)'
               return (
-                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                  {/* Chart zoom scrubber */}
-                  <div
-                    className="flex items-center gap-2 px-3 shrink-0"
-                    style={{ ...ctrlBase, height: 30 }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                      <rect x="1" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="7" y="1" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="1" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="7" y="7" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.6"/>
-                    </svg>
-                    <input
-                      type="range" min={1} max={13} step={1} value={chartZoom}
-                      onChange={(e) => setChartZoom(Number(e.target.value))}
-                      className="zoom-slider" aria-label="Chart tile size"
-                      style={{ width: 80 }}
-                    />
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                      <rect x="1" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="9" y="1" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                      <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6"/>
-                    </svg>
-                  </div>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                  <ZoomScrubber value={chartZoom} onChange={setChartZoom} label="Chart tile size" />
                   {(exportFlash || emptyHint) && (
                     <span
                       role="status"
@@ -1895,90 +1853,64 @@ export function TierListMaker() {
                       {exportFlash ?? emptyHint}
                     </span>
                   )}
-                  {/* Toggle the mascot-palette gradient ring around
-                      the chart frame -- a thin conic gradient
-                      (orange · cyan · royal blue) rotating once
-                      every 6s. The PNG export captures whatever
-                      angle the gradient is on screen at the moment
-                      of capture, so leave the toggle on if you
-                      want the rainbow line baked into the saved
-                      PNG. State persists across reloads via
-                      localStorage (see borderAnimated useEffect
-                      above). */}
-                  <button
-                    type="button"
-                    onClick={() => setBorderAnimated((v) => !v)}
-                    aria-pressed={borderAnimated}
-                    className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
-                    style={{
-                      ...ctrlBase,
-                      height: 30,
-                      color: borderAnimated ? '#E85D2A' : 'var(--text-muted)',
-                      borderColor: borderAnimated
-                        ? 'color-mix(in srgb, #E85D2A 45%, var(--border-subtle))'
-                        : 'var(--border-subtle)',
-                    }}
-                    title={
-                      borderAnimated
-                        ? 'Hide the mascot-palette gradient outline around the chart'
-                        : 'Show a rotating mascot-palette gradient outline around the chart (PNG exports will bake in whatever angle the ring is on at capture time)'
-                    }
-                  >
-                    Border: {borderAnimated ? 'On' : 'Off'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyPng}
-                    disabled={exporting !== null || exportDisabled}
-                    className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
-                    style={{
-                      ...ctrlBase,
-                      height: 30,
-                      opacity: exportDisabled ? 0.4 : exporting !== null && exporting !== 'copy' ? 0.5 : 1,
-                    }}
-                    aria-label="Copy chart image to clipboard"
-                    title="Copy a PNG of the chart to your clipboard - paste straight into a tweet, DM, or doc"
-                  >
-                    {exporting === 'copy' ? (
-                      <Loader2 size={14} className="animate-spin" aria-hidden />
-                    ) : (
-                      <Copy size={14} aria-hidden />
-                    )}
-                    Copy PNG
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSavePng}
-                    disabled={exporting !== null || exportDisabled}
-                    className="footer-btn inline-flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
-                    style={{
-                      ...ctrlBase,
-                      height: 30,
-                      opacity: exportDisabled ? 0.4 : exporting !== null && exporting !== 'png' ? 0.5 : 1,
-                    }}
-                    aria-label="Download chart as PNG"
-                    title="Download a still PNG of the chart"
-                  >
-                    {exporting === 'png' ? (
-                      <Loader2 size={14} className="animate-spin" aria-hidden />
-                    ) : (
-                      <ImageIcon size={14} aria-hidden />
-                    )}
-                    Save PNG
-                  </button>
-                  {hasChartedCards && (
+                  {/* Export actions. On mobile Copy + Save share one row (a
+                      2-col grid) and Clear chart spans full width beneath;
+                      on desktop they sit inline. */}
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center">
                     <button
                       type="button"
-                      onClick={clearChart}
-                      disabled={exporting !== null}
-                      className="footer-btn inline-flex flex-1 items-center justify-center gap-1 px-3 text-xs font-medium whitespace-nowrap sm:flex-none"
-                      style={{ ...ctrlBase, height: 30 }}
-                      aria-label="Move every charted card back to the pool"
+                      onClick={handleCopyPng}
+                      disabled={exporting !== null || exportDisabled}
+                      className="footer-btn inline-flex w-full items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:w-auto"
+                      style={{
+                        ...ctrlBase,
+                        height: 34,
+                        opacity: exportDisabled ? 0.4 : exporting !== null && exporting !== 'copy' ? 0.5 : 1,
+                      }}
+                      aria-label="Copy chart image to clipboard"
+                      title="Copy a PNG of the chart to your clipboard - paste straight into a tweet, DM, or doc"
                     >
-                      <RotateCcw size={14} aria-hidden />
-                      Clear chart
+                      {exporting === 'copy' ? (
+                        <Loader2 size={14} className="animate-spin" aria-hidden />
+                      ) : (
+                        <Copy size={14} aria-hidden />
+                      )}
+                      Copy PNG
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={handleSavePng}
+                      disabled={exporting !== null || exportDisabled}
+                      className="footer-btn inline-flex w-full items-center justify-center gap-1.5 px-3 text-xs font-medium whitespace-nowrap sm:w-auto"
+                      style={{
+                        ...ctrlBase,
+                        height: 34,
+                        opacity: exportDisabled ? 0.4 : exporting !== null && exporting !== 'png' ? 0.5 : 1,
+                      }}
+                      aria-label="Download chart as PNG"
+                      title="Download a still PNG of the chart"
+                    >
+                      {exporting === 'png' ? (
+                        <Loader2 size={14} className="animate-spin" aria-hidden />
+                      ) : (
+                        <ImageIcon size={14} aria-hidden />
+                      )}
+                      Save PNG
+                    </button>
+                    {hasChartedCards && (
+                      <button
+                        type="button"
+                        onClick={clearChart}
+                        disabled={exporting !== null}
+                        className="footer-btn col-span-2 inline-flex w-full items-center justify-center gap-1 px-3 text-xs font-medium whitespace-nowrap sm:col-span-1 sm:w-auto"
+                        style={{ ...ctrlBase, height: 34 }}
+                        aria-label="Move every charted card back to the pool"
+                      >
+                        <RotateCcw size={14} aria-hidden />
+                        Clear chart
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })()}
@@ -1986,9 +1918,7 @@ export function TierListMaker() {
 
           <div
             ref={chartFrameRef}
-            className={`relative overflow-hidden rounded-[12px] p-4 sm:p-5${
-              borderAnimated ? ' chart-frame-animated' : ''
-            }`}
+            className="relative overflow-hidden rounded-[12px] p-4 sm:p-5"
             style={{
               border: '1px solid var(--border-subtle)',
               boxShadow: 'var(--shadow-card)',

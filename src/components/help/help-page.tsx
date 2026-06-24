@@ -2,8 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, HelpCircle, Medal } from 'lucide-react'
-import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { HelpCircle, Medal } from 'lucide-react'
+import { BrandLockup } from '@/components/gallery/brand-lockup'
+import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
 import { XLogo } from '@/components/gallery/x-logo'
 
 // All in-page illustrative card art is served from the same R2 CDN
@@ -39,13 +40,10 @@ export function HelpPage() {
         fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif',
       }}
     >
-      {/* Header mirrors the tier-list page's pattern: brand lockup,
-          page title with its own icon, light utility cluster on the
-          right. Keeps the brand identity consistent across all
-          first-class pages without rebuilding the full filter chrome
-          of the main gallery header. */}
+      {/* Uniform site top bar (brand · theme · hamburger), shared with
+          every other page. The page title sits in the sub-bar below. */}
       <header
-        className="sticky top-0 z-20 px-4 py-3"
+        className="sticky top-0 z-30 px-4"
         style={{
           background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
           backdropFilter: 'blur(18px) saturate(140%)',
@@ -53,39 +51,18 @@ export function HelpPage() {
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/"
-              className="footer-btn group inline-flex items-center gap-1.5 text-xs font-medium"
-              style={{
-                color: 'var(--text-muted)',
-                background: 'var(--bg-surface)',
-                border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
-                borderRadius: 6,
-                height: 30,
-                padding: '0 10px',
-              }}
-              aria-label="Back to The Card Wall"
-            >
-              <ArrowLeft size={14} aria-hidden />
-              <span>Back to the wall</span>
-            </Link>
-            <div
-              aria-hidden
-              className="hidden sm:block"
-              style={{ width: 1, height: 22, background: 'var(--text-muted)', opacity: 0.4 }}
-            />
-            <div className="flex items-center gap-2">
-              <HelpCircle size={18} strokeWidth={2.25} style={{ color: '#E85D2A' }} aria-hidden />
-              <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">
-                How it works
-              </h1>
-            </div>
-          </div>
-          <ThemeToggle />
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3" style={{ height: 56 }}>
+          <BrandLockup />
+          <SiteNavMenu topOffset={56} />
         </div>
       </header>
+
+      <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 pt-4">
+        <HelpCircle size={20} strokeWidth={2.25} style={{ color: '#E85D2A', flexShrink: 0 }} aria-hidden />
+        <h1 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+          How it works
+        </h1>
+      </div>
 
       <main className="mx-auto max-w-3xl px-4 pt-8">
         <Lede>
@@ -406,8 +383,7 @@ export function HelpPage() {
             <li>
               <Kbd>Copy PNG</Kbd> copies the chart to your clipboard (paste
               straight into a tweet or DM). <Kbd>Save PNG</Kbd> downloads a
-              file. <Kbd>Border: On</Kbd> wraps the chart in a rotating
-              mascot-palette gradient ring before export.
+              file.
             </li>
             <li>
               Everything runs locally. Nothing uploads.

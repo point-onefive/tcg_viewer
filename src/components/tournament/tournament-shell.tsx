@@ -1,15 +1,14 @@
 'use client'
 
-import Link from 'next/link'
-import { Trophy } from 'lucide-react'
-import { ThemeToggle } from '@/components/gallery/theme-toggle'
 import { BrandLockup } from '@/components/gallery/brand-lockup'
+import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
 import { WalletHeaderWidget } from '@/components/wallet/wallet-header-widget'
 
-// Page chrome shared by every tournament screen. Mirrors the tier-list /
-// chart-race header: sticky blurred bar with the brand lockup + beta tag, a
-// vertical rule, the page title (trophy + "Tournaments"), and a right-side
-// control cluster. Keeps the tool visually native to the rest of the site.
+// Page chrome shared by every tournament screen. The top bar is the exact
+// same "logo · theme · hamburger" nav as every other page (rendered OUTSIDE
+// the bonk-theme scope so it stays byte-for-byte uniform). The BONK hero +
+// content below carry the sponsor theme. The wallet widget sits in the
+// right cluster just before the shared menu.
 
 const ctrlBase: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -36,12 +35,13 @@ export function TournamentShell({
   bonk?: boolean
 }) {
   return (
-    <div
-      className={bonk ? 'bonk-theme' : undefined}
-      style={{ minHeight: '100dvh', background: bonk ? undefined : 'var(--bg)', color: 'var(--text-primary)' }}
-    >
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text-primary)' }}>
+      {/* Uniform site top bar - identical to every other page. Kept OUTSIDE
+          the bonk-theme wrapper below so the BONK pill/mono button language
+          never touches the nav: the theme toggle, hamburger, and dropdown
+          render exactly as they do elsewhere. */}
       <header
-        className="sticky top-0 z-20 py-3"
+        className="sticky top-0 z-30"
         style={{
           background: 'color-mix(in srgb, var(--bg) 78%, transparent)',
           backdropFilter: 'blur(18px) saturate(140%)',
@@ -49,9 +49,9 @@ export function TournamentShell({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-2 px-4 sm:gap-3" style={{ maxWidth: 1800 }}>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <BrandLockup mobileCompact />
+        <div className="mx-auto flex items-center justify-between gap-3 px-4" style={{ maxWidth: 1800, height: 56 }}>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <BrandLockup hideBetaMobile />
             {bonk && (
               // Partnership lockup: Card Wall  x  BONK (brand.bonkcoin.com
               // co-brand guidance). The "x" separator + BONK mark sit
@@ -64,37 +64,31 @@ export function TournamentShell({
                   alt="BONK"
                   width={32}
                   height={32}
-                  className="block h-[30px] w-auto sm:h-8"
+                  className="block h-[26px] w-auto sm:h-8"
                 />
               </span>
             )}
-            <div
-              aria-hidden
-              className="hidden sm:block"
-              style={{ width: 1, height: 22, background: 'var(--text-muted)', opacity: 0.4, margin: '0 4px' }}
-            />
-            <Link href="/tournaments" className="flex items-center gap-2">
-              <Trophy size={18} strokeWidth={2.25} style={{ color: 'var(--tcw-accent)' }} aria-hidden />
-              <h1 className="font-display text-base font-bold tracking-tight sm:text-lg">Tournaments</h1>
-            </Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {right}
             <WalletHeaderWidget />
-            <ThemeToggle size={38} mobileSize={32} />
+            <SiteNavMenu />
           </div>
         </div>
       </header>
 
-      {hero}
+      {/* Everything below the nav carries the BONK sponsor theme. */}
+      <div className={bonk ? 'bonk-theme' : undefined}>
+        {hero}
 
-      {lede && (
-        <section aria-label="About this page" className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center">
-          {lede}
-        </section>
-      )}
+        {lede && (
+          <section aria-label="About this page" className="mx-auto max-w-3xl px-4 pt-8 pb-2 text-center">
+            {lede}
+          </section>
+        )}
 
-      <div className="mx-auto px-4 pt-6 pb-24" style={{ maxWidth: 1800 }}>{children}</div>
+        <div className="mx-auto px-4 pt-6 pb-24" style={{ maxWidth: 1800 }}>{children}</div>
+      </div>
     </div>
   )
 }

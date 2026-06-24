@@ -22,19 +22,20 @@ interface CardGridProps {
 
 const CARD_RATIO = 7 / 5 // height / width
 // The fixed header height depends on breakpoint. On mobile every
-// collection gets the same four persistent rows under the brand bar:
+// collection gets the same persistent rows under the brand bar:
 //
 //   desktop : 48 brand + 40 filter toolbar                  =  88
 //   mobile  : 48 brand + 40 collection/search/set
 //                      + 40 facets
-//                      + 40 sort/zoom                       = 168
+//                      + 40 sort/artist/character
+//                      + 40 zoom scrubber                   = 208
 //
 // card-grid uses this for the spacer below the fixed header and for
 // the virtualizer scrollMargin. Keep in sync if mobile rows change.
 // CHIP_ROW_H is added on top of the base heights when any filter chip
 // is visible - the chip strip now lives in the fixed header (not the
 // scrollable content) so the padding must grow with it.
-export const GALLERY_HEADER_H_MOBILE = 168
+export const GALLERY_HEADER_H_MOBILE = 208
 export const GALLERY_HEADER_H_DESKTOP = 88
 const CHIP_ROW_H = 34 // height of the filter-chip row (6px top + 6px bottom + 22px content)
 
@@ -520,7 +521,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       className={`mx-auto px-4 md:px-4${columns >= DENSE_COLUMNS ? ' wall--dense' : ''}`}
       style={{ maxWidth: 1800 }}
     >
-      {/* Spacer matches the fixed header (168px mobile, 88px desktop). */}
+      {/* Spacer matches the fixed header (208px mobile, 88px desktop). */}
       <div style={{ height: headerH }} />
 
       {/* Collection title - top-level grouping (collection > set).

@@ -8,9 +8,9 @@
 import { useMemo, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpDown, HelpCircle, Layers, Package, Search, X } from 'lucide-react'
+import { ArrowUpDown, Package, Search, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { ThemeToggle } from '@/components/gallery/theme-toggle'
+import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
 import { Footer } from '@/components/gallery/footer'
 import {
   BoxPricing,
@@ -19,8 +19,6 @@ import {
   getBoxes,
   useEnsureBoxesLoaded,
 } from '@/lib/pricing'
-import { useStore } from '@/lib/store'
-
 const Sparkline = dynamic(
   () => import('./pricing-sparkline').then((m) => m.Sparkline),
   { ssr: false, loading: () => <div className="sb-sparkline-skeleton" /> },
@@ -194,7 +192,6 @@ function ZoomScrubber({
 
 export function SealedDashboard() {
   const ready = useEnsureBoxesLoaded()
-  const tierPoolCount = useStore((s) => s.tierPool.length)
   // Zoom IS the desired column count. Phones default to 2-up (roomy box art),
   // larger screens to 5-up; each is then clamped to the breakpoint's range.
   const [zoom, setZoom] = useState(() =>
@@ -286,77 +283,35 @@ export function SealedDashboard() {
             </span>
           </div>
 
+          {/* Uniform right cluster: zoom (desktop) + the shared site
+              menu (theme + hamburger). Every destination lives in the
+              menu, so this matches every other page. */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Zoom + help live in row 1 on desktop only; on phones they
-                move to the dedicated second row below so the brand
-                lockup never gets crushed out of its own row. */}
             <ZoomScrubber value={columns} setZoom={setZoom} min={zoomRange.min} max={zoomRange.max} ctrl={ctrl} className="hidden sm:flex" />
-            <Link
-              href="/help"
-              className="footer-btn hidden sm:inline-flex items-center justify-center"
-              style={{ ...ctrl, width: 30, height: 30 }}
-              aria-label="How it works"
-              title="How it works"
-            >
-              <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
-            </Link>
-            <ThemeToggle />
-            <Link
-              href="/tier-list"
-              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium"
-              style={{
-                ...ctrl,
-                height: 30,
-                background: tierPoolCount > 0 ? 'var(--text-primary)' : 'var(--bg-surface)',
-                color: tierPoolCount > 0 ? 'var(--bg)' : 'var(--text-primary)',
-              }}
-              aria-label="Open tier list maker"
-            >
-              <Layers size={12} strokeWidth={2.25} aria-hidden />
-              <span className="hidden sm:inline">Tiers</span>
-            </Link>
-            <span
-              className="footer-btn inline-flex items-center gap-1.5 px-3 text-xs font-medium pointer-events-none"
-              style={{
-                ...ctrl,
-                height: 30,
-                background: 'var(--text-primary)',
-                color: 'var(--bg)',
-                borderColor: 'var(--text-primary)',
-              }}
-              aria-current="page"
-            >
-              <Package size={12} strokeWidth={2.25} aria-hidden />
-              <span className="hidden sm:inline">Sealed</span>
-            </span>
+            <SiteNavMenu />
           </div>
         </div>
-
-        {/* Mobile row 2 - full-width zoom scrubber + help. Mirrors the
-            card wall's mobile pattern of giving the zoom its own row. */}
-        <div
-          className="sm:hidden flex items-center gap-2"
-          style={{ padding: '0 16px 9px' }}
-        >
-          <ZoomScrubber value={columns} setZoom={setZoom} min={zoomRange.min} max={zoomRange.max} ctrl={ctrl} fluid />
-          <Link
-            href="/help"
-            className="footer-btn inline-flex items-center justify-center shrink-0"
-            style={{ ...ctrl, width: 30, height: 30 }}
-            aria-label="How it works"
-            title="How it works"
-          >
-            <HelpCircle size={14} strokeWidth={2.25} aria-hidden />
-          </Link>
-        </div>
       </header>
+
+      {/* Centered page title, matching the tier-list / chart-race header
+          so all the tool pages share one masthead aesthetic. */}
+      <div className="mx-auto flex items-center justify-center gap-2 px-4 pt-5" style={{ maxWidth: 1800 }}>
+        <Package size={20} strokeWidth={2.25} style={{ color: '#E85D2A', flexShrink: 0 }} aria-hidden />
+        <h1 className="font-display text-lg font-bold tracking-tight sm:text-xl">Sealed product</h1>
+      </div>
+
+      {/* Mobile zoom scrubber sits below the title with breathing room,
+          not crammed under the nav bar. Desktop keeps it in the header. */}
+      <div className="sm:hidden mx-auto flex items-center px-4 pt-4" style={{ maxWidth: 1800 }}>
+        <ZoomScrubber value={columns} setZoom={setZoom} min={zoomRange.min} max={zoomRange.max} ctrl={ctrl} fluid />
+      </div>
 
       <main className="sb-main">
         {/* Collection band - mirrors the card wall's set/collection header */}
         <div className="sb-collection-band">
-          <div className="sb-collection-band__eyebrow">Sealed product</div>
+          <div className="sb-collection-band__eyebrow">Collection</div>
           <div className="sb-collection-band__row">
-            <h1 className="sb-collection-band__title">One Piece booster boxes</h1>
+            <h2 className="sb-collection-band__title">One Piece booster boxes</h2>
             <span className="sb-collection-band__meta">
               {query.trim()
                 ? `${stats.count.toLocaleString()} of ${stats.total.toLocaleString()} boxes`

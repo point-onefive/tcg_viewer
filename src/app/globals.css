@@ -776,7 +776,9 @@ html.lenis, html.lenis body {
 .sb-main {
   max-width: 1800px;
   margin: 0 auto;
-  padding: 0 16px 24px;
+  /* Top padding keeps the collection band off the page title / scrubber
+     so the masthead reads as its own zone, not smashed into content. */
+  padding: 18px 16px 24px;
 }
 
 .sb-collection-band {
@@ -907,6 +909,24 @@ html.lenis, html.lenis body {
 .sb-sort__select option {
   color: var(--text-primary);
   background: var(--bg-surface);
+}
+/* On phones the search + sort controls each take a full-width row so
+   the toolbar reads as two clean stacked fields, instead of a wide
+   search above a short sort dropdown stranded against empty space. */
+@media (max-width: 560px) {
+  .sb-search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+  .sb-sort {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .sb-sort__select {
+    flex: 1 1 auto;
+    width: 100%;
+    background-position: right center;
+  }
 }
 .sb-empty__link {
   color: var(--text-primary);
@@ -1413,114 +1433,6 @@ html.lenis, html.lenis body {
 }
 .wall--dense .card-tile--has-variants:hover {
   box-shadow: none;
-}
-
-/* ─── Tier-list chart "blip" border ────────────────────────────────
-   A thin brand-orange outline that's mostly dim, with a single
-   brief brightness flash once per loop -- like a status LED or a
-   sonar ping. Designed deliberately for the GIF export pipeline:
-
-   - Solid colour (no gradients) -> quantizes cleanly into the
-     GIF's 256-colour palette with no banding.
-   - One shape (a rounded rectangle outline) that never moves ->
-     most frames are pixel-identical to each other, so the GIF
-     encoder's per-frame compression actually helps.
-   - Two visual states (dim baseline + bright peak) with a short
-     ramp between them -> palette only needs ~6-8 orange shades
-     for the whole loop instead of one shade per frame.
-
-   The on-page version (this file) and the GIF version (see
-   src/lib/chart-export.ts) use the same opacity curve and the
-   same loop length, so the exported file looks exactly like what
-   you preview on the page. */
-/* `@property` declares `--chart-grad-angle` as a typed angle CSS
-   variable so the browser can interpolate it smoothly during the
-   keyframe animation. Without @property, custom properties default
-   to the universal type and animate by string-swap (jumping the
-   conic-gradient from one angle to the next on each frame), which
-   looks juddery. With @property + linear timing, the gradient
-   slides around the frame at a constant rate. Supported in
-   Chromium/Safari since 2022 and Firefox 128+ (mid-2024); for any
-   older browser the variable just sits at its initial value and
-   the gradient stays static -- still on-brand, no jank. */
-@property --chart-grad-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes chart-grad-spin {
-  to { --chart-grad-angle: 360deg; }
-}
-
-.chart-frame-animated {
-  position: relative;
-  isolation: isolate;
-}
-
-/* Rotating gradient ring drawn in the 2px gap between the chart's
-   own 1px border and the inner content panels. Palette is sampled
-   from the site mascot (public/images/site-logo.png):
-     #E85D2A - brand orange (hat)
-     #9DEAFA - goggle cyan
-     #1763E6 - jeans royal blue
-   The three brand colours read as "us" without going full rainbow
-   like the generic CSS-trick examples on YouTube. Closing the loop
-   with #E85D2A keeps the conic gradient seamless as it rotates -- no
-   visible "seam" line where 0deg meets 360deg.
-
-   Technique = standard "gradient border via mask":
-     1. Conic gradient fills the whole pseudo-element (inset:0).
-     2. `padding: 2px` + `box-sizing: border-box` carves a 2px ring
-        between the element's border edge and content box.
-     3. The two-layer mask (one in `border-box`, one in `content-box`)
-        with `mask-composite: exclude` punches out the inner content
-        box, leaving only the 2px ring visible.
-   The chart's `overflow: hidden` would clip any negative-inset
-   pseudo, so the mask trick is the only way to get a sharp ring
-   *inside* the padding box.
-
-   z-index:-1 + parent's `isolation: isolate` puts the pseudo behind
-   the chart's content panels (the tier rows have their own opaque
-   backgrounds that cover the interior of the ring) but above the
-   chart frame's own background -- exposes the ring at the very edge
-   only. Same architecture as the old blip border. */
-.chart-frame-animated::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
-  padding: 2px;
-  z-index: -1;
-  /* Chart's CSS border-radius is 12px; subtract 1 so the gradient
-     ring's outer curve sits cleanly just inside the chart's own
-     1px border without a visible corner-radius mismatch. */
-  border-radius: 11px;
-  pointer-events: none;
-  background: conic-gradient(
-    from var(--chart-grad-angle),
-    #E85D2A,
-    #9DEAFA,
-    #1763E6,
-    #E85D2A
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: chart-grad-spin 6s linear infinite;
-}
-
-/* Reduced-motion users get the gradient ring frozen at a hand-
-   picked angle -- still shows the brand palette, no rotation. The
-   value (140deg) was chosen so the orange-cyan transition wraps
-   the top edge, which reads best for the static fallback. */
-@media (prefers-reduced-motion: reduce) {
-  .chart-frame-animated::before {
-    animation: none;
-    --chart-grad-angle: 140deg;
-  }
 }
 
 /* ─── Live tournament "breathe" cue ────────────────────────────────

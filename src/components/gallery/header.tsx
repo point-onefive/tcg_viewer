@@ -1823,12 +1823,11 @@ export function Header({ sets, artists, characters }: HeaderProps) {
         />
       </div>
 
-      {/* ── Mobile row-4 · Sort + Artist + Zoom slider ─────────────────
-          Zoom was the last hamburger-only control. Promoted here so
-          the entire filter set is reachable without ever opening the
-          sheet. Sort and the artist typeahead live in this same row -
-          secondary controls that fit naturally beside zoom (and keep
-          row-3's facet triggers from being crushed into "A…"). */}
+      {/* ── Mobile row-4 · Sort + Artist + Character ───────────────────
+          Secondary narrowing controls. The zoom scrubber used to share
+          this row but got cramped into whatever width was left over;
+          it now lives on its own full-width row below so the whole
+          slider travel is usable on a phone. */}
       <div
         className="nav:hidden flex items-center gap-2 px-4 overflow-visible"
         style={{
@@ -1846,6 +1845,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           ctrl={ctrl}
           ctrlActive={ctrlActive}
           menuMinWidth={150}
+          fluid
         />
 
         {artists.length > 0 && (
@@ -1870,9 +1870,22 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             menuAlign="right"
           />
         )}
+      </div>
 
+      {/* ── Mobile row-5 · full-width zoom scrubber ─────────────────────
+          Card size is the control users reach for most on a phone, so
+          it gets the entire row width instead of being squeezed beside
+          Sort/Character. Mirrors the tier-list maker's full-width
+          scrubber treatment for cross-page consistency. */}
+      <div
+        className="nav:hidden flex items-center px-4 overflow-visible"
+        style={{
+          height: 40,
+          borderTop: '1px solid var(--border-subtle)',
+        }}
+      >
         <div
-          className="flex items-center gap-2 flex-1 px-3"
+          className="flex items-center gap-2 w-full px-3"
           style={{ ...ctrl, height: 30 }}
         >
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
@@ -2216,30 +2229,17 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.2, ease: HEADER_DROPDOWN_EASE }}
         >
-          <select
-            value={activeCollection}
-            onChange={(e) => { setActiveCollection(e.target.value as typeof activeCollection); setMobileOpen(false) }}
-            className="w-full px-3 py-2 text-sm outline-none cursor-pointer appearance-none font-medium"
-            style={{ ...ctrl }}
-            aria-label="Collection"
-          >
-            {COLLECTIONS.map((c) => (
-              <option key={c.id} value={c.id} disabled={!c.available}>
-                {c.name}{!c.available ? ' (soon)' : ''}
-              </option>
-            ))}
-          </select>
-
           {/* NOTE: The mobile sheet used to be the home for every
-              filter on the page. We've since promoted them all to
-              persistent rows directly under the brand row:
-                row-2: Search + Set
+              filter on the page (including a Collection picker). We've
+              since promoted them all to persistent rows directly under
+              the brand row:
+                row-2: Collection + Search + Set
                 row-3: Card type + Rarity + Color + More
-                row-4: Zoom slider
-              So this sheet now only holds Collection (above) and the
-              meta nav links (below). The trade-off is a taller fixed
-              header on mobile, but every filter is one tap away with
-              no sheet-open / sheet-close round-trip. */}
+                row-4: Sort + Artist + Character
+                row-5: Zoom slider
+              So this sheet is now purely the meta nav links below - the
+              Collection picker lives in row-2 and reading "One Piece" as
+              a menu item here was confusing. */}
 
           <Link
             href="/tier-list"

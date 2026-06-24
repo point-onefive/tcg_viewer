@@ -210,6 +210,15 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
             Prize pool
           </h3>
         </div>
+        {/* Official "powered by BONK" linear lockup, sized to sit beside the
+            title without crowding it on mobile (clamped) or wrapping. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/bonk/web-img/powered_by_bonk_linear_white.png"
+          alt="powered by BONK"
+          className="relative block w-auto shrink-0"
+          style={{ height: 'clamp(20px, 4vw, 30px)' }}
+        />
       </div>
       {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
       <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
