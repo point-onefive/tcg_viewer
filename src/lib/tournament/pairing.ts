@@ -226,8 +226,17 @@ function greedyAllowRematch(order: string[]): Pairing[] {
  */
 export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
   const active = players.filter((p) => !p.dropped)
-  const standings = computeStandings(active, matches)
-  const order = standings.map((s) => s.playerId)
+  // Round 1 has no results, so computeStandings would tie everyone on 0 points
+  // and fall through to its name tiebreak - making round-1 pairings alphabetical
+  // and giving repeat entrants the same first-round opponent every event. Use the
+  // randomly-assigned seed order for round 1 instead, so it is genuinely random.
+  // From round 2 on there are real results to rank by, so standings drive it.
+  const isFirstRound = matches.length === 0
+  const order = isFirstRound
+    ? [...active]
+        .sort((a, b) => (a.seed ?? Number.MAX_SAFE_INTEGER) - (b.seed ?? Number.MAX_SAFE_INTEGER))
+        .map((p) => p.id)
+    : computeStandings(active, matches).map((s) => s.playerId)
   const { played, hadBye } = history(matches)
 
   const pairings: Pairing[] = []
