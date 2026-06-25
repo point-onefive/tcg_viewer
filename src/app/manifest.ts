@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'The Card Wall',
     short_name: 'Card Wall',
-    description: 'The Bloomberg Terminal of TCG',
+    description: 'The whole game, on one wall.',
     start_url: '/',
     display: 'standalone',
     background_color: '#0a0a0a',

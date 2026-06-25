@@ -424,7 +424,7 @@ function DeckBuilderInner() {
           }}
         >
           <span style={{ color: '#E85D2A', fontWeight: 800, marginRight: 3 }}>&ldquo;</span>
-          Netdeck in peace. Brew in private.
+          Cook it, Sleeve it, Run it
           <span style={{ color: '#E85D2A', fontWeight: 800, marginLeft: 3 }}>&rdquo;</span>
         </p>
         <p

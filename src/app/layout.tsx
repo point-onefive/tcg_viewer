@@ -19,7 +19,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'The Card Wall',
-  description: 'The Bloomberg Terminal of TCG',
+  description: 'The whole game, on one wall.',
   metadataBase: new URL('https://thecardwall.com'),
   manifest: '/manifest.webmanifest',
   appleWebApp: {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'The Card Wall',
-    description: 'The Bloomberg Terminal of TCG',
+    description: 'The whole game, on one wall.',
     url: 'https://thecardwall.com',
     siteName: 'The Card Wall',
     images: [{ url: '/images/og.png', width: 1200, height: 630, alt: 'The Card Wall' }],
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'The Card Wall',
-    description: 'The Bloomberg Terminal of TCG',
+    description: 'The whole game, on one wall.',
     images: ['/images/og.png'],
   },
 }
