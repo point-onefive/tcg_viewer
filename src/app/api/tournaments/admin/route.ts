@@ -8,6 +8,7 @@ import {
   adminExtendSignup,
   adminRejectPlayer,
   adminSetDeck,
+  adminSetMaxPlayers,
   adminGetDeck,
   adminSetPollConfig,
   adminSetPollOpen,
@@ -31,6 +32,7 @@ type Body =
   | { action: 'add-player'; code: string; xHandle: string; deckList?: string }
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
+  | { action: 'set-max-players'; code: string; maxPlayers: number | null }
   | { action: 'approve'; code: string; playerId: string }
   | { action: 'reject'; code: string; playerId: string }
   | { action: 'set-deck'; code: string; playerId: string; deckList: string }
@@ -69,6 +71,9 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'close-signup':
         await adminCloseSignup(body.code)
+        return ok({ ok: true })
+      case 'set-max-players':
+        await adminSetMaxPlayers(body.code, body.maxPlayers)
         return ok({ ok: true })
       case 'approve':
         await adminApprovePlayer(body.code, body.playerId)

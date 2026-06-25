@@ -1349,6 +1349,29 @@ export async function adminCloseSignup(code: string): Promise<void> {
     .eq('id', row.id)
 }
 
+/**
+ * Retarget the player cap (the "X / cap registered" ceiling) while sign-ups are
+ * open. This is purely a gate for NEW sign-ups - it never touches or removes
+ * anyone already registered, so dropping a 32-cap event to 16 when the field
+ * came in smaller is safe (the headline just reads e.g. "13 / 16" instead of
+ * "13 / 32"). Pass null to clear the cap (unlimited up to the global guard).
+ */
+export async function adminSetMaxPlayers(code: string, maxPlayers: number | null): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'enrolling') {
+    throw new TournamentError('You can only change the player cap while sign-ups are open.')
+  }
+  let cap: number | null = null
+  if (maxPlayers != null) {
+    if (!Number.isInteger(maxPlayers) || maxPlayers < 2) {
+      throw new TournamentError('Player cap must be a whole number of at least 2.')
+    }
+    cap = Math.min(maxPlayers, MAX_PLAYERS)
+  }
+  await sb.from('tournaments').update({ max_players: cap }).eq('id', row.id)
+}
+
 export async function adminApprovePlayer(code: string, playerId: string): Promise<void> {
   const sb = getServiceClient()
   const row = await requireHost(code)

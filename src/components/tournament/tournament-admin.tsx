@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, X } from 'lucide-react'
+import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -510,6 +510,20 @@ export function TournamentAdmin() {
                           ? 'Single elim seeds a knockout bracket - lose once and you are out.'
                           : 'Swiss pairings are posted round-by-round (everyone keeps playing).'}
                       </p>
+                      <MaxPlayersEditor
+                        key={code}
+                        current={snapshot.tournament.maxPlayers}
+                        format={snapshot.tournament.format === 'single-elim' ? 'single-elim' : 'swiss'}
+                        registered={approved.length + pending.length}
+                        busy={busy}
+                        onSave={(cap) =>
+                          run(() =>
+                            adminApi(adminKey, { action: 'set-max-players', code, maxPlayers: cap }).then(() =>
+                              setMsg(`Player cap set to ${cap}`),
+                            ),
+                          )
+                        }
+                      />
                     </>
                   )}
 
@@ -1375,6 +1389,62 @@ function ordinal(n: number): string {
  * run with fewer. A "Custom" escape hatch keeps full flexibility.
  */
 const CAP_PRESETS = [8, 16, 32, 64]
+
+/**
+ * Live editor for the player cap of the active (enrolling) tournament. Reuses
+ * the same preset picker as the create form. Saving only re-targets the
+ * ceiling for new sign-ups - it never removes anyone already registered - so
+ * an admin can comfortably drop a 32-cap event to 16 once the field is set.
+ */
+function MaxPlayersEditor({
+  current,
+  format,
+  registered,
+  busy,
+  onSave,
+}: {
+  current: number | null
+  format: 'swiss' | 'single-elim'
+  registered: number
+  busy: boolean
+  onSave: (cap: number) => void
+}) {
+  const [value, setValue] = useState(() => String(current ?? 32))
+  const parsed = parsePositiveInt(value)
+  const changed = parsed != null && parsed !== (current ?? null)
+  const belowField = parsed != null && parsed < registered
+
+  return (
+    <div
+      className="mt-4 px-3 py-3"
+      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Users size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+        <span className="text-sm font-semibold">Player cap</span>
+        <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
+          {registered} registered · cap {current ?? 'none'}
+        </span>
+      </div>
+      <PlayerCapPicker value={value} onChange={setValue} format={format} />
+      {belowField && (
+        <p className="text-[11px] mt-2" style={{ color: '#f5b301', lineHeight: 1.45 }}>
+          That&rsquo;s below your {registered} current sign-ups. Nobody is removed, but new sign-ups
+          will be turned away (the event reads as full).
+        </p>
+      )}
+      <div className="mt-3">
+        <AdminBtn
+          disabled={busy || !changed || parsed == null}
+          primary
+          onClick={() => parsed != null && onSave(parsed)}
+        >
+          {changed && parsed != null ? `Save cap (${parsed})` : 'Save cap'}
+        </AdminBtn>
+      </div>
+    </div>
+  )
+}
 
 function PlayerCapPicker({
   value,
