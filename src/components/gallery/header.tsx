@@ -1699,7 +1699,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
                     </>
                   )}
                   {isOnePiece && (
-                    <ToggleRow label="Pre-errata only" checked={onlyErrata} onClick={() => setOnlyErrata(!onlyErrata)} />
+                    <ToggleRow label="Errata only" checked={onlyErrata} onClick={() => setOnlyErrata(!onlyErrata)} />
                   )}
                   {hasPricing && (
                     <ToggleRow label="Show prices" checked={showTilePrices} onClick={() => setShowTilePrices(!showTilePrices)} />
@@ -1793,7 +1793,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
               onClear={() => setOnlyAltArt(false)}
             />
           )}
-          {onlyErrata && <FilterChip label="Pre Errata only" onClear={() => setOnlyErrata(false)} />}
+          {onlyErrata && <FilterChip label="Errata only" onClear={() => setOnlyErrata(false)} />}
           {flattenWall && <FilterChip label="Flattened" onClear={() => setFlattenWall(false)} />}
           {searchQuery.trim() && (
             <FilterChip
