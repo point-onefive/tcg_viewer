@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -11,6 +11,7 @@ import {
   apiOwnDeck,
   apiSubmitDeckList,
   apiReportResult,
+  apiDropSelf,
   loadVotedChoice,
   loadVoterId,
   saveVotedChoice,
@@ -647,6 +648,90 @@ function MyMatchCard({
       {error && <p className="mt-2 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
     </>
   ))
+}
+
+/**
+ * Lets a signed-up player remove themselves from the event. Two-step confirm so
+ * it can't be fat-fingered. While the event is live, dropping forfeits the
+ * player's current match server-side so the round can still advance.
+ */
+function DropSelfButton({
+  code,
+  live,
+  onDropped,
+}: {
+  code: string
+  live: boolean
+  onDropped: () => Promise<void> | void
+}) {
+  const [confirming, setConfirming] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const drop = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await apiDropSelf(code)
+      await onDropped()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not drop')
+      setBusy(false)
+    }
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="inline-flex items-center gap-1.5 text-xs font-semibold"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        <LogOut size={13} aria-hidden /> Drop from tournament
+      </button>
+    )
+  }
+
+  return (
+    <div
+      className="flex flex-col gap-2 rounded-md p-3"
+      style={{ background: 'var(--bg)', border: '1px solid color-mix(in srgb, #ef4444 32%, transparent)' }}
+    >
+      <p className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+        {live
+          ? 'Drop from this tournament? Your current match is forfeited to your opponent and you won\u2019t be paired in future rounds. This can\u2019t be undone.'
+          : 'Drop from this tournament? You\u2019ll be removed from the bracket. This can\u2019t be undone.'}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => void drop()}
+          disabled={busy}
+          className="footer-btn py-1.5 px-3 text-xs font-bold"
+          style={{ background: '#ef4444', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          {busy ? (
+            <>
+              <Loader2 size={13} className="animate-spin" /> Dropping…
+            </>
+          ) : (
+            'Yes, drop me'
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirming(false)}
+          disabled={busy}
+          className="footer-btn py-1.5 px-3 text-xs font-semibold"
+          style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+        >
+          Cancel
+        </button>
+      </div>
+      {error && <p className="text-xs" style={{ color: '#ef4444' }}>{error}</p>}
+    </div>
+  )
 }
 
 /** Inline "opens in a new tab" affordance: the little box-with-arrow mark. */
@@ -1905,6 +1990,23 @@ export function TournamentLive() {
           players={snapshot.players}
           activeRound={activeRound}
         />
+      )}
+
+      {/* Self-drop: a signed-up player can remove themselves from the event. */}
+      {signedUp && tournament.status !== 'complete' && (
+        <div className="mb-6 flex justify-center">
+          {myPlayer?.dropped ? (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              You&rsquo;ve dropped from this tournament.
+            </p>
+          ) : (
+            <DropSelfButton
+              code={tournament.code}
+              live={tournament.status === 'running'}
+              onDropped={refresh}
+            />
+          )}
+        </div>
       )}
 
       {/* Closing co-brand strip */}

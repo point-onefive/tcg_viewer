@@ -727,12 +727,67 @@ export async function acceptSchedule(
 
 // ── Drop ─────────────────────────────────────────────────────────────────--
 
-export async function dropSelf(code: string, playerToken: string): Promise<void> {
+/**
+ * Mark a player dropped and, if the event is live, forfeit any open match they
+ * have in the current round so the round can still complete (the opponent
+ * advances). Pairing already excludes dropped players from every future round.
+ * Idempotent and safe to call repeatedly.
+ */
+async function applyDrop(row: { id: string; status: string }, playerId: string): Promise<void> {
   const sb = getServiceClient()
+  await sb.from('players').update({ dropped: true }).eq('id', playerId).eq('tournament_id', row.id)
+
+  if (row.status !== 'running') return
+
+  // Forfeit an unresolved match in the active round so it doesn't block the
+  // round forever. The remaining player is recorded as the winner.
+  const rounds = await fetchRounds(row.id)
+  const active = rounds.find((r) => r.status === 'active')
+  if (!active) return
+  const matches = await fetchMatches(row.id)
+  const open = matches.find(
+    (m) =>
+      m.roundId === active.id &&
+      m.player2Id != null &&
+      (m.player1Id === playerId || m.player2Id === playerId) &&
+      m.status !== 'confirmed' &&
+      m.status !== 'bye',
+  )
+  if (open) {
+    const opponentId = open.player1Id === playerId ? open.player2Id : open.player1Id
+    await sb
+      .from('matches')
+      .update({
+        status: 'confirmed',
+        winner_id: opponentId,
+        // Clear any provisional self-reports so the result reads as a settled
+        // forfeit rather than a contradictory player report.
+        player1_report: null,
+        player2_report: null,
+        resolved_at: nowIso(),
+      })
+      .eq('id', open.id)
+  }
+  await maybeAdvance(row.id)
+}
+
+export async function dropSelf(code: string, playerToken: string): Promise<void> {
   const row = await fetchTournamentRowByCode(code)
   const player = await fetchPlayerByToken(row.id, playerToken)
   if (!player) throw new TournamentError('Not authorized (invalid player token).', 403)
-  await sb.from('players').update({ dropped: true }).eq('id', player.id)
+  await applyDrop(row, player.id)
+}
+
+/** Wallet-backed self-drop, mirroring reportResultByWallet's identity lookup. */
+export async function dropSelfByWallet(
+  code: string,
+  walletAddress: string,
+  xHandle: string | null,
+): Promise<void> {
+  const row = await fetchTournamentRowByCode(code)
+  const player = await fetchPlayerByWalletOrHandle(row.id, walletAddress, xHandle)
+  if (!player) throw new TournamentError('You are not signed up for this tournament.', 403)
+  await applyDrop(row, player.id)
 }
 
 export async function hostDropPlayer(
@@ -740,14 +795,15 @@ export async function hostDropPlayer(
   hostToken: string,
   playerId: string,
 ): Promise<void> {
-  const sb = getServiceClient()
   const row = await requireHost(code)
   assertHostToken(row, hostToken)
-  await sb
-    .from('players')
-    .update({ dropped: true })
-    .eq('id', playerId)
-    .eq('tournament_id', row.id)
+  await applyDrop(row, playerId)
+}
+
+/** Admin-key authorized drop (the admin route guards this via assertAdmin). */
+export async function adminDropPlayer(code: string, playerId: string): Promise<void> {
+  const row = await requireHost(code)
+  await applyDrop(row, playerId)
 }
 
 // ── Round advancement ──────────────────────────────────────────────────────

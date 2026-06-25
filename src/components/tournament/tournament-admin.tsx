@@ -295,6 +295,12 @@ export function TournamentAdmin() {
       await adminApi(adminKey, { action: 'reject', code, playerId: p.id })
       setMsg(`Rejected @${p.xHandle}`)
     })
+  const dropPlayer = (p: Player) =>
+    run(async () => {
+      if (!code) return
+      await adminApi(adminKey, { action: 'drop-player', code, playerId: p.id })
+      setMsg(`Dropped @${p.xHandle}`)
+    })
 
   const setPollOpen = (open: boolean) =>
     run(async () => {
@@ -796,8 +802,10 @@ export function TournamentAdmin() {
                           key={p.id}
                           player={p}
                           disabled={busy}
+                          running={status === 'running'}
                           onApprove={() => approvePlayer(p)}
                           onReject={() => rejectPlayer(p)}
+                          onDrop={() => dropPlayer(p)}
                           onViewDeck={() => setDeckPlayer(p)}
                         />
                       ))}
@@ -2177,18 +2185,23 @@ const STATUS_STYLE: Record<Player['approvalStatus'], { label: string; fg: string
 function ParticipantRow({
   player,
   disabled,
+  running,
   onApprove,
   onReject,
+  onDrop,
   onViewDeck,
 }: {
   player: Player
   disabled: boolean
+  running: boolean
   onApprove: () => void
   onReject: () => void
+  onDrop: () => void
   onViewDeck: () => void
 }) {
   const url = xProfileUrl(player.xHandle)
   const status = STATUS_STYLE[player.approvalStatus]
+  const [confirmDrop, setConfirmDrop] = useState(false)
   return (
     <li
       className="flex flex-wrap items-center justify-between gap-2 rounded-md px-3 py-2"
@@ -2219,8 +2232,16 @@ function ParticipantRow({
         >
           {player.hasDeckList ? 'Deck ✓' : 'No deck'}
         </span>
+        {player.dropped && (
+          <span
+            className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
+            style={{ color: '#ef4444', background: 'rgba(239,68,68,0.15)', padding: '2px 7px', borderRadius: 5 }}
+          >
+            Dropped
+          </span>
+        )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <AdminBtn disabled={disabled} onClick={onViewDeck}>
           {player.hasDeckList ? 'Deck' : 'Add deck'}
         </AdminBtn>
@@ -2229,9 +2250,41 @@ function ParticipantRow({
             {player.approvalStatus === 'rejected' ? 'Restore' : 'Approve'}
           </AdminBtn>
         )}
-        {player.approvalStatus !== 'rejected' && (
+        {player.approvalStatus !== 'rejected' && !player.dropped && (
           <AdminBtn disabled={disabled} onClick={onReject}>Reject</AdminBtn>
         )}
+        {player.approvalStatus === 'approved' &&
+          !player.dropped &&
+          (confirmDrop ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+                {running ? 'Drop (forfeits current match)?' : 'Drop?'}
+              </span>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setConfirmDrop(false)
+                  onDrop()
+                }}
+                className="text-[11px] font-bold"
+                style={{ color: '#fff', background: '#ef4444', padding: '3px 9px', borderRadius: 5 }}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setConfirmDrop(false)}
+                className="text-[11px] font-semibold"
+                style={{ color: 'var(--text-secondary)', padding: '3px 7px' }}
+              >
+                No
+              </button>
+            </span>
+          ) : (
+            <AdminBtn disabled={disabled} onClick={() => setConfirmDrop(true)}>Drop</AdminBtn>
+          ))}
       </div>
     </li>
   )

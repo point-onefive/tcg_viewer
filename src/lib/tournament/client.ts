@@ -219,3 +219,12 @@ export async function apiReportResult(
 ): Promise<void> {
   await post(`/api/tournaments/${encodeURIComponent(code)}/report`, { matchId, result })
 }
+
+/**
+ * Drop yourself from a tournament. Wallet-backed: the server identifies you from
+ * the signed-in wallet session. If the event is live, your current match is
+ * forfeited so the round can still advance.
+ */
+export async function apiDropSelf(code: string): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/drop`, {})
+}
