@@ -281,6 +281,12 @@ export function Leaderboard() {
               )}
             </div>
           )}
+          <p
+            className="px-4 py-2.5 text-[11px]"
+            style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)', lineHeight: 1.5 }}
+          >
+            Win rate counts confirmed match results only. Byes are not included.
+          </p>
         </>
       )}
 
