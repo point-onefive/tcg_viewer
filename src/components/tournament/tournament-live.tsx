@@ -86,13 +86,18 @@ function XProfileLink({ handle, className }: { handle: string; className?: strin
   )
 }
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, enrollExpired }: { status: string; enrollExpired?: boolean }) {
   const map: Record<string, { bg: string; fg: string; label: string; breathe?: boolean }> = {
     enrolling: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Sign-ups open' },
     running: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Round in progress', breathe: true },
     complete: { bg: 'rgba(120,120,120,0.18)', fg: 'var(--text-secondary)', label: 'Complete' },
   }
-  const s = map[status] ?? map.complete
+  // Sign-up timer elapsed but the bracket hasn't been started yet: the window
+  // is closed even though the tournament is technically still 'enrolling'.
+  const s =
+    status === 'enrolling' && enrollExpired
+      ? { bg: 'rgba(120,120,120,0.18)', fg: 'var(--text-secondary)', label: 'Sign-ups closed' }
+      : map[status] ?? map.complete
   return (
     <span
       className={s.breathe ? 'status-pill-breathe' : undefined}
@@ -1375,6 +1380,16 @@ export function TournamentLive() {
       new Date(tournament.enrollClosesAt) > new Date(),
   )
 
+  // Status is still 'enrolling' but the sign-up timer has run out (the bracket
+  // is started manually, so the cron never flips status on its own). Flag this
+  // so the public pill reads "Sign-ups closed" instead of staying green. The
+  // 1s signup countdown re-renders this component, so it flips on time.
+  const enrollExpired = Boolean(
+    tournament?.status === 'enrolling' &&
+      tournament.enrollClosesAt &&
+      new Date(tournament.enrollClosesAt) <= new Date(),
+  )
+
   // Roster is at capacity (matches the server-side cap check, which counts every
   // non-rejected sign-up). When full, newcomers can't enter even though the
   // sign-up timer is still running, so we steer them to the next-event waitlist
@@ -1609,7 +1624,7 @@ export function TournamentLive() {
         <BonkModuleHeader
           icon={Trophy}
           title={tournament.name}
-          right={<span className="hidden sm:block"><StatusPill status={tournament.status} /></span>}
+          right={<span className="hidden sm:block"><StatusPill status={tournament.status} enrollExpired={enrollExpired} /></span>}
         />
         <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
