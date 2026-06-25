@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -98,6 +98,16 @@ export function TournamentAdmin() {
   const [maxPlayers, setMaxPlayers] = useState('32')
   const [format, setFormat] = useState<'swiss' | 'single-elim'>('swiss')
   const [formError, setFormError] = useState<string | null>(null)
+  // When a non-complete tournament is already live, "Start new" parks the
+  // validated params here and opens a confirm modal instead of firing, so a
+  // stray click can't silently take the running event offline.
+  const [confirmStart, setConfirmStart] = useState<{
+    name: string
+    signupMinutes: number
+    roundMinutes: number
+    format: 'swiss' | 'single-elim'
+    maxPlayers: number
+  } | null>(null)
 
   // Which participant bucket the table is showing. Defaults to "all" so an
   // approve/reject never makes a row vanish - it just restyles in place.
@@ -180,6 +190,20 @@ export function TournamentAdmin() {
     } finally {
       setBusy(false)
     }
+  }
+
+  function startFresh(params: {
+    name: string
+    signupMinutes: number
+    roundMinutes: number
+    format: 'swiss' | 'single-elim'
+    maxPlayers: number
+  }) {
+    run(async () => {
+      const r = await adminApi(adminKey, { action: 'start-fresh', ...params })
+      setMsg(`Started ${r.code}`)
+      setName('')
+    })
   }
 
   async function unlock(e: React.FormEvent) {
@@ -350,18 +374,21 @@ export function TournamentAdmin() {
                   setFormError('Max players must be at least 2.')
                   return
                 }
-                run(async () => {
-                  const r = await adminApi(adminKey, {
-                    action: 'start-fresh',
-                    name: name.trim() || 'Card Wall Tournament',
-                    signupMinutes: signup * 60,
-                    roundMinutes: round * 60,
-                    format,
-                    maxPlayers: max,
-                  })
-                  setMsg(`Started ${r.code}`)
-                  setName('')
-                })
+                const params = {
+                  name: name.trim() || 'Card Wall Tournament',
+                  signupMinutes: signup * 60,
+                  roundMinutes: round * 60,
+                  format,
+                  maxPlayers: max,
+                }
+                // Guard against fat-fingering: if a tournament is still live
+                // (enrolling or running), confirm before taking it offline.
+                const ongoing = Boolean(snapshot && snapshot.tournament.status !== 'complete')
+                if (ongoing) {
+                  setConfirmStart(params)
+                  return
+                }
+                startFresh(params)
               }}
             >
               <div className="flex items-center gap-2">
@@ -404,6 +431,52 @@ export function TournamentAdmin() {
                 {busy ? 'Working…' : `Start new (${format === 'swiss' ? 'Swiss' : 'Single elim'})`}
               </button>
             </form>
+
+            {confirmStart && snapshot && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Confirm new tournament"
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+                style={{ background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(4px)' }}
+                onClick={() => setConfirmStart(null)}
+              >
+                <div className="w-full max-w-md p-5" style={{ ...card, borderRadius: 12 }} onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <AlertTriangle size={18} style={{ color: '#f5b301', flexShrink: 0 }} />
+                    <h3 className="font-display font-bold">A tournament is already live</h3>
+                  </div>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    <strong>{snapshot.tournament.name}</strong> ({code}) is currently{' '}
+                    {status === 'running' ? (
+                      <>running with {approved.length} player{approved.length === 1 ? '' : 's'} in the bracket</>
+                    ) : (
+                      <>taking sign-ups with {approved.length + pending.length} registered</>
+                    )}
+                    . Starting a new event takes this one offline immediately and makes the new one the live tournament.
+                  </p>
+                  <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    This can&rsquo;t be undone from here. Start a new {confirmStart.format === 'swiss' ? 'Swiss' : 'Single elim'} event anyway?
+                  </p>
+                  <div className="mt-4 flex gap-2 justify-end">
+                    <AdminBtn disabled={busy} onClick={() => setConfirmStart(null)}>Cancel</AdminBtn>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        const p = confirmStart
+                        setConfirmStart(null)
+                        startFresh(p)
+                      }}
+                      className="footer-btn py-2 px-4 text-sm font-bold"
+                      style={{ background: '#dc2626', color: '#fff', borderRadius: 6 }}
+                    >
+                      {busy ? 'Working…' : 'Take it offline & start new'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Next event waitlist - queued profiles, NOT current sign-ups */}
             <div className="p-5" style={card}>
