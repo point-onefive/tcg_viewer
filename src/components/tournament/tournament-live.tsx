@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Check, ChevronRight, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -29,7 +29,7 @@ import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
-import { computeStandings } from '@/lib/tournament/pairing'
+import { computeStandings, recommendedSwissRounds } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const POLL_MS = 12_000
@@ -172,6 +172,57 @@ function CountdownStat({ label, value }: { label: string; value: string }) {
       </span>
       <span className="bonk-mono text-base font-bold tabular-nums leading-none" style={{ color: 'var(--tcw-accent)' }}>
         {value}
+      </span>
+    </div>
+  )
+}
+
+/** Human round length, e.g. 1440 -> "24h", 90 -> "1h 30m". */
+function formatDuration(totalMinutes: number): string {
+  if (totalMinutes < 60) return `${totalMinutes}m`
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
+/**
+ * Lean schedule strip for the hero: turns the recurring "how much time do I get?"
+ * questions into a concrete answer - the per-round clock and how many rounds -
+ * plus a one-line reassurance that the timers are intentionally generous so every
+ * time zone can play. Sits on its own row so it never crowds the mobile chips.
+ */
+function ScheduleNote({
+  roundMinutes,
+  swissRounds,
+  maxPlayers,
+  format,
+}: {
+  roundMinutes: number
+  swissRounds: number | null
+  maxPlayers: number | null
+  format: Tournament['format']
+}) {
+  // Swiss round count is fixed once the bracket is drawn; before that we show an
+  // estimate from the cap so sign-ups still get a concrete number to plan around.
+  let roundsLabel: string | null = null
+  if (format === 'swiss') {
+    if (swissRounds) roundsLabel = `${swissRounds} rounds`
+    else if (maxPlayers) roundsLabel = `~${recommendedSwissRounds(maxPlayers)} rounds`
+  }
+  return (
+    <div
+      className="mt-5 flex flex-col gap-1.5 rounded-md p-3.5 sm:flex-row sm:items-center sm:gap-3"
+      style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)' }}
+    >
+      <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+        <Clock size={15} style={{ color: 'var(--bonk-purple)', flexShrink: 0 }} aria-hidden />
+        {formatDuration(roundMinutes)} per round
+        {roundsLabel && (
+          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
+        )}
+      </span>
+      <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+        Generous round limits to fit a global schedule.
       </span>
     </div>
   )
@@ -463,37 +514,79 @@ function ReportButtons({
   onReport: (r: 'win' | 'loss' | 'draw') => void
   allowDraw: boolean
 }) {
+  // Two-tap safeguard: the first tap arms a result, the second tap on the same
+  // button actually submits it - so a fat-fingered "I lost" never goes through
+  // on a single accidental press. Tapping a different result re-arms to that one.
+  const [armed, setArmed] = useState<'win' | 'loss' | 'draw' | null>(null)
+
+  // Auto-disarm after a few seconds so a stray first tap doesn't sit primed.
+  useEffect(() => {
+    if (!armed) return
+    const t = setTimeout(() => setArmed(null), 4000)
+    return () => clearTimeout(t)
+  }, [armed])
+
+  const handle = (result: 'win' | 'loss' | 'draw') => {
+    if (busy !== null) return
+    if (armed === result) {
+      setArmed(null)
+      onReport(result)
+    } else {
+      setArmed(result)
+    }
+  }
+
+  const labelFor = (r: 'win' | 'loss' | 'draw') => (r === 'win' ? 'I won' : r === 'loss' ? 'I lost' : 'Draw')
+
   const btn = (
     result: 'win' | 'loss' | 'draw',
     label: string,
     accent: string,
-  ) => (
-    <button
-      type="button"
-      disabled={busy !== null}
-      onClick={() => onReport(result)}
-      className="footer-btn inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-bold"
-      style={{
-        flex: 1,
-        minWidth: 96,
-        borderRadius: 8,
-        background: `color-mix(in srgb, ${accent} 12%, var(--bg-surface))`,
-        border: `1px solid color-mix(in srgb, ${accent} 32%, transparent)`,
-        color: accent,
-        opacity: busy !== null && busy !== result ? 0.5 : 1,
-        cursor: busy !== null ? 'default' : 'pointer',
-      }}
-    >
-      {busy === result ? <Loader2 size={15} className="animate-spin" /> : null}
-      {label}
-    </button>
-  )
+  ) => {
+    const isArmed = armed === result
+    const isBusy = busy === result
+    return (
+      <button
+        type="button"
+        disabled={busy !== null}
+        onClick={() => handle(result)}
+        aria-pressed={isArmed}
+        className="footer-btn inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-bold"
+        style={{
+          flex: 1,
+          minWidth: 96,
+          borderRadius: 8,
+          background: isArmed ? accent : `color-mix(in srgb, ${accent} 12%, var(--bg-surface))`,
+          border: `1px solid color-mix(in srgb, ${accent} ${isArmed ? 100 : 32}%, transparent)`,
+          color: isArmed ? '#fff' : accent,
+          opacity: busy !== null && busy !== result ? 0.5 : armed !== null && !isArmed ? 0.55 : 1,
+          cursor: busy !== null ? 'default' : 'pointer',
+          transition: 'background 120ms ease, opacity 120ms ease',
+        }}
+      >
+        {isBusy ? (
+          <Loader2 size={15} className="animate-spin" />
+        ) : isArmed ? (
+          <Check size={15} />
+        ) : null}
+        {isBusy ? label : isArmed ? 'Tap to confirm' : label}
+      </button>
+    )
+  }
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {btn('win', 'I won', '#22c55e')}
-      {btn('loss', 'I lost', '#ef4444')}
-      {allowDraw && btn('draw', 'Draw', '#a3a3a3')}
-    </div>
+    <>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {btn('win', 'I won', '#22c55e')}
+        {btn('loss', 'I lost', '#ef4444')}
+        {allowDraw && btn('draw', 'Draw', '#a3a3a3')}
+      </div>
+      {armed && busy === null && (
+        <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+          Tap <strong style={{ color: 'var(--text-secondary)' }}>{labelFor(armed)}</strong> again to
+          confirm, or pick another result.
+        </p>
+      )}
+    </>
   )
 }
 
@@ -645,6 +738,22 @@ function MyMatchCard({
         How did your match go?
       </p>
       <ReportButtons busy={busy} onReport={report} allowDraw={format === 'swiss'} />
+      <div
+        className="mt-3 flex items-start gap-1.5 rounded-md px-3 py-2 text-xs"
+        style={{
+          background: 'color-mix(in srgb, var(--bonk-purple) 10%, var(--bg))',
+          border: '1px solid color-mix(in srgb, var(--bonk-purple) 26%, transparent)',
+          color: 'var(--text-secondary)',
+          lineHeight: 1.5,
+        }}
+      >
+        <ListChecks size={13} style={{ color: 'var(--bonk-purple)', flexShrink: 0, marginTop: 1 }} aria-hidden />
+        <span>
+          <strong style={{ color: 'var(--text-primary)' }}>Win or lose, please report your result.</strong>{' '}
+          Even after a loss, a quick tap keeps the bracket moving so everyone&rsquo;s next round can
+          start on time.
+        </span>
+      </div>
       {error && <p className="mt-2 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
     </>
   ))
@@ -1734,6 +1843,14 @@ export function TournamentLive() {
               <CountdownStat label={`Round ${activeRound.number} ends in`} value={roundCountdown} />
             )}
           </div>
+          {tournament.status !== 'complete' && (
+            <ScheduleNote
+              roundMinutes={tournament.roundMinutes}
+              swissRounds={tournament.swissRounds}
+              maxPlayers={tournament.maxPlayers}
+              format={tournament.format}
+            />
+          )}
           {tournament.rules && (
             <p className="mt-5 whitespace-pre-wrap rounded-md p-3.5 text-sm" style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {tournament.rules}

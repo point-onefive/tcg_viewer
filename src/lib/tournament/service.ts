@@ -1721,9 +1721,16 @@ export async function adminSetPollOpen(code: string, open: boolean): Promise<voi
 
 /**
  * Hands-off maintenance, run by Vercel Cron:
- *  1. Auto-close enrollment for tournaments whose enroll timer elapsed.
- *  2. Auto-confirm single-sided reports past the confirmation window
- *     (this is the "loser ghosts → winner still advances" guarantee).
+ *  1. Auto-confirm single-sided reports, with anti-gaming rules:
+ *     - A self-reported LOSS only ever helps the opponent, so it can't be used
+ *       to steal a win. We confirm it after the short grace window
+ *       (CONFIRM_WINDOW_MINUTES), which also gives the reporter a beat to undo a
+ *       fat-fingered loss before it locks.
+ *     - A self-reported WIN (or a lone DRAW) is self-serving, so we hold it
+ *       until the round's deadline passes. That gives the opponent the entire
+ *       round to dispute a false claim before it auto-confirms.
+ *  2. We never auto-award a match with ZERO reports - there's no signal to
+ *     trust, so it stays pending for an admin to resolve.
  *  3. Advance any round that became fully resolved as a result.
  * Returns a small summary for logging.
  */
@@ -1735,18 +1742,44 @@ export async function sweep(): Promise<{
   const sb = getServiceClient()
   let reportsConfirmed = 0
   const advanced = new Set<string>()
+  const nowMs = Date.now()
+  const windowMs = CONFIRM_WINDOW_MINUTES * 60_000
+  const ms = (iso: string | null | undefined) => (iso ? new Date(iso).getTime() : null)
 
   // Sign-up timers do NOT auto-start brackets - you approve handles and start
-  // manually via adminStartBracket. Cron only resolves ghosted reports and
-  // advances fully-completed rounds.
-  const cutoff = addMinutes(nowIso(), -CONFIRM_WINDOW_MINUTES)
-  const { data: stale } = await sb
-    .from('matches')
-    .select('*')
-    .eq('status', 'reported')
-    .lte('reported_at', cutoff)
-  for (const mRow of stale ?? []) {
-    const match = rowToMatch(mRow)
+  // manually via adminStartBracket. Cron only resolves single-sided reports and
+  // advances fully-completed rounds. Matches with no reports are left alone.
+  const { data: stale } = await sb.from('matches').select('*').eq('status', 'reported')
+  const reported = (stale ?? []).map(rowToMatch)
+
+  // Round deadlines for the rounds these matches belong to (single query).
+  const roundIds = [...new Set(reported.map((m) => m.roundId).filter(Boolean))] as string[]
+  const endsByRound = new Map<string, string | null>()
+  if (roundIds.length) {
+    const { data: rs } = await sb.from('rounds').select('id, ends_at').in('id', roundIds)
+    for (const r of rs ?? []) endsByRound.set(r.id as string, (r.ends_at as string | null) ?? null)
+  }
+
+  for (const match of reported) {
+    const only = match.player1Report ?? match.player2Report
+    if (!only) continue // guard - a 'reported' match always has exactly one report
+
+    const reportedMs = ms(match.reportedAt) ?? nowMs
+    const windowReady = reportedMs + windowMs <= nowMs
+
+    let ready: boolean
+    if (only === 'loss') {
+      // Self-loss: safe from gaming, confirm after the grace window.
+      ready = windowReady
+    } else {
+      // Self-win / lone draw: hold until the round deadline so the opponent has
+      // the full round to dispute. If no deadline is on record, fall back to the
+      // grace window so it can never hang forever.
+      const endsMs = match.roundId ? ms(endsByRound.get(match.roundId)) : null
+      ready = endsMs != null ? endsMs <= nowMs : windowReady
+    }
+    if (!ready) continue
+
     // Provisional winner was already stored at report time; confirm it.
     await sb
       .from('matches')

@@ -228,11 +228,24 @@ async function runSwiss(
   }
   ok(sortedOk, 'standings ordered by points then opponent-win% (tiebreak comparator holds)')
 
-  // the strongest player (highest skill handle) should be the champion
+  // Winner decisioning. In this skill model the strongest player can never lose
+  // a game, so they must finish undefeated and tied for the top score. They are
+  // NOT guaranteed rank 1: in a small field with byes two players can both go
+  // undefeated and the OMW% tiebreak decides the title (legal Swiss behavior).
   const champ = standings[0]
   const champHandle = snap.players.find((p: any) => p.id === champ.playerId)?.xHandle
   const strongest = [...handles].sort((a, b) => skillOf(b) - skillOf(a))[0]
-  ok(champHandle === strongest, `champion is the strongest player (@${champHandle} vs expected @${strongest})`)
+  const strongestRow = standings.find(
+    (s) => snap.players.find((p: any) => p.id === s.playerId)?.xHandle === strongest,
+  )
+  ok(
+    strongestRow?.losses === 0,
+    `strongest @${strongest} never lost a game (W${strongestRow?.wins}-L${strongestRow?.losses}-D${strongestRow?.draws})`,
+  )
+  ok(
+    strongestRow?.points === champ.points,
+    `strongest @${strongest} is tied for the top score (${strongestRow?.points} vs champ ${champ.points})`,
+  )
   ok(champ.losses === 0, `champion went undefeated (W${champ.wins}-L${champ.losses}-D${champ.draws}, ${champ.points} pts)`)
   console.log(`   champion: @${champHandle}  ${champ.wins}-${champ.losses}-${champ.draws} (${champ.points} pts, OMW ${(champ.oppWinPct * 100).toFixed(1)}%)`)
 

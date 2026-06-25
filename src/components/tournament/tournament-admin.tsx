@@ -760,6 +760,7 @@ export function TournamentAdmin() {
                           nameById={nameById}
                           allowDraw={snapshot.tournament.format !== 'single-elim'}
                           disabled={busy}
+                          roundEndsAt={activeRound.endsAt ?? null}
                           onResult={(r) => setResult(m.id, r)}
                         />
                       ))}
@@ -1906,12 +1907,14 @@ function AdminMatchRow({
   nameById,
   allowDraw,
   disabled,
+  roundEndsAt,
   onResult,
 }: {
   match: Match
   nameById: Map<string, Player>
   allowDraw: boolean
   disabled: boolean
+  roundEndsAt?: string | null
   onResult: (r: 'p1' | 'p2' | 'draw') => void
 }) {
   const p1 = nameById.get(match.player1Id)
@@ -1955,6 +1958,22 @@ function AdminMatchRow({
         label: 'Reported',
         text: `${who} reported ${what}. Awaiting the other player.`,
       }
+    }
+    // No reports at all. We never auto-award these, so once the round deadline
+    // has elapsed flag it for the admin to resolve by hand.
+    if (!resolved && !r1 && !r2) {
+      const elapsed = roundEndsAt != null && new Date(roundEndsAt).getTime() <= Date.now()
+      return elapsed
+        ? {
+            tone: '#ef4444',
+            label: 'Needs resolution',
+            text: 'Round time elapsed with no reports. Pick the winner to resolve.',
+          }
+        : {
+            tone: 'var(--text-muted)',
+            label: 'No reports yet',
+            text: 'Waiting on both players to report.',
+          }
     }
     if (resolved) {
       // Both players self-reported and their verdicts line up → the system
