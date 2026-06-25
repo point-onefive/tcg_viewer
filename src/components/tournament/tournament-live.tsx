@@ -1812,7 +1812,7 @@ export function TournamentLive() {
                   className="inline-flex items-center justify-center self-center font-display text-xs font-bold tabular-nums"
                   style={{ minWidth: 24, height: 22, padding: '0 7px', borderRadius: 6, background: 'var(--bonk-band-chip-bg)', color: 'var(--bonk-band-chip-fg)' }}
                 >
-                  {visiblePlayers.length}
+                  {approvedCount}
                 </span>
                 <BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_001_LR.png" />
               </>
