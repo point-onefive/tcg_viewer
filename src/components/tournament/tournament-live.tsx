@@ -2657,12 +2657,16 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
   const p1 = nameById.get(match.player1Id)
   const p2 = match.player2Id ? nameById.get(match.player2Id) : null
   const isBye = match.status === 'bye' || !match.player2Id
+  // Provisional single-sided reports carry a winnerId before they're finalized;
+  // don't surface them as a decided bracket result.
+  const decided = match.status === 'confirmed' || match.status === 'bye'
+  const winnerId = decided ? match.winnerId : null
   return (
     <div
       className="overflow-hidden"
       style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
     >
-      <ElimSlot player={p1} seed={p1?.seed} winner={match.winnerId === match.player1Id} />
+      <ElimSlot player={p1} seed={p1?.seed} winner={winnerId === match.player1Id} />
       <div style={{ height: 1, background: 'var(--border-subtle)' }} />
       {isBye ? (
         <div
@@ -2672,7 +2676,7 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
           Bye
         </div>
       ) : (
-        <ElimSlot player={p2 ?? undefined} seed={p2?.seed} winner={match.winnerId === match.player2Id} />
+        <ElimSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} />
       )}
     </div>
   )
@@ -2720,7 +2724,11 @@ function BracketMatchCard({
   const p1 = nameById.get(match.player1Id)
   const p2 = match.player2Id ? nameById.get(match.player2Id) : null
   const isBye = match.status === 'bye' || !match.player2Id
-  const winnerId = match.winnerId
+  // Only show a winner once the match is actually finalized. A single-sided
+  // "reported" match carries a PROVISIONAL winnerId that must not be surfaced
+  // as a decided result on the public bracket.
+  const decided = match.status === 'confirmed' || match.status === 'bye'
+  const winnerId = decided ? match.winnerId : null
 
   return (
     <div
