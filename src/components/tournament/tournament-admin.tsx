@@ -1888,6 +1888,11 @@ function StatusBadge({ status, enrollExpired }: { status: string; enrollExpired?
   )
 }
 
+/** Two self-reports "agree" when they describe the same outcome from each side. */
+function reportsAgree(a: string | null, b: string | null): boolean {
+  return (a === 'win' && b === 'loss') || (a === 'loss' && b === 'win') || (a === 'draw' && b === 'draw')
+}
+
 function AdminMatchRow({
   match,
   nameById,
@@ -1943,8 +1948,25 @@ function AdminMatchRow({
         text: `${who} reported ${what}. Awaiting the other player.`,
       }
     }
-    if (resolved && r1 && r2) {
-      return { tone: '#22c55e', label: 'Auto-confirmed', text: 'Both players agreed.' }
+    if (resolved) {
+      // Both players self-reported and their verdicts line up → the system
+      // confirmed it with no admin involvement.
+      if (r1 && r2 && reportsAgree(r1, r2)) {
+        return { tone: '#22c55e', label: 'Auto-confirmed', text: 'Both players agreed.' }
+      }
+      // Exactly one side reported and the confirm window elapsed without a
+      // dispute (the "loser ghosted, winner still advances" path).
+      if ((r1 && !r2) || (!r1 && r2)) {
+        const who = r1 ? p1Label : p2Label
+        return {
+          tone: '#22c55e',
+          label: 'Auto-confirmed',
+          text: `${who} reported and the opponent never disputed.`,
+        }
+      }
+      // Conflicting reports (a dispute) or no reports at all that still ended up
+      // confirmed means an admin stepped in and set the winner.
+      return { tone: '#3b82f6', label: 'Admin-confirmed', text: 'An admin settled this result.' }
     }
     return null
   })()

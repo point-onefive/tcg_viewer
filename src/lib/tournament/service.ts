@@ -595,13 +595,15 @@ export async function adminSetResult(
     throw new TournamentError('Invalid result.')
   }
 
+  // Deliberately do NOT overwrite the players' self-reports here. Preserving the
+  // original reports is what lets the UI tell an admin-settled match (reports
+  // missing or conflicting) apart from one the players auto-confirmed between
+  // themselves (matching reports). We only set the winner + confirmed status.
   const { error: upErr } = await sb
     .from('matches')
     .update({
       status: 'confirmed',
       winner_id: winnerId,
-      player1_report: result === 'draw' ? 'draw' : result === 'p1' ? 'win' : 'loss',
-      player2_report: result === 'draw' ? 'draw' : result === 'p2' ? 'win' : 'loss',
       reported_at: match.reportedAt ?? nowIso(),
       resolved_at: nowIso(),
     })
