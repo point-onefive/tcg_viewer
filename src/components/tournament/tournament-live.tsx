@@ -2315,7 +2315,7 @@ function SwissBoard({
     <div className="mt-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
       <BonkModuleHeader
         icon={Swords}
-        title={`Round ${selectedRound?.number ?? 1} pairings`}
+        title={`Round ${selectedRound?.number ?? 1}`}
         subtitle={
           <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
         }
