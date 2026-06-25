@@ -97,8 +97,14 @@ export function HelpPage() {
             </li>
             <li>Click any card to open the lightbox and flip through alt arts.</li>
             <li>
-              Pin favourites with the bookmark, or queue them for the tier-list
-              maker with the layers icon.
+              Pin favourites with the bookmark, queue them for the tier-list
+              maker with the layers icon, or add them to a deck with the deck
+              button.
+            </li>
+            <li>
+              Build decks in the <Kbd>Deck Builder</Kbd>, rank cards in the{' '}
+              <Kbd>Tier list maker</Kbd>, or jump into the live{' '}
+              <Kbd>Tournament</Kbd> - all reachable from the menu.
             </li>
           </ul>
         </Section>
@@ -236,9 +242,9 @@ export function HelpPage() {
                 <Kbd>Esc</Kbd> closes.
               </li>
               <li>
-                Each variant can be pinned or queued for the tier-list maker
-                individually, so you can pin <em>just</em> the leader alt
-                without its base art.
+                Pin a variant, queue it for the tier-list maker, or drop it into
+                a deck - each action works per variant, so you can grab{' '}
+                <em>just</em> the leader alt without its base art.
               </li>
               <li>
                 Below the fan you&rsquo;ll find the set name, the navigation
@@ -351,6 +357,47 @@ export function HelpPage() {
             that slides in from the right. Pins are <em>per collection</em>, so
             your One Piece pins don&rsquo;t crowd your Pokémon board.
           </p>
+        </Section>
+
+        <Section title="Deck builder">
+          <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            The <Kbd>Deck Builder</Kbd> link in the menu opens a full-page
+            builder. Keep as many decks as you like - they live in your browser,
+            scoped per collection, with no account.
+          </p>
+          <ul className="space-y-2 text-sm leading-relaxed">
+            <li>
+              Add cards straight from the lightbox: open any card and tap{' '}
+              <Kbd>Deck</Kbd>. One tap drops it on your deck; with several decks
+              you pick which one (or spin up a new one).
+            </li>
+            <li>
+              Step copies up or down on each card. A deck holds at most{' '}
+              <Kbd>4</Kbd> of a card (just <Kbd>1</Kbd> for a leader), and the
+              leader always slots into the first position.
+            </li>
+            <li>
+              Switch decks with the tabs, rename one inline, or{' '}
+              <Kbd>Duplicate</Kbd> it as a starting point. The <Kbd>···</Kbd>{' '}
+              menu holds the less-used actions (add a custom card, clear, delete).
+            </li>
+            <li>
+              Missing a print? Add a <em>custom proxy</em> with your own name,
+              cost, and a pasted or uploaded image - it saves with the deck.
+            </li>
+            <li>
+              <Kbd>Copy list</Kbd> exports a sim-ready text list (one{' '}
+              <Kbd>{'{qty}x{cardId}'}</Kbd> line per card, leader first) - paste
+              straight into OPTCGSim or any sim that imports by card id.
+            </li>
+            <li>
+              The same <Kbd>Zoom</Kbd> scrubber as the wall tunes card size, and{' '}
+              <Kbd>Flatten</Kbd> spreads stacked copies out so you can see the
+              whole deck at a glance.
+            </li>
+            <li>Everything runs locally. Nothing uploads.</li>
+          </ul>
+          <DeckBuilderMock />
         </Section>
 
         <Section title="Tier list maker">
@@ -516,6 +563,7 @@ const HELP_SECTIONS = [
   'Pricing',
   'Booster boxes',
   'Pin board',
+  'Deck builder',
   'Tier list maker',
   'Tournaments',
   'Theme',
@@ -895,6 +943,116 @@ function TierListMock() {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Deck-builder preview. Mirrors the real deck surface: a leader card slotted
+// first behind a faint separator, then character cards with small quantity
+// badges (and one shown as a stack to read as multiple copies), plus a subtle
+// card-count in the corner the way the live container shows it. Decorative +
+// `aria-hidden`; the bullet list above explains every control in words.
+// ---------------------------------------------------------------------------
+
+type MockDeckCard = { code: string; qty: number; stack?: boolean }
+
+const DECK_MOCK_LEADER = 'OP01-002'
+const DECK_MOCK_CARDS: MockDeckCard[] = [
+  { code: 'OP01-016', qty: 4, stack: true },
+  { code: 'OP01-025', qty: 4, stack: true },
+  { code: 'OP01-013', qty: 2 },
+  { code: 'OP01-022', qty: 3 },
+  { code: 'OP01-047', qty: 1 },
+]
+
+function DeckMiniCard({ code, qty, stack }: MockDeckCard) {
+  return (
+    <div className="relative shrink-0" style={{ width: 44, aspectRatio: '5 / 7' }}>
+      {stack && (
+        <div
+          className="absolute overflow-hidden"
+          style={{
+            inset: 0,
+            transform: 'translate(3px, 3px)',
+            borderRadius: 4,
+            background: 'var(--bg)',
+            border: '1px solid color-mix(in srgb, var(--text-primary) 22%, transparent)',
+          }}
+        />
+      )}
+      <div
+        className="absolute overflow-hidden"
+        style={{ inset: 0, borderRadius: 4, boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
+      >
+        <Image src={`${CDN_BASE}${code}.png`} alt="" fill sizes="44px" style={{ objectFit: 'cover' }} />
+      </div>
+      <span
+        className="absolute font-display"
+        style={{
+          right: stack ? -3 : 1,
+          bottom: stack ? -3 : 1,
+          fontSize: 9,
+          fontWeight: 800,
+          lineHeight: 1,
+          padding: '2px 4px',
+          borderRadius: 4,
+          background: '#111',
+          color: '#fff',
+          border: '1px solid rgba(255,255,255,0.18)',
+        }}
+      >
+        ×{qty}
+      </span>
+    </div>
+  )
+}
+
+function DeckBuilderMock() {
+  const total = DECK_MOCK_CARDS.reduce((s, c) => s + c.qty, 0)
+  return (
+    <div
+      aria-hidden
+      className="relative mt-4 overflow-hidden"
+      style={{
+        borderRadius: 8,
+        border: '1px solid color-mix(in srgb, var(--text-primary) 14%, transparent)',
+        background: 'var(--bg-surface)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      <div
+        className="flex items-center gap-2 px-3 py-2"
+        style={{ borderBottom: '1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)' }}
+      >
+        <span className="font-display" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>
+          My Red Deck
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>···</span>
+      </div>
+      <div className="flex items-end gap-2 p-3">
+        {/* Leader slotted first, set off by a faint separator. */}
+        <div className="flex items-center" style={{ paddingRight: 8, borderRight: '1px solid color-mix(in srgb, #E85D2A 35%, transparent)' }}>
+          <DeckMiniCard code={DECK_MOCK_LEADER} qty={1} />
+        </div>
+        <div className="flex flex-wrap items-end gap-2.5">
+          {DECK_MOCK_CARDS.map((c) => (
+            <DeckMiniCard key={c.code} {...c} />
+          ))}
+        </div>
+      </div>
+      <span
+        className="absolute font-display"
+        style={{
+          right: 8,
+          bottom: 6,
+          fontSize: 10,
+          fontWeight: 700,
+          color: 'color-mix(in srgb, #E85D2A 85%, var(--text-muted))',
+        }}
+      >
+        {total} / 50
+      </span>
     </div>
   )
 }
