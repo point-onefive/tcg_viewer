@@ -2726,6 +2726,8 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
             <Check size={10} strokeWidth={3} style={{ flexShrink: 0 }} />
           ) : pub.icon === 'alert' ? (
             <AlertTriangle size={10} style={{ flexShrink: 0 }} />
+          ) : pub.icon === 'clock' ? (
+            <Clock size={10} style={{ flexShrink: 0 }} />
           ) : (
             <Hourglass size={10} style={{ flexShrink: 0 }} />
           )}
@@ -2780,7 +2782,7 @@ function ElimSlot({
  */
 function publicMatchStatus(
   status: Match['status'],
-): { label: string; tone: string; icon: 'check' | 'hourglass' | 'alert' } | null {
+): { label: string; tone: string; icon: 'check' | 'hourglass' | 'alert' | 'clock' } | null {
   switch (status) {
     case 'confirmed':
       return { label: 'Confirmed', tone: '#22c55e', icon: 'check' }
@@ -2791,7 +2793,7 @@ function publicMatchStatus(
     case 'bye':
       return null
     default:
-      return { label: 'Awaiting result', tone: 'var(--text-muted)', icon: 'hourglass' }
+      return { label: 'Awaiting match', tone: 'var(--text-muted)', icon: 'clock' }
   }
 }
 
@@ -2844,6 +2846,8 @@ function BracketMatchCard({
             <Check size={11} strokeWidth={3} style={{ flexShrink: 0 }} />
           ) : pub.icon === 'alert' ? (
             <AlertTriangle size={11} style={{ flexShrink: 0 }} />
+          ) : pub.icon === 'clock' ? (
+            <Clock size={11} style={{ flexShrink: 0 }} />
           ) : (
             <Hourglass size={11} style={{ flexShrink: 0 }} />
           )}
