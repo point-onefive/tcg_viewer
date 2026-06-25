@@ -543,7 +543,7 @@ function MyMatchCard({
 
   const shell = (accent: string, children: React.ReactNode) => (
     <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 14 }}>
-      <BonkModuleHeader icon={Swords} eyebrow="You're up" title="Your match" />
+      <BonkModuleHeader icon={Swords} eyebrow="Report results" title="Your match" />
       {/* Status-coded accent strip (win/loss/draw/pending) under the band. */}
       <div style={{ height: 3, background: accent }} />
       <div className="p-5 sm:p-6">{children}</div>
@@ -1664,17 +1664,6 @@ export function TournamentLive() {
         </BonkSceneBody>
       </div>
 
-      {tournament.status === 'running' && myPlayer && myActiveMatch && (
-        <MyMatchCard
-          code={tournament.code}
-          match={myActiveMatch}
-          myPlayerId={myPlayer.id}
-          opponent={myOpponent}
-          format={tournament.format}
-          onReported={refresh}
-        />
-      )}
-
       <div className={signupOpen ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
         {/* Sign up */}
         {signupOpen && (
@@ -1894,6 +1883,18 @@ export function TournamentLive() {
       />
 
       <HowItWorks />
+
+      {/* Your match - sits directly above the bracket so the two read together */}
+      {tournament.status === 'running' && myPlayer && myActiveMatch && (
+        <MyMatchCard
+          code={tournament.code}
+          match={myActiveMatch}
+          myPlayerId={myPlayer.id}
+          opponent={myOpponent}
+          format={tournament.format}
+          onReported={refresh}
+        />
+      )}
 
       {/* Round board */}
       {tournament.status !== 'enrolling' && snapshot.matches.length > 0 && (

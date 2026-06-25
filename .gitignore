@@ -36,3 +36,6 @@ scripts/market/probe-out/
 # TS incremental build
 tsconfig.tsbuildinfo
 .vercel
+
+# Preview role-play bot tokens (throwaway, preview-only)
+.preview-bot-tokens.json
