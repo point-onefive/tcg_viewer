@@ -506,6 +506,7 @@ function DeckTabs({
   onCreate: () => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const [overflowing, setOverflowing] = useState(false)
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(false)
   const drag = useRef({ active: false, moved: false, startX: 0, startLeft: 0 })
@@ -513,6 +514,7 @@ function DeckTabs({
   const update = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
+    setOverflowing(el.scrollWidth > el.clientWidth + 2)
     setCanLeft(el.scrollLeft > 2)
     setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2)
   }, [])
@@ -565,48 +567,42 @@ function DeckTabs({
     }
   }
 
-  // Position + center entirely via inline style: the shared `.footer-btn`
-  // class forces `position: relative`, which would otherwise knock the arrow
-  // out of its absolute anchor. Inline styles win over the class.
-  const arrowStyle = (side: 'left' | 'right'): React.CSSProperties => ({
-    ...ctrlBase,
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    [side]: -2,
-    zIndex: 20,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 28,
-    height: 28,
-    padding: 0,
-    borderRadius: 999,
-    boxShadow: 'var(--shadow-card)',
-    cursor: 'pointer',
-  })
+  // Inline arrow buttons sit *beside* the scroll area (flex siblings), so they
+  // never float on top of a tab or read as a vertical blob. They share the tab
+  // pills' surface/border so the row looks like one cohesive control. Both
+  // slots render together (only while the row overflows) to keep the row width
+  // stable; the inactive direction is simply dimmed and non-interactive.
+  const arrow = (dir: 1 | -1, enabled: boolean) => (
+    <button
+      type="button"
+      onClick={() => nudge(dir)}
+      disabled={!enabled}
+      aria-label={dir === -1 ? 'Scroll decks left' : 'Scroll decks right'}
+      className="inline-flex shrink-0 items-center justify-center"
+      style={{
+        ...ctrlBase,
+        width: 30,
+        height: 32,
+        padding: 0,
+        opacity: enabled ? 1 : 0.3,
+        cursor: enabled ? 'pointer' : 'default',
+        pointerEvents: enabled ? 'auto' : 'none',
+        color: 'var(--text-muted)',
+      }}
+    >
+      {dir === -1 ? <ChevronLeft size={16} aria-hidden /> : <ChevronRight size={16} aria-hidden />}
+    </button>
+  )
 
   return (
-    <div className="relative mb-4">
-      {canLeft && (
-        <>
-          <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-10" style={{ width: 36, background: 'linear-gradient(to right, var(--bg), transparent)' }} />
-          <button
-            type="button"
-            onClick={() => nudge(-1)}
-            aria-label="Scroll decks left"
-            style={arrowStyle('left')}
-          >
-            <ChevronLeft size={16} aria-hidden />
-          </button>
-        </>
-      )}
+    <div className="mb-4 flex items-center gap-1.5">
+      {overflowing && arrow(-1, canLeft)}
 
       <div
         ref={scrollRef}
         role="tablist"
         aria-label="Saved decks"
-        className="no-scrollbar flex items-center gap-2 overflow-x-auto pt-1.5 pb-2"
+        className="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pt-1.5 pb-2"
         style={{ touchAction: 'pan-x', cursor: 'grab' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -656,19 +652,7 @@ function DeckTabs({
         </button>
       </div>
 
-      {canRight && (
-        <>
-          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-10" style={{ width: 36, background: 'linear-gradient(to left, var(--bg), transparent)' }} />
-          <button
-            type="button"
-            onClick={() => nudge(1)}
-            aria-label="Scroll decks right"
-            style={arrowStyle('right')}
-          >
-            <ChevronRight size={16} aria-hidden />
-          </button>
-        </>
-      )}
+      {overflowing && arrow(1, canRight)}
     </div>
   )
 }
