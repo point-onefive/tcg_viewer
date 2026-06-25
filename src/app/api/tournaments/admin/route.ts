@@ -9,6 +9,7 @@ import {
   adminRejectPlayer,
   adminSetDeck,
   adminSetMaxPlayers,
+  adminSetRoundMinutes,
   adminGetDeck,
   adminSetPollConfig,
   adminSetPollOpen,
@@ -33,6 +34,7 @@ type Body =
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
   | { action: 'set-max-players'; code: string; maxPlayers: number | null }
+  | { action: 'set-round-minutes'; code: string; roundMinutes: number }
   | { action: 'approve'; code: string; playerId: string }
   | { action: 'reject'; code: string; playerId: string }
   | { action: 'set-deck'; code: string; playerId: string; deckList: string }
@@ -74,6 +76,9 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'set-max-players':
         await adminSetMaxPlayers(body.code, body.maxPlayers)
+        return ok({ ok: true })
+      case 'set-round-minutes':
+        await adminSetRoundMinutes(body.code, body.roundMinutes)
         return ok({ ok: true })
       case 'approve':
         await adminApprovePlayer(body.code, body.playerId)

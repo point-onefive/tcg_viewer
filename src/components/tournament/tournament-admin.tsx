@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Check, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Check, Clock, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -637,6 +637,23 @@ export function TournamentAdmin() {
                         {roundsPlayed} round{roundsPlayed === 1 ? '' : 's'} · start a fresh event above
                       </span>
                     </div>
+                  )}
+
+                  {(status === 'enrolling' || status === 'running') && (
+                    <RoundLengthEditor
+                      key={`rl-${code}`}
+                      current={snapshot.tournament.roundMinutes}
+                      status={status}
+                      activeRoundEndsAt={activeRound?.endsAt ?? null}
+                      busy={busy}
+                      onSave={(mins) =>
+                        run(() =>
+                          adminApi(adminKey, { action: 'set-round-minutes', code, roundMinutes: mins }).then(() =>
+                            setMsg(`Round length set to ${formatDuration(mins)}`),
+                          ),
+                        )
+                      }
+                    />
                   )}
 
                   <div
@@ -1513,6 +1530,148 @@ function MaxPlayersEditor({
           onClick={() => parsed != null && onSave(parsed)}
         >
           {changed && parsed != null ? `Save cap (${parsed})` : 'Save cap'}
+        </AdminBtn>
+      </div>
+    </div>
+  )
+}
+
+/** "90" -> "1h 30m", "48" stays "48m", "120" -> "2h". */
+function formatDuration(totalMinutes: number): string {
+  if (totalMinutes < 60) return `${totalMinutes}m`
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
+const ROUND_HOUR_PRESETS = [6, 12, 24, 48, 72]
+
+/**
+ * Live editor for how long each round stays open. Editable while enrolling or
+ * running. The value is the deadline the auto-sweep uses to close out unreported
+ * matches; rounds still advance instantly once every match is decided. While
+ * running, saving also re-times the current round from its own start so the
+ * change takes effect now, not only on the next round.
+ */
+function RoundLengthEditor({
+  current,
+  status,
+  activeRoundEndsAt,
+  busy,
+  onSave,
+}: {
+  current: number
+  status: 'enrolling' | 'running'
+  activeRoundEndsAt: string | null
+  busy: boolean
+  onSave: (minutes: number) => void
+}) {
+  const [hours, setHours] = useState(() => String(Math.max(1, Math.round(current / 60))))
+  const num = parseInt(hours, 10)
+  const [custom, setCustom] = useState(() => !ROUND_HOUR_PRESETS.includes(num))
+  const parsed = parsePositiveInt(hours)
+  const nextMinutes = parsed != null ? parsed * 60 : null
+  const changed = nextMinutes != null && nextMinutes !== current
+
+  const endsLabel = activeRoundEndsAt
+    ? new Date(activeRoundEndsAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+    : null
+
+  return (
+    <div
+      className="mt-4 px-3 py-3"
+      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Clock size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+        <span className="text-sm font-semibold">Round length</span>
+        <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
+          now {formatDuration(current)}
+        </span>
+      </div>
+
+      <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+        Hours per round
+      </span>
+      <div className="flex flex-wrap gap-2">
+        {ROUND_HOUR_PRESETS.map((h) => {
+          const active = !custom && num === h
+          return (
+            <button
+              key={h}
+              type="button"
+              aria-pressed={active}
+              onClick={() => {
+                setCustom(false)
+                setHours(String(h))
+              }}
+              className="text-center transition-colors"
+              style={{
+                flex: '1 1 56px',
+                minWidth: 56,
+                padding: '7px 10px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                background: active ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg-surface)',
+                border: `1px solid ${active ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
+              }}
+            >
+              <span className="block font-display text-base font-bold leading-none">{h}h</span>
+            </button>
+          )
+        })}
+        <button
+          type="button"
+          aria-pressed={custom}
+          onClick={() => setCustom(true)}
+          className="text-center transition-colors"
+          style={{
+            flex: '1 1 56px',
+            minWidth: 56,
+            padding: '7px 10px',
+            borderRadius: 6,
+            cursor: 'pointer',
+            background: custom ? 'color-mix(in srgb, var(--tcw-accent) 12%, var(--bg))' : 'var(--bg-surface)',
+            border: `1px solid ${custom ? 'var(--tcw-accent)' : 'var(--border-subtle)'}`,
+          }}
+        >
+          <span className="block font-display text-base font-bold leading-none">∙∙∙</span>
+          <span className="block text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Custom
+          </span>
+        </button>
+      </div>
+      {custom && (
+        <div className="mt-2">
+          <PositiveIntInput label="Custom hours" value={hours} onChange={setHours} placeholder="e.g. 36" />
+        </div>
+      )}
+
+      {status === 'running' ? (
+        <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          {endsLabel ? (
+            <>
+              Current round auto-closes around <strong>{endsLabel}</strong> if matches are still
+              pending.{' '}
+            </>
+          ) : null}
+          Saving re-times the current round and applies to every round after it. Decide every match
+          and the bracket advances right away - no need to wait for the clock.
+        </p>
+      ) : (
+        <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          How long each round stays open before the auto-sweep can close unreported matches. Rounds
+          still advance the moment every match is decided.
+        </p>
+      )}
+
+      <div className="mt-3">
+        <AdminBtn
+          disabled={busy || !changed || nextMinutes == null}
+          primary
+          onClick={() => nextMinutes != null && onSave(nextMinutes)}
+        >
+          {changed && nextMinutes != null ? `Save length (${formatDuration(nextMinutes)})` : 'Save length'}
         </AdminBtn>
       </div>
     </div>

@@ -1372,6 +1372,38 @@ export async function adminSetMaxPlayers(code: string, maxPlayers: number | null
   await sb.from('tournaments').update({ max_players: cap }).eq('id', row.id)
 }
 
+/**
+ * Retarget the per-round length. Editable any time before the event finishes.
+ * The new value applies to every round created from here on; when the event is
+ * already running we also re-stamp the active round's deadline from its own
+ * start time so the change is visible immediately, not just on the next round.
+ */
+export async function adminSetRoundMinutes(code: string, roundMinutes: number): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'enrolling' && row.status !== 'running') {
+    throw new TournamentError('You can only change round length before the tournament finishes.')
+  }
+  if (!Number.isInteger(roundMinutes) || roundMinutes < 15) {
+    throw new TournamentError('Round length must be a whole number of at least 15 minutes.')
+  }
+  // Two-week ceiling: a sane backstop so a fat-fingered value can't park a
+  // round open effectively forever.
+  const minutes = Math.min(roundMinutes, 20160)
+  await sb.from('tournaments').update({ round_minutes: minutes }).eq('id', row.id)
+
+  if (row.status === 'running') {
+    const rounds = await fetchRounds(row.id)
+    const active = rounds.find((r) => r.status === 'active')
+    if (active) {
+      await sb
+        .from('rounds')
+        .update({ ends_at: addMinutes(active.startsAt, minutes) })
+        .eq('id', active.id)
+    }
+  }
+}
+
 export async function adminApprovePlayer(code: string, playerId: string): Promise<void> {
   const sb = getServiceClient()
   const row = await requireHost(code)
