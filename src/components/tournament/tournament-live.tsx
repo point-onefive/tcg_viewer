@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Camera, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -1046,6 +1046,44 @@ function HowItWorks() {
               </div>
             )
           })}
+
+          {/* Friendly heads-up that fills the open grid cell next to the last
+              step. Deliberately NOT numbered (icon medal + "Heads up" eyebrow)
+              so it reads as advice, not another rule. */}
+          <div
+            className="flex items-start gap-3 rounded-2xl p-4"
+            style={{
+              background: 'rgba(15,2,20,0.55)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }}
+          >
+            <span
+              className="shrink-0 inline-flex items-center justify-center"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 999,
+                background: 'linear-gradient(135deg, #c084fc 0%, #7933bc 100%)',
+                boxShadow: '0 6px 16px -6px rgba(121,51,188,0.7)',
+              }}
+            >
+              <Camera size={17} style={{ color: '#fff' }} />
+            </span>
+            <div className="min-w-0">
+              <span className="bonk-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                Heads up
+              </span>
+              <div className="mt-0.5 font-display font-bold" style={{ color: '#fff', fontSize: 15, lineHeight: 1.25 }}>
+                Save your battle logs
+              </div>
+              <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
+                Screenshot or keep the game log from each match. If a result is ever disputed, having
+                your own record makes it quick and painless for an admin to sort out.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Community: matches + content live in Discord, but invite links
@@ -2661,6 +2699,7 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
   // don't surface them as a decided bracket result.
   const decided = match.status === 'confirmed' || match.status === 'bye'
   const winnerId = decided ? match.winnerId : null
+  const pub = publicMatchStatus(match.status)
   return (
     <div
       className="overflow-hidden"
@@ -2677,6 +2716,19 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
         </div>
       ) : (
         <ElimSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} />
+      )}
+      {pub && (
+        <div
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-widest"
+          style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
+        >
+          {match.status === 'disputed' ? (
+            <AlertTriangle size={10} style={{ flexShrink: 0 }} />
+          ) : (
+            <Hourglass size={10} style={{ flexShrink: 0 }} />
+          )}
+          {pub.label}
+        </div>
       )}
     </div>
   )
@@ -2714,6 +2766,18 @@ function ElimSlot({
   )
 }
 
+/**
+ * Neutral, public-facing status for a match that is not yet finalized. It never
+ * reveals who reported what - the per-player claims stay private to the two
+ * players (only they see their reports on the "Your match" card). The public
+ * bracket just shows the match moving from awaiting -> (under review) -> final.
+ */
+function publicMatchStatus(status: Match['status']): { label: string; tone: string } | null {
+  if (status === 'confirmed' || status === 'bye') return null
+  if (status === 'disputed') return { label: 'Under review', tone: '#f59e0b' }
+  return { label: 'Awaiting result', tone: 'var(--text-muted)' }
+}
+
 function BracketMatchCard({
   match,
   nameById,
@@ -2729,6 +2793,7 @@ function BracketMatchCard({
   // as a decided result on the public bracket.
   const decided = match.status === 'confirmed' || match.status === 'bye'
   const winnerId = decided ? match.winnerId : null
+  const pub = publicMatchStatus(match.status)
 
   return (
     <div
@@ -2752,6 +2817,19 @@ function BracketMatchCard({
         </div>
       ) : (
         <BracketSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} top={false} />
+      )}
+      {pub && (
+        <div
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest"
+          style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
+        >
+          {match.status === 'disputed' ? (
+            <AlertTriangle size={11} style={{ flexShrink: 0 }} />
+          ) : (
+            <Hourglass size={11} style={{ flexShrink: 0 }} />
+          )}
+          {pub.label}
+        </div>
       )}
     </div>
   )

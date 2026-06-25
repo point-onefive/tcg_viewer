@@ -1,17 +1,22 @@
 -- 010_fix_wallet_standings_wins.sql
 --
--- Fix: the all-time leaderboard counted a match as a win whenever winner_id
--- matched the player, REGARDLESS of match status. A single-sided "reported"
--- result stores a PROVISIONAL winner_id before the match is confirmed, so an
--- unconfirmed self-reported win was leaking into the leaderboard (e.g. a player
--- reporting a win while their opponent has reported nothing showed +1 win). That
--- is also the gameable path - a self-reported win must not count until it is
--- actually finalized.
+-- Two corrections to the all-time leaderboard view (wallet_standings):
 --
--- Wins now require the match to be finalized: 'confirmed' (both agreed or an
--- admin settled it) or 'bye' (a free win). Losses and draws were already
--- correctly gated on 'confirmed', so they are unchanged. This is a read-only
--- view replacement - it mutates no rows and recomputes live on the next query.
+-- 1. Only finalized results count. The old `wins` filter matched any row where
+--    winner_id = the player, REGARDLESS of status. A single-sided "reported"
+--    result stores a PROVISIONAL winner_id before the match is confirmed, so an
+--    unconfirmed self-reported win was leaking into the board (and was gameable).
+--    Wins now require status = 'confirmed' (both players agreed, or an admin
+--    settled it). Losses/draws were already gated on 'confirmed'.
+--
+-- 2. Byes are excluded from the lifetime board. A bye is luck of the pairing,
+--    not an earned result, so counting it as a win inflates a player's win rate
+--    across events. The leaderboard now reflects games actually played. (Inside a
+--    single tournament a bye still counts as a match win for Swiss points - that
+--    logic lives in computeStandings, not in this view.)
+--
+-- This is a read-only view replacement: it mutates no rows and recomputes live
+-- on the next query.
 
 create or replace view wallet_standings as
 select
@@ -20,7 +25,7 @@ select
   wp.x_handle,
   wp.avatar_url,
   count(distinct p.tournament_id) as tournaments_played,
-  count(*) filter (where m.winner_id = p.id and m.status in ('confirmed', 'bye')) as wins,
+  count(*) filter (where m.status = 'confirmed' and m.winner_id = p.id) as wins,
   count(*) filter (where m.status = 'confirmed' and m.winner_id is not null and m.winner_id <> p.id) as losses,
   count(*) filter (where m.status = 'confirmed' and m.winner_id is null) as draws
 from wallet_profiles wp
