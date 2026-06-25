@@ -926,7 +926,7 @@ function HowItWorks() {
     },
     {
       lead: 'Report results',
-      body: 'After your match, both players tap Win or Loss on the "Your match" card. If you agree, it logs instantly and the bracket advances. If you disagree, an admin reviews it.',
+      body: 'After your match, both players tap Win or Loss on the "Your match" card. If you agree, it logs instantly and the bracket advances. If you disagree, an admin reviews it. Win or lose, please report - reporting both sides keeps the round moving for everyone.',
     },
     {
       lead: 'Share to win a prize',
@@ -1079,7 +1079,7 @@ function HowItWorks() {
                 Save your battle logs
               </div>
               <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
-                Screenshot or keep the game log from each match. If a result is ever disputed, having
+                Screenshot and keep the game log from each match. If a result is ever disputed, having
                 your own record makes it quick and painless for an admin to sort out.
               </p>
             </div>
@@ -2722,7 +2722,9 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
           className="flex items-center gap-1.5 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-widest"
           style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
         >
-          {match.status === 'disputed' ? (
+          {pub.icon === 'check' ? (
+            <Check size={10} strokeWidth={3} style={{ flexShrink: 0 }} />
+          ) : pub.icon === 'alert' ? (
             <AlertTriangle size={10} style={{ flexShrink: 0 }} />
           ) : (
             <Hourglass size={10} style={{ flexShrink: 0 }} />
@@ -2767,15 +2769,30 @@ function ElimSlot({
 }
 
 /**
- * Neutral, public-facing status for a match that is not yet finalized. It never
+ * Public-facing status strip for a match. It signals PROGRESS only and never
  * reveals who reported what - the per-player claims stay private to the two
- * players (only they see their reports on the "Your match" card). The public
- * bracket just shows the match moving from awaiting -> (under review) -> final.
+ * players (only they see their reports on the "Your match" card). States:
+ *   - pending   : nobody has reported yet            -> muted "Awaiting result"
+ *   - reported  : one player reported, waiting on the other -> yellow
+ *   - disputed  : reports conflict, admin to settle   -> orange "Under review"
+ *   - confirmed : finalized                           -> green "Confirmed"
+ * Byes return null - the bye slot already reads "Bye - advances".
  */
-function publicMatchStatus(status: Match['status']): { label: string; tone: string } | null {
-  if (status === 'confirmed' || status === 'bye') return null
-  if (status === 'disputed') return { label: 'Under review', tone: '#f59e0b' }
-  return { label: 'Awaiting result', tone: 'var(--text-muted)' }
+function publicMatchStatus(
+  status: Match['status'],
+): { label: string; tone: string; icon: 'check' | 'hourglass' | 'alert' } | null {
+  switch (status) {
+    case 'confirmed':
+      return { label: 'Confirmed', tone: '#22c55e', icon: 'check' }
+    case 'disputed':
+      return { label: 'Under review', tone: '#f59e0b', icon: 'alert' }
+    case 'reported':
+      return { label: 'Awaiting confirmation', tone: '#eab308', icon: 'hourglass' }
+    case 'bye':
+      return null
+    default:
+      return { label: 'Awaiting result', tone: 'var(--text-muted)', icon: 'hourglass' }
+  }
 }
 
 function BracketMatchCard({
@@ -2823,7 +2840,9 @@ function BracketMatchCard({
           className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest"
           style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
         >
-          {match.status === 'disputed' ? (
+          {pub.icon === 'check' ? (
+            <Check size={11} strokeWidth={3} style={{ flexShrink: 0 }} />
+          ) : pub.icon === 'alert' ? (
             <AlertTriangle size={11} style={{ flexShrink: 0 }} />
           ) : (
             <Hourglass size={11} style={{ flexShrink: 0 }} />
