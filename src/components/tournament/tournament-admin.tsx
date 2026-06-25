@@ -238,6 +238,14 @@ export function TournamentAdmin() {
 
   const nameById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const status = snapshot?.tournament.status
+  // Sign-up timer has elapsed while still 'enrolling' (bracket is started
+  // manually, so status never auto-flips). Mirrors the public hero so the
+  // panel and the public page never disagree about whether sign-ups are open.
+  const enrollExpired = Boolean(
+    snapshot?.tournament.status === 'enrolling' &&
+      snapshot.tournament.enrollClosesAt &&
+      new Date(snapshot.tournament.enrollClosesAt) <= new Date(),
+  )
   const activeRound = snapshot?.rounds.find((r) => r.status === 'active')
   const activeMatches = useMemo(
     () =>
@@ -551,11 +559,29 @@ export function TournamentAdmin() {
                         {pending.length > 0 ? ` · ${pending.length} pending` : ''}
                       </p>
                     </div>
-                    <StatusBadge status={status ?? 'enrolling'} />
+                    <StatusBadge status={status ?? 'enrolling'} enrollExpired={enrollExpired} />
                   </div>
 
                   {status === 'enrolling' && (
                     <>
+                      {enrollExpired && (
+                        <div
+                          className="mt-4 flex items-start gap-2 px-3 py-2.5"
+                          style={{
+                            background: 'color-mix(in srgb, #f5b301 12%, var(--bg))',
+                            border: '1px solid color-mix(in srgb, #f5b301 45%, var(--border-subtle))',
+                            borderRadius: 6,
+                          }}
+                        >
+                          <AlertTriangle size={15} style={{ color: '#f5b301', flexShrink: 0, marginTop: 1 }} />
+                          <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                            The sign-up timer has run out, so the public page now reads{' '}
+                            <strong>Sign-ups closed</strong> and no one new can enter. Nothing
+                            starts on its own. Use <strong>+1h sign-ups</strong> to reopen the
+                            window, or <strong>Start round 1</strong> when you&rsquo;re ready.
+                          </span>
+                        </div>
+                      )}
                       <div className="mt-4 flex flex-wrap gap-2">
                         <AdminBtn disabled={busy} onClick={() => run(() => adminApi(adminKey, { action: 'extend-signup', code, extraMinutes: 60 }).then(() => setMsg('Extended 1h')))}>
                           +1h sign-ups
@@ -1830,13 +1856,20 @@ function AdminBtn({
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, enrollExpired }: { status: string; enrollExpired?: boolean }) {
   const map: Record<string, { label: string; color: string }> = {
     enrolling: { label: 'Sign-ups open', color: 'var(--tcw-accent)' },
     running: { label: 'Live', color: '#22c55e' },
     complete: { label: 'Complete', color: '#8b93a1' },
   }
-  const s = map[status] ?? { label: status, color: 'var(--text-muted)' }
+  // Mirror the public page: once the sign-up timer elapses the window is
+  // closed even though the tournament is technically still 'enrolling' (the
+  // bracket is started manually). Show it as closed so the panel and the
+  // public hero never contradict each other.
+  const s =
+    status === 'enrolling' && enrollExpired
+      ? { label: 'Sign-ups closed', color: '#8b93a1' }
+      : map[status] ?? { label: status, color: 'var(--text-muted)' }
   return (
     <span
       className="shrink-0 inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-widest"
