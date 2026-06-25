@@ -4,9 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bookmark, Layers } from 'lucide-react'
+import { Bookmark, Layers, WalletCards } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
+import { baseCardId } from '@/lib/deck-types'
 import { filterAndBuildWall } from '@/lib/card-filter'
 import { isErrataCode } from '@/lib/cards-one-piece-errata'
 
@@ -49,6 +50,11 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     isPinned,
     toggleTierPool,
     isInTierPool,
+    addCardToActiveDeck,
+    addCardToDeck,
+    createDeck,
+    decks,
+    isCardInActiveDeck,
     activeSet,
     activeRarity,
     activeColor,
@@ -66,6 +72,20 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   } = useStore()
   const [focused, setFocused] = useState(0)
   const [errataInfoOpen, setErrataInfoOpen] = useState(false)
+  const [deckMenuOpen, setDeckMenuOpen] = useState(false)
+
+  // Close the deck picker when the user navigates to another card / art
+  // or closes the lightbox, so it never lingers over the wrong card.
+  useEffect(() => {
+    setDeckMenuOpen(false)
+  }, [lightboxCardId, focused])
+
+  // Decks available for this collection - the picker only appears when
+  // there's a real choice to make (2+).
+  const collectionDecks = useMemo(
+    () => decks.filter((d) => d.collection === activeCollection),
+    [decks, activeCollection],
+  )
 
   // Mirror CardGrid's filter so arrow-key navigation stays inside
   // the user's filter scope. Without this the lightbox walked the
@@ -391,6 +411,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                   label: `${card.name}${img.label && img.label !== 'base' ? ` · ${img.label}` : ''}`,
                 }
                 const inPool = isInTierPool(img.id)
+                const inDeck = isCardInActiveDeck(card.id)
                 return (
                   <>
                     <button
@@ -412,6 +433,126 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                       <Layers size={13} strokeWidth={2} fill={inPool ? 'currentColor' : 'none'} />
                       <span className="hidden sm:inline">{inPool ? 'In tier list' : 'Tier list'}</span>
                     </button>
+                    <div className="relative" style={{ pointerEvents: 'auto' }}>
+                      <button
+                        className={`lb-hud-btn${inDeck ? ' lb-hud-btn--active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          // With 2+ decks there's a real choice, so open the
+                          // picker; otherwise just drop it on the (only/active)
+                          // deck for a one-tap add.
+                          if (collectionDecks.length >= 2) {
+                            setDeckMenuOpen((v) => !v)
+                          } else {
+                            addCardToActiveDeck({
+                              cardId: img.id,
+                              name: card.name,
+                              src: img.src,
+                              cardType: card.cardType,
+                              cost: card.cost,
+                              color: card.colors?.[0],
+                            })
+                          }
+                        }}
+                        aria-label="Add to deck"
+                        aria-haspopup={collectionDecks.length >= 2 ? 'menu' : undefined}
+                        aria-expanded={collectionDecks.length >= 2 ? deckMenuOpen : undefined}
+                        aria-pressed={inDeck}
+                        title={
+                          collectionDecks.length >= 2
+                            ? 'Add this card to one of your decks'
+                            : inDeck
+                              ? 'In your deck · click to add another copy'
+                              : 'Add this card to your deck'
+                        }
+                      >
+                        <WalletCards size={13} strokeWidth={2} fill={inDeck ? 'currentColor' : 'none'} />
+                        <span className="hidden sm:inline">{inDeck ? 'In deck' : 'Deck'}</span>
+                      </button>
+
+                      {deckMenuOpen && collectionDecks.length >= 2 && (
+                        <>
+                          <div
+                            className="fixed inset-0"
+                            style={{ zIndex: 60 }}
+                            onClick={(e) => { e.stopPropagation(); setDeckMenuOpen(false) }}
+                            aria-hidden
+                          />
+                          <div
+                            role="menu"
+                            aria-label="Add to which deck"
+                            className="absolute right-0 top-full mt-2 flex flex-col gap-0.5 p-1.5"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              zIndex: 61,
+                              minWidth: 200,
+                              maxWidth: 280,
+                              maxHeight: 320,
+                              overflowY: 'auto',
+                              borderRadius: 10,
+                              border: '1px solid var(--lb-border)',
+                              background: 'var(--overlay)',
+                              backdropFilter: 'blur(16px)',
+                              WebkitBackdropFilter: 'blur(16px)',
+                              boxShadow: '0 18px 44px rgba(0,0,0,0.45), 0 6px 16px rgba(0,0,0,0.3)',
+                            }}
+                          >
+                            <div
+                              className="px-2 pb-1 pt-0.5 text-[10px] font-semibold uppercase"
+                              style={{ letterSpacing: '0.1em', color: 'var(--lb-fg-muted)' }}
+                            >
+                              Add to deck
+                            </div>
+                            {collectionDecks.map((d) => {
+                              const inThis = d.entries.find((e) => e.cardId === baseCardId(img.id))?.qty ?? 0
+                              return (
+                                <button
+                                  key={d.id}
+                                  role="menuitem"
+                                  className="lb-deck-item"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    addCardToDeck(d.id, {
+                                      cardId: img.id,
+                                      name: card.name,
+                                      src: img.src,
+                                      cardType: card.cardType,
+                                      cost: card.cost,
+                                      color: card.colors?.[0],
+                                    })
+                                    setDeckMenuOpen(false)
+                                  }}
+                                >
+                                  <span className="lb-deck-item__name">{d.name || 'Untitled deck'}</span>
+                                  <span className="lb-deck-item__qty">{inThis > 0 ? `×${inThis}` : '+'}</span>
+                                </button>
+                              )
+                            })}
+                            <div aria-hidden style={{ height: 1, background: 'var(--lb-border)', margin: '3px 4px' }} />
+                            <button
+                              role="menuitem"
+                              className="lb-deck-item lb-deck-item--new"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const id = createDeck()
+                                addCardToDeck(id, {
+                                  cardId: img.id,
+                                  name: card.name,
+                                  src: img.src,
+                                  cardType: card.cardType,
+                                  cost: card.cost,
+                                  color: card.colors?.[0],
+                                })
+                                setDeckMenuOpen(false)
+                              }}
+                            >
+                              <span className="lb-deck-item__name">New deck</span>
+                              <span className="lb-deck-item__qty">+</span>
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </>
                 )
               })()}

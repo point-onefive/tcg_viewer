@@ -2,6 +2,13 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LanguagePickerValue } from './types'
 import { defaultTiers, type TierCard, type TierDef } from './tier-list-types'
+import {
+  baseCardId,
+  createEmptyDeck,
+  maxCopiesFor,
+  type Deck,
+  type DeckEntry,
+} from './deck-types'
 
 type Theme = 'light' | 'dark'
 
@@ -183,6 +190,73 @@ interface StoreState {
    * on the board and leaves the chart title untouched.
    */
   resetTierChart: () => void
+
+  /**
+   * Deck Builder state. Multiple named decks per browser instance,
+   * persisted in localStorage (no login). Decks are scoped to a
+   * collection (mirrors the per-collection board / pins) so a One Piece
+   * deck never mixes with a Pokémon one. The builder reads the decks
+   * for the active collection and the lightbox "Deck" button appends to
+   * `activeDeckId` (creating a first deck on demand).
+   */
+  decks: Deck[]
+  activeDeckId: string | null
+  /** Create a new (empty) deck for the active collection; returns its id. */
+  createDeck: (name?: string) => string
+  renameDeck: (id: string, name: string) => void
+  deleteDeck: (id: string) => void
+  /** Clone a deck (entries + leader) under a new id; returns the new id. */
+  duplicateDeck: (id: string) => string | null
+  setActiveDeck: (id: string) => void
+  /**
+   * Append a card to the active deck (creating a first deck for the
+   * collection if none exists). If the card's base code is already in
+   * the deck, its quantity is bumped instead of adding a duplicate row.
+   */
+  addCardToActiveDeck: (input: DeckCardAddInput) => void
+  /**
+   * Append a card to a specific deck and make that deck active. Used by
+   * the lightbox deck picker when more than one deck exists, so the user
+   * can choose the destination instead of always hitting the active one.
+   */
+  addCardToDeck: (deckId: string, input: DeckCardAddInput) => void
+  /** Add a user-authored proxy card to a specific deck. */
+  addCustomCardToDeck: (deckId: string, input: CustomCardInput) => void
+  /** Set an entry's quantity (qty <= 0 removes the entry). */
+  setDeckEntryQty: (deckId: string, uid: string, qty: number) => void
+  removeDeckEntry: (deckId: string, uid: string) => void
+  /** Swap the displayed print (alt art) for a gallery entry. */
+  setDeckEntryPrint: (deckId: string, uid: string, printId: string, src: string) => void
+  /** Remove every entry from a deck (keeps the deck + its name). */
+  clearDeck: (deckId: string) => void
+  /** True when the active deck already contains this base card code. */
+  isCardInActiveDeck: (cardId: string) => boolean
+}
+
+/** Caller-facing arg for adding a gallery card to a deck. */
+export interface DeckCardAddInput {
+  /** Print id of the focused art (base = card.id, variant = variant.id). */
+  cardId: string
+  name: string
+  src: string
+  cardType?: string
+  cost?: number | null
+  color?: string
+}
+
+/** Caller-facing arg for adding a custom proxy card. */
+export interface CustomCardInput {
+  name: string
+  /** Optional index/code the player wants in the export. */
+  cardId?: string
+  /** Optional image (data-URL preferred so it persists across reloads). */
+  src?: string
+}
+
+function newUid(): string {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `e-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
 /** Fire-and-forget telemetry. Anonymous, no user id, no cookies. */
@@ -369,6 +443,196 @@ export const useStore = create<StoreState>()(
             c.tierId === null ? c : { ...c, tierId: null },
           ),
         })),
+
+      decks: [],
+      activeDeckId: null,
+      createDeck: (name) => {
+        const { decks, activeCollection } = get()
+        const collectionDecks = decks.filter((d) => d.collection === activeCollection)
+        const deck = createEmptyDeck(
+          activeCollection,
+          name?.trim() || `Deck ${collectionDecks.length + 1}`,
+        )
+        set({ decks: [...decks, deck], activeDeckId: deck.id })
+        return deck.id
+      },
+      renameDeck: (id, name) =>
+        set((s) => ({
+          decks: s.decks.map((d) =>
+            d.id === id ? { ...d, name, updatedAt: Date.now() } : d,
+          ),
+        })),
+      deleteDeck: (id) =>
+        set((s) => {
+          const decks = s.decks.filter((d) => d.id !== id)
+          let activeDeckId = s.activeDeckId
+          if (activeDeckId === id) {
+            // Fall back to another deck in the same collection, else null.
+            const removed = s.decks.find((d) => d.id === id)
+            const sibling = decks.find((d) => d.collection === removed?.collection)
+            activeDeckId = sibling?.id ?? null
+          }
+          return { decks, activeDeckId }
+        }),
+      duplicateDeck: (id) => {
+        const { decks } = get()
+        const src = decks.find((d) => d.id === id)
+        if (!src) return null
+        const copy = createEmptyDeck(src.collection, `${src.name} copy`)
+        copy.entries = src.entries.map((e) => ({ ...e, uid: newUid() }))
+        set({ decks: [...decks, copy], activeDeckId: copy.id })
+        return copy.id
+      },
+      setActiveDeck: (id) => set({ activeDeckId: id }),
+      addCardToActiveDeck: (input) => {
+        const { decks, activeDeckId, activeCollection } = get()
+        const code = baseCardId(input.cardId)
+
+        // Ensure there's a live target deck for this collection.
+        let targetId = activeDeckId
+        let working = decks
+        const activeValid = decks.some(
+          (d) => d.id === activeDeckId && d.collection === activeCollection,
+        )
+        if (!activeValid) {
+          const existing = decks.find((d) => d.collection === activeCollection)
+          if (existing) {
+            targetId = existing.id
+          } else {
+            const fresh = createEmptyDeck(activeCollection, 'Deck 1')
+            working = [...decks, fresh]
+            targetId = fresh.id
+          }
+        }
+
+        const now = Date.now()
+        set({
+          activeDeckId: targetId,
+          decks: working.map((d) => {
+            if (d.id !== targetId) return d
+            const has = d.entries.find((e) => e.cardId === code)
+            if (has) {
+              return {
+                ...d,
+                updatedAt: now,
+                entries: d.entries.map((e) =>
+                  e.cardId === code ? { ...e, qty: Math.min(e.qty + 1, maxCopiesFor(e)) } : e,
+                ),
+              }
+            }
+            const entry: DeckEntry = {
+              uid: newUid(),
+              cardId: code,
+              name: input.name,
+              src: input.src,
+              printId: input.cardId,
+              qty: 1,
+              kind: 'gallery',
+              cardType: input.cardType,
+              cost: input.cost,
+              color: input.color,
+            }
+            return { ...d, updatedAt: now, entries: [...d.entries, entry] }
+          }),
+        })
+      },
+      addCardToDeck: (deckId, input) => {
+        const code = baseCardId(input.cardId)
+        const now = Date.now()
+        set((s) => {
+          if (!s.decks.some((d) => d.id === deckId)) return {}
+          return {
+            activeDeckId: deckId,
+            decks: s.decks.map((d) => {
+              if (d.id !== deckId) return d
+              const has = d.entries.find((e) => e.cardId === code)
+              if (has) {
+                return {
+                  ...d,
+                  updatedAt: now,
+                  entries: d.entries.map((e) =>
+                    e.cardId === code ? { ...e, qty: Math.min(e.qty + 1, maxCopiesFor(e)) } : e,
+                  ),
+                }
+              }
+              const entry: DeckEntry = {
+                uid: newUid(),
+                cardId: code,
+                name: input.name,
+                src: input.src,
+                printId: input.cardId,
+                qty: 1,
+                kind: 'gallery',
+                cardType: input.cardType,
+                cost: input.cost,
+                color: input.color,
+              }
+              return { ...d, updatedAt: now, entries: [...d.entries, entry] }
+            }),
+          }
+        })
+      },
+      addCustomCardToDeck: (deckId, input) =>
+        set((s) => ({
+          decks: s.decks.map((d) => {
+            if (d.id !== deckId) return d
+            const entry: DeckEntry = {
+              uid: newUid(),
+              cardId: (input.cardId ?? '').trim(),
+              name: input.name.trim() || 'Custom card',
+              src: input.src ?? '',
+              qty: 1,
+              kind: 'custom',
+            }
+            return { ...d, updatedAt: Date.now(), entries: [...d.entries, entry] }
+          }),
+        })),
+      setDeckEntryQty: (deckId, uid, qty) =>
+        set((s) => ({
+          decks: s.decks.map((d) => {
+            if (d.id !== deckId) return d
+            const entries =
+              qty <= 0
+                ? d.entries.filter((e) => e.uid !== uid)
+                : d.entries.map((e) => (e.uid === uid ? { ...e, qty: Math.min(qty, maxCopiesFor(e)) } : e))
+            return { ...d, updatedAt: Date.now(), entries }
+          }),
+        })),
+      removeDeckEntry: (deckId, uid) =>
+        set((s) => ({
+          decks: s.decks.map((d) =>
+            d.id === deckId
+              ? { ...d, updatedAt: Date.now(), entries: d.entries.filter((e) => e.uid !== uid) }
+              : d,
+          ),
+        })),
+      setDeckEntryPrint: (deckId, uid, printId, src) =>
+        set((s) => ({
+          decks: s.decks.map((d) =>
+            d.id === deckId
+              ? {
+                  ...d,
+                  updatedAt: Date.now(),
+                  entries: d.entries.map((e) =>
+                    e.uid === uid ? { ...e, printId, src } : e,
+                  ),
+                }
+              : d,
+          ),
+        })),
+      clearDeck: (deckId) =>
+        set((s) => ({
+          decks: s.decks.map((d) =>
+            d.id === deckId ? { ...d, updatedAt: Date.now(), entries: [] } : d,
+          ),
+        })),
+      isCardInActiveDeck: (cardId) => {
+        const { decks, activeDeckId } = get()
+        const deck = decks.find((d) => d.id === activeDeckId)
+        if (!deck) return false
+        const code = baseCardId(cardId)
+        return deck.entries.some((e) => e.cardId === code)
+      },
     }),
     {
       name: 'tcg-viewer-prefs',
@@ -405,8 +669,14 @@ export const useStore = create<StoreState>()(
         // thumbs. Gallery cards round-trip fine - they're stable
         // R2/CDN URLs that the page can re-fetch on rehydrate.
         tierBoardCards: state.tierBoardCards.filter((c) => c.kind !== 'upload'),
+        // Deck Builder: saved decks + which one is active. Gallery
+        // entries carry stable CDN/R2 image URLs that round-trip fine;
+        // custom proxies should be saved as data-URLs (not blob:) so
+        // their pasted art survives a reload.
+        decks: state.decks,
+        activeDeckId: state.activeDeckId,
       }),
-      version: 23,
+      version: 24,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -566,6 +836,15 @@ export const useStore = create<StoreState>()(
           // Coerce to an array so a pre-v23 blob (no key) doesn't leave
           // it undefined when merged against initialState.
           s.activeCharacters = Array.isArray(s.activeCharacters) ? s.activeCharacters : []
+        }
+        if (fromVersion < 24) {
+          // v24 adds the Deck Builder (saved decks + active deck id).
+          // Old blobs have neither key; default to an empty deck list so
+          // Zustand doesn't merge `undefined` against initialState.
+          s.decks = Array.isArray((s as { decks?: unknown }).decks)
+            ? ((s as { decks?: Deck[] }).decks ?? [])
+            : []
+          s.activeDeckId = (s as { activeDeckId?: string | null }).activeDeckId ?? null
         }
         return s as StoreState
       },

@@ -11,6 +11,7 @@ import {
   Menu,
   Package,
   Trophy,
+  WalletCards,
   X,
 } from 'lucide-react'
 import { ThemeToggle } from './theme-toggle'
@@ -248,6 +249,11 @@ export function SiteNavMenu({
                 <span>Booster Boxes</span>
               </Link>
             )}
+
+            <Link href="/deck-builder" onClick={() => setOpen(false)} className={rowClass} style={rowStyle('/deck-builder')} aria-label="Deck builder">
+              <WalletCards size={16} strokeWidth={2.25} aria-hidden />
+              <span>Deck Builder</span>
+            </Link>
 
             <Link
               href="/tier-list"

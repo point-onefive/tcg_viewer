@@ -1831,6 +1831,75 @@ html.lenis, html.lenis body {
   opacity: 0.92;
 }
 
+/* Deck picker menu items (lightbox "Deck" button → choose a deck). Quiet
+   rows that light up on hover, mirroring the HUD button language. */
+.lb-deck-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--lb-fg);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.lb-deck-item:hover {
+  background: var(--lb-surface-hover);
+  border-color: var(--lb-border-hover);
+}
+.lb-deck-item__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-deck-item__qty {
+  flex-shrink: 0;
+  min-width: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--lb-fg-muted);
+}
+.lb-deck-item--new,
+.lb-deck-item--new .lb-deck-item__qty {
+  color: #e85d2a;
+}
+
+/* Deck-builder overflow menu items (the "···" deck actions menu). Same
+   quiet-row-that-lights-up pattern, themed with the site tokens. */
+.db-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.db-menu-item:hover {
+  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  border-color: var(--border-subtle);
+}
+.db-menu-item--danger {
+  color: #dc2626;
+}
+
 /* Set / print-context chip in the bottom bar. Replaces the cramped,
    cheap-looking muted caption with a tasteful pill that reads as an
    intentional label and stands clear of the card above. */
