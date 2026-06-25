@@ -2097,7 +2097,7 @@ function SwissBoard({
         )}
 
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
-          DM your opponent on <XLogo /> to schedule. The admin records each result.
+          DM your opponent on <XLogo /> to schedule, then report your result. Matches confirm automatically once you both agree - the admin only steps in to settle disputes.
         </p>
 
         <div
@@ -2270,7 +2270,7 @@ function ElimBracket({
       />
       <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
-          DM your opponent on <XLogo /> to schedule. The admin records each result and winners advance automatically.
+          DM your opponent on <XLogo /> to schedule, then report your result. Matches confirm automatically and winners advance - the admin only steps in to settle disputes.
         </p>
 
         <BracketScroller>
