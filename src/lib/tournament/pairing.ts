@@ -159,11 +159,70 @@ function history(matches: Match[]): { played: Set<string>; hadBye: Set<string> }
 }
 
 /**
- * Greedy Swiss pairing within score brackets. Players are ranked by standings;
- * we walk top→bottom, pairing each unpaired player with the next available
- * opponent they haven't faced. Falls back to allowing a rematch only if no
- * legal pairing exists (rare, tiny fields). The lowest-ranked leftover who
- * hasn't had a bye gets the bye.
+ * Find a rematch-free perfect matching of `order` (players in standings order),
+ * preferring opponents nearest in the standings. Returns null when NO pairing
+ * without a rematch exists for this set.
+ *
+ * This is a depth-first search that pairs the highest unpaired player with the
+ * nearest legal (not-yet-faced) opponent, then recurses; if the rest can't be
+ * matched it backtracks and tries the next-nearest opponent. Because we always
+ * try the nearest opponent first, the first solution found is also the most
+ * "score-bracketed" one - so we keep the greedy's pairing quality while gaining
+ * the guarantee that a rematch is never forced when one is avoidable.
+ *
+ * `budget` caps the search so a pathological field can't hang the request; if
+ * it's exhausted we give up (caller falls back to the rematch-tolerant greedy).
+ */
+function matchNoRepeat(
+  order: string[],
+  played: Set<string>,
+  budget: { steps: number },
+): Pairing[] | null {
+  if (order.length === 0) return []
+  if (budget.steps-- <= 0) return null
+  const a = order[0]
+  const rest = order.slice(1)
+  for (let i = 0; i < rest.length; i++) {
+    const b = rest[i]
+    if (played.has(pairKey(a, b))) continue
+    const remaining = rest.slice(0, i).concat(rest.slice(i + 1))
+    const sub = matchNoRepeat(remaining, played, budget)
+    if (sub) return [[a, b], ...sub]
+  }
+  return null
+}
+
+/**
+ * Rematch-tolerant greedy fallback: pairs each unpaired player (top→bottom)
+ * with the nearest remaining opponent, allowing a rematch. Only used when no
+ * rematch-free matching exists (e.g. a 2-player field over 3 rounds), so the
+ * round can still be generated rather than stalling.
+ */
+function greedyAllowRematch(order: string[]): Pairing[] {
+  const pairings: Pairing[] = []
+  const used = new Set<string>()
+  for (let i = 0; i < order.length; i++) {
+    const a = order[i]
+    if (used.has(a)) continue
+    used.add(a)
+    for (let j = i + 1; j < order.length; j++) {
+      const b = order[j]
+      if (used.has(b)) continue
+      used.add(b)
+      pairings.push([a, b])
+      break
+    }
+  }
+  return pairings
+}
+
+/**
+ * Swiss pairing within score brackets. Players are ranked by standings; the
+ * lowest-ranked player without a bye gets the bye when the field is odd, and
+ * the rest are matched so that a previously-played pairing is NEVER repeated
+ * unless no rematch-free pairing exists at all (only possible when the field is
+ * smaller than the round count, e.g. 2 players over 3 rounds). We try the
+ * nearest-in-standings opponent first, so pairings stay tightly score-bracketed.
  */
 export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
   const active = players.filter((p) => !p.dropped)
@@ -172,9 +231,9 @@ export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
   const { played, hadBye } = history(matches)
 
   const pairings: Pairing[] = []
-  const used = new Set<string>()
 
   // Assign the bye first if the field is odd: lowest-ranked player without one.
+  let toPair = order
   if (order.length % 2 === 1) {
     let byePlayer: string | null = null
     for (let i = order.length - 1; i >= 0; i--) {
@@ -184,38 +243,15 @@ export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
       }
     }
     if (byePlayer == null) byePlayer = order[order.length - 1] // everyone had one
-    used.add(byePlayer)
     pairings.push([byePlayer, null])
+    toPair = order.filter((id) => id !== byePlayer)
   }
 
-  for (let i = 0; i < order.length; i++) {
-    const a = order[i]
-    if (used.has(a)) continue
-    used.add(a)
-    // Find the best opponent: nearest in standings not yet faced.
-    let opponent: string | null = null
-    for (let j = i + 1; j < order.length; j++) {
-      const b = order[j]
-      if (used.has(b)) continue
-      if (played.has(pairKey(a, b))) continue
-      opponent = b
-      break
-    }
-    // No fresh opponent? allow the nearest rematch as a last resort.
-    if (opponent == null) {
-      for (let j = i + 1; j < order.length; j++) {
-        const b = order[j]
-        if (!used.has(b)) {
-          opponent = b
-          break
-        }
-      }
-    }
-    if (opponent != null) {
-      used.add(opponent)
-      pairings.push([a, opponent])
-    }
-  }
+  // Prefer a matching with no rematches; fall back to the rematch-tolerant
+  // greedy only when one genuinely doesn't exist (tiny fields).
+  const noRepeat = matchNoRepeat(toPair, played, { steps: 200_000 })
+  const rest = noRepeat ?? greedyAllowRematch(toPair)
+  pairings.push(...rest)
   return pairings
 }
 
