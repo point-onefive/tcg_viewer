@@ -65,6 +65,7 @@ export function ProfileAvailability({ availability }: { availability: Availabili
   if (!hasAvailability(availability)) return null
   const a = availability as Availability
   const theirTz = a.tz
+  const allHours = [...new Set([...(a.weekday ?? []), ...(a.weekend ?? [])])].sort((x, y) => x - y)
 
   return (
     <div className="mt-6">
@@ -120,19 +121,8 @@ export function ProfileAvailability({ availability }: { availability: Availabili
           }}
         />
       </div>
-      <div className="flex flex-col gap-3 mt-3">
-        <div>
-          <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-            Weekdays <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Mon-Fri)</span>
-          </div>
-          <Chips hours={a.weekday} fromTz={theirTz} toTz={viewTz} />
-        </div>
-        <div>
-          <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-            Weekends <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Sat-Sun)</span>
-          </div>
-          <Chips hours={a.weekend} fromTz={theirTz} toTz={viewTz} />
-        </div>
+      <div className="mt-3">
+        <Chips hours={allHours} fromTz={theirTz} toTz={viewTz} />
       </div>
     </div>
   )
