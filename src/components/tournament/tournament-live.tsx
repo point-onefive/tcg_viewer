@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { AlertTriangle, CalendarClock, Camera, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
@@ -563,42 +564,76 @@ function LeaderCardModal({
   name: string
   onClose: () => void
 }) {
-  return (
-    <ModalPortal onClose={onClose} label={name || 'Leader card'} maxWidth={340}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 10px 0', flexShrink: 0 }}>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          style={{
-            background: 'var(--bg)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '50%',
-            width: 30,
-            height: 30,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <X size={16} />
-        </button>
-      </div>
-      <div style={{ padding: '0 20px 20px', overflowY: 'auto' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image}
-          alt={name}
-          style={{ width: '100%', borderRadius: 10, display: 'block', background: 'var(--bg)' }}
-        />
-        {name && (
-          <p className="mt-3 text-center font-display text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-            {name}
-          </p>
-        )}
-      </div>
-    </ModalPortal>
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [onClose])
+
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={name || 'Leader card'}
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 200,
+        background: 'rgba(0,0,0,0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 'clamp(12px, 5vw, 32px)',
+      }}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close"
+        style={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          background: 'rgba(0,0,0,0.5)',
+          border: '1px solid rgba(255,255,255,0.25)',
+          borderRadius: '50%',
+          width: 34,
+          height: 34,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: '#fff',
+        }}
+      >
+        <X size={18} />
+      </button>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={image}
+        alt={name}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: 'min(420px, 92vw)',
+          maxHeight: '88vh',
+          width: 'auto',
+          height: 'auto',
+          objectFit: 'contain',
+          borderRadius: 12,
+          display: 'block',
+        }}
+      />
+    </div>,
+    document.body,
   )
 }
 
