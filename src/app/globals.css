@@ -224,6 +224,22 @@ html.lenis, html.lenis body {
   }
 }
 
+/* Async profile sections (trophy case, prizes) render nothing while loading,
+   then fade in once data arrives - so empty profiles never flash a skeleton
+   and profiles with content pop in gently rather than abruptly. */
+@keyframes profileSectionIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+.profile-section-in {
+  animation: profileSectionIn 200ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-section-in {
+    animation: none;
+  }
+}
+
 .card-tile__image {
   object-fit: cover;
   transition: opacity 0.4s ease, transform 0.4s ease;

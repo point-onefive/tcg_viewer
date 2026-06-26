@@ -55,9 +55,9 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Still loading the first time: show a skeleton in the trophy-case shape so
-  // the modal reserves the space instead of popping the medals in late.
-  if (!badges) return <BadgesSkeleton />
+  // Still loading: render nothing (no skeleton). Most profiles have no medals,
+  // so a skeleton would just flash and vanish. Content fades in once loaded.
+  if (!badges) return null
 
   // Nothing earned. In production we render nothing so the profile stays clean
   // for players with no podium finishes. In development we show a faint shell
@@ -74,7 +74,7 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
   const hiddenCount = badges.length - visible.length
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 profile-section-in">
       <div
         className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
         style={{ color: 'var(--text-muted)' }}
@@ -133,31 +133,6 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
       )}
 
       {open && <BadgeResultModal badge={open} onClose={() => setOpen(null)} />}
-    </div>
-  )
-}
-
-// ── Loading skeleton: identical footprint to the empty/filled trophy-case
-// chip, so when the fetch resolves only the inner content swaps (shimmer ->
-// medal/text) and the box never resizes. One chip only: zero flicker.
-function BadgesSkeleton() {
-  return (
-    <div className="mt-6">
-      <div
-        className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        Trophy case
-      </div>
-      <div
-        className="profile-skel inline-flex items-center gap-2 px-3 py-2"
-        style={{ borderRadius: 8 }}
-      >
-        <Medal size={18} style={{ color: 'transparent', flexShrink: 0 }} />
-        <span className="text-[11px] font-semibold" style={{ color: 'transparent' }}>
-          No medals yet - top-3 finishes show here
-        </span>
-      </div>
     </div>
   )
 }

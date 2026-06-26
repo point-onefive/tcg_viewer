@@ -50,9 +50,9 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Still loading the first time: show a skeleton in the prize-shelf shape so
-  // the modal reserves the space instead of popping the tiles in late.
-  if (!prizes) return <PrizesSkeleton />
+  // Still loading: render nothing (no skeleton). Most profiles have no prizes,
+  // so a skeleton would just flash and vanish. Content fades in once loaded.
+  if (!prizes) return null
 
   // Nothing won. In production we render nothing so the profile stays clean. In
   // development we show a faint shell so the layout can be previewed before any
@@ -69,7 +69,7 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
   const hiddenCount = prizes.length - visible.length
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 profile-section-in">
       <div className="flex items-center gap-1.5 mb-2.5">
         <Gift size={13} style={{ color: '#E85D2A' }} />
         <span
@@ -94,31 +94,6 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
           {expanded ? 'Show less' : `Show ${hiddenCount} more`}
         </button>
       )}
-    </div>
-  )
-}
-
-// ── Loading skeleton: identical footprint to the empty/filled prize shelf, so
-// when the fetch resolves only the inner content swaps (shimmer -> tile/text)
-// and the box never resizes. One tile only: zero flicker.
-function PrizesSkeleton() {
-  return (
-    <div className="mt-6">
-      <div className="flex items-center gap-1.5 mb-2.5">
-        <Gift size={13} style={{ color: '#E85D2A' }} />
-        <span
-          className="text-[11px] font-bold uppercase tracking-wider"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Prizes won
-        </span>
-      </div>
-      <div className="flex items-center gap-2.5">
-        <div className="profile-skel" style={{ width: 84, height: 88 }} />
-        <span className="text-[11px] font-semibold" style={{ color: 'transparent' }}>
-          No prizes yet - awards show here
-        </span>
-      </div>
     </div>
   )
 }
