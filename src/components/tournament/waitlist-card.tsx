@@ -241,7 +241,7 @@ export function WaitlistCard({ note }: { note?: string }) {
               <Loader2 size={14} className="animate-spin" /> Joining…
             </>
           ) : (
-            `Join the waitlist as @${profile.xHandle}`
+            'Join Waitlist'
           )}
         </button>
       </div>
