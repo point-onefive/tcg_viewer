@@ -4,7 +4,7 @@
 // Shown when the user clicks "Edit profile" in the WalletConnectButton menu.
 
 import { useState, useEffect } from 'react'
-import { X, User, Check, Loader2, AlertCircle, Clock } from 'lucide-react'
+import { X, User, Check, Loader2, AlertCircle, Clock, ChevronDown } from 'lucide-react'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { XLogo } from '@/components/gallery/x-logo'
 import { PlayerAvatar } from './player-avatar'
@@ -329,18 +329,39 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                 </p>
 
                 {/* Timezone */}
-                <select
-                  value={availTz}
-                  onChange={(e) => setAvailTz(e.target.value)}
-                  aria-label="Your timezone"
-                  style={{ ...inputStyle, appearance: 'auto', marginBottom: 12 }}
-                >
-                  {tzOptions.map((tz) => (
-                    <option key={tz} value={tz}>
-                      {tzCity(tz)} ({tzAbbrev(tz)})
-                    </option>
-                  ))}
-                </select>
+                <div style={{ position: 'relative', marginBottom: 12 }}>
+                  <select
+                    value={availTz}
+                    onChange={(e) => setAvailTz(e.target.value)}
+                    aria-label="Your timezone"
+                    style={{
+                      ...inputStyle,
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      paddingRight: 38,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {tzOptions.map((tz) => (
+                      <option key={tz} value={tz}>
+                        {tzCity(tz)} ({tzAbbrev(tz)})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--text-muted)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </div>
 
                 <div className="mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
                   Weekdays <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Mon-Fri)</span>
