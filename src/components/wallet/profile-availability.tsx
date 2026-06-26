@@ -43,7 +43,7 @@ function Chips({ hours, fromTz, toTz }: { hours: number[]; fromTz: string; toTz:
             {hourLabel(hour)}
             {dayShift !== 0 && (
               <span className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
-                {dayShift > 0 ? `+${dayShift}d` : `${dayShift}d`}
+                {dayShift > 0 ? 'next day' : 'prev day'}
               </span>
             )}
           </span>
@@ -77,6 +77,10 @@ export function ProfileAvailability({ availability }: { availability: Availabili
           (checking chat &amp; ready to play)
         </span>
       </div>
+
+      <p className="text-[11px] mb-1.5" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+        Tip: set this to your timezone to see their hours in your local time.
+      </p>
 
       {/* Viewer timezone picker - chips render in this zone. */}
       <div style={{ position: 'relative', maxWidth: 280 }}>
