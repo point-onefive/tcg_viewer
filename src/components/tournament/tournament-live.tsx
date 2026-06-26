@@ -79,17 +79,30 @@ function useCountdown(iso: string | null) {
  * to X - the profile is the more useful hub. Falls back to a small card with an
  * X link when the name has no linked wallet profile (e.g. a walk-in entry).
  */
-function XProfileLink({ handle, className }: { handle: string; className?: string }) {
+export function XProfileLink({
+  handle,
+  className,
+  color,
+}: {
+  handle: string
+  className?: string
+  color?: string
+}) {
   const [open, setOpen] = useState(false)
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={(e) => {
+          // Stop parents (e.g. a <summary> deck row) from also toggling.
+          e.preventDefault()
+          e.stopPropagation()
+          setOpen(true)
+        }}
         className={className}
         title="View profile"
         style={{
-          color: 'var(--text-primary)',
+          color: color ?? 'var(--text-primary)',
           fontWeight: 600,
           background: 'none',
           border: 'none',
@@ -2608,7 +2621,7 @@ function ElimBracket({
               style={{ background: 'color-mix(in srgb, #f5b301 22%, #17001c)', border: '1px solid color-mix(in srgb, #f5b301 55%, transparent)', borderRadius: 8 }}
             >
               <Trophy size={15} style={{ color: '#f5b301' }} />
-              <span className="text-sm font-bold" style={{ color: '#fff' }}>{formatXLabel(champion.xHandle)}</span>
+              <XProfileLink handle={champion.xHandle} className="text-sm font-bold" color="#fff" />
               <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 Champion
               </span>

@@ -4,11 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, ListChecks, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { AwardedPrizesHistory, LeaderChip, RoundBoard, StandingsTable } from './tournament-live'
+import { AwardedPrizesHistory, LeaderChip, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import { DeckListBlock } from './deck-list-block'
 import { deckCardCount } from '@/lib/tournament/deck-list'
-import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -28,22 +27,6 @@ function fmtDate(iso: string): string {
   } catch {
     return ''
   }
-}
-
-function XLink({ handle }: { handle: string }) {
-  const url = xProfileUrl(handle)
-  const label = formatXLabel(handle)
-  if (!url) return <span style={{ fontWeight: 600 }}>{label}</span>
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
-    >
-      {label}
-    </a>
-  )
 }
 
 function MetaChip({ icon: Icon, children }: { icon: typeof Hash; children: React.ReactNode }) {
@@ -206,7 +189,7 @@ export function PastTournamentView({ code }: { code: string }) {
                     Champion
                   </div>
                   <div className="text-base font-bold">
-                    <XLink handle={champion.xHandle || champion.displayName} />
+                    <XProfileLink handle={champion.xHandle || champion.displayName} />
                   </div>
                 </div>
               </div>
@@ -270,7 +253,7 @@ export function PastTournamentView({ code }: { code: string }) {
                     style={{ listStyle: 'none' }}
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <XLink handle={p.xHandle || p.displayName} />
+                      <XProfileLink handle={p.xHandle || p.displayName} />
                       <LeaderChip player={p} />
                     </span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
