@@ -12,7 +12,7 @@ import { isManagedAvatarUrl } from '@/lib/wallet/avatar'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import {
   detectTimeZone,
-  supportedTimeZones,
+  commonTimeZones,
   shortHourLabel,
   tzCity,
   tzAbbrev,
@@ -111,7 +111,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
 
   // Timezone <select> options, with the player's current tz guaranteed present.
   const tzOptions = (() => {
-    const zones = supportedTimeZones()
+    const zones = commonTimeZones()
     return zones.includes(availTz) ? zones : [availTz, ...zones]
   })()
 

@@ -24,6 +24,43 @@ export function detectTimeZone(): string {
   }
 }
 
+/**
+ * A curated, representative set of zones (one major hub per UTC offset) for the
+ * availability pickers. The full IANA list (~400 entries) makes a native
+ * <select> balloon into an unruly, full-height menu; this keeps it short and
+ * scannable while still covering every offset. Callers should still union in
+ * the player's own tz and the viewer's detected tz so those are always present.
+ */
+export function commonTimeZones(): string[] {
+  return [
+    'Pacific/Midway',
+    'Pacific/Honolulu',
+    'America/Anchorage',
+    'America/Los_Angeles',
+    'America/Denver',
+    'America/Phoenix',
+    'America/Chicago',
+    'America/New_York',
+    'America/Halifax',
+    'America/Sao_Paulo',
+    'Atlantic/Azores',
+    'UTC',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Athens',
+    'Europe/Moscow',
+    'Asia/Dubai',
+    'Asia/Karachi',
+    'Asia/Kolkata',
+    'Asia/Dhaka',
+    'Asia/Bangkok',
+    'Asia/Singapore',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+    'Pacific/Auckland',
+  ]
+}
+
 /** All IANA zones if the runtime supports it, else a small sensible fallback. */
 export function supportedTimeZones(): string[] {
   try {

@@ -15,7 +15,7 @@ import {
   hourLabel,
   convertHour,
   detectTimeZone,
-  supportedTimeZones,
+  commonTimeZones,
   tzAbbrev,
   tzCity,
   offsetLabel,
@@ -58,7 +58,7 @@ export function ProfileAvailability({ availability }: { availability: Availabili
   const [viewTz, setViewTz] = useState(detected)
 
   const tzOptions = useMemo(() => {
-    const zones = supportedTimeZones()
+    const zones = commonTimeZones()
     const extras = [viewTz, availability?.tz].filter((z): z is string => !!z && !zones.includes(z))
     return [...extras, ...zones]
   }, [viewTz, availability?.tz])
