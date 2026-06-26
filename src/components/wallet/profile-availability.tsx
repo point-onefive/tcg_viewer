@@ -18,7 +18,6 @@ import {
   commonTimeZones,
   tzAbbrev,
   tzCity,
-  offsetLabel,
 } from '@/lib/wallet/availability'
 
 function Chips({ hours, fromTz, toTz }: { hours: number[]; fromTz: string; toTz: string }) {
@@ -66,7 +65,6 @@ export function ProfileAvailability({ availability }: { availability: Availabili
   if (!hasAvailability(availability)) return null
   const a = availability as Availability
   const theirTz = a.tz
-  const off = theirTz ? offsetLabel(theirTz, viewTz) : null
 
   return (
     <div className="mt-6">
@@ -79,7 +77,7 @@ export function ProfileAvailability({ availability }: { availability: Availabili
       </div>
 
       <p className="text-[11px] mb-1.5" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
-        Tip: set this to your timezone to see their hours in your local time.
+        View their availability in your timezone.
       </p>
 
       {/* Viewer timezone picker - chips render in this zone. */}
@@ -122,12 +120,6 @@ export function ProfileAvailability({ availability }: { availability: Availabili
           }}
         />
       </div>
-      {off && (
-        <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
-          {off}
-        </p>
-      )}
-
       <div className="flex flex-col gap-3 mt-3">
         <div>
           <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
