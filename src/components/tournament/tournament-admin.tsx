@@ -685,6 +685,13 @@ export function TournamentAdmin() {
                           ),
                         )
                       }
+                      onExtend={(mins) =>
+                        run(() =>
+                          adminApi(adminKey, { action: 'extend-round', code, extraMinutes: mins }).then(() =>
+                            setMsg(`Round extended by ${formatDuration(mins)}`),
+                          ),
+                        )
+                      }
                     />
                   )}
 
@@ -1581,6 +1588,14 @@ function formatDuration(totalMinutes: number): string {
 
 const ROUND_HOUR_PRESETS = [6, 12, 24, 48, 72]
 
+// Quick "add time to the live round" presets (minutes), mirroring +1h sign-ups.
+const ROUND_EXTEND_PRESETS: { label: string; mins: number }[] = [
+  { label: '30m', mins: 30 },
+  { label: '1h', mins: 60 },
+  { label: '3h', mins: 180 },
+  { label: '24h', mins: 1440 },
+]
+
 /**
  * Live editor for how long each round stays open. Editable while enrolling or
  * running. The value is the deadline the auto-sweep uses to close out unreported
@@ -1594,12 +1609,14 @@ function RoundLengthEditor({
   activeRoundEndsAt,
   busy,
   onSave,
+  onExtend,
 }: {
   current: number
   status: 'enrolling' | 'running'
   activeRoundEndsAt: string | null
   busy: boolean
   onSave: (minutes: number) => void
+  onExtend?: (extraMinutes: number) => void
 }) {
   const [hours, setHours] = useState(() => String(Math.max(1, Math.round(current / 60))))
   const num = parseInt(hours, 10)
@@ -1683,16 +1700,36 @@ function RoundLengthEditor({
       )}
 
       {status === 'running' ? (
-        <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          {endsLabel ? (
-            <>
-              Current round auto-closes around <strong>{endsLabel}</strong> if matches are still
-              pending.{' '}
-            </>
-          ) : null}
-          Saving re-times the current round and applies to every round after it. Decide every match
-          and the bracket advances right away - no need to wait for the clock.
-        </p>
+        <>
+          <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+            {endsLabel ? (
+              <>
+                Current round auto-closes around <strong>{endsLabel}</strong> if matches are still
+                pending.{' '}
+              </>
+            ) : null}
+            Saving re-times the current round and applies to every round after it. Decide every match
+            and the bracket advances right away - no need to wait for the clock.
+          </p>
+          {onExtend && (
+            <div className="mt-3">
+              <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                Add time to this round
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {ROUND_EXTEND_PRESETS.map(({ label, mins }) => (
+                  <AdminBtn key={mins} disabled={busy} onClick={() => onExtend(mins)}>
+                    +{label}
+                  </AdminBtn>
+                ))}
+              </div>
+              <p className="text-[11px] mt-1.5" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                Pushes only the current round&rsquo;s deadline later. Doesn&rsquo;t change the saved
+                round length for future rounds.
+              </p>
+            </div>
+          )}
+        </>
       ) : (
         <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
           How long each round stays open before the auto-sweep can close unreported matches. Rounds

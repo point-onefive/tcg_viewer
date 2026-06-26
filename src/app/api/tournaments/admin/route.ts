@@ -6,6 +6,7 @@ import {
   adminAwardPrizes,
   adminCloseSignup,
   adminDropPlayer,
+  adminExtendRound,
   adminExtendSignup,
   adminRejectPlayer,
   adminSetDeck,
@@ -36,6 +37,7 @@ type Body =
   | { action: 'close-signup'; code: string }
   | { action: 'set-max-players'; code: string; maxPlayers: number | null }
   | { action: 'set-round-minutes'; code: string; roundMinutes: number }
+  | { action: 'extend-round'; code: string; extraMinutes: number }
   | { action: 'approve'; code: string; playerId: string }
   | { action: 'reject'; code: string; playerId: string }
   | { action: 'drop-player'; code: string; playerId: string }
@@ -81,6 +83,9 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'set-round-minutes':
         await adminSetRoundMinutes(body.code, body.roundMinutes)
+        return ok({ ok: true })
+      case 'extend-round':
+        await adminExtendRound(body.code, body.extraMinutes)
         return ok({ ok: true })
       case 'approve':
         await adminApprovePlayer(body.code, body.playerId)

@@ -1397,6 +1397,30 @@ export async function adminExtendSignup(code: string, extraMinutes: number): Pro
     .eq('id', row.id)
 }
 
+/**
+ * Add time to the CURRENT round's deadline (e.g. "+1 hour") without changing the
+ * configured round length for future rounds. Mirrors adminExtendSignup: if the
+ * active round's deadline is still in the future we extend from there, otherwise
+ * (already elapsed) we extend from now so it reopens for the full extra window.
+ */
+export async function adminExtendRound(code: string, extraMinutes: number): Promise<void> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (row.status !== 'running') {
+    throw new TournamentError('You can only extend a round while the tournament is running.')
+  }
+  const rounds = await fetchRounds(row.id)
+  const active = rounds.find((r) => r.status === 'active')
+  if (!active) {
+    throw new TournamentError('There is no active round to extend.')
+  }
+  const base = active.endsAt && new Date(active.endsAt) > new Date() ? active.endsAt : nowIso()
+  await sb
+    .from('rounds')
+    .update({ ends_at: addMinutes(base, Math.max(1, extraMinutes)) })
+    .eq('id', active.id)
+}
+
 export async function adminCloseSignup(code: string): Promise<void> {
   const sb = getServiceClient()
   const row = await requireHost(code)
