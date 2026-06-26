@@ -24,30 +24,28 @@ function Chips({ hours, fromTz, toTz }: { hours: number[]; fromTz: string; toTz:
   if (hours.length === 0) {
     return <span className="text-xs" style={{ color: 'var(--text-muted)' }}>—</span>
   }
+  // Convert each declared hour into the viewer's timezone, then show plain times
+  // sorted by time-of-day. No day-shift labels - just the hours. When the viewer
+  // is in the setter's own timezone the offset is 0, so the times match exactly.
+  const viewerHours = [...new Set(hours.map((h) => convertHour(h, fromTz, toTz).hour))].sort(
+    (a, b) => a - b,
+  )
   return (
     <div className="flex flex-wrap gap-1.5">
-      {hours.map((h, i) => {
-        const { hour, dayShift } = convertHour(h, fromTz, toTz)
-        return (
-          <span
-            key={i}
-            className="inline-flex items-baseline gap-1 px-2 py-1 text-xs font-semibold tabular-nums"
-            style={{
-              borderRadius: 6,
-              background: 'var(--bg)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {hourLabel(hour)}
-            {dayShift !== 0 && (
-              <span className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
-                {dayShift > 0 ? 'next day' : 'prev day'}
-              </span>
-            )}
-          </span>
-        )
-      })}
+      {viewerHours.map((hour) => (
+        <span
+          key={hour}
+          className="inline-flex items-baseline px-2 py-1 text-xs font-semibold tabular-nums"
+          style={{
+            borderRadius: 6,
+            background: 'var(--bg)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          {hourLabel(hour)}
+        </span>
+      ))}
     </div>
   )
 }
