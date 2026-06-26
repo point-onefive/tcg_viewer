@@ -1032,7 +1032,11 @@ export async function maybeAdvance(tournamentId: string): Promise<void> {
   }
 
   // Swiss
-  const totalRounds = tournament.swissRounds ?? recommendedSwissRounds(players.filter((p) => !p.dropped).length)
+  const totalRounds =
+    tournament.swissRounds ??
+    recommendedSwissRounds(
+      players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected').length,
+    )
   if (current.number >= totalRounds) {
     await finalizeTournament(tournamentId, players, allMatches)
     return

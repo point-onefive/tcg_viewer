@@ -225,7 +225,10 @@ function greedyAllowRematch(order: string[]): Pairing[] {
  * nearest-in-standings opponent first, so pairings stay tightly score-bracketed.
  */
 export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
-  const active = players.filter((p) => !p.dropped)
+  // Exclude dropped AND rejected players. Round 1 is seeded from approved-only,
+  // but later rounds receive the full roster, so a rejected sign-up would
+  // otherwise leak into the field (and grab a bye as the unranked odd one out).
+  const active = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
   // Round 1 has no results, so computeStandings would tie everyone on 0 points
   // and fall through to its name tiebreak - making round-1 pairings alphabetical
   // and giving repeat entrants the same first-round opponent every event. Use the
@@ -292,7 +295,7 @@ function seededBracketOrder(size: number): number[] {
  */
 export function pairSingleElimFirstRound(players: Player[]): Pairing[] {
   const active = [...players]
-    .filter((p) => !p.dropped)
+    .filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
     .sort((a, b) => (a.seed ?? 9999) - (b.seed ?? 9999))
   const n = active.length
   if (n === 0) return []
