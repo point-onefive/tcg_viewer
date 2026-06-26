@@ -36,6 +36,14 @@ const card: React.CSSProperties = {
   boxShadow: 'var(--shadow-card)',
 }
 
+// A faintly tinted card so adjacent admin sections read as distinct blocks
+// without shouting. Keep the mix low (a wash, not a fill).
+const tintedCard = (tint: string): React.CSSProperties => ({
+  ...card,
+  background: `color-mix(in srgb, ${tint} 6%, var(--bg-surface))`,
+  border: `1px solid color-mix(in srgb, ${tint} 24%, var(--border-subtle))`,
+})
+
 const inputStyle: React.CSSProperties = {
   background: 'var(--bg)',
   color: 'var(--text-primary)',
@@ -121,6 +129,10 @@ export function TournamentAdmin() {
   const [waitlist, setWaitlist] = useState<
     { id: string; xHandle: string; walletAddress: string; createdAt: string }[]
   >([])
+
+  // Admin lists can grow long; show a slice with a "Load more" toggle.
+  const [waitlistLimit, setWaitlistLimit] = useState(8)
+  const [rosterLimit, setRosterLimit] = useState(8)
 
   const doLogout = useCallback(() => {
     clearAdminKey()
@@ -492,71 +504,9 @@ export function TournamentAdmin() {
               </div>
             )}
 
-            {/* Next event waitlist - queued profiles, NOT current sign-ups */}
-            <div className="p-5" style={card}>
-              <div className="flex items-center gap-2">
-                <Hourglass size={16} style={{ color: 'var(--tcw-accent)' }} />
-                <h3 className="font-display font-bold">Next event waitlist</h3>
-                <span className="ml-auto inline-flex items-center gap-1.5">
-                  <span
-                    className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
-                    style={{
-                      minWidth: 22,
-                      height: 22,
-                      padding: '0 6px',
-                      background: 'var(--tcw-accent)',
-                      color: '#fff',
-                      borderRadius: 6,
-                    }}
-                  >
-                    {waitlist.length}
-                  </span>
-                  <span
-                    className="text-xs font-semibold uppercase tracking-wide"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    waiting
-                  </span>
-                </span>
-              </div>
-              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Wallet profiles queued for the <strong>next</strong> tournament (not the current
-                one). When you start a fresh event above, everyone here is auto-added to it as a
-                <strong> pending</strong> sign-up for you to approve or decline, then this list clears.
-              </p>
-              {waitlist.length === 0 ? (
-                <p className="mt-3 text-sm py-3 text-center" style={{ color: 'var(--text-muted)' }}>
-                  Nobody on the waitlist yet.
-                </p>
-              ) : (
-                <ul className="mt-3 flex flex-col gap-1.5">
-                  {waitlist.map((w) => (
-                    <li
-                      key={w.id}
-                      className="flex items-center gap-2 px-3 py-2 text-sm"
-                      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
-                    >
-                      <a
-                        href={xProfileUrl(w.xHandle)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-semibold hover:underline"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {w.xHandle}
-                      </a>
-                      <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                        {new Date(w.createdAt).toLocaleDateString()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
             {snapshot && code && (
               <>
-                <div className="p-5" style={card}>
+                <div className="p-5" style={tintedCard('#64748b')}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-display text-lg font-bold truncate">{snapshot.tournament.name}</p>
@@ -719,31 +669,8 @@ export function TournamentAdmin() {
                   )}
                 </div>
 
-                <PollConfigEditor
-                  key={`poll-${code}`}
-                  question={snapshot.tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
-                  options={snapshot.tournament.pollOptions ?? POLL_OPTIONS}
-                  busy={busy}
-                  onSave={async (question, options) => {
-                    setBusy(true)
-                    setMsg(null)
-                    setError(null)
-                    try {
-                      const r = await adminApi(adminKey, { action: 'set-poll-config', code, question, options })
-                      setMsg(`Saved poll (${r.count ?? options.length} option${(r.count ?? options.length) === 1 ? '' : 's'})`)
-                      await refresh(adminKey)
-                      return true
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Could not save the poll')
-                      return false
-                    } finally {
-                      setBusy(false)
-                    }
-                  }}
-                />
-
                 {activeRound && activeMatches.length > 0 && (
-                  <div className="p-5" style={card}>
+                  <div className="p-5" style={tintedCard('#3b82f6')}>
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
                         <Swords size={16} style={{ color: 'var(--tcw-accent)' }} />
@@ -775,16 +702,16 @@ export function TournamentAdmin() {
                   </div>
                 )}
 
-                <div className="p-5" style={card}>
+                <div className="p-5" style={tintedCard('#14b8a6')}>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>
                     Current tournament sign-ups
                   </h3>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    <ParticipantTab label="All" count={players.length} active={tab === 'all'} onClick={() => setTab('all')} />
-                    <ParticipantTab label="Pending" count={pending.length} active={tab === 'pending'} onClick={() => setTab('pending')} />
-                    <ParticipantTab label="Approved" count={approved.length} active={tab === 'approved'} onClick={() => setTab('approved')} />
-                    <ParticipantTab label="Rejected" count={rejected.length} active={tab === 'rejected'} onClick={() => setTab('rejected')} />
+                    <ParticipantTab label="All" count={players.length} active={tab === 'all'} onClick={() => { setTab('all'); setRosterLimit(8) }} />
+                    <ParticipantTab label="Pending" count={pending.length} active={tab === 'pending'} onClick={() => { setTab('pending'); setRosterLimit(8) }} />
+                    <ParticipantTab label="Approved" count={approved.length} active={tab === 'approved'} onClick={() => { setTab('approved'); setRosterLimit(8) }} />
+                    <ParticipantTab label="Rejected" count={rejected.length} active={tab === 'rejected'} onClick={() => { setTab('rejected'); setRosterLimit(8) }} />
                   </div>
 
                   {missingDeck.length > 0 && (
@@ -804,20 +731,29 @@ export function TournamentAdmin() {
                       {players.length === 0 ? 'No sign-ups yet.' : `No ${tab === 'all' ? '' : tab + ' '}participants.`}
                     </p>
                   ) : (
-                    <ul className="flex flex-col gap-2">
-                      {visiblePlayers.map((p) => (
-                        <ParticipantRow
-                          key={p.id}
-                          player={p}
-                          disabled={busy}
-                          running={status === 'running'}
-                          onApprove={() => approvePlayer(p)}
-                          onReject={() => rejectPlayer(p)}
-                          onDrop={() => dropPlayer(p)}
-                          onViewDeck={() => setDeckPlayer(p)}
-                        />
-                      ))}
-                    </ul>
+                    <>
+                      <ul className="flex flex-col gap-2">
+                        {visiblePlayers.slice(0, rosterLimit).map((p) => (
+                          <ParticipantRow
+                            key={p.id}
+                            player={p}
+                            disabled={busy}
+                            running={status === 'running'}
+                            onApprove={() => approvePlayer(p)}
+                            onReject={() => rejectPlayer(p)}
+                            onDrop={() => dropPlayer(p)}
+                            onViewDeck={() => setDeckPlayer(p)}
+                          />
+                        ))}
+                      </ul>
+                      {visiblePlayers.length > rosterLimit && (
+                        <div className="mt-3 flex justify-center">
+                          <AdminBtn onClick={() => setRosterLimit((n) => n + 12)}>
+                            Load more ({visiblePlayers.length - rosterLimit} more)
+                          </AdminBtn>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -832,6 +768,77 @@ export function TournamentAdmin() {
                     onSaved={() => refresh(adminKey)}
                   />
                 )}
+
+                {/* Next event waitlist - queued profiles, NOT current sign-ups */}
+                <div className="p-5" style={tintedCard('#f5b301')}>
+                  <div className="flex items-center gap-2">
+                    <Hourglass size={16} style={{ color: 'var(--tcw-accent)' }} />
+                    <h3 className="font-display font-bold">Next event waitlist</h3>
+                    <span className="ml-auto inline-flex items-center gap-1.5">
+                      <span
+                        className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                        style={{
+                          minWidth: 22,
+                          height: 22,
+                          padding: '0 6px',
+                          background: 'var(--tcw-accent)',
+                          color: '#fff',
+                          borderRadius: 6,
+                        }}
+                      >
+                        {waitlist.length}
+                      </span>
+                      <span
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        waiting
+                      </span>
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Wallet profiles queued for the <strong>next</strong> tournament (not the current
+                    one). When you start a fresh event above, everyone here is auto-added to it as a
+                    <strong> pending</strong> sign-up for you to approve or decline, then this list clears.
+                  </p>
+                  {waitlist.length === 0 ? (
+                    <p className="mt-3 text-sm py-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                      Nobody on the waitlist yet.
+                    </p>
+                  ) : (
+                    <>
+                      <ul className="mt-3 flex flex-col gap-1.5">
+                        {waitlist.slice(0, waitlistLimit).map((w) => (
+                          <li
+                            key={w.id}
+                            className="flex items-center gap-2 px-3 py-2 text-sm"
+                            style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+                          >
+                            <a
+                              href={xProfileUrl(w.xHandle)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold hover:underline"
+                              style={{ color: 'var(--text-primary)' }}
+                            >
+                              {w.xHandle}
+                            </a>
+                            <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                              {new Date(w.createdAt).toLocaleDateString()}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      {waitlist.length > waitlistLimit && (
+                        <div className="mt-3 flex justify-center">
+                          <AdminBtn onClick={() => setWaitlistLimit((n) => n + 12)}>
+                            Load more ({waitlist.length - waitlistLimit} more)
+                          </AdminBtn>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
 
                 <PrizeEditor
                   key={code}
@@ -880,6 +887,29 @@ export function TournamentAdmin() {
                     }}
                   />
                 )}
+
+                <PollConfigEditor
+                  key={`poll-${code}`}
+                  question={snapshot.tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+                  options={snapshot.tournament.pollOptions ?? POLL_OPTIONS}
+                  busy={busy}
+                  onSave={async (question, options) => {
+                    setBusy(true)
+                    setMsg(null)
+                    setError(null)
+                    try {
+                      const r = await adminApi(adminKey, { action: 'set-poll-config', code, question, options })
+                      setMsg(`Saved poll (${r.count ?? options.length} option${(r.count ?? options.length) === 1 ? '' : 's'})`)
+                      await refresh(adminKey)
+                      return true
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not save the poll')
+                      return false
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                />
               </>
             )}
 
@@ -996,7 +1026,7 @@ function PollConfigEditor({
   }
 
   return (
-    <div className="p-5" style={card}>
+    <div className="p-5" style={tintedCard('#ec4899')}>
       <div className="flex items-center gap-2 mb-1">
         <PieChart size={16} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display font-bold">Poll question</h3>
@@ -1147,7 +1177,7 @@ function PrizeEditor({
   const saved = !dirty && prizesEqual(slots, initial)
 
   return (
-    <div className="p-5" style={card}>
+    <div className="p-5" style={tintedCard('#7933bc')}>
       <div className="flex items-center gap-2 mb-1">
         <Gift size={16} style={{ color: 'var(--tcw-accent)' }} />
         <h3 className="font-display font-bold">Prize pool</h3>
@@ -1412,7 +1442,7 @@ function PrizeAwardEditor({
   }
 
   return (
-    <div className="p-5" style={card}>
+    <div className="p-5" style={tintedCard('#22c55e')}>
       <div className="flex items-center gap-2 mb-1">
         <Medal size={16} style={{ color: '#f5b301' }} />
         <h3 className="font-display font-bold">Award prizes</h3>
