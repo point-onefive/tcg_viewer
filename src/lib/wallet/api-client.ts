@@ -79,3 +79,18 @@ export async function fetchLeaderboard(limit = 50): Promise<WalletStanding[]> {
   if (!res.ok) throw new Error(data.error ?? 'Failed to fetch leaderboard')
   return data.standings ?? []
 }
+
+/**
+ * Resolve a public profile from an X handle (used by the tournament bracket).
+ * Returns null when the handle has no linked wallet profile.
+ */
+export async function fetchProfileByHandle(xHandle: string): Promise<WalletStanding | null> {
+  try {
+    const res = await fetch(`/api/auth/profile-lookup?handle=${encodeURIComponent(xHandle)}`, { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = await res.json().catch(() => ({})) as { standing?: WalletStanding | null }
+    return data.standing ?? null
+  } catch {
+    return null
+  }
+}

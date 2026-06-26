@@ -162,6 +162,26 @@ export async function getStanding(walletAddress: string): Promise<WalletStanding
   return rowToStanding(data as Record<string, unknown>)
 }
 
+/**
+ * Get standings by X handle (case-insensitive, leading "@" tolerated). Used to
+ * resolve a tournament bracket name (which only carries an X handle) into the
+ * full public profile. Returns null if no wallet profile is linked to it.
+ */
+export async function getStandingByXHandle(xHandle: string): Promise<WalletStanding | null> {
+  const handle = xHandle.trim().replace(/^@+/, '')
+  if (!handle) return null
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('wallet_standings')
+    .select('*')
+    .ilike('x_handle', handle)
+    .limit(1)
+    .maybeSingle()
+  if (error) throw new Error(`getStandingByXHandle: ${error.message}`)
+  if (!data) return null
+  return rowToStanding(data as Record<string, unknown>)
+}
+
 /** Get standings by username (case-insensitive). Returns null if not found. */
 export async function getStandingByUsername(username: string): Promise<WalletStanding | null> {
   const supabase = getSupabase()

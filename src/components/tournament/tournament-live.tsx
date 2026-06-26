@@ -27,6 +27,8 @@ import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
+import { PlayerProfileView } from '@/components/wallet/player-profile-view'
+import { fetchProfileByHandle, type WalletStanding } from '@/lib/wallet/api-client'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings, recommendedSwissRounds } from '@/lib/tournament/pairing'
@@ -71,19 +73,107 @@ function useCountdown(iso: string | null) {
   return label
 }
 
+/**
+ * A player name in the bracket / standings / matchups. Clicking opens the
+ * in-app profile (record + X link + availability) rather than jumping straight
+ * to X - the profile is the more useful hub. Falls back to a small card with an
+ * X link when the name has no linked wallet profile (e.g. a walk-in entry).
+ */
 function XProfileLink({ handle, className }: { handle: string; className?: string }) {
-  const url = xProfileUrl(handle)
-  if (!url) return <span className={className}>{formatXLabel(handle)}</span>
+  const [open, setOpen] = useState(false)
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-      style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
-    >
-      {formatXLabel(handle)}
-    </a>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={className}
+        title="View profile"
+        style={{
+          color: 'var(--text-primary)',
+          fontWeight: 600,
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          margin: 0,
+          font: 'inherit',
+          textAlign: 'left',
+          maxWidth: '100%',
+          cursor: 'pointer',
+        }}
+      >
+        {formatXLabel(handle)}
+      </button>
+      {open && <ProfileLookupModal handle={handle} onClose={() => setOpen(false)} />}
+    </>
+  )
+}
+
+/**
+ * Resolves an X handle to its public profile and shows it in the same popup the
+ * leaderboard uses. While loading, a small spinner; if no wallet profile is
+ * linked to the handle, a minimal card that still offers the X link.
+ */
+function ProfileLookupModal({ handle, onClose }: { handle: string; onClose: () => void }) {
+  const [state, setState] = useState<{ loading: boolean; standing: WalletStanding | null }>({
+    loading: true,
+    standing: null,
+  })
+
+  useEffect(() => {
+    let alive = true
+    setState({ loading: true, standing: null })
+    fetchProfileByHandle(handle).then((s) => {
+      if (alive) setState({ loading: false, standing: s })
+    })
+    return () => {
+      alive = false
+    }
+  }, [handle])
+
+  if (state.loading) {
+    return (
+      <ModalPortal onClose={onClose} label="Player profile" maxWidth={460}>
+        <div className="flex items-center justify-center" style={{ padding: 56 }}>
+          <Loader2 size={22} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
+        </div>
+      </ModalPortal>
+    )
+  }
+
+  if (state.standing) {
+    return <PlayerProfileView standing={state.standing} onClose={onClose} />
+  }
+
+  // No linked wallet profile - still let the viewer reach their X.
+  const xUrl = xProfileUrl(handle)
+  return (
+    <ModalPortal onClose={onClose} label="Player profile" maxWidth={380}>
+      <div style={{ padding: '28px 24px', textAlign: 'center' }}>
+        <p className="font-display" style={{ fontSize: 17, fontWeight: 800 }}>
+          {formatXLabel(handle)}
+        </p>
+        <p className="mt-2 text-sm" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          No player profile linked yet.
+        </p>
+        {xUrl && (
+          <a
+            href={xUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-4 px-3.5 py-2 text-sm font-semibold"
+            style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <XLogo size={13} />
+            View on X
+          </a>
+        )}
+      </div>
+    </ModalPortal>
   )
 }
 
