@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Camera, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Camera, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -477,24 +477,11 @@ export function LeaderChip({ player }: { player: Player }) {
       className="inline-flex min-w-0 shrink items-center gap-1.5"
       title={player.leaderName ?? player.leaderCardId}
     >
-      {player.leaderImage && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={player.leaderImage}
-          alt={player.leaderName ?? 'Leader'}
-          loading="lazy"
-          style={{
-            width: 22,
-            height: 22,
-            flexShrink: 0,
-            borderRadius: 4,
-            objectFit: 'cover',
-            objectPosition: 'top center',
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-surface)',
-          }}
-        />
-      )}
+      <LeaderThumb
+        image={player.leaderImage}
+        name={player.leaderName}
+        cardId={player.leaderCardId}
+      />
       <span
         className="hidden truncate text-[11px] font-semibold sm:inline"
         style={{ color: 'var(--text-secondary)', maxWidth: 96 }}
@@ -502,6 +489,116 @@ export function LeaderChip({ player }: { player: Player }) {
         {player.leaderName ?? player.leaderCardId}
       </span>
     </span>
+  )
+}
+
+/**
+ * A Leader-card thumbnail that opens a larger card image on tap/click. The
+ * thumbnail is tiny (especially on mobile), so this gives a clean way to read
+ * the actual card without leaving the page. Renders nothing if no image.
+ */
+function LeaderThumb({
+  image,
+  name,
+  cardId,
+  size = 22,
+}: {
+  image: string | null | undefined
+  name: string | null | undefined
+  cardId: string
+  size?: number
+}) {
+  const [open, setOpen] = useState(false)
+  if (!image) return null
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setOpen(true)
+        }}
+        title={`${name ?? cardId} - tap to enlarge`}
+        aria-label={`View ${name ?? cardId} leader card`}
+        style={{
+          padding: 0,
+          border: 'none',
+          background: 'none',
+          cursor: 'zoom-in',
+          lineHeight: 0,
+          flexShrink: 0,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={image}
+          alt={name ?? 'Leader'}
+          loading="lazy"
+          style={{
+            width: size,
+            height: size,
+            borderRadius: 4,
+            objectFit: 'cover',
+            objectPosition: 'top center',
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-surface)',
+            display: 'block',
+          }}
+        />
+      </button>
+      {open && (
+        <LeaderCardModal image={image} name={name ?? cardId} onClose={() => setOpen(false)} />
+      )}
+    </>
+  )
+}
+
+function LeaderCardModal({
+  image,
+  name,
+  onClose,
+}: {
+  image: string
+  name: string
+  onClose: () => void
+}) {
+  return (
+    <ModalPortal onClose={onClose} label={name || 'Leader card'} maxWidth={340}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 10px 0', flexShrink: 0 }}>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            background: 'var(--bg)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '50%',
+            width: 30,
+            height: 30,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+      <div style={{ padding: '0 20px 20px', overflowY: 'auto' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={image}
+          alt={name}
+          style={{ width: '100%', borderRadius: 10, display: 'block', background: 'var(--bg)' }}
+        />
+        {name && (
+          <p className="mt-3 text-center font-display text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+            {name}
+          </p>
+        )}
+      </div>
+    </ModalPortal>
   )
 }
 
@@ -2524,15 +2621,11 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                   <td className="py-2 px-2 min-w-0">
                     {player?.leaderCardId ? (
                       <span className="inline-flex items-center gap-1.5" title={player.leaderName ?? player.leaderCardId}>
-                        {player.leaderImage && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={player.leaderImage}
-                            alt={player.leaderName ?? 'Leader'}
-                            loading="lazy"
-                            style={{ width: 22, height: 22, borderRadius: 4, objectFit: 'cover', objectPosition: 'top center', border: '1px solid var(--border-subtle)', background: 'var(--bg)' }}
-                          />
-                        )}
+                        <LeaderThumb
+                          image={player.leaderImage}
+                          name={player.leaderName}
+                          cardId={player.leaderCardId}
+                        />
                         <span className="hidden truncate sm:inline" style={{ color: 'var(--text-secondary)', maxWidth: 130 }}>
                           {player.leaderName ?? player.leaderCardId}
                         </span>
