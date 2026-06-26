@@ -87,10 +87,13 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
   const [saved, setSaved] = useState(false)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
-  // Availability: timezone + weekday/weekend hour blocks (player's local time).
+  // Availability: timezone + a single set of hour blocks (player's local time)
+  // that applies to the whole week. Older profiles may have split weekday/weekend
+  // arrays, so we merge them when seeding the form.
+  const mergeHours = (a?: { weekday?: number[]; weekend?: number[] } | null): number[] =>
+    [...new Set([...(a?.weekday ?? []), ...(a?.weekend ?? [])])].sort((x, y) => x - y)
   const [availTz, setAvailTz] = useState(profile?.availability?.tz || detectTimeZone())
-  const [weekdayHours, setWeekdayHours] = useState<number[]>(profile?.availability?.weekday ?? [])
-  const [weekendHours, setWeekendHours] = useState<number[]>(profile?.availability?.weekend ?? [])
+  const [hours, setHours] = useState<number[]>(mergeHours(profile?.availability))
 
   // Sync form if profile changes while modal is open.
   useEffect(() => {
@@ -101,13 +104,12 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
         profile.avatarUrl && !isManagedAvatarUrl(profile.avatarUrl) ? profile.avatarUrl : '',
       )
       setAvailTz(profile.availability?.tz || detectTimeZone())
-      setWeekdayHours(profile.availability?.weekday ?? [])
-      setWeekendHours(profile.availability?.weekend ?? [])
+      setHours(mergeHours(profile.availability))
     }
   }, [profile])
 
-  const toggleHour = (setter: React.Dispatch<React.SetStateAction<number[]>>) => (h: number) =>
-    setter((prev) => (prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h].sort((a, b) => a - b)))
+  const toggleHour = (h: number) =>
+    setHours((prev) => (prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h].sort((a, b) => a - b)))
 
   // Timezone <select> options, with the player's current tz guaranteed present.
   const tzOptions = (() => {
@@ -124,7 +126,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
         username: username.trim() || null,
         xHandle: xHandle.trim() || null,
         avatarUrl: avatarUrl.trim() || null,
-        availability: { tz: availTz, weekday: weekdayHours, weekend: weekendHours },
+        availability: { tz: availTz, weekday: hours, weekend: hours },
       })
       await refreshProfile()
       setSaved(true)
@@ -363,18 +365,11 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                   />
                 </div>
 
-                <div className="mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                  Weekdays <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Mon-Fri)</span>
-                </div>
-                <HourGrid value={weekdayHours} onToggle={toggleHour(setWeekdayHours)} />
-
-                <div className="mt-3 mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                  Weekends <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Sat-Sun)</span>
-                </div>
-                <HourGrid value={weekendHours} onToggle={toggleHour(setWeekendHours)} />
+                <HourGrid value={hours} onToggle={toggleHour} />
 
                 <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Optional. Tap the hours you&rsquo;re typically around. Leave blank to skip.
+                  Optional. Tap the hours you&rsquo;re typically around (applies to the whole week).
+                  Leave blank to skip.
                 </p>
               </div>
 
