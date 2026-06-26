@@ -320,7 +320,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                   className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-1.5"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  <Clock size={13} style={{ color: '#E85D2A' }} />
+                  <Clock size={13} style={{ color: '#7933bc' }} />
                   Availability
                 </label>
                 <p className="mb-2.5 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
