@@ -4,12 +4,52 @@
 // Shown when the user clicks "Edit profile" in the WalletConnectButton menu.
 
 import { useState, useEffect } from 'react'
-import { X, User, Check, Loader2, AlertCircle } from 'lucide-react'
+import { X, User, Check, Loader2, AlertCircle, Clock } from 'lucide-react'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { XLogo } from '@/components/gallery/x-logo'
 import { PlayerAvatar } from './player-avatar'
 import { isManagedAvatarUrl } from '@/lib/wallet/avatar'
 import { ModalPortal } from '@/components/ui/modal-portal'
+import {
+  detectTimeZone,
+  supportedTimeZones,
+  shortHourLabel,
+  tzCity,
+  tzAbbrev,
+} from '@/lib/wallet/availability'
+
+/** A compact 24-hour toggle grid (6 x 4). Selected hours fill with accent. */
+function HourGrid({ value, onToggle }: { value: number[]; onToggle: (h: number) => void }) {
+  const set = new Set(value)
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+      {Array.from({ length: 24 }, (_, h) => {
+        const on = set.has(h)
+        return (
+          <button
+            key={h}
+            type="button"
+            onClick={() => onToggle(h)}
+            aria-pressed={on}
+            style={{
+              padding: '7px 0',
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 6,
+              cursor: 'pointer',
+              background: on ? '#E85D2A' : 'var(--bg)',
+              color: on ? '#fff' : 'var(--text-secondary)',
+              border: `1px solid ${on ? '#E85D2A' : 'var(--border-subtle)'}`,
+              transition: 'background 100ms ease',
+            }}
+          >
+            {shortHourLabel(h)}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 function shortAddress(addr: string): string {
   if (addr.length < 10) return addr
@@ -47,6 +87,11 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
   const [saved, setSaved] = useState(false)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
+  // Availability: timezone + weekday/weekend hour blocks (player's local time).
+  const [availTz, setAvailTz] = useState(profile?.availability?.tz || detectTimeZone())
+  const [weekdayHours, setWeekdayHours] = useState<number[]>(profile?.availability?.weekday ?? [])
+  const [weekendHours, setWeekendHours] = useState<number[]>(profile?.availability?.weekend ?? [])
+
   // Sync form if profile changes while modal is open.
   useEffect(() => {
     if (profile) {
@@ -55,8 +100,20 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
       setAvatarUrl(
         profile.avatarUrl && !isManagedAvatarUrl(profile.avatarUrl) ? profile.avatarUrl : '',
       )
+      setAvailTz(profile.availability?.tz || detectTimeZone())
+      setWeekdayHours(profile.availability?.weekday ?? [])
+      setWeekendHours(profile.availability?.weekend ?? [])
     }
   }, [profile])
+
+  const toggleHour = (setter: React.Dispatch<React.SetStateAction<number[]>>) => (h: number) =>
+    setter((prev) => (prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h].sort((a, b) => a - b)))
+
+  // Timezone <select> options, with the player's current tz guaranteed present.
+  const tzOptions = (() => {
+    const zones = supportedTimeZones()
+    return zones.includes(availTz) ? zones : [availTz, ...zones]
+  })()
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,6 +124,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
         username: username.trim() || null,
         xHandle: xHandle.trim() || null,
         avatarUrl: avatarUrl.trim() || null,
+        availability: { tz: availTz, weekday: weekdayHours, weekend: weekendHours },
       })
       await refreshProfile()
       setSaved(true)
@@ -253,6 +311,49 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                 />
                 <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                   Leave blank to use your X avatar. Paste an https:// URL to override it.
+                </p>
+              </div>
+
+              {/* Availability */}
+              <div>
+                <label
+                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <Clock size={13} style={{ color: '#E85D2A' }} />
+                  Availability
+                </label>
+                <p className="mb-2.5 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  The hours you&rsquo;re usually checking chat and ready to play. Opponents see these
+                  in their own timezone, so it&rsquo;s easy to find overlap.
+                </p>
+
+                {/* Timezone */}
+                <select
+                  value={availTz}
+                  onChange={(e) => setAvailTz(e.target.value)}
+                  aria-label="Your timezone"
+                  style={{ ...inputStyle, appearance: 'auto', marginBottom: 12 }}
+                >
+                  {tzOptions.map((tz) => (
+                    <option key={tz} value={tz}>
+                      {tzCity(tz)} ({tzAbbrev(tz)})
+                    </option>
+                  ))}
+                </select>
+
+                <div className="mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                  Weekdays <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Mon-Fri)</span>
+                </div>
+                <HourGrid value={weekdayHours} onToggle={toggleHour(setWeekdayHours)} />
+
+                <div className="mt-3 mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                  Weekends <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>(Sat-Sun)</span>
+                </div>
+                <HourGrid value={weekendHours} onToggle={toggleHour(setWeekendHours)} />
+
+                <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Optional. Tap the hours you&rsquo;re typically around. Leave blank to skip.
                 </p>
               </div>
 

@@ -181,6 +181,7 @@ export function useWalletAuthState(): UseWalletAuthReturn {
             username: updated.username,
             xHandle: updated.xHandle,
             avatarUrl: updated.avatarUrl,
+            availability: updated.availability,
           }
         : null,
     )

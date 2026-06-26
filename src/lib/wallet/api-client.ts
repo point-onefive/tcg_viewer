@@ -4,6 +4,7 @@
 // These are thin fetch wrappers - all actual logic lives in the API routes.
 
 import type { WalletProfile, WalletStanding } from './db'
+import type { Availability } from './availability'
 
 export type { WalletProfile, WalletStanding }
 
@@ -54,6 +55,7 @@ export interface UpdateProfileInput {
   username?: string | null
   xHandle?: string | null
   avatarUrl?: string | null
+  availability?: Availability | null
 }
 
 /** Update editable profile fields. Throws on error. */

@@ -1,5 +1,6 @@
 import 'server-only'
 import { getServiceClient } from '@/lib/tournament/supabase'
+import { type Availability, sanitizeAvailability } from './availability'
 
 // ── Supabase client (service role - bypasses RLS) ─────────────────────────
 // Wallet profiles live in the SAME project as the tournament tables
@@ -17,6 +18,7 @@ export interface WalletProfile {
   username: string | null
   xHandle: string | null
   avatarUrl: string | null
+  availability: Availability | null
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +34,7 @@ export interface UpdateProfileInput {
   username?: string | null
   xHandle?: string | null
   avatarUrl?: string | null
+  availability?: Availability | null
 }
 
 // ── Validation ─────────────────────────────────────────────────────────────
@@ -66,6 +69,7 @@ function rowToProfile(row: Record<string, unknown>): WalletProfile {
     username: (row.username as string | null) ?? null,
     xHandle: (row.x_handle as string | null) ?? null,
     avatarUrl: (row.avatar_url as string | null) ?? null,
+    availability: sanitizeAvailability(row.availability),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }
@@ -124,6 +128,7 @@ export async function updateProfile(
   if ('username' in input) patch.username = input.username ?? null
   if ('xHandle' in input) patch.x_handle = input.xHandle ? normalizeXHandle(input.xHandle) : null
   if ('avatarUrl' in input) patch.avatar_url = input.avatarUrl ?? null
+  if ('availability' in input) patch.availability = input.availability ? sanitizeAvailability(input.availability) : null
 
   if (Object.keys(patch).length === 0) {
     const existing = await getProfile(addr)

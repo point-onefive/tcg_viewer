@@ -10,6 +10,7 @@ import {
 } from '@/lib/wallet/db'
 import { resolveAvatarUrl, isManagedAvatarUrl } from '@/lib/wallet/avatar'
 import { snapshotAvatarToR2 } from '@/lib/wallet/avatar-snapshot'
+import { type Availability, sanitizeAvailability } from '@/lib/wallet/availability'
 
 // PUT /api/auth/profile
 // Update the current user's editable profile fields.
@@ -23,11 +24,21 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  let body: { username?: string | null; xHandle?: string | null; avatarUrl?: string | null }
+  let body: {
+    username?: string | null
+    xHandle?: string | null
+    avatarUrl?: string | null
+    availability?: Availability | null
+  }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  // Normalize availability if provided (clamps hours, bounds tz, drops junk).
+  if ('availability' in body) {
+    body.availability = body.availability ? sanitizeAvailability(body.availability) : null
   }
 
   // Validate username if provided.
