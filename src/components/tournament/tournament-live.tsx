@@ -354,6 +354,14 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
     return m
   }, [awarded])
 
+  // Tap a prize image to enlarge it in a bare lightbox (same as leader cards).
+  const [lightbox, setLightbox] = useState<{ image: string; name: string } | null>(null)
+  // Mobile marquee: a native horizontal scroller (manual swipe works) that
+  // also auto-advances when idle. Driven by rAF on scrollLeft, not a CSS
+  // transform, so a user swipe takes over instantly and the loop stays
+  // seamless (two identical copies, wrapped by exactly one copy width).
+  const trackRef = useRef<HTMLDivElement | null>(null)
+
   // One prize card. Parameterized so it can be reused for the desktop wrap and
   // the duplicated mobile marquee track (the dup copy is aria-hidden, and the
   // mobile variant is fixed-width + shorter so the row stays compact).
@@ -381,21 +389,39 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
         }}
       >
         {prize.image && (
-          // Preserve the original aspect ratio (no crop). Capped height keeps
-          // the section compact; contain letterboxes any shape.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={prize.image}
-            alt={prize.title}
+          // Tap to enlarge in the shared lightbox. The dup marquee copy is
+          // aria-hidden, so keep its button out of the tab order.
+          <button
+            type="button"
+            onClick={() => setLightbox({ image: prize.image as string, name: prize.title })}
+            aria-label={`Enlarge ${prize.title || 'prize'} image`}
+            tabIndex={opts.dup ? -1 : undefined}
             style={{
-              width: '100%',
-              maxHeight: opts.mobile ? 116 : 160,
-              objectFit: 'contain',
               display: 'block',
-              background: 'var(--bg-surface)',
-              borderBottom: '1px solid var(--border-subtle)',
+              width: '100%',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              background: 'none',
+              cursor: 'zoom-in',
             }}
-          />
+          >
+            {/* Preserve the original aspect ratio (no crop). Capped height keeps
+                the section compact; contain letterboxes any shape. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={prize.image}
+              alt={prize.title}
+              style={{
+                width: '100%',
+                maxHeight: opts.mobile ? 116 : 160,
+                objectFit: 'contain',
+                display: 'block',
+                background: 'var(--bg-surface)',
+                borderBottom: '1px solid var(--border-subtle)',
+              }}
+            />
+          </button>
         )}
         <div className="flex flex-col gap-1.5 p-3">
           <div className="flex items-center gap-2">
@@ -436,6 +462,58 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
       </div>
     )
   }
+
+  // Auto-advance the mobile marquee, but get out of the way the moment a user
+  // swipes/scrolls (then resume after a short idle). Wrapping by one copy
+  // width is invisible because both copies are identical pixels.
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    let raf = 0
+    let resume = 0
+    let paused = false
+    let touching = false
+    const SPEED = 0.4 // px/frame (~24px/s): a slow drift, never frantic
+
+    const step = () => {
+      const half = el.scrollWidth / 2
+      if (half > 0 && !touching) {
+        if (!reduce && !paused) el.scrollLeft += SPEED
+        if (el.scrollLeft >= half) el.scrollLeft -= half
+        else if (el.scrollLeft < 0) el.scrollLeft += half
+      }
+      raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+
+    const idle = () => {
+      window.clearTimeout(resume)
+      resume = window.setTimeout(() => { paused = false }, 2500)
+    }
+    const onDown = () => { touching = true; paused = true; window.clearTimeout(resume) }
+    const onUp = () => { touching = false; idle() }
+    const onWheel = () => { paused = true; idle() }
+
+    el.addEventListener('pointerdown', onDown)
+    el.addEventListener('touchstart', onDown, { passive: true })
+    el.addEventListener('pointerup', onUp)
+    el.addEventListener('touchend', onUp)
+    el.addEventListener('pointercancel', onUp)
+    el.addEventListener('wheel', onWheel, { passive: true })
+
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(resume)
+      el.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('touchstart', onDown)
+      el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('touchend', onUp)
+      el.removeEventListener('pointercancel', onUp)
+      el.removeEventListener('wheel', onWheel)
+    }
+  }, [prizes.length])
 
   return (
     <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
@@ -483,7 +561,7 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
           otherwise it's a plain centered wrap. */}
       <div className="sm:hidden p-4">
         {prizes.length >= 3 ? (
-          <div className="bonk-prize-marquee">
+          <div className="bonk-prize-scroller" ref={trackRef}>
             <div className="bonk-prize-track">
               {prizes.map((prize, i) => prizeCard(prize, i, 'a-', { mobile: true }))}
               {prizes.map((prize, i) => prizeCard(prize, i, 'b-', { mobile: true, dup: true }))}
@@ -495,6 +573,14 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
           </div>
         )}
       </div>
+
+      {lightbox && (
+        <LeaderCardModal
+          image={lightbox.image}
+          name={lightbox.name}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   )
 }

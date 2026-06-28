@@ -2769,33 +2769,28 @@ html.lenis, html.lenis body {
     0 14px 38px -12px color-mix(in srgb, var(--bonk-ui-orange) 55%, transparent);
 }
 
-/* Mobile-only prize marquee: a single auto-scrolling row so a tall prize
-   pool doesn't eat vertical space. The track holds two identical copies and
-   shifts by exactly one copy (-50%) for a seamless loop - pure CSS, no JS.
-   Edge fades hint there's more, the track pauses while touched, and it goes
-   static under prefers-reduced-motion. */
-.bonk-prize-marquee {
-  overflow: hidden;
+/* Mobile-only prize marquee: a single horizontal row so a tall prize pool
+   doesn't eat vertical space. It's a real native scroller (swipe works),
+   auto-advanced by JS on scrollLeft when idle and wrapped seamlessly across
+   two identical copies. Edge fades hint there's more; the scrollbar is hidden
+   and touch panning is horizontal. */
+.bonk-prize-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+.bonk-prize-scroller::-webkit-scrollbar {
+  display: none;
 }
 .bonk-prize-track {
   display: flex;
   gap: 12px;
   width: max-content;
   align-items: stretch;
-  animation: bonkPrizeScroll 44s linear infinite;
-  will-change: transform;
-}
-.bonk-prize-marquee:active .bonk-prize-track {
-  animation-play-state: paused;
-}
-@keyframes bonkPrizeScroll {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-50%, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bonk-prize-track { animation: none; }
 }
 
 /* Theme toggle with a distinct mobile size: render at the inline (mobile)
