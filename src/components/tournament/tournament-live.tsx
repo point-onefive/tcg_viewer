@@ -2357,8 +2357,6 @@ export function TournamentLive() {
         onVoted={refresh}
       />
 
-      <HowItWorks />
-
       {/* Your match - sits directly above the bracket so the two read together */}
       {tournament.status === 'running' && myPlayer && myActiveMatch && (
         <MyMatchCard
@@ -2398,6 +2396,8 @@ export function TournamentLive() {
           )}
         </div>
       )}
+
+      <HowItWorks />
 
       {/* Closing co-brand strip */}
       <BonkFooter />
