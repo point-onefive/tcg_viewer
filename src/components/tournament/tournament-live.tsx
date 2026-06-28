@@ -2704,9 +2704,6 @@ function SwissBoard({
                   }}
                 >
                   Round {r.number}
-                  {r.status === 'active' && (
-                    <span className="round-active-breathe inline-block w-1.5 h-1.5 rounded-full" style={{ background: on ? 'var(--bg)' : '#22c55e' }} />
-                  )}
                 </button>
               )
             })}
