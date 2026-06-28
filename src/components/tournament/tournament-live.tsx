@@ -2139,6 +2139,10 @@ export function TournamentLive() {
         </BonkSceneBody>
       </div>
 
+      {/* Sign-up form + roster. Once the bracket is live the roster is
+          redundant (everyone shows in the bracket/standings), so the whole
+          block only renders while the event is still enrolling. */}
+      {tournament.status === 'enrolling' && (
       <div className={signupOpen ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
         {/* Sign up */}
         {signupOpen && (
@@ -2338,6 +2342,7 @@ export function TournamentLive() {
           </div>
         </div>
       </div>
+      )}
 
       {tournament.prizes.length > 0 && (
         <PrizePool
@@ -2345,17 +2350,6 @@ export function TournamentLive() {
           awarded={tournament.status === 'complete' ? snapshot.awardedPrizes : undefined}
         />
       )}
-
-      <PollCard
-        code={tournament.code}
-        poll={snapshot.poll}
-        question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
-        options={tournament.pollOptions ?? POLL_OPTIONS}
-        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
-        signedUp={signedUp}
-        pollOpen={tournament.pollOpen}
-        onVoted={refresh}
-      />
 
       {/* Your match - sits directly above the bracket so the two read together */}
       {tournament.status === 'running' && myPlayer && myActiveMatch && (
@@ -2396,6 +2390,17 @@ export function TournamentLive() {
           )}
         </div>
       )}
+
+      <PollCard
+        code={tournament.code}
+        poll={snapshot.poll}
+        question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+        options={tournament.pollOptions ?? POLL_OPTIONS}
+        canVote={signedUp && tournament.status !== 'complete' && tournament.pollOpen}
+        signedUp={signedUp}
+        pollOpen={tournament.pollOpen}
+        onVoted={refresh}
+      />
 
       <HowItWorks />
 
