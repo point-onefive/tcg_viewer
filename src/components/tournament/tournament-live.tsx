@@ -353,6 +353,90 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
     }
     return m
   }, [awarded])
+
+  // One prize card. Parameterized so it can be reused for the desktop wrap and
+  // the duplicated mobile marquee track (the dup copy is aria-hidden, and the
+  // mobile variant is fixed-width + shorter so the row stays compact).
+  const prizeCard = (
+    prize: TournamentPrize,
+    i: number,
+    keyPrefix = '',
+    opts: { dup?: boolean; mobile?: boolean } = {},
+  ) => {
+    const accent = placeAccent(i)
+    const medal = medalColor(i)
+    return (
+      <div
+        key={`${keyPrefix}${i}`}
+        aria-hidden={opts.dup || undefined}
+        className={`flex flex-col overflow-hidden${i === 0 ? ' bonk-prize-glow' : ''}`}
+        style={{
+          width: opts.mobile ? 188 : 'min(100%, 240px)',
+          flex: '0 0 auto',
+          background: 'var(--bg)',
+          border: '1px solid var(--border-subtle)',
+          borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
+          borderRadius: 12,
+          boxShadow: i === 0 ? undefined : medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
+        }}
+      >
+        {prize.image && (
+          // Preserve the original aspect ratio (no crop). Capped height keeps
+          // the section compact; contain letterboxes any shape.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={prize.image}
+            alt={prize.title}
+            style={{
+              width: '100%',
+              maxHeight: opts.mobile ? 116 : 160,
+              objectFit: 'contain',
+              display: 'block',
+              background: 'var(--bg-surface)',
+              borderBottom: '1px solid var(--border-subtle)',
+            }}
+          />
+        )}
+        <div className="flex flex-col gap-1.5 p-3">
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-flex items-center justify-center font-display text-[11px] font-bold"
+              style={{ minWidth: 22, height: 22, borderRadius: 5, background: accent.bg, color: accent.fg }}
+            >
+              {i + 1}
+            </span>
+            <span className="font-display font-bold text-sm">{prize.title}</span>
+          </div>
+          {prize.description && (
+            <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+              {prize.description}
+            </p>
+          )}
+          {(() => {
+            const winners = winnersBySlot.get(i) ?? []
+            if (winners.length === 0) return null
+            return (
+              <div className="flex flex-col gap-1 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                <span className="bonk-mono text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: 'var(--tcw-accent)' }}>
+                  {winners.length > 1 ? 'Winners' : 'Winner'}
+                </span>
+                {winners.map((w) => (
+                  <span key={w.id} className="text-xs font-semibold">
+                    {w.xHandle ? (
+                      <XProfileLink handle={w.xHandle} />
+                    ) : (
+                      <span style={{ color: 'var(--text-primary)' }}>{w.displayName ?? 'Player'}</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )
+          })()}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
       {/* Co-branded module header: the sponsor identity lives in the
@@ -384,83 +468,32 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
       {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
       <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
 
+      {/* Desktop / tablet: centered wrap. */}
       <div
-        className="flex flex-wrap justify-center p-5"
+        className="hidden sm:flex flex-wrap justify-center p-5"
         style={{ gap: 16, maxWidth: 832, margin: '0 auto' }}
       >
-        {prizes.map((prize, i) => {
-          const accent = placeAccent(i)
-          const medal = medalColor(i)
-          return (
-            <div
-              key={i}
-              className={`flex flex-col overflow-hidden${i === 0 ? ' bonk-prize-glow' : ''}`}
-              style={{
-                width: 'min(100%, 240px)',
-                flex: '0 0 auto',
-                background: 'var(--bg)',
-                border: '1px solid var(--border-subtle)',
-                borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
-                borderRadius: 12,
-                boxShadow: i === 0 ? undefined : medal ? `0 0 0 1px color-mix(in srgb, ${medal} 30%, transparent)` : 'none',
-              }}
-            >
-              {prize.image && (
-                // Preserve the original aspect ratio (no crop). Capped height
-                // keeps the section compact; contain letterboxes any shape.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={prize.image}
-                  alt={prize.title}
-                  style={{
-                    width: '100%',
-                    maxHeight: 160,
-                    objectFit: 'contain',
-                    display: 'block',
-                    background: 'var(--bg-surface)',
-                    borderBottom: '1px solid var(--border-subtle)',
-                  }}
-                />
-              )}
-              <div className="flex flex-col gap-1.5 p-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="inline-flex items-center justify-center font-display text-[11px] font-bold"
-                    style={{ minWidth: 22, height: 22, borderRadius: 5, background: accent.bg, color: accent.fg }}
-                  >
-                    {i + 1}
-                  </span>
-                  <span className="font-display font-bold text-sm">{prize.title}</span>
-                </div>
-                {prize.description && (
-                  <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                    {prize.description}
-                  </p>
-                )}
-                {(() => {
-                  const winners = winnersBySlot.get(i) ?? []
-                  if (winners.length === 0) return null
-                  return (
-                    <div className="flex flex-col gap-1 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                      <span className="bonk-mono text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: 'var(--tcw-accent)' }}>
-                        {winners.length > 1 ? 'Winners' : 'Winner'}
-                      </span>
-                      {winners.map((w) => (
-                        <span key={w.id} className="text-xs font-semibold">
-                          {w.xHandle ? (
-                            <XProfileLink handle={w.xHandle} />
-                          ) : (
-                            <span style={{ color: 'var(--text-primary)' }}>{w.displayName ?? 'Player'}</span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                  )
-                })()}
-              </div>
+        {prizes.map((prize, i) => prizeCard(prize, i))}
+      </div>
+
+      {/* Mobile: a single auto-scrolling row to reclaim vertical space. A
+          CSS-only marquee (no JS) duplicated once for a seamless loop - the
+          copy is aria-hidden and the track pauses on touch + respects
+          reduced-motion. Only auto-scrolls when there's enough to overflow;
+          otherwise it's a plain centered wrap. */}
+      <div className="sm:hidden p-4">
+        {prizes.length >= 3 ? (
+          <div className="bonk-prize-marquee">
+            <div className="bonk-prize-track">
+              {prizes.map((prize, i) => prizeCard(prize, i, 'a-', { mobile: true }))}
+              {prizes.map((prize, i) => prizeCard(prize, i, 'b-', { mobile: true, dup: true }))}
             </div>
-          )
-        })}
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center" style={{ gap: 12 }}>
+            {prizes.map((prize, i) => prizeCard(prize, i, '', { mobile: true }))}
+          </div>
+        )}
       </div>
     </div>
   )
