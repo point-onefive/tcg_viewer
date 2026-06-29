@@ -1,6 +1,7 @@
 import 'server-only'
 import { getServiceClient } from '@/lib/tournament/supabase'
 import { type Availability, sanitizeAvailability } from './availability'
+import { type Region, sanitizeRegion } from '@/lib/tournament/region'
 
 // ── Supabase client (service role - bypasses RLS) ─────────────────────────
 // Wallet profiles live in the SAME project as the tournament tables
@@ -19,6 +20,8 @@ export interface WalletProfile {
   xHandle: string | null
   avatarUrl: string | null
   availability: Availability | null
+  /** Coarse region for scheduling; pre-fills tournament sign-up. */
+  region: Region | null
   createdAt: string
   updatedAt: string
 }
@@ -35,6 +38,7 @@ export interface UpdateProfileInput {
   xHandle?: string | null
   avatarUrl?: string | null
   availability?: Availability | null
+  region?: Region | null
 }
 
 // ── Validation ─────────────────────────────────────────────────────────────
@@ -70,6 +74,7 @@ function rowToProfile(row: Record<string, unknown>): WalletProfile {
     xHandle: (row.x_handle as string | null) ?? null,
     avatarUrl: (row.avatar_url as string | null) ?? null,
     availability: sanitizeAvailability(row.availability),
+    region: sanitizeRegion(row.region),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }
@@ -129,6 +134,7 @@ export async function updateProfile(
   if ('xHandle' in input) patch.x_handle = input.xHandle ? normalizeXHandle(input.xHandle) : null
   if ('avatarUrl' in input) patch.avatar_url = input.avatarUrl ?? null
   if ('availability' in input) patch.availability = input.availability ? sanitizeAvailability(input.availability) : null
+  if ('region' in input) patch.region = sanitizeRegion(input.region)
 
   if (Object.keys(patch).length === 0) {
     const existing = await getProfile(addr)

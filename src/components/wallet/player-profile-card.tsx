@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import { ArrowLeft, Trophy } from 'lucide-react'
+import { ArrowLeft, Trophy, Globe } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
 import { ProfileBadges } from './profile-badges'
 import { ProfilePrizes } from './profile-prizes'
 import { ProfileAvailability } from './profile-availability'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
+import { regionLabel } from '@/lib/tournament/region'
 import type { WalletStanding } from '@/lib/wallet/db'
 
 const card: React.CSSProperties = {
@@ -102,6 +103,12 @@ export function PlayerProfileCard({ standing }: { standing: WalletStanding }) {
               {total > 0 && (
                 <span>
                   <strong style={{ color: 'var(--text-primary)' }}>{winRate}%</strong> win rate
+                </span>
+              )}
+              {standing.region && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Globe size={14} style={{ color: '#3b82f6' }} />
+                  {regionLabel(standing.region)}
                 </span>
               )}
             </div>

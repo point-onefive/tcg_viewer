@@ -38,6 +38,7 @@ import type {
   AwardedPrize,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
+import { type Region, sanitizeRegion } from './region'
 import { validateDeckList } from './deck-list'
 import { extractLeader } from './leader'
 import {
@@ -263,6 +264,7 @@ export async function enroll(
   xHandleRaw: string,
   deckListRaw?: string | null,
   walletAddress?: string | null,
+  region?: Region | null,
 ): Promise<EnrollResult> {
   const sb = getServiceClient()
   const row = await fetchTournamentRowByCode(code)
@@ -309,6 +311,7 @@ export async function enroll(
       discord_handle: null,
       deck_list: deckList,
       wallet_address: walletAddress ? walletAddress.toLowerCase() : null,
+      region: sanitizeRegion(region),
       player_token_hash: hashToken(playerToken),
     })
     .select('*')

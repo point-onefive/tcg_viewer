@@ -1,4 +1,5 @@
 import type { Match, Player, StandingRow } from './types'
+import type { Region } from './region'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Pairing engine - pure functions, no DB. Given the current players and the
@@ -248,19 +249,52 @@ function matchNoRepeat(
   order: string[],
   played: Set<string>,
   budget: { steps: number },
+  region?: RegionPref,
 ): Pairing[] | null {
   if (order.length === 0) return []
   if (budget.steps-- <= 0) return null
   const a = order[0]
   const rest = order.slice(1)
-  for (let i = 0; i < rest.length; i++) {
+  // Candidate iteration order. Default = nearest-in-standings first (the rest
+  // array is already in standings order). When a region preference is active we
+  // reorder candidates so that, WITHIN the same score bracket (equal points), a
+  // same-region opponent is tried before a cross-region one. Tiers are strictly
+  // points-first, so this never pulls a pairing out of its score bracket - it
+  // only breaks ties inside it, keeping full Swiss integrity.
+  const indices = region
+    ? rest
+        .map((_, i) => i)
+        .sort((i, j) => regionTier(a, rest[i], region) - regionTier(a, rest[j], region) || i - j)
+    : rest.map((_, i) => i)
+  for (const i of indices) {
     const b = rest[i]
     if (played.has(pairKey(a, b))) continue
     const remaining = rest.slice(0, i).concat(rest.slice(i + 1))
-    const sub = matchNoRepeat(remaining, played, budget)
+    const sub = matchNoRepeat(remaining, played, budget, region)
     if (sub) return [[a, b], ...sub]
   }
   return null
+}
+
+/** Region preference inputs: per-player points + region, only when meaningful. */
+interface RegionPref {
+  points: Map<string, number>
+  region: Map<string, Region | null>
+}
+
+/**
+ * Tier for candidate `b` relative to player `a` (lower = preferred):
+ *   0 = same score bracket AND same (known) region
+ *   1 = same score bracket
+ *   2 = different score bracket
+ * Used only to break ties inside a bracket, so cross-bracket order is unchanged.
+ */
+function regionTier(a: string, b: string, pref: RegionPref): number {
+  const samePoints = (pref.points.get(a) ?? 0) === (pref.points.get(b) ?? 0)
+  if (!samePoints) return 2
+  const ra = pref.region.get(a) ?? null
+  const rb = pref.region.get(b) ?? null
+  return ra && rb && ra === rb ? 0 : 1
 }
 
 /**
@@ -306,12 +340,31 @@ export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
   // randomly-assigned seed order for round 1 instead, so it is genuinely random.
   // From round 2 on there are real results to rank by, so standings drive it.
   const isFirstRound = matches.length === 0
+  const standings = isFirstRound ? null : computeStandings(active, matches)
   const order = isFirstRound
     ? [...active]
         .sort((a, b) => (a.seed ?? Number.MAX_SAFE_INTEGER) - (b.seed ?? Number.MAX_SAFE_INTEGER))
         .map((p) => p.id)
-    : computeStandings(active, matches).map((s) => s.playerId)
+    : standings!.map((s) => s.playerId)
   const { played, hadBye } = history(matches)
+
+  // Soft same-region preference: a no-op unless at least two DISTINCT known
+  // regions are present in the field (so a single-region or all-unspecified
+  // field - e.g. every current player - pairs exactly as before). It only ever
+  // reorders opponents inside a score bracket, never across brackets.
+  const distinctRegions = new Set(
+    active.map((p) => p.region).filter((r): r is Region => r != null),
+  )
+  let regionPref: RegionPref | undefined
+  if (distinctRegions.size >= 2) {
+    const points = new Map<string, number>()
+    if (standings) for (const s of standings) points.set(s.playerId, s.points)
+    // Round 1 has no results: leave points empty (all default to 0), so the
+    // whole field is one bracket and the preference simply favors same-region
+    // opponents within the random seed order.
+    const region = new Map<string, Region | null>(active.map((p) => [p.id, p.region]))
+    regionPref = { points, region }
+  }
 
   const pairings: Pairing[] = []
 
@@ -332,7 +385,7 @@ export function pairSwiss(players: Player[], matches: Match[]): Pairing[] {
 
   // Prefer a matching with no rematches; fall back to the rematch-tolerant
   // greedy only when one genuinely doesn't exist (tiny fields).
-  const noRepeat = matchNoRepeat(toPair, played, { steps: 200_000 })
+  const noRepeat = matchNoRepeat(toPair, played, { steps: 200_000 }, regionPref)
   const rest = noRepeat ?? greedyAllowRematch(toPair)
   pairings.push(...rest)
   return pairings

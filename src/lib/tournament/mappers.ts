@@ -13,6 +13,7 @@ import type {
   TournamentStatus,
 } from './types'
 import type { PollOption } from './poll'
+import { sanitizeRegion } from './region'
 
 /** Defensively coerce the JSONB `prizes` column into clean domain objects. */
 function rowToPrizes(raw: unknown): TournamentPrize[] {
@@ -83,6 +84,7 @@ export function rowToPlayer(r: any): Player {
     discordHandle: r.discord_handle ?? null,
     walletAddress: r.wallet_address ?? null,
     seed: r.seed ?? null,
+    region: sanitizeRegion(r.region),
     dropped: Boolean(r.dropped),
     deckList: r.deck_list ?? null,
     hasDeckList: Boolean(r.deck_list),

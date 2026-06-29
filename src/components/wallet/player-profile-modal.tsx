@@ -10,6 +10,8 @@ import { XLogo } from '@/components/gallery/x-logo'
 import { PlayerAvatar } from './player-avatar'
 import { isManagedAvatarUrl } from '@/lib/wallet/avatar'
 import { ModalPortal } from '@/components/ui/modal-portal'
+import { RegionPicker } from '@/components/tournament/region-picker'
+import { type Region } from '@/lib/tournament/region'
 import {
   detectTimeZone,
   commonTimeZones,
@@ -94,6 +96,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
     [...new Set([...(a?.weekday ?? []), ...(a?.weekend ?? [])])].sort((x, y) => x - y)
   const [availTz, setAvailTz] = useState(profile?.availability?.tz || detectTimeZone())
   const [hours, setHours] = useState<number[]>(mergeHours(profile?.availability))
+  const [region, setRegion] = useState<Region | null>(profile?.region ?? null)
 
   // Sync form if profile changes while modal is open.
   useEffect(() => {
@@ -105,6 +108,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
       )
       setAvailTz(profile.availability?.tz || detectTimeZone())
       setHours(mergeHours(profile.availability))
+      setRegion(profile.region ?? null)
     }
   }, [profile])
 
@@ -127,6 +131,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
         xHandle: xHandle.trim() || null,
         avatarUrl: avatarUrl.trim() || null,
         availability: { tz: availTz, weekday: hours, weekend: hours },
+        region,
       })
       await refreshProfile()
       setSaved(true)
@@ -314,6 +319,16 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                 <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                   Leave blank to use your X avatar. Paste an https:// URL to override it.
                 </p>
+              </div>
+
+              {/* Region */}
+              <div>
+                <RegionPicker
+                  value={region}
+                  onChange={setRegion}
+                  disabled={saving}
+                  hint="Used to plan events and seed same-region matchups. You can change it any time."
+                />
               </div>
 
               {/* Availability */}

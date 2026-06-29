@@ -2,6 +2,7 @@ import { handle, ok, readJson } from '@/lib/tournament/http'
 import { enroll, TournamentError } from '@/lib/tournament/service'
 import { getSession } from '@/lib/wallet/session'
 import { getProfile } from '@/lib/wallet/db'
+import { sanitizeRegion } from '@/lib/tournament/region'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -33,11 +34,17 @@ export async function POST(
         422,
       )
     }
-    const body = await readJson<{ deckList?: string }>(request)
+    const body = await readJson<{ deckList?: string; region?: string | null }>(request)
     if (!body?.deckList || String(body.deckList).trim() === '') {
       throw new TournamentError('Paste your deck list to sign up.', 422)
     }
-    const result = await enroll(code, profile.xHandle, body.deckList, session.address)
+    // Region is required at public sign-up; fall back to the profile's saved
+    // region so a returning player who set it once doesn't have to re-pick.
+    const region = sanitizeRegion(body.region) ?? profile.region
+    if (!region) {
+      throw new TournamentError('Pick the region you\u2019ll be playing from.', 422)
+    }
+    const result = await enroll(code, profile.xHandle, body.deckList, session.address, region)
     return ok(result, 201)
   })
 }

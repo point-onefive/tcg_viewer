@@ -2,6 +2,7 @@
 
 import type { CompletedTournamentSummary, TournamentSnapshot } from './types'
 import type { PollResults } from './poll'
+import type { Region } from './region'
 
 const ADMIN_KEY = 'tcw_tournament_admin_key'
 const VOTER_ID_KEY = 'tcw_tournament_voter_id'
@@ -84,8 +85,8 @@ export async function apiActiveStatus(): Promise<{ live: boolean; status?: strin
  * wallet's X handle from its profile. The deck list is the one required
  * payload - the player commits to it for the whole event.
  */
-export async function apiEnroll(code: string, deckList: string): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { deckList })
+export async function apiEnroll(code: string, deckList: string, region?: string | null): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { deckList, region })
 }
 
 /**
@@ -114,8 +115,8 @@ export async function apiOwnDeck(
  * Join the next-event waitlist. Wallet-backed: the server reads the signed-in
  * wallet's X handle from its profile, so there is no payload to send.
  */
-export async function apiJoinWaitlist(): Promise<{ alreadyOnList: boolean }> {
-  return post('/api/tournaments/waitlist', {})
+export async function apiJoinWaitlist(region?: string | null): Promise<{ alreadyOnList: boolean }> {
+  return post('/api/tournaments/waitlist', { region })
 }
 
 /**
@@ -154,7 +155,7 @@ export async function adminApi(
   count?: number
   ok?: boolean
   deckList?: string | null
-  entries?: { id: string; xHandle: string; walletAddress: string; createdAt: string }[]
+  entries?: { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
 }> {
   return post('/api/tournaments/admin', body, adminKey)
 }

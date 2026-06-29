@@ -21,6 +21,8 @@ import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
 import { BonkModuleHeader } from '@/components/tournament/bonk-ui'
+import { RegionPicker } from '@/components/tournament/region-picker'
+import type { Region } from '@/lib/tournament/region'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -77,6 +79,13 @@ export function WaitlistCard({ note }: { note?: string }) {
   // null = still probing; false = backend not ready (hide the card entirely).
   const [available, setAvailable] = useState<boolean | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
+  // Region the player will play from - explicit pick, pre-filled from profile.
+  const [region, setRegion] = useState<Region | null>(profile?.region ?? null)
+
+  // Keep the picker in sync if the profile's saved region loads/changes.
+  useEffect(() => {
+    if (profile?.region) setRegion((cur) => cur ?? profile.region)
+  }, [profile?.region])
 
   // Probe status on mount and whenever the signed-in identity changes, so the
   // `joined` flag reflects the current wallet.
@@ -94,10 +103,14 @@ export function WaitlistCard({ note }: { note?: string }) {
   }, [profile?.walletAddress, profile?.xHandle])
 
   async function join() {
+    if (!region) {
+      setError('Pick the region you\u2019ll be playing from.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
-      await apiJoinWaitlist()
+      await apiJoinWaitlist(region)
       const s = await apiWaitlistStatus()
       setCount(s.count)
       setJoined(true)
@@ -216,20 +229,28 @@ export function WaitlistCard({ note }: { note?: string }) {
     )
   }
 
-  // Signed in with a handle - one-tap join.
+  // Signed in with a handle - pick a region, then join.
   return (
     <Shell count={count}>
       {intro}
+      <div className="mt-4 max-w-sm mx-auto">
+        <RegionPicker
+          value={region}
+          onChange={setRegion}
+          disabled={busy}
+          hint="Helps us plan events around your time zone."
+        />
+      </div>
       <div className="mt-4 flex justify-center">
         <button
           onClick={join}
-          disabled={busy}
+          disabled={busy || !region}
           className="footer-btn py-2.5 px-5 text-sm font-bold"
           style={{
             background: 'var(--tcw-accent)',
             color: '#fff',
             borderRadius: 6,
-            opacity: busy ? 0.6 : 1,
+            opacity: busy || !region ? 0.6 : 1,
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -182,6 +182,7 @@ export function useWalletAuthState(): UseWalletAuthReturn {
             xHandle: updated.xHandle,
             avatarUrl: updated.avatarUrl,
             availability: updated.availability,
+            region: updated.region,
           }
         : null,
     )

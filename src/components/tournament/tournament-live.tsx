@@ -26,6 +26,8 @@ import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
+import { RegionPicker } from '@/components/tournament/region-picker'
+import { type Region } from '@/lib/tournament/region'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
 import { PlayerProfileView } from '@/components/wallet/player-profile-view'
@@ -1853,6 +1855,9 @@ export function TournamentLive() {
   // Deck list the player is committing to (required at sign-up). Locked once
   // submitted - the server refuses to overwrite an existing list.
   const [deckDraft, setDeckDraft] = useState('')
+  // Region the player will play from (required at sign-up). Pre-filled from the
+  // wallet profile's saved region so a returning player doesn't re-pick.
+  const [regionDraft, setRegionDraft] = useState<Region | null>(null)
   // Post-entry deck submission (waitlist conversions who entered without one)
   // and viewing one's own locked list during the event.
   const [submitDeckBusy, setSubmitDeckBusy] = useState(false)
@@ -1879,6 +1884,12 @@ export function TournamentLive() {
       /* ignore unavailable storage */
     }
   }, [])
+
+  // Pre-fill the sign-up region from the saved profile region (without
+  // clobbering an in-progress manual pick).
+  useEffect(() => {
+    if (profile?.region) setRegionDraft((cur) => cur ?? profile.region)
+  }, [profile?.region])
 
   const refresh = useCallback(async () => {
     try {
@@ -2065,10 +2076,14 @@ export function TournamentLive() {
       setActionError('Paste your deck list to sign up.')
       return
     }
+    if (!regionDraft) {
+      setActionError('Pick the region you\u2019ll be playing from.')
+      return
+    }
     setBusy(true)
     setActionError(null)
     try {
-      await apiEnroll(tournament.code, deck)
+      await apiEnroll(tournament.code, deck, regionDraft)
       setSignedUpCode(tournament.code)
       try {
         localStorage.setItem(SIGNED_UP_KEY, tournament.code)
@@ -2378,12 +2393,18 @@ export function TournamentLive() {
                   onChange={setDeckDraft}
                   disabled={busy}
                 />
+                <RegionPicker
+                  value={regionDraft}
+                  onChange={setRegionDraft}
+                  disabled={busy}
+                  hint="Helps us plan events around your time zone."
+                />
                 {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                 <button
                   onClick={() => void doEnroll()}
-                  disabled={busy}
+                  disabled={busy || !regionDraft}
                   className="footer-btn bonk-cta py-2.5 text-sm font-bold"
-                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy || !regionDraft ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {busy ? (
                     <>

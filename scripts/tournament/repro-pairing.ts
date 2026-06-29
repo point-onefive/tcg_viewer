@@ -19,6 +19,7 @@ function mkPlayers(n: number): Player[] {
     discordHandle: null,
     walletAddress: null,
     seed: i + 1,
+    region: null,
     dropped: false,
     deckList: 'x',
     hasDeckList: true,

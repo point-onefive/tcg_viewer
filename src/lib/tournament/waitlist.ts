@@ -3,6 +3,7 @@ import { getServiceClient } from './supabase'
 import { TournamentError } from './service'
 import { generateToken, hashToken } from './tokens'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
+import { type Region, sanitizeRegion } from './region'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Waitlist: wallet-backed "notify me for the next event" sign-ups.
@@ -20,17 +21,21 @@ export interface WaitlistEntry {
   id: string
   xHandle: string
   walletAddress: string
+  region: Region | null
   createdAt: string
 }
 
 /**
  * Add a wallet to the next-event waitlist using the X handle from its profile.
  * Idempotent: a wallet already waiting (or whose handle is already waiting)
- * returns alreadyOnList:true rather than erroring.
+ * returns alreadyOnList:true rather than erroring. `region` is the coarse
+ * scheduling bucket the player picked (required by the route for new entries,
+ * but tolerated as null here so legacy callers/backfill never break).
  */
 export async function joinWaitlist(
   walletAddress: string,
   xHandleRaw: string,
+  region?: Region | null,
 ): Promise<{ alreadyOnList: boolean }> {
   const addr = walletAddress.toLowerCase()
   const xHandle = normalizeXHandle(xHandleRaw)
@@ -55,6 +60,7 @@ export async function joinWaitlist(
   const { error } = await sb.from('tournament_waitlist').insert({
     wallet_address: addr,
     x_handle: xHandle,
+    region: sanitizeRegion(region),
   })
   if (error) {
     // Unique-index race: a concurrent insert won the slot. Still "on the list".
@@ -108,7 +114,7 @@ export async function listWaitlist(): Promise<WaitlistEntry[]> {
   const sb = getServiceClient()
   const { data, error } = await sb
     .from('tournament_waitlist')
-    .select('id, x_handle, wallet_address, created_at')
+    .select('id, x_handle, wallet_address, region, created_at')
     .is('converted_at', null)
     .order('created_at', { ascending: true })
   if (error) throw new TournamentError(error.message, 500)
@@ -116,6 +122,7 @@ export async function listWaitlist(): Promise<WaitlistEntry[]> {
     id: r.id as string,
     xHandle: formatXLabel(r.x_handle as string),
     walletAddress: r.wallet_address as string,
+    region: sanitizeRegion(r.region),
     createdAt: r.created_at as string,
   }))
 }
@@ -146,7 +153,7 @@ export async function convertWaitlistToTournament(
   try {
     const { data: pending, error } = await sb
       .from('tournament_waitlist')
-      .select('id, wallet_address, x_handle')
+      .select('id, wallet_address, x_handle, region')
       .is('converted_at', null)
       .order('created_at', { ascending: true })
     if (error || !pending || pending.length === 0) return 0
@@ -187,6 +194,7 @@ export async function convertWaitlistToTournament(
         approval_status: 'pending',
         discord_handle: null,
         wallet_address: (entry.wallet_address as string) ?? null,
+        region: sanitizeRegion(entry.region),
         player_token_hash: hashToken(playerToken),
       })
       if (insertErr) {

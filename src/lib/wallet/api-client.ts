@@ -5,6 +5,7 @@
 
 import type { WalletProfile, WalletStanding } from './db'
 import type { Availability } from './availability'
+import type { Region } from '@/lib/tournament/region'
 
 export type { WalletProfile, WalletStanding }
 
@@ -56,6 +57,7 @@ export interface UpdateProfileInput {
   xHandle?: string | null
   avatarUrl?: string | null
   availability?: Availability | null
+  region?: Region | null
 }
 
 /** Update editable profile fields. Throws on error. */

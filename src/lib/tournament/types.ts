@@ -1,3 +1,5 @@
+import type { Region } from './region'
+
 // ─────────────────────────────────────────────────────────────────────────
 // Tournament domain types
 //
@@ -121,6 +123,12 @@ export interface Player {
   walletAddress: string | null
   /** Swiss seed / single-elim seed (1 = top). Assigned at bracket gen. */
   seed: number | null
+  /**
+   * Coarse geographic region for scheduling ('amer' | 'emea' | 'apac').
+   * null = unspecified (legacy rows / joined before regions existed). Used for
+   * planning counts and a soft same-region pairing preference.
+   */
+  region: Region | null
   /** True once the player drops; pairing skips them, no auto-wins. */
   dropped: boolean
   /**

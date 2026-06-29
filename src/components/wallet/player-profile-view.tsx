@@ -5,13 +5,14 @@
 // the "View profile" menu item. The public, shareable full-page version lives
 // at /players/[username] (PlayerProfileCard).
 
-import { Trophy, X } from 'lucide-react'
+import { Trophy, X, Globe } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
 import { ProfileBadges } from './profile-badges'
 import { ProfilePrizes } from './profile-prizes'
 import { ProfileAvailability } from './profile-availability'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
+import { regionLabel } from '@/lib/tournament/region'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import type { WalletStanding } from '@/lib/wallet/api-client'
 
@@ -117,6 +118,12 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
           {total > 0 && (
             <span>
               <strong style={{ color: 'var(--text-primary)' }}>{winRate}%</strong> win rate
+            </span>
+          )}
+          {standing.region && (
+            <span className="inline-flex items-center gap-1.5">
+              <Globe size={14} style={{ color: '#3b82f6' }} />
+              {regionLabel(standing.region)}
             </span>
           )}
         </div>

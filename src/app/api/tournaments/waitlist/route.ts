@@ -1,8 +1,9 @@
-import { handle, ok } from '@/lib/tournament/http'
+import { handle, ok, readJson } from '@/lib/tournament/http'
 import { joinWaitlist, waitlistStatus } from '@/lib/tournament/waitlist'
 import { getSession } from '@/lib/wallet/session'
 import { getProfile } from '@/lib/wallet/db'
 import { TournamentError } from '@/lib/tournament/service'
+import { sanitizeRegion } from '@/lib/tournament/region'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -24,7 +25,7 @@ export async function GET() {
 // Wallet-backed: requires an active session. The X handle is pulled from the
 // signed-in wallet's profile (never the request body), so there is nothing to
 // retype or spoof. A profile with no X handle is rejected with guidance.
-export async function POST() {
+export async function POST(request: Request) {
   return handle(async () => {
     const session = await getSession()
     if (!session) {
@@ -37,7 +38,14 @@ export async function POST() {
         422,
       )
     }
-    const result = await joinWaitlist(session.address, profile.xHandle)
+    // Region is captured explicitly. Accept it from the body, falling back to
+    // the one saved on the profile; require a valid bucket for new entries.
+    const body = await readJson<{ region?: string | null }>(request)
+    const region = sanitizeRegion(body?.region) ?? profile.region
+    if (!region) {
+      throw new TournamentError('Pick the region you\u2019ll be playing from.', 422)
+    }
+    const result = await joinWaitlist(session.address, profile.xHandle, region)
     return ok(result, 201)
   })
 }

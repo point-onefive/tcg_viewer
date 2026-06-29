@@ -17,6 +17,7 @@ import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
 import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
+import { REGIONS, regionShort, type Region } from '@/lib/tournament/region'
 import {
   DEFAULT_POLL_QUESTION,
   POLL_OPTIONS,
@@ -53,6 +54,44 @@ const inputStyle: React.CSSProperties = {
   fontSize: 14,
   width: '100%',
   outline: 'none',
+}
+
+/** Compact per-region tally for a list of (possibly null) regions. */
+function RegionCounts({ regions, className }: { regions: (Region | null)[]; className?: string }) {
+  if (regions.length === 0) return null
+  const tally = new Map<string, number>()
+  for (const r of regions) tally.set(r ?? 'none', (tally.get(r ?? 'none') ?? 0) + 1)
+  const chips: { key: string; label: string; count: number }[] = [
+    ...REGIONS.map((r) => ({ key: r.id, label: r.short, count: tally.get(r.id) ?? 0 })),
+    { key: 'none', label: 'Unspecified', count: tally.get('none') ?? 0 },
+  ].filter((c) => c.count > 0)
+  return (
+    <div className={`flex flex-wrap gap-1.5 ${className ?? ''}`}>
+      {chips.map((c) => (
+        <span
+          key={c.key}
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold tabular-nums"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6, color: 'var(--text-secondary)' }}
+        >
+          {c.label}
+          <span className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>{c.count}</span>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** Small region tag for a single entry; nothing when the region is unset. */
+function RegionTag({ region }: { region: Region | null }) {
+  if (!region) return null
+  return (
+    <span
+      className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+      style={{ background: 'color-mix(in srgb, #3b82f6 12%, var(--bg))', border: '1px solid color-mix(in srgb, #3b82f6 30%, transparent)', borderRadius: 5, color: '#3b82f6' }}
+    >
+      {regionShort(region)}
+    </span>
+  )
 }
 
 /** Free-form digits-only field - no browser number spinners or leading-zero traps. */
@@ -127,7 +166,7 @@ export function TournamentAdmin() {
   // the current event's sign-ups). Auto-converted into pending sign-ups when a
   // fresh tournament is started.
   const [waitlist, setWaitlist] = useState<
-    { id: string; xHandle: string; walletAddress: string; createdAt: string }[]
+    { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
   >([])
 
   // Admin lists can grow long; show a slice with a "Load more" toggle.
@@ -714,6 +753,12 @@ export function TournamentAdmin() {
                     <ParticipantTab label="Rejected" count={rejected.length} active={tab === 'rejected'} onClick={() => { setTab('rejected'); setRosterLimit(8) }} />
                   </div>
 
+                  {/* Region mix of non-rejected sign-ups (planning signal). */}
+                  <RegionCounts
+                    regions={players.filter((p) => p.approvalStatus !== 'rejected').map((p) => p.region)}
+                    className="mb-4"
+                  />
+
                   {missingDeck.length > 0 && (
                     <p
                       className="mb-3 flex items-start gap-1.5 rounded-md px-3 py-2 text-xs font-semibold"
@@ -807,6 +852,7 @@ export function TournamentAdmin() {
                     </p>
                   ) : (
                     <>
+                      <RegionCounts regions={waitlist.map((w) => w.region)} />
                       <ul className="mt-3 flex flex-col gap-1.5">
                         {waitlist.slice(0, waitlistLimit).map((w) => (
                           <li
@@ -823,6 +869,7 @@ export function TournamentAdmin() {
                             >
                               {w.xHandle}
                             </a>
+                            <RegionTag region={w.region} />
                             <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
                               {new Date(w.createdAt).toLocaleDateString()}
                             </span>
@@ -2345,6 +2392,7 @@ function ParticipantRow({
           {formatXLabel(player.xHandle)}
           <ExternalLink size={11} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.7 }} />
         </a>
+        <RegionTag region={player.region} />
         <span
           className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
           style={{ color: status.fg, background: status.bg, padding: '2px 7px', borderRadius: 5 }}
