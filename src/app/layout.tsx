@@ -3,7 +3,15 @@ import { Space_Grotesk, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { WalletProviders } from './wallet-providers'
+import { PwaSplashController } from '@/components/pwa-splash-controller'
 import './globals.css'
+
+// Runs before the body paints. If the app was launched from the home screen
+// (installed PWA, on Android or iOS), it tags <html> so CSS reveals our in-app
+// splash overlay immediately. Browser visitors never get the class, so they
+// never see the overlay. Kept inline + tiny so it can block paint safely.
+const PWA_SPLASH_DETECT =
+  "try{if(window.matchMedia('(display-mode: standalone)').matches||window.matchMedia('(display-mode: fullscreen)').matches||window.navigator.standalone===true){document.documentElement.classList.add('pwa-standalone')}}catch(e){}"
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -88,12 +96,38 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: PWA_SPLASH_DETECT }} />
+        <div id="pwa-splash" aria-hidden="true">
+          <div className="pwa-splash-mark">
+            <div className="pwa-splash-row">
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+            </div>
+            <div className="pwa-splash-row">
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+            </div>
+            <div className="pwa-splash-row">
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+              <span className="pwa-splash-card" />
+            </div>
+          </div>
+          <div className="pwa-splash-word">
+            <span className="pwa-splash-the">the</span>
+            <span className="pwa-splash-cw">Card Wall</span>
+          </div>
+        </div>
         <WalletProviders>
           <ThemeProvider>
             {children}
           </ThemeProvider>
         </WalletProviders>
+        <PwaSplashController />
         <Analytics />
       </body>
     </html>
