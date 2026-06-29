@@ -106,14 +106,37 @@ export function computeStandings(players: Player[], matches: Match[]): StandingR
     return Math.max(rate, 1 / 3)
   }
 
+  // OMW (opponent match-win %): average of each opponent's match-win-rate.
+  const omw = new Map<string, number>()
+  for (const p of players) {
+    const opps = opponents.get(p.id) ?? []
+    omw.set(p.id, opps.length ? opps.reduce((s, o) => s + matchWinRate(o), 0) / opps.length : 0)
+  }
+  // OOMW (opponents' opponents' win %): the deeper strength-of-schedule tiebreak
+  // used by standard TCG software. Floor each opponent's OMW at 1/3 (mirrors the
+  // match-win-rate floor) so facing someone who later collapsed isn't punishing.
+  const oomw = (id: string): number => {
+    const opps = opponents.get(id) ?? []
+    return opps.length ? opps.reduce((s, o) => s + Math.max(omw.get(o) ?? 1 / 3, 1 / 3), 0) / opps.length : 0
+  }
+
+  // Head-to-head wins counted only within a given set of players (a tie group),
+  // so it stays transitive when sorting (we rank by the count, not by pairwise
+  // results that could cycle).
+  const headToHeadWins = (id: string, group: Set<string>): number => {
+    let w = 0
+    for (const m of matches) {
+      if (m.status !== 'confirmed' || m.winnerId !== id) continue
+      const opp = m.player1Id === id ? m.player2Id : m.player2Id === id ? m.player1Id : null
+      if (opp && group.has(opp)) w++
+    }
+    return w
+  }
+
   const rows: StandingRow[] = players.map((p) => {
     const w = wins.get(p.id) ?? 0
     const l = losses.get(p.id) ?? 0
     const d = draws.get(p.id) ?? 0
-    const opps = opponents.get(p.id) ?? []
-    const oppWinPct = opps.length
-      ? opps.reduce((s, o) => s + matchWinRate(o), 0) / opps.length
-      : 0
     return {
       playerId: p.id,
       displayName: byId.get(p.id)?.displayName ?? '-',
@@ -122,19 +145,67 @@ export function computeStandings(players: Player[], matches: Match[]): StandingR
       losses: l,
       draws: d,
       points: w * POINTS_WIN + d * POINTS_DRAW,
-      oppWinPct,
+      oppWinPct: omw.get(p.id) ?? 0,
+      oppOppWinPct: oomw(p.id),
       rank: 0,
+      tied: false,
+      tieGroup: null,
     }
   })
 
-  rows.sort(
-    (a, b) =>
-      b.points - a.points ||
-      b.oppWinPct - a.oppWinPct ||
-      b.wins - a.wins ||
-      a.displayName.localeCompare(b.displayName),
-  )
-  rows.forEach((r, i) => (r.rank = i + 1))
+  const approxEq = (a: number, b: number) => Math.abs(a - b) < 1e-9
+  const played = (r: StandingRow) => r.wins + r.losses + r.draws > 0
+
+  // Primary order by match points, then OMW. Stable sort keeps the input order
+  // (signup order) for anything still equal, which we then refine on merit.
+  rows.sort((a, b) => b.points - a.points || b.oppWinPct - a.oppWinPct)
+
+  // Refine each (points, OMW) cluster with merit tiebreakers only:
+  //   head-to-head (within the cluster) -> OOMW -> total wins.
+  // Anyone still dead-equal after all of those is flagged `tied` (never broken
+  // by name) so an award can't be handed out on a non-merit basis.
+  let groupCounter = 0
+  let i = 0
+  while (i < rows.length) {
+    let j = i + 1
+    while (j < rows.length && rows[j].points === rows[i].points && approxEq(rows[j].oppWinPct, rows[i].oppWinPct)) j++
+    if (j - i > 1) {
+      const cluster = rows.slice(i, j)
+      const ids = new Set(cluster.map((r) => r.playerId))
+      const h2h = new Map(cluster.map((r) => [r.playerId, headToHeadWins(r.playerId, ids)]))
+      cluster.sort(
+        (a, b) =>
+          (h2h.get(b.playerId) ?? 0) - (h2h.get(a.playerId) ?? 0) ||
+          b.oppOppWinPct - a.oppOppWinPct ||
+          b.wins - a.wins,
+      )
+      for (let k = 0; k < cluster.length; k++) rows[i + k] = cluster[k]
+      // Flag runs that remain exactly equal on every merit tiebreaker.
+      let k = 0
+      while (k < cluster.length) {
+        let l = k + 1
+        while (
+          l < cluster.length &&
+          h2h.get(cluster[l].playerId) === h2h.get(cluster[k].playerId) &&
+          approxEq(cluster[l].oppOppWinPct, cluster[k].oppOppWinPct) &&
+          cluster[l].wins === cluster[k].wins
+        )
+          l++
+        const tiedRun = cluster.slice(k, l).filter(played)
+        if (tiedRun.length > 1) {
+          groupCounter++
+          for (const r of tiedRun) {
+            r.tied = true
+            r.tieGroup = groupCounter
+          }
+        }
+        k = l
+      }
+    }
+    i = j
+  }
+
+  rows.forEach((r, idx) => (r.rank = idx + 1))
   return rows
 }
 

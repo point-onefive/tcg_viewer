@@ -206,7 +206,18 @@ export interface StandingRow {
   points: number
   /** Opponent win % tiebreak (0–1); 0 for single-elim. */
   oppWinPct: number
+  /** Opponents' opponents' win % (deeper strength-of-schedule tiebreak; 0–1). */
+  oppOppWinPct: number
   rank: number
+  /**
+   * True when this row could NOT be separated from an adjacent row by any merit
+   * tiebreaker (points, OMW, head-to-head, OOMW, wins). Such rows are ordered
+   * only by a stable fallback - never by name - and must be resolved with a
+   * real tiebreaker before any placement-based award is made.
+   */
+  tied: boolean
+  /** Shared id grouping rows that are mutually tied (see `tied`); null if not. */
+  tieGroup: number | null
 }
 
 /**

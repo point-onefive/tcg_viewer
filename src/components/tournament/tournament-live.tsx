@@ -2772,6 +2772,15 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                       {s.dropped && (
                         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>dropped</span>
                       )}
+                      {s.tied && (
+                        <span
+                          title="Tied on every tiebreaker - placement decided by a tiebreaker, not by name."
+                          className="inline-flex items-center text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5"
+                          style={{ color: '#f5b301', background: 'color-mix(in srgb, #f5b301 14%, transparent)', borderRadius: 4, lineHeight: 1 }}
+                        >
+                          tied
+                        </span>
+                      )}
                     </span>
                   </td>
                   <td className="py-2 px-2 min-w-0">
@@ -2803,6 +2812,14 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
           </tbody>
         </table>
       </div>
+      {standings.some((s) => s.tied) ? (
+        <p className="mt-2 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          Ties break on merit only: match points, then opponents&rsquo; win % (OMW),
+          head-to-head, then opponents&rsquo; opponents&rsquo; win %. Players still
+          dead-even are marked <span style={{ color: '#f5b301', fontWeight: 700 }}>tied</span> and,
+          if it affects a placing, settled by a tiebreaker - never by name.
+        </p>
+      ) : null}
     </div>
   )
 }

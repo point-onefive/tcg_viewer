@@ -989,6 +989,14 @@ async function autoAwardPrizesOnComplete(
 
   const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
   const standings = computeStandings(inBracket, allMatches)
+
+  // Never auto-award onto an unresolved tie: if any prize-winning position is
+  // flagged `tied` (couldn't be separated on merit), leave prizes_awarded_at
+  // null so the host resolves it with a tiebreaker and awards manually, instead
+  // of the positional default handing a prize out on a non-merit fallback.
+  const tieAffectsPrize = standings.some((row, i) => i < prizes.length && row.tied)
+  if (tieAffectsPrize) return
+
   const assignments: PrizeAssignment[] = []
   prizes.forEach((_, i) => {
     const winner = standings[i]

@@ -1433,6 +1433,19 @@ function PrizeAwardEditor({
 
   const alreadyAwarded = awarded.length > 0
 
+  // Tie groups that land on a prize-winning position: the positional default is
+  // ambiguous for these, so the host must resolve with a tiebreaker and assign
+  // winners by hand rather than accept the (non-merit) fallback order.
+  const prizeTieGroups = useMemo(() => {
+    const groups = new Map<number, StandingRow[]>()
+    standings.forEach((row, idx) => {
+      if (idx < prizes.length && row.tied && row.tieGroup != null) {
+        groups.set(row.tieGroup, [...(groups.get(row.tieGroup) ?? []), row])
+      }
+    })
+    return [...groups.values()].filter((g) => g.length > 1)
+  }, [standings, prizes.length])
+
   const save = async () => {
     const payload = prizes
       .map((_, i) => ({ slotIndex: i, playerIds: assignments[i] ?? [] }))
@@ -1453,6 +1466,36 @@ function PrizeAwardEditor({
         prizes to each winner&rsquo;s profile and the event history.
         {alreadyAwarded && ' Prizes are already awarded; saving re-awards them.'}
       </p>
+
+      {prizeTieGroups.length > 0 && (
+        <div
+          className="mb-4 p-3"
+          style={{
+            background: 'color-mix(in srgb, #f5b301 12%, var(--bg))',
+            border: '1px solid color-mix(in srgb, #f5b301 45%, var(--border-subtle))',
+            borderRadius: 6,
+          }}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle size={15} style={{ color: '#f5b301' }} />
+            <span className="font-display font-bold text-sm">Tiebreaker needed before awarding</span>
+          </div>
+          <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+            These players are dead-even on every merit tiebreaker (points, OMW,
+            head-to-head, OOMW) and land on a prize spot. The positional default
+            below is <strong>not</strong> a real result - have them play a
+            tiebreaker, then set the winners by hand before locking prizes.
+          </p>
+          <ul className="text-xs flex flex-col gap-1">
+            {prizeTieGroups.map((g, gi) => (
+              <li key={gi} style={{ color: 'var(--text-primary)' }}>
+                <span className="font-semibold">Tied for {ordinal((g[0]?.rank ?? 0))}:</span>{' '}
+                {g.map((r) => r.displayName.replace(/^@/, '')).join(' = ')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {finalists.length === 0 ? (
         <p className="text-sm py-3 text-center" style={{ color: 'var(--text-muted)' }}>
