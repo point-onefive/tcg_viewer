@@ -2831,13 +2831,14 @@ html.lenis, html.lenis body {
   display: none;
 }
 html.pwa-standalone #pwa-splash {
-  display: flex;
+  /* --mark sizes the (square) icon image; the visible card mark is ~43% of it.
+     Targets a footprint close to Android's system-splash icon so the mark
+     doesn't resize across the handoff. */
+  --mark: clamp(220px, 65vw, 340px);
+  display: block;
   position: fixed;
   inset: 0;
   z-index: 2147483000;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   background: #0a0a0a;
   opacity: 1;
   transition: opacity 320ms ease;
@@ -2847,26 +2848,27 @@ html.pwa-standalone.pwa-splash-hide #pwa-splash {
   pointer-events: none;
   visibility: hidden;
 }
-#pwa-splash .pwa-splash-mark {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(4px, 1.4vw, 10px);
+/* Mark pinned to dead-center, matching where the OS splash centers the icon. */
+#pwa-splash .pwa-splash-mark-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--mark);
+  height: var(--mark);
+  transform: translate(-50%, -50%);
+  user-select: none;
+  -webkit-user-drag: none;
 }
-#pwa-splash .pwa-splash-row {
-  display: flex;
-  gap: clamp(4px, 1.4vw, 10px);
-}
-#pwa-splash .pwa-splash-card {
-  width: clamp(18px, 6.2vw, 34px);
-  height: clamp(26px, 8.8vw, 48px);
-  background: #fff;
-  border-radius: clamp(3px, 1vw, 6px);
-}
+/* Wordmark anchored a fixed distance below the mark's visible bottom edge
+   (~0.25 * --mark below center), independent of viewport aspect ratio. */
 #pwa-splash .pwa-splash-word {
-  margin-top: clamp(20px, 6.5vw, 36px);
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--mark) * 0.32);
+  transform: translateX(-50%);
   display: flex;
   align-items: baseline;
+  white-space: nowrap;
   color: #fff;
   line-height: 1;
   font-family: 'BonkPoppins', var(--font-display), system-ui, sans-serif;

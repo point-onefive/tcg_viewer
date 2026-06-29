@@ -98,25 +98,16 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: PWA_SPLASH_DETECT }} />
+        {/* Preload the mark so our overlay paints it instantly (it's the same
+            asset Android's system splash uses, so it's typically cached too) -
+            this keeps the mark from blinking out between the two frames. */}
+        <link rel="preload" as="image" href="/apple-icon.png" fetchPriority="high" />
         <div id="pwa-splash" aria-hidden="true">
-          <div className="pwa-splash-mark">
-            <div className="pwa-splash-row">
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-            </div>
-            <div className="pwa-splash-row">
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-            </div>
-            <div className="pwa-splash-row">
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-              <span className="pwa-splash-card" />
-            </div>
-          </div>
+          {/* The exact same artwork Android's system splash renders, centered
+              at the same dead-center position, so the handoff from the OS frame
+              to ours is just the wordmark appearing - no mark jump or redraw. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="pwa-splash-mark-img" src="/apple-icon.png" alt="" />
           <div className="pwa-splash-word">
             <span className="pwa-splash-the">the</span>
             <span className="pwa-splash-cw">Card Wall</span>
