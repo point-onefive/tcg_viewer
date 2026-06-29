@@ -12,10 +12,15 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     background_color: '#0a0a0a',
     theme_color: '#0a0a0a',
+    // Use ONLY the full-bleed black mark (apple-icon) for the installed app +
+    // the OS-generated splash. The other mark (icon.png) is a rounded tile
+    // whose edge reads as a faint "ring" on the black splash, and listing both
+    // made the splash flicker between the two. Keeping a single, seamless mark
+    // makes the splash static. (icon.png stays as the browser-tab favicon via
+    // Next's auto <link rel="icon">, which is unaffected by this list.)
     icons: [
-      { src: '/icon.png', type: 'image/png', sizes: '512x512' },
-      { src: '/apple-icon.png', type: 'image/png', sizes: '1254x1254' },
-      { src: '/apple-icon.png', type: 'image/png', sizes: '1254x1254', purpose: 'maskable' },
+      { src: '/apple-icon.png', type: 'image/png', sizes: '1024x1024' },
+      { src: '/apple-icon.png', type: 'image/png', sizes: '1024x1024', purpose: 'maskable' },
     ],
   }
 }
