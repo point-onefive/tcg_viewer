@@ -183,6 +183,7 @@ export function useWalletAuthState(): UseWalletAuthReturn {
             avatarUrl: updated.avatarUrl,
             availability: updated.availability,
             region: updated.region,
+            country: updated.country,
           }
         : null,
     )

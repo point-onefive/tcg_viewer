@@ -16,6 +16,7 @@ import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { WalletConnectModal } from './wallet-connect-modal'
 import { friendlyWalletError } from './wallet-icons'
 import { PlayerAvatar } from './player-avatar'
+import { countryFlag } from '@/lib/wallet/country'
 import { PlayerProfileView } from './player-profile-view'
 
 // Short display for a 0x address: 0x1234...abcd
@@ -128,7 +129,12 @@ export function WalletConnectButton({
             walletAddress={profile.walletAddress}
             size={compact ? 24 : 28}
           />
-          {!compact && <span>{displayName}</span>}
+          {!compact && (
+            <span className="inline-flex items-center gap-1.5">
+              {displayName}
+              {profile.country && <span aria-hidden style={{ lineHeight: 1 }}>{countryFlag(profile.country)}</span>}
+            </span>
+          )}
           <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />
         </button>
 
@@ -160,7 +166,10 @@ export function WalletConnectButton({
                   borderBottom: '1px solid var(--border-subtle)',
                 }}
               >
-                <div className="font-display font-bold text-sm">{displayName}</div>
+                <div className="font-display font-bold text-sm flex items-center gap-1.5">
+                  {displayName}
+                  {profile.country && <span aria-hidden style={{ lineHeight: 1 }}>{countryFlag(profile.country)}</span>}
+                </div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                   {shortAddress(profile.walletAddress)}
                 </div>

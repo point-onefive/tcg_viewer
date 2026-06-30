@@ -2,6 +2,7 @@ import 'server-only'
 import { getServiceClient } from '@/lib/tournament/supabase'
 import { type Availability, sanitizeAvailability } from './availability'
 import { type Region, sanitizeRegion } from '@/lib/tournament/region'
+import { sanitizeCountry } from './country'
 
 // ── Supabase client (service role - bypasses RLS) ─────────────────────────
 // Wallet profiles live in the SAME project as the tournament tables
@@ -22,6 +23,8 @@ export interface WalletProfile {
   availability: Availability | null
   /** Coarse region for scheduling; pre-fills tournament sign-up. */
   region: Region | null
+  /** Optional self-declared country (ISO 3166-1 alpha-2); shows as a flag. */
+  country: string | null
   createdAt: string
   updatedAt: string
 }
@@ -39,6 +42,7 @@ export interface UpdateProfileInput {
   avatarUrl?: string | null
   availability?: Availability | null
   region?: Region | null
+  country?: string | null
 }
 
 // ── Validation ─────────────────────────────────────────────────────────────
@@ -75,6 +79,7 @@ function rowToProfile(row: Record<string, unknown>): WalletProfile {
     avatarUrl: (row.avatar_url as string | null) ?? null,
     availability: sanitizeAvailability(row.availability),
     region: sanitizeRegion(row.region),
+    country: sanitizeCountry(row.country),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }
@@ -135,6 +140,7 @@ export async function updateProfile(
   if ('avatarUrl' in input) patch.avatar_url = input.avatarUrl ?? null
   if ('availability' in input) patch.availability = input.availability ? sanitizeAvailability(input.availability) : null
   if ('region' in input) patch.region = sanitizeRegion(input.region)
+  if ('country' in input) patch.country = sanitizeCountry(input.country)
 
   if (Object.keys(patch).length === 0) {
     const existing = await getProfile(addr)
@@ -142,12 +148,18 @@ export async function updateProfile(
     return existing
   }
 
-  const { data, error } = await supabase
-    .from('wallet_profiles')
-    .update(patch)
-    .eq('wallet_address', addr)
-    .select()
-    .single()
+  const runUpdate = (p: Record<string, unknown>) =>
+    supabase.from('wallet_profiles').update(p).eq('wallet_address', addr).select().single()
+
+  let { data, error } = await runUpdate(patch)
+  // Resilience for the migration window: if `country` doesn't exist yet
+  // (migration 013 not applied), drop it and retry so the rest of the profile
+  // still saves. Other fields all predate this column.
+  if (error && 'country' in patch && /country/i.test(error.message)) {
+    const { country: _omit, ...rest } = patch
+    void _omit
+    ;({ data, error } = await runUpdate(rest))
+  }
   if (error) {
     if (error.code === '23505') throw new Error('That username is already taken')
     throw new Error(`updateProfile: ${error.message}`)

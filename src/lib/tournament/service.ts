@@ -1204,13 +1204,15 @@ async function attachProfileIdentity(
     ]
     if (addrs.length === 0 && handles.length === 0) return players
 
-    const byWallet = new Map<string, { username: string | null; avatarUrl: string | null }>()
-    const byHandle = new Map<string, { username: string | null; avatarUrl: string | null }>()
+    type Ident = { username: string | null; avatarUrl: string | null; country: string | null }
+    const byWallet = new Map<string, Ident>()
+    const byHandle = new Map<string, Ident>()
     const ingest = (rows: Record<string, unknown>[] | null) => {
       for (const r of rows ?? []) {
-        const rec = {
+        const rec: Ident = {
           username: (r.username as string | null) ?? null,
           avatarUrl: (r.avatar_url as string | null) ?? null,
+          country: (r.country as string | null) ?? null,
         }
         const w = r.wallet_address as string | null
         const h = r.x_handle as string | null
@@ -1218,22 +1220,28 @@ async function attachProfileIdentity(
         if (h) byHandle.set(h.toLowerCase(), rec)
       }
     }
-    const cols = 'wallet_address, username, x_handle, avatar_url'
-    if (addrs.length) {
-      const { data } = await sb.from('wallet_profiles').select(cols).in('wallet_address', addrs)
-      ingest(data as Record<string, unknown>[] | null)
+    // Select with `country`, but fall back to the base columns if that column
+    // doesn't exist yet (deploy landed before migration 013). This keeps
+    // username/avatar enrichment working during the migration window.
+    const cols = 'wallet_address, username, x_handle, avatar_url, country'
+    const baseCols = 'wallet_address, username, x_handle, avatar_url'
+    const selectProfiles = async (column: 'wallet_address' | 'x_handle', values: string[]) => {
+      const withCountry = await sb.from('wallet_profiles').select(cols).in(column, values)
+      if (!withCountry.error) return withCountry.data as Record<string, unknown>[] | null
+      const base = await sb.from('wallet_profiles').select(baseCols).in(column, values)
+      return base.data as Record<string, unknown>[] | null
     }
-    if (handles.length) {
-      const { data } = await sb.from('wallet_profiles').select(cols).in('x_handle', handles)
-      ingest(data as Record<string, unknown>[] | null)
-    }
+    if (addrs.length) ingest(await selectProfiles('wallet_address', addrs))
+    if (handles.length) ingest(await selectProfiles('x_handle', handles))
 
     return players.map((p) => {
       const rec =
         (p.walletAddress && byWallet.get(p.walletAddress.toLowerCase())) ||
         (p.xHandle && byHandle.get(p.xHandle.toLowerCase())) ||
         null
-      return rec ? { ...p, username: rec.username, avatarUrl: rec.avatarUrl } : p
+      return rec
+        ? { ...p, username: rec.username, avatarUrl: rec.avatarUrl, country: rec.country }
+        : p
     })
   } catch {
     return players
@@ -1374,13 +1382,15 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
   const champList = [...champions.values()]
   const addrs = [...new Set(champList.map((c) => c.walletAddress?.toLowerCase()).filter((a): a is string => !!a))]
   const handles = [...new Set(champList.map((c) => c.xHandle?.toLowerCase()).filter((h): h is string => !!h))]
-  const byWallet = new Map<string, { username: string | null; avatarUrl: string | null }>()
-  const byHandle = new Map<string, { username: string | null; avatarUrl: string | null }>()
+  type ChampIdent = { username: string | null; avatarUrl: string | null; country: string | null }
+  const byWallet = new Map<string, ChampIdent>()
+  const byHandle = new Map<string, ChampIdent>()
   const ingest = (rows: Record<string, unknown>[] | null) => {
     for (const r of rows ?? []) {
-      const rec = {
+      const rec: ChampIdent = {
         username: (r.username as string | null) ?? null,
         avatarUrl: (r.avatar_url as string | null) ?? null,
+        country: (r.country as string | null) ?? null,
       }
       const w = r.wallet_address as string | null
       const h = r.x_handle as string | null
@@ -1389,9 +1399,15 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
     }
   }
   try {
-    const cols = 'wallet_address, username, x_handle, avatar_url'
-    if (addrs.length) ingest((await sb.from('wallet_profiles').select(cols).in('wallet_address', addrs)).data as Record<string, unknown>[] | null)
-    if (handles.length) ingest((await sb.from('wallet_profiles').select(cols).in('x_handle', handles)).data as Record<string, unknown>[] | null)
+    const cols = 'wallet_address, username, x_handle, avatar_url, country'
+    const baseCols = 'wallet_address, username, x_handle, avatar_url'
+    const selectChamps = async (column: 'wallet_address' | 'x_handle', values: string[]) => {
+      const withCountry = await sb.from('wallet_profiles').select(cols).in(column, values)
+      if (!withCountry.error) return withCountry.data as Record<string, unknown>[] | null
+      return (await sb.from('wallet_profiles').select(baseCols).in(column, values)).data as Record<string, unknown>[] | null
+    }
+    if (addrs.length) ingest(await selectChamps('wallet_address', addrs))
+    if (handles.length) ingest(await selectChamps('x_handle', handles))
   } catch {
     // Best-effort: a missing profile just falls back to the handle.
   }
@@ -1416,6 +1432,7 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
             walletAddress: champ.walletAddress,
             username: rec?.username ?? null,
             avatarUrl: rec?.avatarUrl ?? null,
+            country: rec?.country ?? null,
           }
         : null,
     }

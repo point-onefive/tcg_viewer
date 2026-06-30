@@ -12,6 +12,7 @@ import { isManagedAvatarUrl } from '@/lib/wallet/avatar'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { RegionPicker } from '@/components/tournament/region-picker'
 import { type Region } from '@/lib/tournament/region'
+import { CountryPicker } from './country-picker'
 import {
   detectTimeZone,
   commonTimeZones,
@@ -97,6 +98,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
   const [availTz, setAvailTz] = useState(profile?.availability?.tz || detectTimeZone())
   const [hours, setHours] = useState<number[]>(mergeHours(profile?.availability))
   const [region, setRegion] = useState<Region | null>(profile?.region ?? null)
+  const [country, setCountry] = useState<string | null>(profile?.country ?? null)
 
   // Sync form if profile changes while modal is open.
   useEffect(() => {
@@ -109,6 +111,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
       setAvailTz(profile.availability?.tz || detectTimeZone())
       setHours(mergeHours(profile.availability))
       setRegion(profile.region ?? null)
+      setCountry(profile.country ?? null)
     }
   }, [profile])
 
@@ -132,6 +135,7 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
         avatarUrl: avatarUrl.trim() || null,
         availability: { tz: availTz, weekday: hours, weekend: hours },
         region,
+        country,
       })
       await refreshProfile()
       setSaved(true)
@@ -329,6 +333,20 @@ export function PlayerProfileModal({ onClose }: PlayerProfileModalProps) {
                   disabled={saving}
                   hint="Used to plan events and seed same-region matchups. You can change it any time."
                 />
+              </div>
+
+              {/* Country (optional flag) */}
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Which country do you represent?
+                </label>
+                <CountryPicker value={country} onChange={setCountry} disabled={saving} />
+                <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Optional. Shows a flag next to your name. Leave blank for none.
+                </p>
               </div>
 
               {/* Availability */}

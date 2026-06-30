@@ -12,6 +12,7 @@ import { resolveAvatarUrl, isManagedAvatarUrl, isSocialProfileUrl } from '@/lib/
 import { snapshotAvatarToR2 } from '@/lib/wallet/avatar-snapshot'
 import { type Availability, sanitizeAvailability } from '@/lib/wallet/availability'
 import { type Region, sanitizeRegion } from '@/lib/tournament/region'
+import { sanitizeCountry } from '@/lib/wallet/country'
 
 // PUT /api/auth/profile
 // Update the current user's editable profile fields.
@@ -31,6 +32,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     avatarUrl?: string | null
     availability?: Availability | null
     region?: Region | null
+    country?: string | null
   }
   try {
     body = await req.json()
@@ -46,6 +48,11 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
   // Coerce region to a known bucket or null.
   if ('region' in body) {
     body.region = sanitizeRegion(body.region)
+  }
+
+  // Coerce country to a known ISO code (uppercased) or null.
+  if ('country' in body) {
+    body.country = sanitizeCountry(body.country)
   }
 
   // Validate username if provided.

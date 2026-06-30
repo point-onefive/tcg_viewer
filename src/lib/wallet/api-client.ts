@@ -58,6 +58,7 @@ export interface UpdateProfileInput {
   avatarUrl?: string | null
   availability?: Availability | null
   region?: Region | null
+  country?: string | null
 }
 
 /** Update editable profile fields. Throws on error. */

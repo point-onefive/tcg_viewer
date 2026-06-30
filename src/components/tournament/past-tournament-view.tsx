@@ -183,6 +183,7 @@ export function PastTournamentView({ code }: { code: string }) {
                       username={champion.username}
                       avatarUrl={champion.avatarUrl}
                       walletAddress={champion.walletAddress}
+                      country={champion.country}
                       avatarSize={24}
                     />
                   </div>

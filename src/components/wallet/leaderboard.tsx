@@ -11,6 +11,7 @@ import { Loader2, Medal, ChevronDown, ChevronRight, Trophy } from 'lucide-react'
 import { fetchLeaderboard } from '@/lib/wallet/api-client'
 import type { WalletStanding } from '@/lib/wallet/db'
 import { PlayerAvatar } from './player-avatar'
+import { countryFlag } from '@/lib/wallet/country'
 import { PlayerProfileView } from './player-profile-view'
 import { BonkModuleHeader, BonkHeaderMascot } from '@/components/tournament/bonk-ui'
 
@@ -162,10 +163,13 @@ function LeaderboardRow({
         size={32}
       />
       <span
-        className="font-display truncate flex-1 sm:flex-none sm:w-44"
+        className="font-display flex items-center gap-1.5 flex-1 sm:flex-none sm:w-44"
         style={{ fontWeight: 700, fontSize: 14, minWidth: 0 }}
       >
-        {username}
+        <span className="truncate" style={{ minWidth: 0 }}>{username}</span>
+        {standing.country && (
+          <span aria-hidden style={{ flexShrink: 0, lineHeight: 1 }}>{countryFlag(standing.country)}</span>
+        )}
       </span>
       <WinRateBar wins={standing.wins} losses={standing.losses} draws={standing.draws} />
       <span className="hidden sm:block" style={{ width: 64, textAlign: 'right', fontSize: 12, color: 'var(--text-muted)' }}>

@@ -7,6 +7,7 @@ import { ProfileAvailability } from './profile-availability'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
 import { regionLabel } from '@/lib/tournament/region'
+import { countryFlag, countryName } from '@/lib/wallet/country'
 import type { WalletStanding } from '@/lib/wallet/db'
 
 const card: React.CSSProperties = {
@@ -69,8 +70,13 @@ export function PlayerProfileCard({ standing }: { standing: WalletStanding }) {
                 size={72}
               />
               <div className="min-w-0">
-                <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.1 }}>
-                  {standing.username ?? 'Anonymous player'}
+                <h1 className="font-display flex items-center gap-2" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+                  <span className="min-w-0 truncate">{standing.username ?? 'Anonymous player'}</span>
+                  {standing.country && (
+                    <span style={{ flexShrink: 0 }} title={countryName(standing.country)} aria-label={countryName(standing.country)}>
+                      {countryFlag(standing.country)}
+                    </span>
+                  )}
                 </h1>
                 {xUrl && (
                   <a
@@ -109,6 +115,12 @@ export function PlayerProfileCard({ standing }: { standing: WalletStanding }) {
                 <span className="inline-flex items-center gap-1.5">
                   <Globe size={14} style={{ color: '#3b82f6' }} />
                   {regionLabel(standing.region)}
+                </span>
+              )}
+              {standing.country && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span aria-hidden>{countryFlag(standing.country)}</span>
+                  {countryName(standing.country)}
                 </span>
               )}
             </div>

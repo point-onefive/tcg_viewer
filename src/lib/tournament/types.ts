@@ -137,6 +137,9 @@ export interface Player {
    */
   username?: string | null
   avatarUrl?: string | null
+  /** Self-declared country (ISO 3166-1 alpha-2) from the linked profile, for the
+   * flag shown next to the name. Attached only in the public snapshot. */
+  country?: string | null
   /** True once the player drops; pairing skips them, no auto-wins. */
   dropped: boolean
   /**
@@ -321,5 +324,6 @@ export interface CompletedTournamentSummary {
     walletAddress: string | null
     username: string | null
     avatarUrl: string | null
+    country: string | null
   } | null
 }

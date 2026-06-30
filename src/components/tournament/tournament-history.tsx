@@ -7,6 +7,7 @@ import { TournamentShell } from './tournament-shell'
 import { apiTournamentHistory } from '@/lib/tournament/client'
 import { normalizeXHandle } from '@/lib/tournament/x-handle'
 import { PlayerAvatar } from '@/components/wallet/player-avatar'
+import { countryFlag } from '@/lib/wallet/country'
 import type { CompletedTournamentSummary } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -146,6 +147,11 @@ export function TournamentHistory() {
                             <span className="truncate text-sm font-semibold" style={{ maxWidth: 180 }}>
                               {champName}
                             </span>
+                            {e.champion.country && (
+                              <span aria-hidden style={{ flexShrink: 0, lineHeight: 1 }}>
+                                {countryFlag(e.champion.country)}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>

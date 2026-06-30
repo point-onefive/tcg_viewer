@@ -32,6 +32,7 @@ import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
 import { PlayerProfileView } from '@/components/wallet/player-profile-view'
 import { PlayerAvatar } from '@/components/wallet/player-avatar'
+import { countryFlag } from '@/lib/wallet/country'
 import { fetchProfileByHandle, type WalletStanding } from '@/lib/wallet/api-client'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { formatXLabel, normalizeXHandle, xProfileUrl } from '@/lib/tournament/x-handle'
@@ -88,6 +89,7 @@ export function XProfileLink({
   username,
   avatarUrl,
   walletAddress,
+  country,
   className,
   color,
   showAvatar = true,
@@ -99,6 +101,8 @@ export function XProfileLink({
   /** Resolved profile avatar (R2); falls back to the handle's avatar. */
   avatarUrl?: string | null
   walletAddress?: string | null
+  /** Optional country code (ISO alpha-2); shows a flag after the name. */
+  country?: string | null
   className?: string
   color?: string
   /** Prepend the avatar (leaderboard style). On by default. */
@@ -108,6 +112,7 @@ export function XProfileLink({
   const [open, setOpen] = useState(false)
   // Leaderboard format: username when set, else the bare handle (no "@").
   const name = (username && username.trim()) || normalizeXHandle(handle)
+  const flag = countryFlag(country)
   return (
     <>
       <button
@@ -142,6 +147,11 @@ export function XProfileLink({
           />
         )}
         <span className={className} style={{ minWidth: 0 }}>{name}</span>
+        {flag && (
+          <span aria-hidden style={{ flexShrink: 0, lineHeight: 1 }}>
+            {flag}
+          </span>
+        )}
       </button>
       {open && <ProfileLookupModal handle={handle} onClose={() => setOpen(false)} />}
     </>
@@ -1036,6 +1046,7 @@ function MyMatchCard({
           username={opponent.username}
           avatarUrl={opponent.avatarUrl}
           walletAddress={opponent.walletAddress}
+          country={opponent.country}
           avatarSize={20}
           className="font-semibold"
         />
@@ -2873,6 +2884,7 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                         username={player?.username}
                         avatarUrl={player?.avatarUrl}
                         walletAddress={player?.walletAddress}
+                        country={player?.country}
                         avatarSize={20}
                         className="truncate font-semibold"
                       />
@@ -3026,6 +3038,7 @@ function ElimBracket({
                 username={champion.username}
                 avatarUrl={champion.avatarUrl}
                 walletAddress={champion.walletAddress}
+                country={champion.country}
                 avatarSize={22}
                 className="text-sm font-bold"
                 color="#fff"
@@ -3276,6 +3289,7 @@ function ElimSlot({
             username={player.username}
             avatarUrl={player.avatarUrl}
             walletAddress={player.walletAddress}
+            country={player.country}
             avatarSize={20}
             className="text-[13px] truncate block"
           />
@@ -3425,6 +3439,7 @@ function BracketSlot({
             username={player.username}
             avatarUrl={player.avatarUrl}
             walletAddress={player.walletAddress}
+            country={player.country}
             avatarSize={24}
             className="text-sm truncate block"
           />
@@ -3463,6 +3478,7 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
           username={player.username}
           avatarUrl={player.avatarUrl}
           walletAddress={player.walletAddress}
+          country={player.country}
           avatarSize={22}
           className="truncate block"
         />
