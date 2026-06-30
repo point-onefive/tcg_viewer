@@ -2793,6 +2793,33 @@ html.lenis, html.lenis body {
   align-items: stretch;
 }
 
+/* Profile popup horizontal rows: keep the trophy case, prize shelf, and
+   availability chips to a single swipeable row so an accomplished player's
+   profile fits the modal without vertical scrolling. Native swipe on touch; a
+   subtle right-edge fade hints there's more; the scrollbar is hidden. */
+.profile-hscroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 90%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 90%, transparent 100%);
+}
+.profile-hscroll::-webkit-scrollbar {
+  display: none;
+}
+.profile-hscroll > .profile-hrow {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  /* trailing space so the last chip isn't hidden under the edge fade */
+  padding-right: 14px;
+}
+.profile-hrow > * {
+  flex-shrink: 0;
+}
+
 /* Theme toggle with a distinct mobile size: render at the inline (mobile)
    size by default, grow to the desktop size at >= sm. */
 @media (min-width: 640px) {

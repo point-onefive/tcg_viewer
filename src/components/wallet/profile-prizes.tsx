@@ -9,6 +9,7 @@
 // edit to a tournament's prize pool.
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Gift } from 'lucide-react'
 
 interface WonPrize {
@@ -32,7 +33,6 @@ function medalColor(rank: number | null): string | null {
 
 export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
   const [prizes, setPrizes] = useState<WonPrize[] | null>(null)
-  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!walletAddress) return
@@ -62,14 +62,10 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
     return <PrizesEmptyPreview />
   }
 
-  // Cap the shelf so a big winner doesn't blow out the modal; the rest are one
-  // tap away.
-  const CAP = 8
-  const visible = expanded ? prizes : prizes.slice(0, CAP)
-  const hiddenCount = prizes.length - visible.length
-
+  // A single swipeable row (no cap / expand) so even a big winner's shelf stays
+  // one line tall and the profile modal never needs vertical scrolling.
   return (
-    <div className="mt-6 profile-section-in">
+    <div className="mt-5 profile-section-in">
       <div className="flex items-center gap-1.5 mb-2.5">
         <Gift size={13} style={{ color: '#E85D2A' }} />
         <span
@@ -79,21 +75,13 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
           Prizes won
         </span>
       </div>
-      <div className="flex flex-wrap gap-2.5">
-        {visible.map((p) => (
-          <PrizeBadge key={p.id} prize={p} />
-        ))}
+      <div className="profile-hscroll">
+        <div className="profile-hrow gap-2.5">
+          {prizes.map((p) => (
+            <PrizeBadge key={p.id} prize={p} />
+          ))}
+        </div>
       </div>
-
-      {prizes.length > CAP && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-2 text-[11px] font-bold uppercase tracking-wider transition-opacity hover:opacity-80"
-          style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
-        >
-          {expanded ? 'Show less' : `Show ${hiddenCount} more`}
-        </button>
-      )}
     </div>
   )
 }
@@ -143,116 +131,116 @@ function PrizeBadge({ prize }: { prize: WonPrize }) {
     .filter(Boolean)
     .join(' - ')
 
-  const rootRef = useRef<HTMLDivElement>(null)
-  // Horizontal offset (relative to the badge) for the hover card, computed on
-  // hover so the card is clamped inside the modal's scroll container and never
-  // overflows / gets clipped at the left or right edge. Defaults to centered.
-  const [tipLeft, setTipLeft] = useState<number>(-(TIP_W / 2 - 42))
+  const rootRef = useRef<HTMLButtonElement>(null)
+  // The hover card renders through a portal in fixed coords so it is never
+  // clipped by the horizontal scroller's `overflow` (which would otherwise hide
+  // a card that sits above the row). null = hidden.
+  const [tip, setTip] = useState<{ left: number; top: number } | null>(null)
 
-  const positionTip = () => {
-    const root = rootRef.current
-    if (!root) return
-    let scroller: HTMLElement | null = root.parentElement
-    while (scroller && scroller !== document.body) {
-      const oy = getComputedStyle(scroller).overflowY
-      if (oy === 'auto' || oy === 'scroll') break
-      scroller = scroller.parentElement
-    }
-    const bounds = (scroller ?? document.documentElement).getBoundingClientRect()
-    const r = root.getBoundingClientRect()
+  const showTip = () => {
+    const r = rootRef.current?.getBoundingClientRect()
+    if (!r) return
     const pad = 8
     const center = r.left + r.width / 2
-    let leftVp = center - TIP_W / 2
-    leftVp = Math.max(bounds.left + pad, Math.min(leftVp, bounds.right - pad - TIP_W))
-    setTipLeft(leftVp - r.left)
+    const left = Math.max(pad, Math.min(center - TIP_W / 2, window.innerWidth - pad - TIP_W))
+    setTip({ left, top: r.top - 8 })
   }
+  const hideTip = () => setTip(null)
 
   return (
-    <div
+    <button
       ref={rootRef}
-      className="group relative"
-      style={{ width: 84 }}
-      onMouseEnter={positionTip}
-      onFocusCapture={positionTip}
+      type="button"
+      className="flex flex-col overflow-hidden text-left"
+      style={{
+        width: 84,
+        background: 'var(--bg)',
+        border: `1px solid ${medal ? `color-mix(in srgb, ${medal} 45%, transparent)` : 'var(--border-subtle)'}`,
+        borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
+        borderRadius: 8,
+        cursor: 'default',
+        padding: 0,
+      }}
+      title={tooltip}
+      onMouseEnter={showTip}
+      onMouseLeave={hideTip}
+      onFocus={showTip}
+      onBlur={hideTip}
     >
-      <div
-        className="flex flex-col overflow-hidden"
-        style={{
-          background: 'var(--bg)',
-          border: `1px solid ${medal ? `color-mix(in srgb, ${medal} 45%, transparent)` : 'var(--border-subtle)'}`,
-          borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
-          borderRadius: 8,
-          cursor: 'default',
-        }}
-      >
-        {prize.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={prize.image}
-            alt={prize.title}
-            style={{
-              width: '100%',
-              height: 64,
-              objectFit: 'contain',
-              display: 'block',
-              background: 'var(--bg-surface)',
-            }}
-          />
-        ) : (
-          <div
-            className="flex items-center justify-center"
-            style={{ width: '100%', height: 64, background: 'var(--bg-surface)' }}
-          >
-            <Gift size={22} style={{ color: 'var(--text-muted)' }} />
-          </div>
-        )}
-        <div className="px-1.5 py-1 text-center">
-          <span
-            className="block font-display text-[10px] font-bold truncate"
-            style={{ color: medal ?? 'var(--text-primary)' }}
-            title={prize.title}
-          >
-            {prize.title}
-          </span>
-        </div>
-      </div>
-
-      {/* Hover card: the context an image can't carry. Clamped on hover so it
-          always stays within the modal's bounds (see positionTip). */}
-      <div
-        className="pointer-events-none absolute z-20 hidden group-hover:block"
-        style={{ bottom: 'calc(100% + 8px)', width: TIP_W, left: tipLeft }}
-      >
-        <div
-          className="p-2.5 text-left"
+      {prize.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={prize.image}
+          alt={prize.title}
           style={{
+            width: '100%',
+            height: 64,
+            objectFit: 'contain',
+            display: 'block',
             background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 8,
-            boxShadow: 'var(--shadow-card)',
           }}
+        />
+      ) : (
+        <div
+          className="flex items-center justify-center"
+          style={{ width: '100%', height: 64, background: 'var(--bg-surface)' }}
         >
-          <div className="font-display text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
-            {prize.title}
-          </div>
-          <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            {prize.tournamentName}
-            {prize.rank ? ` - finished ${ordinal(prize.rank)}` : ''}
-          </div>
-          {prize.description && (
-            <p
-              className="text-[11px] mt-1.5 whitespace-pre-wrap"
-              style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}
-            >
-              {prize.description}
-            </p>
-          )}
+          <Gift size={22} style={{ color: 'var(--text-muted)' }} />
         </div>
+      )}
+      <div className="px-1.5 py-1 text-center" style={{ width: '100%' }}>
+        <span
+          className="block font-display text-[10px] font-bold truncate"
+          style={{ color: medal ?? 'var(--text-primary)' }}
+        >
+          {prize.title}
+        </span>
       </div>
 
-      {/* Native tooltip fallback for touch / no-hover. */}
-      <span className="sr-only" title={tooltip} />
-    </div>
+      {/* Hover card: the context an image can't carry. Portaled + fixed so the
+          scroller's overflow can never clip it; clamped to the viewport. */}
+      {tip &&
+        createPortal(
+          <div
+            className="pointer-events-none"
+            style={{
+              position: 'fixed',
+              left: tip.left,
+              top: tip.top,
+              transform: 'translateY(-100%)',
+              width: TIP_W,
+              zIndex: 300,
+            }}
+          >
+            <div
+              className="p-2.5 text-left"
+              style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 8,
+                boxShadow: 'var(--shadow-card)',
+              }}
+            >
+              <div className="font-display text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+                {prize.title}
+              </div>
+              <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                {prize.tournamentName}
+                {prize.rank ? ` - finished ${ordinal(prize.rank)}` : ''}
+              </div>
+              {prize.description && (
+                <p
+                  className="text-[11px] mt-1.5 whitespace-pre-wrap"
+                  style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}
+                >
+                  {prize.description}
+                </p>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+    </button>
   )
 }
 

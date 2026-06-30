@@ -22,16 +22,16 @@ function StatBlock({ value, label, accent }: { value: number; label: string; acc
       style={{
         flex: 1,
         textAlign: 'center',
-        padding: '14px 8px',
+        padding: '11px 8px',
         background: 'var(--bg)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 10,
       }}
     >
-      <div className="font-display" style={{ fontSize: 26, fontWeight: 800, color: accent ?? 'var(--text-primary)', lineHeight: 1 }}>
+      <div className="font-display" style={{ fontSize: 24, fontWeight: 800, color: accent ?? 'var(--text-primary)', lineHeight: 1 }}>
         {value}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginTop: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginTop: 5 }}>
         {label}
       </div>
     </div>
@@ -103,14 +103,14 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
         </div>
 
         {/* Record */}
-        <div className="flex gap-2.5 mt-6">
+        <div className="flex gap-2.5 mt-5">
           <StatBlock value={standing.wins} label="Wins" accent="#22c55e" />
           <StatBlock value={standing.losses} label="Losses" accent="#ef4444" />
           {standing.draws > 0 && <StatBlock value={standing.draws} label="Draws" />}
         </div>
 
         {/* Secondary stats */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
           <span className="inline-flex items-center gap-1.5">
             <Trophy size={14} style={{ color: '#E85D2A' }} />
             {standing.tournamentsPlayed} tournament{standing.tournamentsPlayed === 1 ? '' : 's'} played

@@ -37,7 +37,6 @@ function medalFor(rank: number) {
 export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
   const [badges, setBadges] = useState<TournamentBadge[] | null>(null)
   const [open, setOpen] = useState<TournamentBadge | null>(null)
-  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!walletAddress) return
@@ -67,70 +66,54 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
     return <BadgesEmptyPreview />
   }
 
-  // Cap how many show at once so a prolific winner doesn't blow out the modal;
-  // the rest are one tap away.
-  const CAP = 6
-  const visible = expanded ? badges : badges.slice(0, CAP)
-  const hiddenCount = badges.length - visible.length
-
+  // A single swipeable row (no cap / expand) so even a prolific winner's case
+  // stays one line tall and the profile modal never needs vertical scrolling.
   return (
-    <div className="mt-6 profile-section-in">
+    <div className="mt-5 profile-section-in">
       <div
         className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
         style={{ color: 'var(--text-muted)' }}
       >
         Trophy case
       </div>
-      <div className="flex flex-wrap gap-2">
-        {visible.map((b) => {
-          const m = medalFor(b.rank)
-          return (
-            <button
-              key={`${b.tournamentCode}-${b.rank}`}
-              onClick={() => setOpen(b)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-left transition-opacity hover:opacity-90"
-              style={{
-                background: `color-mix(in srgb, ${m.color} 12%, var(--bg))`,
-                border: `1px solid color-mix(in srgb, ${m.color} 38%, transparent)`,
-                borderRadius: 8,
-                cursor: 'pointer',
-                // Uniform width so chips line up evenly when they wrap next to
-                // each other (independent of event-name length); caps at 100%
-                // so a single chip still fits a narrow mobile column.
-                width: 200,
-                maxWidth: '100%',
-              }}
-              title={`${m.place} of ${b.playersCount} - ${b.tournamentName}`}
-            >
-              <Medal size={18} style={{ color: m.color, flexShrink: 0 }} />
-              <span className="min-w-0 flex-1">
-                <span
-                  className="block font-display text-xs font-bold leading-tight truncate"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {b.tournamentName}
+      <div className="profile-hscroll">
+        <div className="profile-hrow gap-2">
+          {badges.map((b) => {
+            const m = medalFor(b.rank)
+            return (
+              <button
+                key={`${b.tournamentCode}-${b.rank}`}
+                onClick={() => setOpen(b)}
+                className="inline-flex items-center gap-2 px-3 py-2 text-left transition-opacity hover:opacity-90"
+                style={{
+                  background: `color-mix(in srgb, ${m.color} 12%, var(--bg))`,
+                  border: `1px solid color-mix(in srgb, ${m.color} 38%, transparent)`,
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  width: 190,
+                }}
+                title={`${m.place} of ${b.playersCount} - ${b.tournamentName}`}
+              >
+                <Medal size={18} style={{ color: m.color, flexShrink: 0 }} />
+                <span className="min-w-0 flex-1">
+                  <span
+                    className="block font-display text-xs font-bold leading-tight truncate"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {b.tournamentName}
+                  </span>
+                  <span className="block text-[11px] font-semibold" style={{ color: m.color }}>
+                    {m.place}
+                    {b.playersCount > 0 ? (
+                      <span style={{ color: 'var(--text-muted)' }}> of {b.playersCount}</span>
+                    ) : null}
+                  </span>
                 </span>
-                <span className="block text-[11px] font-semibold" style={{ color: m.color }}>
-                  {m.place}
-                  {b.playersCount > 0 ? (
-                    <span style={{ color: 'var(--text-muted)' }}> of {b.playersCount}</span>
-                  ) : null}
-                </span>
-              </span>
-            </button>
-          )
-        })}
+              </button>
+            )
+          })}
+        </div>
       </div>
-
-      {badges.length > CAP && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-2 text-[11px] font-bold uppercase tracking-wider transition-opacity hover:opacity-80"
-          style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
-        >
-          {expanded ? 'Show less' : `Show ${hiddenCount} more`}
-        </button>
-      )}
 
       {open && <BadgeResultModal badge={open} onClose={() => setOpen(null)} />}
     </div>
@@ -191,7 +174,7 @@ function BadgeResultModal({ badge, onClose }: { badge: TournamentBadge; onClose:
   const standings = snapshot?.standings ?? []
 
   return (
-    <ModalPortal onClose={onClose} label="Tournament results" maxWidth={440}>
+    <ModalPortal onClose={onClose} label="Tournament results" maxWidth={460}>
       <div
         style={{
           height: 4,

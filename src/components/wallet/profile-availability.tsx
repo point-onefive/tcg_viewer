@@ -31,21 +31,23 @@ function Chips({ hours, fromTz, toTz }: { hours: number[]; fromTz: string; toTz:
     (a, b) => a - b,
   )
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {viewerHours.map((hour) => (
-        <span
-          key={hour}
-          className="inline-flex items-baseline px-2 py-1 text-xs font-semibold tabular-nums"
-          style={{
-            borderRadius: 6,
-            background: 'var(--bg)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          {hourLabel(hour)}
-        </span>
-      ))}
+    <div className="profile-hscroll">
+      <div className="profile-hrow gap-1.5">
+        {viewerHours.map((hour) => (
+          <span
+            key={hour}
+            className="inline-flex items-baseline px-2 py-1 text-xs font-semibold tabular-nums"
+            style={{
+              borderRadius: 6,
+              background: 'var(--bg)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            {hourLabel(hour)}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
@@ -66,7 +68,7 @@ export function ProfileAvailability({ availability }: { availability: Availabili
   const allHours = [...new Set([...(a.weekday ?? []), ...(a.weekend ?? [])])].sort((x, y) => x - y)
 
   return (
-    <div className="mt-6">
+    <div className="mt-5">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-2.5">
         <Clock size={15} style={{ color: '#7933bc' }} />
         <h3 className="font-display text-sm font-bold uppercase tracking-wider">Availability</h3>
