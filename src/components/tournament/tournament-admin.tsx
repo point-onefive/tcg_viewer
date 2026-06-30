@@ -686,30 +686,18 @@ export function TournamentAdmin() {
                   )}
 
                   {status === 'running' && (
-                    <>
-                      <div
-                        className="mt-4 flex items-center gap-2 px-3 py-2.5"
-                        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
-                      >
-                        <Swords size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
-                        <span className="text-sm font-semibold">
-                          Round {activeRound?.number ?? roundsPlayed} of {totalRounds} in progress
-                        </span>
-                        <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
-                          Declare results below ↓
-                        </span>
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <AdminBtn disabled={busy} onClick={() => setConfirmEnd(true)}>
-                          <Crown size={14} style={{ marginRight: 6, marginTop: -2, display: 'inline' }} />
-                          End tournament &amp; reveal podium
-                        </AdminBtn>
-                        <span className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                          Locks standings now and shows the podium. The next-event waitlist stays
-                          open. No new sign-ups start until you start a fresh event.
-                        </span>
-                      </div>
-                    </>
+                    <div
+                      className="mt-4 flex items-center gap-2 px-3 py-2.5"
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+                    >
+                      <Swords size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+                      <span className="text-sm font-semibold">
+                        Round {activeRound?.number ?? roundsPlayed} of {totalRounds} in progress
+                      </span>
+                      <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+                        Declare results below ↓
+                      </span>
+                    </div>
                   )}
 
                   {status === 'complete' && (
@@ -775,6 +763,31 @@ export function TournamentAdmin() {
                       </AdminBtn>
                     </span>
                   </div>
+
+                  {status === 'running' && (
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setConfirmEnd(true)}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-60"
+                        style={{
+                          background: 'linear-gradient(180deg, #f5c542 0%, #e0a800 100%)',
+                          color: '#1a1a1a',
+                          border: '1px solid color-mix(in srgb, #e0a800 70%, #000)',
+                          borderRadius: 8,
+                          boxShadow: '0 4px 14px color-mix(in srgb, #f5b301 35%, transparent)',
+                        }}
+                      >
+                        <Crown size={15} />
+                        End tournament &amp; reveal podium
+                      </button>
+                      <span className="text-xs text-center" style={{ color: 'var(--text-muted)', lineHeight: 1.4, maxWidth: 360 }}>
+                        Locks standings now and shows the podium. The next-event waitlist stays open.
+                        No new sign-ups start until you start a fresh event.
+                      </span>
+                    </div>
+                  )}
 
                   {msg && <p className="mt-3 text-sm" style={{ color: '#22c55e' }}>{msg}</p>}
                   {error && (
