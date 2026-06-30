@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Camera, Check, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -923,25 +923,48 @@ export function DeckListArchive({
           {decks.map((p) => (
             <details
               key={p.id}
-              className="rounded-md"
+              className="deck-archive-row rounded-md"
               style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
             >
               <summary
-                className="flex cursor-pointer items-center justify-between gap-3 p-3 text-sm"
+                className="flex cursor-pointer items-center gap-2.5 p-2.5 sm:gap-3 sm:p-3"
                 style={{ listStyle: 'none' }}
               >
-                <span className="flex min-w-0 items-center gap-2">
+                {/* Who: avatar + username (takes the slack, truncates first) */}
+                <span className="flex min-w-0 flex-1 items-center">
                   <XProfileLink
                     handle={p.xHandle || p.displayName}
                     username={p.username}
                     avatarUrl={p.avatarUrl}
                     walletAddress={p.walletAddress}
+                    avatarSize={28}
+                    className="truncate text-sm font-semibold"
                   />
-                  <LeaderChip player={p} />
                 </span>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {deckCardCount(p.deckList ?? '')} cards
-                </span>
+                {/* What they played: leader thumbnail + name (shown on mobile too) */}
+                {p.leaderCardId && (
+                  <span
+                    className="flex min-w-0 shrink items-center gap-1.5"
+                    style={{ maxWidth: '46%' }}
+                    title={p.leaderName ?? p.leaderCardId}
+                  >
+                    <LeaderThumb
+                      image={p.leaderImage}
+                      name={p.leaderName}
+                      cardId={p.leaderCardId}
+                      size={26}
+                    />
+                    <span className="truncate text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                      {p.leaderName ?? p.leaderCardId}
+                    </span>
+                  </span>
+                )}
+                <ChevronDown
+                  size={16}
+                  className="deck-archive-chev shrink-0"
+                  style={{ color: 'var(--text-muted)' }}
+                  aria-hidden
+                />
               </summary>
               <div className="p-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                 <DeckListBlock deckList={p.deckList ?? ''} />
