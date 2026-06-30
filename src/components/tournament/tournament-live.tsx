@@ -3342,6 +3342,9 @@ function BracketMatchCard({
   // as a decided result on the public bracket.
   const decided = match.status === 'confirmed' || match.status === 'bye'
   const winnerId = decided ? match.winnerId : null
+  // A confirmed match with no winner is a draw (Swiss only). Both slots get a
+  // yellow treatment, mirroring the green "W" used for a win.
+  const isDraw = decided && !isBye && match.winnerId === null
   const pub = publicMatchStatus(match.status)
 
   return (
@@ -3355,7 +3358,7 @@ function BracketMatchCard({
       >
         Match {match.number}
       </div>
-      <BracketSlot player={p1} seed={p1?.seed} winner={winnerId === match.player1Id} top />
+      <BracketSlot player={p1} seed={p1?.seed} winner={winnerId === match.player1Id} draw={isDraw} top />
       <div style={{ height: 1, background: 'var(--border-subtle)' }} />
       {isBye ? (
         <div
@@ -3365,7 +3368,7 @@ function BracketMatchCard({
           Bye - advances
         </div>
       ) : (
-        <BracketSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} top={false} />
+        <BracketSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} draw={isDraw} top={false} />
       )}
       {pub && (
         <div
@@ -3392,11 +3395,13 @@ function BracketSlot({
   player,
   seed,
   winner,
+  draw = false,
   top,
 }: {
   player: Player | undefined
   seed: number | null | undefined
   winner: boolean
+  draw?: boolean
   top: boolean
 }) {
   return (
@@ -3405,9 +3410,11 @@ function BracketSlot({
       style={{
         background: winner
           ? 'color-mix(in srgb, #22c55e 12%, var(--bg))'
-          : top
-            ? 'var(--bg)'
-            : 'color-mix(in srgb, var(--text-primary) 3%, var(--bg))',
+          : draw
+            ? 'color-mix(in srgb, #f5b301 12%, var(--bg))'
+            : top
+              ? 'var(--bg)'
+              : 'color-mix(in srgb, var(--text-primary) 3%, var(--bg))',
       }}
     >
       <span
@@ -3437,11 +3444,15 @@ function BracketSlot({
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>TBD</span>
         )}
       </div>
-      {winner && (
+      {winner ? (
         <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#22c55e' }}>
           W
         </span>
-      )}
+      ) : draw ? (
+        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#f5b301' }}>
+          D
+        </span>
+      ) : null}
     </div>
   )
 }
