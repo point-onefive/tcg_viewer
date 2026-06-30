@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Hash, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import { apiTournamentHistory } from '@/lib/tournament/client'
-import { formatXLabel } from '@/lib/tournament/x-handle'
+import { normalizeXHandle } from '@/lib/tournament/x-handle'
+import { PlayerAvatar } from '@/components/wallet/player-avatar'
 import type { CompletedTournamentSummary } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -13,6 +14,24 @@ const card: React.CSSProperties = {
   border: '1px solid var(--border-subtle)',
   borderRadius: 6,
   boxShadow: 'var(--shadow-card)',
+}
+
+function MetaChip({ icon: Icon, children }: { icon: typeof Hash; children: React.ReactNode }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 text-xs font-semibold"
+      style={{
+        background: 'var(--bg)',
+        border: '1px solid var(--border-subtle)',
+        color: 'var(--text-secondary)',
+        borderRadius: 5,
+        padding: '3px 7px',
+      }}
+    >
+      <Icon size={12} style={{ color: 'var(--tcw-accent)' }} aria-hidden />
+      {children}
+    </span>
+  )
 }
 
 function fmtDate(iso: string): string {
@@ -71,52 +90,75 @@ export function TournamentHistory() {
             </p>
           </div>
         ) : (
-          <ul className="flex flex-col gap-2.5">
-            {events.map((e) => (
-              <li key={e.code}>
-                <Link
-                  href={`/tournaments/${encodeURIComponent(e.code)}`}
-                  className="flex items-center gap-4 p-4 transition-colors"
-                  style={{ ...card, textDecoration: 'none', color: 'var(--text-primary)' }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-display text-base font-bold">{e.name}</div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <span
-                        className="inline-flex items-center gap-1 text-xs"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        <Hash size={12} /> {e.code}
-                      </span>
-                      <span
-                        className="inline-flex items-center gap-1 text-xs"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        <Swords size={12} /> {e.format === 'swiss' ? 'Swiss' : 'Single elim'}
-                      </span>
-                      <span
-                        className="inline-flex items-center gap-1 text-xs"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        <Users size={12} /> {e.playerCount}
-                      </span>
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {fmtDate(e.createdAt)}
-                      </span>
-                    </div>
-                    {e.champion && (
-                      <div className="mt-2 inline-flex items-center gap-1.5 text-sm">
-                        <Trophy size={14} style={{ color: '#f5b301' }} aria-hidden />
-                        <span style={{ color: 'var(--text-secondary)' }}>
-                          {formatXLabel(e.champion.xHandle || e.champion.displayName)}
-                        </span>
+          <ul className="flex flex-col gap-3">
+            {events.map((e) => {
+              const champName =
+                e.champion &&
+                (e.champion.username?.trim() ||
+                  normalizeXHandle(e.champion.xHandle || e.champion.displayName))
+              return (
+                <li key={e.code}>
+                  <Link
+                    href={`/tournaments/${encodeURIComponent(e.code)}`}
+                    className="group block overflow-hidden transition-colors hover:border-[color:var(--tcw-accent)]"
+                    style={{ ...card, textDecoration: 'none', color: 'var(--text-primary)' }}
+                  >
+                    <div
+                      style={{
+                        height: 3,
+                        background:
+                          'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 30%, transparent))',
+                      }}
+                    />
+                    <div className="flex items-center gap-4 p-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-display text-base font-bold sm:text-lg">{e.name}</div>
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                          <MetaChip icon={Hash}>{e.code}</MetaChip>
+                          <MetaChip icon={Swords}>{e.format === 'swiss' ? 'Swiss' : 'Single elim'}</MetaChip>
+                          <MetaChip icon={Users}>{e.playerCount}</MetaChip>
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            {fmtDate(e.createdAt)}
+                          </span>
+                        </div>
+                        {e.champion && (
+                          <div
+                            className="mt-3 inline-flex items-center gap-2 rounded-md px-2.5 py-1.5"
+                            style={{
+                              background: 'color-mix(in srgb, #f5b301 10%, var(--bg))',
+                              border: '1px solid color-mix(in srgb, #f5b301 35%, var(--border-subtle))',
+                            }}
+                          >
+                            <Trophy size={13} style={{ color: '#f5b301', flexShrink: 0 }} aria-hidden />
+                            <span
+                              className="text-[10px] font-bold uppercase tracking-widest"
+                              style={{ color: 'var(--text-muted)' }}
+                            >
+                              Champion
+                            </span>
+                            <PlayerAvatar
+                              username={e.champion.username}
+                              xHandle={e.champion.xHandle}
+                              avatarUrl={e.champion.avatarUrl}
+                              walletAddress={e.champion.walletAddress ?? undefined}
+                              size={20}
+                            />
+                            <span className="truncate text-sm font-semibold" style={{ maxWidth: 180 }}>
+                              {champName}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <ChevronRight size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                </Link>
-              </li>
-            ))}
+                      <ChevronRight
+                        size={18}
+                        className="transition-transform group-hover:translate-x-0.5"
+                        style={{ color: 'var(--text-muted)', flexShrink: 0 }}
+                      />
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

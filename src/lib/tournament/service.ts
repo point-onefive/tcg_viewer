@@ -1346,11 +1346,16 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
   const ids = tournaments.map((t) => t.id as string)
   const { data: pRows } = await sb
     .from('players')
-    .select('tournament_id, x_handle, display_name, final_rank, dropped, approval_status')
+    .select('tournament_id, x_handle, display_name, wallet_address, final_rank, dropped, approval_status')
     .in('tournament_id', ids)
 
+  interface ChampRaw {
+    xHandle: string
+    displayName: string
+    walletAddress: string | null
+  }
   const counts = new Map<string, number>()
-  const champions = new Map<string, { xHandle: string; displayName: string }>()
+  const champions = new Map<string, ChampRaw>()
   for (const p of pRows ?? []) {
     const tid = p.tournament_id as string
     const rejected = (p.approval_status ?? 'approved') === 'rejected'
@@ -1359,18 +1364,62 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
       champions.set(tid, {
         xHandle: (p.x_handle as string) ?? '',
         displayName: (p.display_name as string) ?? '',
+        walletAddress: (p.wallet_address as string | null) ?? null,
       })
     }
   }
 
-  return tournaments.map((t) => ({
-    code: t.code as string,
-    name: t.name as string,
-    format: t.format as TournamentFormat,
-    createdAt: t.created_at as string,
-    playerCount: counts.get(t.id as string) ?? 0,
-    champion: champions.get(t.id as string) ?? null,
-  }))
+  // Enrich champions with their profile identity (username + avatar) so the
+  // archive list reads like the rest of the site: avatar prepended to the name.
+  const champList = [...champions.values()]
+  const addrs = [...new Set(champList.map((c) => c.walletAddress?.toLowerCase()).filter((a): a is string => !!a))]
+  const handles = [...new Set(champList.map((c) => c.xHandle?.toLowerCase()).filter((h): h is string => !!h))]
+  const byWallet = new Map<string, { username: string | null; avatarUrl: string | null }>()
+  const byHandle = new Map<string, { username: string | null; avatarUrl: string | null }>()
+  const ingest = (rows: Record<string, unknown>[] | null) => {
+    for (const r of rows ?? []) {
+      const rec = {
+        username: (r.username as string | null) ?? null,
+        avatarUrl: (r.avatar_url as string | null) ?? null,
+      }
+      const w = r.wallet_address as string | null
+      const h = r.x_handle as string | null
+      if (w) byWallet.set(w.toLowerCase(), rec)
+      if (h) byHandle.set(h.toLowerCase(), rec)
+    }
+  }
+  try {
+    const cols = 'wallet_address, username, x_handle, avatar_url'
+    if (addrs.length) ingest((await sb.from('wallet_profiles').select(cols).in('wallet_address', addrs)).data as Record<string, unknown>[] | null)
+    if (handles.length) ingest((await sb.from('wallet_profiles').select(cols).in('x_handle', handles)).data as Record<string, unknown>[] | null)
+  } catch {
+    // Best-effort: a missing profile just falls back to the handle.
+  }
+
+  return tournaments.map((t) => {
+    const champ = champions.get(t.id as string) ?? null
+    const rec = champ
+      ? (champ.walletAddress && byWallet.get(champ.walletAddress.toLowerCase())) ||
+        (champ.xHandle && byHandle.get(champ.xHandle.toLowerCase())) ||
+        null
+      : null
+    return {
+      code: t.code as string,
+      name: t.name as string,
+      format: t.format as TournamentFormat,
+      createdAt: t.created_at as string,
+      playerCount: counts.get(t.id as string) ?? 0,
+      champion: champ
+        ? {
+            xHandle: champ.xHandle,
+            displayName: champ.displayName,
+            walletAddress: champ.walletAddress,
+            username: rec?.username ?? null,
+            avatarUrl: rec?.avatarUrl ?? null,
+          }
+        : null,
+    }
+  })
 }
 
 /**

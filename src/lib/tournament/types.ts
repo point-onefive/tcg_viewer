@@ -315,5 +315,11 @@ export interface CompletedTournamentSummary {
   /** Headcount of non-dropped, approved entrants. */
   playerCount: number
   /** The 1st-place finisher, when standings were locked; null otherwise. */
-  champion: { xHandle: string; displayName: string } | null
+  champion: {
+    xHandle: string
+    displayName: string
+    walletAddress: string | null
+    username: string | null
+    avatarUrl: string | null
+  } | null
 }

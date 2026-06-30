@@ -884,6 +884,76 @@ export function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
   )
 }
 
+/**
+ * Public deck archive for a finished event: one collapsible row per competitor
+ * whose deck list published (lists go public on completion), ordered by final
+ * placing so the winning decks lead. Shared by the live completed view and the
+ * past-events page so both read identically.
+ */
+export function DeckListArchive({
+  players,
+  standings,
+}: {
+  players: Player[]
+  standings: StandingRow[]
+}) {
+  const decks = useMemo(() => {
+    const byId = new Map(players.map((p) => [p.id, p]))
+    return [...standings]
+      .sort((a, b) => a.rank - b.rank)
+      .map((s) => byId.get(s.playerId))
+      .filter((p): p is Player => Boolean(p && p.deckList && p.deckList.trim() !== ''))
+  }, [players, standings])
+
+  return (
+    <div className="mt-6 p-5" style={card}>
+      <div className="mb-1 flex items-center gap-2">
+        <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
+        <h3 className="font-display font-bold">Deck lists</h3>
+      </div>
+      <p className="mb-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+        Deck lists stay private during play and are published once the event ends. Ordered by final placing.
+      </p>
+      {decks.length === 0 ? (
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+          No deck lists were published for this event.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {decks.map((p) => (
+            <details
+              key={p.id}
+              className="rounded-md"
+              style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
+            >
+              <summary
+                className="flex cursor-pointer items-center justify-between gap-3 p-3 text-sm"
+                style={{ listStyle: 'none' }}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <XProfileLink
+                    handle={p.xHandle || p.displayName}
+                    username={p.username}
+                    avatarUrl={p.avatarUrl}
+                    walletAddress={p.walletAddress}
+                  />
+                  <LeaderChip player={p} />
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {deckCardCount(p.deckList ?? '')} cards
+                </span>
+              </summary>
+              <div className="p-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                <DeckListBlock deckList={p.deckList ?? ''} />
+              </div>
+            </details>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Win / Loss (/ Draw for Swiss) report buttons shared across card states. */
 function ReportButtons({
   busy,
@@ -2543,6 +2613,23 @@ export function TournamentLive() {
           players={snapshot.players}
           activeRound={activeRound}
         />
+      )}
+
+      {/* Final standings for single-elim: the bracket has no standings list, so
+          add the same table the past-events page shows. Swiss already renders
+          its final standings inside the round board above. */}
+      {tournament.status === 'complete' &&
+        tournament.format === 'single-elim' &&
+        snapshot.standings.length > 0 && (
+          <div className="mt-6">
+            <StandingsTable standings={snapshot.standings} nameById={playerById} complete />
+          </div>
+        )}
+
+      {/* Published deck archive (mirrors the past-events page). Lists go public
+          on completion, so this only renders once the event is done. */}
+      {tournament.status === 'complete' && (
+        <DeckListArchive players={snapshot.players} standings={snapshot.standings} />
       )}
 
       {/* Self-drop: a signed-up player can remove themselves from the event. */}

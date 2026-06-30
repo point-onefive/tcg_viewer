@@ -2,12 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, Hash, ListChecks, Loader2, Swords, Trophy, Users } from 'lucide-react'
+import { ChevronLeft, Hash, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { AwardedPrizesHistory, LeaderChip, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
+import { AwardedPrizesHistory, DeckListArchive, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
-import { DeckListBlock } from './deck-list-block'
-import { deckCardCount } from '@/lib/tournament/deck-list'
 import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -94,15 +92,6 @@ export function PastTournamentView({ code }: { code: string }) {
     () => [...(snapshot?.standings ?? [])].sort((a, b) => a.rank - b.rank),
     [snapshot],
   )
-
-  // Competitors whose now-public deck lists are published (lists publish on
-  // completion). Ordered by final placing so the winning decks lead.
-  const decks = useMemo(() => {
-    const order = [...(snapshot?.standings ?? [])].sort((a, b) => a.rank - b.rank)
-    return order
-      .map((s) => playerById.get(s.playerId))
-      .filter((p): p is Player => Boolean(p && p.deckList && p.deckList.trim() !== ''))
-  }, [snapshot, playerById])
 
   if (error) {
     return (
@@ -232,53 +221,9 @@ export function PastTournamentView({ code }: { code: string }) {
           </div>
         )}
 
-        {/* Public deck archive - the metagame record for this event. */}
-        <div className="mt-6 p-5" style={card}>
-          <div className="mb-1 flex items-center gap-2">
-            <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
-            <h3 className="font-display font-bold">Deck lists</h3>
-          </div>
-          <p className="mb-4 text-xs" style={{ color: 'var(--text-muted)' }}>
-            Deck lists stay private during play and are published once the event
-            ends. Ordered by final placing.
-          </p>
-          {decks.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              No deck lists were published for this event.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {decks.map((p) => (
-                <details
-                  key={p.id}
-                  className="rounded-md"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
-                >
-                  <summary
-                    className="flex cursor-pointer items-center justify-between gap-3 p-3 text-sm"
-                    style={{ listStyle: 'none' }}
-                  >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <XProfileLink
-                        handle={p.xHandle || p.displayName}
-                        username={p.username}
-                        avatarUrl={p.avatarUrl}
-                        walletAddress={p.walletAddress}
-                      />
-                      <LeaderChip player={p} />
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {deckCardCount(p.deckList ?? '')} cards
-                    </span>
-                  </summary>
-                  <div className="p-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                    <DeckListBlock deckList={p.deckList ?? ''} />
-                  </div>
-                </details>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Public deck archive - the metagame record for this event. Shared with
+            the live completed view so both stay identical. */}
+        <DeckListArchive players={snapshot.players} standings={standings} />
       </div>
     </TournamentShell>
   )
