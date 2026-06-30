@@ -14,16 +14,19 @@ export function RegionPicker({
   disabled = false,
   label = 'Region',
   hint,
+  centered = false,
 }: {
   value: Region | null
   onChange: (region: Region) => void
   disabled?: boolean
   label?: string
   hint?: string
+  /** Center the label + hint (for centered layouts like the waitlist card). */
+  centered?: boolean
 }) {
   return (
     <div>
-      <div className="flex items-center gap-1.5 mb-1.5">
+      <div className={`flex items-center gap-1.5 mb-1.5 ${centered ? 'justify-center' : ''}`}>
         <Globe size={13} style={{ color: 'var(--text-muted)' }} />
         <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
           {label}
@@ -67,7 +70,7 @@ export function RegionPicker({
         })}
       </div>
       {hint && (
-        <p className="text-[11px] mt-1.5" style={{ color: 'var(--text-muted)' }}>
+        <p className={`text-[11px] mt-1.5 ${centered ? 'text-center' : ''}`} style={{ color: 'var(--text-muted)' }}>
           {hint}
         </p>
       )}

@@ -239,6 +239,7 @@ export function WaitlistCard({ note }: { note?: string }) {
           onChange={setRegion}
           disabled={busy}
           hint="Helps us plan events around your time zone."
+          centered
         />
       </div>
       <div className="mt-4 flex justify-center">
