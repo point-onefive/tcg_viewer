@@ -36,6 +36,18 @@ export function isManagedAvatarUrl(url: string | null | undefined): boolean {
   return /^https:\/\/[^/]+\/avatars\//i.test(url)
 }
 
+/**
+ * True when a URL is an X/Twitter PROFILE PAGE (e.g. https://x.com/handle), not
+ * an image. People naturally paste their profile link into the avatar field;
+ * storing it as the avatar yields a broken <img> (it's an HTML page). We detect
+ * and ignore these so the avatar falls back to the handle-derived image. Note:
+ * the real image host (pbs.twimg.com) is intentionally NOT matched here.
+ */
+export function isSocialProfileUrl(url: string | null | undefined): boolean {
+  if (!url) return false
+  return /^https?:\/\/(www\.)?(x\.com|twitter\.com)\//i.test(url.trim())
+}
+
 /** Initials shown when no avatar image is available. */
 export function avatarInitials(source: { username?: string | null; walletAddress?: string }): string {
   const name = source.username?.trim()

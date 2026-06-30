@@ -8,7 +8,7 @@ import {
   normalizeXHandle,
   linkPlayersByXHandle,
 } from '@/lib/wallet/db'
-import { resolveAvatarUrl, isManagedAvatarUrl } from '@/lib/wallet/avatar'
+import { resolveAvatarUrl, isManagedAvatarUrl, isSocialProfileUrl } from '@/lib/wallet/avatar'
 import { snapshotAvatarToR2 } from '@/lib/wallet/avatar-snapshot'
 import { type Availability, sanitizeAvailability } from '@/lib/wallet/availability'
 import { type Region, sanitizeRegion } from '@/lib/tournament/region'
@@ -79,8 +79,13 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
   // so the app never hits unavatar at view time (which rate-limits and does not
   // scale). A user-supplied custom URL is stored as-is and not re-hosted.
   if ('avatarUrl' in body || 'xHandle' in body) {
+    // A custom override is honored only if it's a real image URL. An X/Twitter
+    // PROFILE URL (the link people instinctively paste) is not an image, so we
+    // ignore it and fall through to deriving the avatar from their handle.
     const customUrl =
-      body.avatarUrl && !isManagedAvatarUrl(body.avatarUrl) ? body.avatarUrl : null
+      body.avatarUrl && !isManagedAvatarUrl(body.avatarUrl) && !isSocialProfileUrl(body.avatarUrl)
+        ? body.avatarUrl
+        : null
 
     if (customUrl) {
       // Explicit override the user pasted - keep their URL untouched.
