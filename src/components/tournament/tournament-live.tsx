@@ -468,14 +468,14 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
             const winners = winnersBySlot.get(i) ?? []
             if (winners.length === 0) return null
             return (
-              <div className="flex flex-col gap-1 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <div className="flex flex-col gap-1.5 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                 <span className="bonk-mono text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: 'var(--tcw-accent)' }}>
                   {winners.length > 1 ? 'Winners' : 'Winner'}
                 </span>
                 {winners.map((w) => (
-                  <span key={w.id} className="text-xs font-semibold">
+                  <span key={w.id} className="text-sm font-bold">
                     {w.xHandle ? (
-                      <XProfileLink handle={w.xHandle} />
+                      <XProfileLink handle={w.xHandle} avatarSize={30} className="text-sm font-bold" />
                     ) : (
                       <span style={{ color: 'var(--text-primary)' }}>{w.displayName ?? 'Player'}</span>
                     )}
@@ -2293,20 +2293,10 @@ export function TournamentLive() {
   return (
     <TournamentShell hero={<BonkHero />} bonk>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
-      {/* Global leaderboard across all tournaments */}
+      {/* Global leaderboard across all tournaments. The archive of finished
+          events (Past events) now lives in the leaderboard's footer row, so it
+          reads as a deliberate companion action instead of floating loose. */}
       <Leaderboard />
-
-      {/* Archive of finished events (final standings + published deck lists). */}
-      <div className="mb-6 flex justify-end">
-        <Link
-          href="/tournaments/history"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
-          style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
-        >
-          <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Past events
-          <ChevronRight size={15} aria-hidden />
-        </Link>
-      </div>
 
       {/* Next-event waitlist. Shown when the current event is not actively
           enrolling, OR when it is enrolling but already full - either way new

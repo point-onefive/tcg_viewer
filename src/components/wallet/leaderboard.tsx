@@ -6,7 +6,8 @@
 // menu's "View profile" modal - rather than navigating to a new page.
 
 import { useEffect, useState } from 'react'
-import { Loader2, Medal, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { Loader2, Medal, ChevronDown, ChevronRight, Trophy } from 'lucide-react'
 import { fetchLeaderboard } from '@/lib/wallet/api-client'
 import type { WalletStanding } from '@/lib/wallet/db'
 import { PlayerAvatar } from './player-avatar'
@@ -281,14 +282,32 @@ export function Leaderboard() {
               )}
             </div>
           )}
-          <p
-            className="px-4 py-2.5 text-[11px]"
-            style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)', lineHeight: 1.5 }}
-          >
-            Win rate counts confirmed match results only. Byes are not included.
-          </p>
         </>
       )}
+
+      {/* Footer: the win-rate caveat (when populated) plus the Past events
+          archive link. Keeping the link here ties the two standings/archive
+          surfaces together and avoids a loose, right-floating element on the
+          page. Renders in every state except a hard API error (which hides the
+          whole section). */}
+      <div
+        className="flex items-center justify-between gap-3 px-4 py-2.5"
+        style={{ borderTop: '1px solid var(--border-subtle)' }}
+      >
+        <p className="text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {standings && standings.length > 0
+            ? 'Win rate counts confirmed match results only. Byes are not included.'
+            : '\u00A0'}
+        </p>
+        <Link
+          href="/tournaments/history"
+          className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-bold transition-opacity hover:opacity-80"
+          style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+        >
+          <Trophy size={14} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Past events
+          <ChevronRight size={13} aria-hidden />
+        </Link>
+      </div>
 
       {selected && (
         <PlayerProfileView standing={selected} onClose={() => setSelected(null)} />
