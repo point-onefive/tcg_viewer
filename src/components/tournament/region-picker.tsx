@@ -6,8 +6,10 @@
 // region is the caller's job (pass it in as `value`).
 //
 // Labels are the compact acronyms (AMER / EMEA / APAC). The full name + a
-// one-line description live in a tooltip: hover on desktop, long-press on
-// mobile (a normal tap still selects). Native `title` is kept as a fallback.
+// one-line description live in a single accent-colored tooltip: hover on
+// desktop, long-press on mobile (a normal tap still selects). We deliberately
+// avoid the native `title` attribute so the browser's own tooltip doesn't
+// double up with ours.
 
 import { useEffect, useRef, useState } from 'react'
 import { Globe } from 'lucide-react'
@@ -90,19 +92,19 @@ export function RegionPicker({
                   maxWidth: 180,
                   padding: '6px 9px',
                   borderRadius: 8,
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  boxShadow: 'var(--shadow-card)',
+                  background: 'var(--tcw-accent)',
+                  border: '1px solid color-mix(in srgb, var(--tcw-accent) 70%, #000)',
+                  boxShadow: '0 6px 18px color-mix(in srgb, var(--tcw-accent) 45%, transparent)',
                   pointerEvents: 'none',
                   opacity: showTip ? 1 : 0,
                   transition: 'opacity 120ms ease',
                   lineHeight: 1.3,
                 }}
               >
-                <span className="block font-display font-bold text-xs" style={{ color: 'var(--text-primary)' }}>
+                <span className="block font-display font-bold text-xs" style={{ color: '#fff' }}>
                   {r.label}
                 </span>
-                <span className="block text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                <span className="block text-[10px]" style={{ color: 'rgba(255,255,255,0.85)' }}>
                   {r.blurb}
                 </span>
               </span>
@@ -136,7 +138,6 @@ export function RegionPicker({
                 onTouchEnd={clearPress}
                 onTouchMove={clearPress}
                 onContextMenu={(e) => e.preventDefault()}
-                title={`${r.label} - ${r.blurb}`}
                 aria-label={`${r.label} (${r.short})`}
                 aria-pressed={active}
                 className="flex items-center justify-center text-center w-full px-2 transition-colors"
