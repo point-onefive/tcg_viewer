@@ -19,6 +19,7 @@ import {
   adminSetResult,
   adminStartBracket,
   adminStartFresh,
+  adminEndTournament,
   enroll,
   recomputeAllPlacements,
   TournamentError,
@@ -47,6 +48,7 @@ type Body =
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
   | { action: 'award-prizes'; code: string; assignments: { slotIndex: number; playerIds: string[] }[] }
   | { action: 'start-bracket'; code: string }
+  | { action: 'end-tournament'; code: string }
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
   | { action: 'set-poll'; code: string; open: boolean }
   | { action: 'set-poll-config'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
@@ -118,6 +120,9 @@ export async function POST(request: Request) {
       }
       case 'start-bracket':
         await adminStartBracket(body.code)
+        return ok({ ok: true })
+      case 'end-tournament':
+        await adminEndTournament(body.code)
         return ok({ ok: true })
       case 'set-result':
         await adminSetResult(body.code, body.matchId, body.result)

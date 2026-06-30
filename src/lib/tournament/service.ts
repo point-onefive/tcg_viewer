@@ -1804,6 +1804,51 @@ export async function adminStartBracket(code: string): Promise<void> {
   await generateFirstRound(row)
 }
 
+/**
+ * Manually finalize a running tournament: lock standings as they stand right
+ * now, mark it complete, and auto-award prizes (unless a prize-winning spot is
+ * an unresolved tie, in which case the host awards manually). This is the same
+ * end-state the engine reaches on its own after the last round, exposed as a
+ * host control so the operator can reveal the podium on their own schedule.
+ *
+ * It does NOT start a new event or touch the waitlist, so the public page sits
+ * on the podium showcase (waitlist still open for the next event) until the
+ * host explicitly starts fresh. Any unreported matches in the current round are
+ * locked as-is, so the host should only use this once results are settled.
+ */
+export async function adminEndTournament(code: string): Promise<void> {
+  const row = await requireHost(code)
+  if (row.status === 'complete') return // already finalized - idempotent
+  if (row.status !== 'running') {
+    throw new TournamentError('Only a running tournament can be ended. Start round 1 first.')
+  }
+  const sb = getServiceClient()
+
+  // HARDENING: lock the result set so the podium can't shift after we freeze it.
+  // The cron sweep auto-confirms any match still in `reported` (a single-sided
+  // report) regardless of tournament status. If we finalized while such a match
+  // was outstanding, computeStandings would exclude it now (only `confirmed` /
+  // `bye` count) but a later sweep could confirm it and move the podium. So we
+  // confirm the provisional winner that was already stored at report time, up
+  // front, making those matches terminal. `pending` (zero reports) and
+  // `disputed` matches are inert here: the sweep never touches them and they
+  // don't count toward standings, so the frozen podium stays put.
+  await sb
+    .from('matches')
+    .update({ status: 'confirmed', resolved_at: nowIso() })
+    .eq('tournament_id', row.id)
+    .eq('status', 'reported')
+
+  // Close any still-open round so the lifecycle stays consistent (no round left
+  // dangling as "active" once the tournament reads complete).
+  await sb.from('rounds').update({ status: 'complete' }).eq('tournament_id', row.id).neq('status', 'complete')
+
+  // Recompute from the now-locked match set so the persisted placements and
+  // awarded prizes match exactly what the public podium will render.
+  const [players, allMatches] = await Promise.all([fetchPlayers(row.id), fetchMatches(row.id)])
+  await finalizeTournament(row.id, players, allMatches)
+}
+
 /** Open or close the prize-distribution poll to new votes. */
 export async function adminSetPollOpen(code: string, open: boolean): Promise<void> {
   const sb = getServiceClient()

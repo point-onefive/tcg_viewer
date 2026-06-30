@@ -156,6 +156,9 @@ export function TournamentAdmin() {
     format: 'swiss' | 'single-elim'
     maxPlayers: number
   } | null>(null)
+  // Same fat-finger guard for ending a running event: confirm before we lock
+  // standings and flip the public page to the podium showcase.
+  const [confirmEnd, setConfirmEnd] = useState(false)
 
   // Which participant bucket the table is showing. Defaults to "all" so an
   // approve/reject never makes a row vanish - it just restyles in place.
@@ -306,6 +309,11 @@ export function TournamentAdmin() {
         .sort((a, b) => a.number - b.number),
     [snapshot?.matches, activeRound],
   )
+  // Matches in the active round that have no confirmed result yet - surfaced in
+  // the "end tournament" confirm so the host knows what gets frozen.
+  const openMatchCount = activeMatches.filter(
+    (m) => m.status !== 'confirmed' && m.status !== 'bye',
+  ).length
   const roundsPlayed = snapshot?.rounds.length ?? 0
   const totalRounds =
     snapshot?.tournament.format === 'single-elim'
@@ -544,6 +552,61 @@ export function TournamentAdmin() {
               </div>
             )}
 
+            {confirmEnd && snapshot && code && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Confirm end tournament"
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+                style={{ background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(4px)' }}
+                onClick={() => setConfirmEnd(false)}
+              >
+                <div className="w-full max-w-md p-5" style={{ ...card, borderRadius: 12 }} onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <Crown size={18} style={{ color: '#f5b301', flexShrink: 0 }} />
+                    <h3 className="font-display font-bold">End the tournament now?</h3>
+                  </div>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    This locks the current standings for <strong>{snapshot.tournament.name}</strong>,
+                    reveals the final podium, and auto-awards prizes by placement (any unresolved
+                    tie on a prize spot is left for you to award manually).
+                  </p>
+                  {openMatchCount > 0 && (
+                    <p
+                      className="text-sm mt-2 flex items-start gap-1.5 rounded-md px-3 py-2"
+                      style={{ color: 'var(--text-primary)', background: 'rgba(245,179,1,0.12)', border: '1px solid rgba(245,179,1,0.45)', lineHeight: 1.5 }}
+                    >
+                      <AlertTriangle size={15} style={{ color: '#f5b301', flexShrink: 0, marginTop: 1 }} />
+                      <span>
+                        {openMatchCount} match{openMatchCount === 1 ? '' : 'es'} in the current round
+                        {openMatchCount === 1 ? ' is' : ' are'} still open. Any single-sided report is
+                        locked to its reported winner; matches with no result are frozen unplayed.
+                      </span>
+                    </p>
+                  )}
+                  <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    The next-event waitlist stays open. No new sign-ups begin until you start a fresh
+                    event.
+                  </p>
+                  <div className="mt-4 flex gap-2 justify-end">
+                    <AdminBtn disabled={busy} onClick={() => setConfirmEnd(false)}>Cancel</AdminBtn>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setConfirmEnd(false)
+                        run(() => adminApi(adminKey, { action: 'end-tournament', code }).then(() => setMsg('Tournament ended - podium is live')))
+                      }}
+                      className="footer-btn py-2 px-4 text-sm font-bold"
+                      style={{ background: '#f5b301', color: '#1a1a1a', borderRadius: 6 }}
+                    >
+                      {busy ? 'Working…' : 'End & reveal podium'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {snapshot && code && (
               <>
                 <div className="p-5" style={tintedCard('#64748b')}>
@@ -623,18 +686,30 @@ export function TournamentAdmin() {
                   )}
 
                   {status === 'running' && (
-                    <div
-                      className="mt-4 flex items-center gap-2 px-3 py-2.5"
-                      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
-                    >
-                      <Swords size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
-                      <span className="text-sm font-semibold">
-                        Round {activeRound?.number ?? roundsPlayed} of {totalRounds} in progress
-                      </span>
-                      <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
-                        Declare results below ↓
-                      </span>
-                    </div>
+                    <>
+                      <div
+                        className="mt-4 flex items-center gap-2 px-3 py-2.5"
+                        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+                      >
+                        <Swords size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+                        <span className="text-sm font-semibold">
+                          Round {activeRound?.number ?? roundsPlayed} of {totalRounds} in progress
+                        </span>
+                        <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+                          Declare results below ↓
+                        </span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <AdminBtn disabled={busy} onClick={() => setConfirmEnd(true)}>
+                          <Crown size={14} style={{ marginRight: 6, marginTop: -2, display: 'inline' }} />
+                          End tournament &amp; reveal podium
+                        </AdminBtn>
+                        <span className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                          Locks standings now and shows the podium. The next-event waitlist stays
+                          open. No new sign-ups start until you start a fresh event.
+                        </span>
+                      </div>
+                    </>
                   )}
 
                   {status === 'complete' && (
