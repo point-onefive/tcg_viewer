@@ -16,8 +16,9 @@ import { BonkModuleHeader, BonkModalClose } from '@/components/tournament/bonk-u
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
-import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
+import { formatXLabel, normalizeXHandle, xProfileUrl } from '@/lib/tournament/x-handle'
 import { REGIONS, regionShort, type Region } from '@/lib/tournament/region'
+import { PlayerAvatar } from '@/components/wallet/player-avatar'
 import {
   DEFAULT_POLL_QUESTION,
   POLL_OPTIONS,
@@ -2388,8 +2389,17 @@ function ParticipantRow({
       }}
     >
       <div className="flex items-center gap-2 min-w-0">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-          {formatXLabel(player.xHandle)}
+        <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
+          <PlayerAvatar
+            username={player.username}
+            xHandle={player.xHandle}
+            avatarUrl={player.avatarUrl}
+            walletAddress={player.walletAddress ?? undefined}
+            size={22}
+          />
+          <span className="truncate" style={{ minWidth: 0 }}>
+            {(player.username && player.username.trim()) || normalizeXHandle(player.xHandle)}
+          </span>
           <ExternalLink size={11} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.7 }} />
         </a>
         <RegionTag region={player.region} />

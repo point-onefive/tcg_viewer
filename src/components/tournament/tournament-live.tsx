@@ -31,9 +31,10 @@ import { type Region } from '@/lib/tournament/region'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
 import { PlayerProfileView } from '@/components/wallet/player-profile-view'
+import { PlayerAvatar } from '@/components/wallet/player-avatar'
 import { fetchProfileByHandle, type WalletStanding } from '@/lib/wallet/api-client'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
-import { formatXLabel, xProfileUrl } from '@/lib/tournament/x-handle'
+import { formatXLabel, normalizeXHandle, xProfileUrl } from '@/lib/tournament/x-handle'
 import { computeStandings, recommendedSwissRounds } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
@@ -84,14 +85,29 @@ function useCountdown(iso: string | null) {
  */
 export function XProfileLink({
   handle,
+  username,
+  avatarUrl,
+  walletAddress,
   className,
   color,
+  showAvatar = true,
+  avatarSize = 22,
 }: {
   handle: string
+  /** Resolved profile username; preferred over the handle when present. */
+  username?: string | null
+  /** Resolved profile avatar (R2); falls back to the handle's avatar. */
+  avatarUrl?: string | null
+  walletAddress?: string | null
   className?: string
   color?: string
+  /** Prepend the avatar (leaderboard style). On by default. */
+  showAvatar?: boolean
+  avatarSize?: number
 }) {
   const [open, setOpen] = useState(false)
+  // Leaderboard format: username when set, else the bare handle (no "@").
+  const name = (username && username.trim()) || normalizeXHandle(handle)
   return (
     <>
       <button
@@ -102,8 +118,8 @@ export function XProfileLink({
           e.stopPropagation()
           setOpen(true)
         }}
-        className={className}
         title="View profile"
+        className="inline-flex items-center gap-1.5 min-w-0 max-w-full"
         style={{
           color: color ?? 'var(--text-primary)',
           fontWeight: 600,
@@ -113,11 +129,19 @@ export function XProfileLink({
           margin: 0,
           font: 'inherit',
           textAlign: 'left',
-          maxWidth: '100%',
           cursor: 'pointer',
         }}
       >
-        {formatXLabel(handle)}
+        {showAvatar && (
+          <PlayerAvatar
+            username={username}
+            xHandle={handle}
+            avatarUrl={avatarUrl}
+            walletAddress={walletAddress ?? undefined}
+            size={avatarSize}
+          />
+        )}
+        <span className={className} style={{ minWidth: 0 }}>{name}</span>
       </button>
       {open && <ProfileLookupModal handle={handle} onClose={() => setOpen(false)} />}
     </>
@@ -1007,7 +1031,14 @@ function MyMatchCard({
     <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
       vs{' '}
       {opponent ? (
-        <XProfileLink handle={opponent.xHandle} className="font-semibold" />
+        <XProfileLink
+          handle={opponent.xHandle}
+          username={opponent.username}
+          avatarUrl={opponent.avatarUrl}
+          walletAddress={opponent.walletAddress}
+          avatarSize={20}
+          className="font-semibold"
+        />
       ) : (
         <span className="font-semibold">{oppLabel}</span>
       )}
@@ -2789,7 +2820,14 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                   </td>
                   <td className="py-2 px-2 min-w-0">
                     <span className="inline-flex items-center gap-1.5">
-                      <XProfileLink handle={nameById.get(s.playerId)?.xHandle ?? s.displayName} className="truncate font-semibold" />
+                      <XProfileLink
+                        handle={player?.xHandle ?? s.displayName}
+                        username={player?.username}
+                        avatarUrl={player?.avatarUrl}
+                        walletAddress={player?.walletAddress}
+                        avatarSize={20}
+                        className="truncate font-semibold"
+                      />
                       {s.dropped && (
                         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>dropped</span>
                       )}
@@ -2908,7 +2946,15 @@ function ElimBracket({
               style={{ background: 'color-mix(in srgb, #f5b301 22%, #17001c)', border: '1px solid color-mix(in srgb, #f5b301 55%, transparent)', borderRadius: 8 }}
             >
               <Trophy size={15} style={{ color: '#f5b301' }} />
-              <XProfileLink handle={champion.xHandle} className="text-sm font-bold" color="#fff" />
+              <XProfileLink
+                handle={champion.xHandle}
+                username={champion.username}
+                avatarUrl={champion.avatarUrl}
+                walletAddress={champion.walletAddress}
+                avatarSize={22}
+                className="text-sm font-bold"
+                color="#fff"
+              />
               <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 Champion
               </span>
@@ -3150,7 +3196,14 @@ function ElimSlot({
       </span>
       <div className="min-w-0 flex-1">
         {player ? (
-          <XProfileLink handle={player.xHandle} className="text-[13px] truncate block" />
+          <XProfileLink
+            handle={player.xHandle}
+            username={player.username}
+            avatarUrl={player.avatarUrl}
+            walletAddress={player.walletAddress}
+            avatarSize={20}
+            className="text-[13px] truncate block"
+          />
         ) : (
           <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>TBD</span>
         )}
@@ -3285,7 +3338,14 @@ function BracketSlot({
       </span>
       <div className="min-w-0 flex-1">
         {player ? (
-          <XProfileLink handle={player.xHandle} className="text-sm truncate block" />
+          <XProfileLink
+            handle={player.xHandle}
+            username={player.username}
+            avatarUrl={player.avatarUrl}
+            walletAddress={player.walletAddress}
+            avatarSize={24}
+            className="text-sm truncate block"
+          />
         ) : (
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>TBD</span>
         )}
@@ -3312,7 +3372,14 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
         {index + 1}
       </span>
       <span className="min-w-0 flex-1">
-        <XProfileLink handle={player.xHandle} className="truncate block" />
+        <XProfileLink
+          handle={player.xHandle}
+          username={player.username}
+          avatarUrl={player.avatarUrl}
+          walletAddress={player.walletAddress}
+          avatarSize={22}
+          className="truncate block"
+        />
       </span>
       {player.approvalStatus === 'pending' && (
         <span

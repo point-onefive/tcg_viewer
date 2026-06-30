@@ -129,6 +129,14 @@ export interface Player {
    * planning counts and a soft same-region pairing preference.
    */
   region: Region | null
+  /**
+   * Display identity resolved from the linked wallet profile, attached only
+   * when building the public snapshot (not stored on the player row). Lets the
+   * bracket / standings / roster show the leaderboard-style "avatar + username"
+   * (falling back to the handle). Undefined outside the snapshot.
+   */
+  username?: string | null
+  avatarUrl?: string | null
   /** True once the player drops; pairing skips them, no auto-wins. */
   dropped: boolean
   /**

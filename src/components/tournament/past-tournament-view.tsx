@@ -189,7 +189,13 @@ export function PastTournamentView({ code }: { code: string }) {
                     Champion
                   </div>
                   <div className="text-base font-bold">
-                    <XProfileLink handle={champion.xHandle || champion.displayName} />
+                    <XProfileLink
+                      handle={champion.xHandle || champion.displayName}
+                      username={champion.username}
+                      avatarUrl={champion.avatarUrl}
+                      walletAddress={champion.walletAddress}
+                      avatarSize={24}
+                    />
                   </div>
                 </div>
               </div>
@@ -253,7 +259,12 @@ export function PastTournamentView({ code }: { code: string }) {
                     style={{ listStyle: 'none' }}
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <XProfileLink handle={p.xHandle || p.displayName} />
+                      <XProfileLink
+                        handle={p.xHandle || p.displayName}
+                        username={p.username}
+                        avatarUrl={p.avatarUrl}
+                        walletAddress={p.walletAddress}
+                      />
                       <LeaderChip player={p} />
                     </span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>

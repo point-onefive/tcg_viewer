@@ -1182,6 +1182,64 @@ export async function adminSetPollConfig(
 
 // ── Snapshot (public read) ──────────────────────────────────────────────--
 
+/**
+ * Resolve each player's display identity (username + avatar) from the linked
+ * wallet profile, so the public bracket / standings / roster can render the
+ * leaderboard-style "avatar + username" (falling back to the handle). Matches
+ * on wallet address first, then X handle. Best-effort: any miss or query error
+ * simply leaves username/avatar undefined and the UI falls back to the handle.
+ */
+async function attachProfileIdentity(
+  sb: ReturnType<typeof getServiceClient>,
+  players: Player[],
+): Promise<Player[]> {
+  try {
+    const addrs = [
+      ...new Set(
+        players.map((p) => p.walletAddress?.toLowerCase()).filter((a): a is string => !!a),
+      ),
+    ]
+    const handles = [
+      ...new Set(players.map((p) => p.xHandle?.toLowerCase()).filter((h): h is string => !!h)),
+    ]
+    if (addrs.length === 0 && handles.length === 0) return players
+
+    const byWallet = new Map<string, { username: string | null; avatarUrl: string | null }>()
+    const byHandle = new Map<string, { username: string | null; avatarUrl: string | null }>()
+    const ingest = (rows: Record<string, unknown>[] | null) => {
+      for (const r of rows ?? []) {
+        const rec = {
+          username: (r.username as string | null) ?? null,
+          avatarUrl: (r.avatar_url as string | null) ?? null,
+        }
+        const w = r.wallet_address as string | null
+        const h = r.x_handle as string | null
+        if (w) byWallet.set(w.toLowerCase(), rec)
+        if (h) byHandle.set(h.toLowerCase(), rec)
+      }
+    }
+    const cols = 'wallet_address, username, x_handle, avatar_url'
+    if (addrs.length) {
+      const { data } = await sb.from('wallet_profiles').select(cols).in('wallet_address', addrs)
+      ingest(data as Record<string, unknown>[] | null)
+    }
+    if (handles.length) {
+      const { data } = await sb.from('wallet_profiles').select(cols).in('x_handle', handles)
+      ingest(data as Record<string, unknown>[] | null)
+    }
+
+    return players.map((p) => {
+      const rec =
+        (p.walletAddress && byWallet.get(p.walletAddress.toLowerCase())) ||
+        (p.xHandle && byHandle.get(p.xHandle.toLowerCase())) ||
+        null
+      return rec ? { ...p, username: rec.username, avatarUrl: rec.avatarUrl } : p
+    })
+  } catch {
+    return players
+  }
+}
+
 export async function getSnapshotByCode(code: string): Promise<TournamentSnapshot> {
   const row = await fetchTournamentRowByCode(code)
   const tournament = rowToTournament(row)
@@ -1231,9 +1289,10 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     if (decksPublic) return enriched
     return enriched.deckList == null ? enriched : { ...enriched, deckList: null }
   })
+  const playersWithIdentity = await attachProfileIdentity(sb, publicPlayers)
   return {
     tournament,
-    players: publicPlayers,
+    players: playersWithIdentity,
     rounds,
     matches,
     proposals,
