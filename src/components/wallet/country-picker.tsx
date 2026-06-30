@@ -29,7 +29,7 @@ export function CountryPicker({
     if (open) inputRef.current?.focus()
   }, [open])
 
-  const results = useMemo(() => searchCountries(query).slice(0, 60), [query])
+  const results = useMemo(() => searchCountries(query), [query])
   const selectedName = countryName(value)
 
   const control: React.CSSProperties = {
