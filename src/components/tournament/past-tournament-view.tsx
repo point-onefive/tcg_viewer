@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { AwardedPrizesHistory, DeckListArchive, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
+import { AwardedPrizesHistory, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
 
@@ -221,9 +221,6 @@ export function PastTournamentView({ code }: { code: string }) {
           </div>
         )}
 
-        {/* Public deck archive - the metagame record for this event. Shared with
-            the live completed view so both stay identical. */}
-        <DeckListArchive players={snapshot.players} standings={standings} />
       </div>
     </TournamentShell>
   )

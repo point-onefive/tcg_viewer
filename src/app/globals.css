@@ -1559,19 +1559,6 @@ html.lenis, html.lenis body {
   }
 }
 
-/* ─── Deck-list archive (completed events) ─────────────────────── */
-/* Hide the native disclosure triangle (incl. Safari) and rotate our own
-   chevron when the row is expanded. */
-.deck-archive-row > summary::-webkit-details-marker {
-  display: none;
-}
-.deck-archive-chev {
-  transition: transform 160ms ease;
-}
-.deck-archive-row[open] > summary .deck-archive-chev {
-  transform: rotate(180deg);
-}
-
 /* ─── Zoom slider ──────────────────────────────────────────────── */
 /* Zoom slider */
 .zoom-slider {

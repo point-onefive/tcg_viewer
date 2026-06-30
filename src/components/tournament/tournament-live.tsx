@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
@@ -880,99 +880,6 @@ export function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
           )
         })}
       </div>
-    </div>
-  )
-}
-
-/**
- * Public deck archive for a finished event: one collapsible row per competitor
- * whose deck list published (lists go public on completion), ordered by final
- * placing so the winning decks lead. Shared by the live completed view and the
- * past-events page so both read identically.
- */
-export function DeckListArchive({
-  players,
-  standings,
-}: {
-  players: Player[]
-  standings: StandingRow[]
-}) {
-  const decks = useMemo(() => {
-    const byId = new Map(players.map((p) => [p.id, p]))
-    return [...standings]
-      .sort((a, b) => a.rank - b.rank)
-      .map((s) => byId.get(s.playerId))
-      .filter((p): p is Player => Boolean(p && p.deckList && p.deckList.trim() !== ''))
-  }, [players, standings])
-
-  return (
-    <div className="mt-6 p-5" style={card}>
-      <div className="mb-1 flex items-center gap-2">
-        <ListChecks size={16} style={{ color: 'var(--tcw-accent)' }} />
-        <h3 className="font-display font-bold">Deck lists</h3>
-      </div>
-      <p className="mb-4 text-xs" style={{ color: 'var(--text-muted)' }}>
-        Deck lists stay private during play and are published once the event ends. Ordered by final placing.
-      </p>
-      {decks.length === 0 ? (
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          No deck lists were published for this event.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {decks.map((p) => (
-            <details
-              key={p.id}
-              className="deck-archive-row rounded-md"
-              style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
-            >
-              <summary
-                className="flex cursor-pointer items-center gap-2.5 p-2.5 sm:gap-3 sm:p-3"
-                style={{ listStyle: 'none' }}
-              >
-                {/* Who: avatar + username (takes the slack, truncates first) */}
-                <span className="flex min-w-0 flex-1 items-center">
-                  <XProfileLink
-                    handle={p.xHandle || p.displayName}
-                    username={p.username}
-                    avatarUrl={p.avatarUrl}
-                    walletAddress={p.walletAddress}
-                    avatarSize={28}
-                    className="truncate text-sm font-semibold"
-                  />
-                </span>
-                {/* What they played: leader thumbnail + name (shown on mobile too) */}
-                {p.leaderCardId && (
-                  <span
-                    className="flex min-w-0 shrink items-center gap-1.5"
-                    style={{ maxWidth: '46%' }}
-                    title={p.leaderName ?? p.leaderCardId}
-                  >
-                    <LeaderThumb
-                      image={p.leaderImage}
-                      name={p.leaderName}
-                      cardId={p.leaderCardId}
-                      size={26}
-                    />
-                    <span className="truncate text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                      {p.leaderName ?? p.leaderCardId}
-                    </span>
-                  </span>
-                )}
-                <ChevronDown
-                  size={16}
-                  className="deck-archive-chev shrink-0"
-                  style={{ color: 'var(--text-muted)' }}
-                  aria-hidden
-                />
-              </summary>
-              <div className="p-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                <DeckListBlock deckList={p.deckList ?? ''} />
-              </div>
-            </details>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
@@ -2639,11 +2546,6 @@ export function TournamentLive() {
           </div>
         )}
 
-      {/* Published deck archive (mirrors the past-events page). Lists go public
-          on completion, so this only renders once the event is done. */}
-      {tournament.status === 'complete' && (
-        <DeckListArchive players={snapshot.players} standings={snapshot.standings} />
-      )}
 
       {/* Self-drop: a signed-up player can remove themselves from the event. */}
       {signedUp && tournament.status !== 'complete' && (
@@ -2882,6 +2784,17 @@ function SwissBoard({
 }
 
 export function StandingsTable({ standings, nameById, complete }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean }) {
+  // Inline deck-list expansion: once the event is complete and lists are public,
+  // each row with a published deck can expand in place (no separate archive).
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const toggle = (id: string) =>
+    setExpanded((cur) => {
+      const next = new Set(cur)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
   if (standings.length === 0) return null
   return (
     <div className="mt-6">
@@ -2890,6 +2803,11 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
         <h4 className="font-display text-sm font-bold uppercase tracking-wider">
           {complete ? 'Final standings' : 'Standings'}
         </h4>
+        {complete && (
+          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            · tap a deck to view the list
+          </span>
+        )}
       </div>
       <div className="overflow-hidden" style={{ border: '1px solid var(--border-subtle)', borderRadius: 6 }}>
         <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
@@ -2908,8 +2826,13 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
               const top = s.rank <= 3 && complete
               const medal = s.rank === 1 ? '#f5b301' : s.rank === 2 ? '#c4cad3' : s.rank === 3 ? '#cd7f32' : null
               const player = nameById.get(s.playerId)
+              const deck = player?.deckList?.trim() ?? ''
+              const canExpand = complete && deck !== ''
+              const isOpen = expanded.has(s.playerId)
+              const rowBg = top ? `color-mix(in srgb, ${medal} 10%, var(--bg-surface))` : 'var(--bg-surface)'
               return (
-                <tr key={s.playerId} style={{ borderTop: '1px solid var(--border-subtle)', background: top ? `color-mix(in srgb, ${medal} 10%, var(--bg-surface))` : 'var(--bg-surface)' }}>
+                <Fragment key={s.playerId}>
+                <tr style={{ borderTop: '1px solid var(--border-subtle)', background: rowBg }}>
                   <td className="py-2 pl-3 pr-2">
                     <span
                       className="inline-flex items-center justify-center text-[11px] font-bold tabular-nums"
@@ -2944,16 +2867,35 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                   </td>
                   <td className="py-2 px-2 min-w-0">
                     {player?.leaderCardId ? (
-                      <span className="inline-flex items-center gap-1.5" title={player.leaderName ?? player.leaderCardId}>
+                      <div className="flex items-center gap-1.5">
                         <LeaderThumb
                           image={player.leaderImage}
                           name={player.leaderName}
                           cardId={player.leaderCardId}
                         />
-                        <span className="hidden truncate sm:inline" style={{ color: 'var(--text-secondary)', maxWidth: 130 }}>
-                          {player.leaderName ?? player.leaderCardId}
-                        </span>
-                      </span>
+                        {canExpand ? (
+                          <button
+                            type="button"
+                            onClick={() => toggle(s.playerId)}
+                            aria-expanded={isOpen}
+                            title="View deck list"
+                            className="inline-flex min-w-0 items-center gap-1 transition-opacity hover:opacity-80"
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-secondary)' }}
+                          >
+                            <span className="hidden truncate sm:inline" style={{ maxWidth: 130 }}>
+                              {player.leaderName ?? player.leaderCardId}
+                            </span>
+                            <ChevronDown
+                              size={14}
+                              style={{ flexShrink: 0, color: 'var(--tcw-accent)', transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform 160ms ease' }}
+                            />
+                          </button>
+                        ) : (
+                          <span className="hidden truncate sm:inline" style={{ color: 'var(--text-secondary)', maxWidth: 130 }} title={player.leaderName ?? player.leaderCardId}>
+                            {player.leaderName ?? player.leaderCardId}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span style={{ color: 'var(--text-muted)' }}>-</span>
                     )}
@@ -2966,6 +2908,14 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                     {(s.oppWinPct * 100).toFixed(1)}
                   </td>
                 </tr>
+                {canExpand && isOpen && (
+                  <tr style={{ background: 'var(--bg)' }}>
+                    <td colSpan={6} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <DeckListBlock deckList={deck} />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               )
             })}
           </tbody>
