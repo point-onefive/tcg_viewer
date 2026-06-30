@@ -1629,7 +1629,32 @@ function PollCard({
       />
       <div className="p-5">
       <h3 className="font-display text-lg font-bold tracking-tight text-center">{question}</h3>
-      <p className="mb-4 mt-1 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+      <div className="mt-2 flex justify-center">
+        <span
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+          style={{
+            borderRadius: 999,
+            color: pollOpen ? '#22c55e' : 'var(--text-muted)',
+            background: pollOpen
+              ? 'color-mix(in srgb, #22c55e 14%, transparent)'
+              : 'color-mix(in srgb, var(--text-muted) 14%, transparent)',
+            border: `1px solid ${pollOpen ? 'color-mix(in srgb, #22c55e 40%, transparent)' : 'var(--border-subtle)'}`,
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: 999,
+              background: pollOpen ? '#22c55e' : 'var(--text-muted)',
+              boxShadow: pollOpen ? '0 0 6px #22c55e' : 'none',
+            }}
+          />
+          {pollOpen ? 'Voting open' : 'Voting closed'}
+        </span>
+      </div>
+      <p className="mb-4 mt-2 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
         {interactive
           ? 'Cast your vote - one per player.'
           : voted
