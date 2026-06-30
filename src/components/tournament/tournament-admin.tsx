@@ -38,6 +38,30 @@ const card: React.CSSProperties = {
   boxShadow: 'var(--shadow-card)',
 }
 
+// Live H:MM:SS countdown to an ISO deadline, mirroring the public-facing round
+// timer so the admin panel reads the same value at a glance. Returns '' when no
+// deadline is set.
+function fmtCountdown(iso: string | null): string {
+  if (!iso) return ''
+  const diff = new Date(iso).getTime() - Date.now()
+  if (diff <= 0) return '0:00:00'
+  const s = Math.floor(diff / 1000)
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+}
+
+function useCountdown(iso: string | null): string {
+  const [label, setLabel] = useState(() => fmtCountdown(iso))
+  useEffect(() => {
+    setLabel(fmtCountdown(iso))
+    const t = setInterval(() => setLabel(fmtCountdown(iso)), 1000)
+    return () => clearInterval(t)
+  }, [iso])
+  return label
+}
+
 // A faintly tinted card so adjacent admin sections read as distinct blocks
 // without shouting. Keep the mix low (a wash, not a fill).
 const tintedCard = (tint: string): React.CSSProperties => ({
@@ -302,6 +326,11 @@ export function TournamentAdmin() {
       new Date(snapshot.tournament.enrollClosesAt) <= new Date(),
   )
   const activeRound = snapshot?.rounds.find((r) => r.status === 'active')
+  // Live round countdown, same source as the public page (active round's
+  // deadline). Empty unless an event is running with a deadline on record.
+  const roundCountdown = useCountdown(
+    status === 'running' ? activeRound?.endsAt ?? null : null,
+  )
   const activeMatches = useMemo(
     () =>
       (snapshot?.matches ?? [])
@@ -618,7 +647,24 @@ export function TournamentAdmin() {
                         {pending.length > 0 ? ` · ${pending.length} pending` : ''}
                       </p>
                     </div>
-                    <StatusBadge status={status ?? 'enrolling'} enrollExpired={enrollExpired} />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {status === 'running' && activeRound && roundCountdown && (
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold tabular-nums"
+                          style={{
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 999,
+                            color: 'var(--text-secondary)',
+                          }}
+                          title={`Round ${activeRound.number} ends in ${roundCountdown}`}
+                        >
+                          <Clock size={12} style={{ color: 'var(--tcw-accent)' }} />
+                          {roundCountdown}
+                        </span>
+                      )}
+                      <StatusBadge status={status ?? 'enrolling'} enrollExpired={enrollExpired} />
+                    </div>
                   </div>
 
                   {status === 'enrolling' && (
