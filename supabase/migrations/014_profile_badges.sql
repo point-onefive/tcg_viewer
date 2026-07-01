@@ -10,8 +10,11 @@
 -- player profile. Grants are explicit rows here (backfilled by script or added
 -- by an admin later), never derived on the fly.
 --
--- Security model: unchanged. All reads/writes go through Next.js route handlers
--- (or a service-role script) using the SERVICE ROLE key.
+-- Security model: same as the rest of the schema. All reads/writes go through
+-- Next.js route handlers (or a service-role script) using the SERVICE ROLE key,
+-- which bypasses RLS. RLS is enabled with NO permissive policies so the anon key
+-- gets nothing - matching wallet_profiles (004), tournament_waitlist (005), and
+-- tournament_awarded_prizes (007).
 
 create table if not exists profile_badges (
   wallet_address text not null,
@@ -22,3 +25,6 @@ create table if not exists profile_badges (
 
 create index if not exists profile_badges_wallet_idx
   on profile_badges (wallet_address);
+
+alter table profile_badges enable row level security;
+-- No permissive policies: all access via service role key in route handlers.
