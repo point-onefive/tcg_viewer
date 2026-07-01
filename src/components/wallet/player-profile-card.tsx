@@ -128,11 +128,11 @@ export function PlayerProfileCard({ standing }: { standing: WalletStanding }) {
             {/* Availability: self-declared play hours, converted to viewer's tz */}
             <ProfileAvailability availability={standing.availability} />
 
-            {/* Two uniform shelves (always rendered): prizes and badges. Placement
-                lives in the badges now (king/silver/bronze); click a prize or
-                badge to open that event's past-event page. */}
-            <ProfilePrizes walletAddress={standing.walletAddress} />
+            {/* Two uniform shelves (always rendered): badges first, then prizes.
+                Placement lives in the badges now (king/silver/bronze); click a
+                badge or prize to open that event's past-event page. */}
             <ProfileAwardBadges walletAddress={standing.walletAddress} />
+            <ProfilePrizes walletAddress={standing.walletAddress} />
           </div>
         </div>
       </div>
