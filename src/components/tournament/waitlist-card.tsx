@@ -233,7 +233,7 @@ export function WaitlistCard({ note }: { note?: string }) {
   return (
     <Shell count={count}>
       {intro}
-      <div className="mt-4 max-w-sm mx-auto">
+      <div className="mt-4">
         <RegionPicker
           value={region}
           onChange={setRegion}
