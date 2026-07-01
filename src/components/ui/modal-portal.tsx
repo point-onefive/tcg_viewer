@@ -22,6 +22,13 @@ interface ModalPortalProps {
   label?: string
   /** Max width of the modal card in px. Default 420. */
   maxWidth?: number
+  /**
+   * Max height CSS value for the modal card. Default caps at 680px (or the
+   * viewport minus a small margin, whichever is smaller). Pass a taller value
+   * for content-rich modals (e.g. player profiles) so they avoid vertical
+   * scroll on desktop/laptop.
+   */
+  maxHeight?: string
   /** If false, clicking the backdrop will not close. Default true. */
   closeOnBackdrop?: boolean
   /**
@@ -37,6 +44,7 @@ export function ModalPortal({
   children,
   label,
   maxWidth = 420,
+  maxHeight = 'min(680px, calc(100dvh - 24px))',
   closeOnBackdrop = true,
   className,
 }: ModalPortalProps) {
@@ -93,7 +101,7 @@ export function ModalPortal({
             boxShadow: 'var(--shadow-card)',
             width: '100%',
             maxWidth,
-            maxHeight: 'min(680px, calc(100dvh - 24px))',
+            maxHeight,
             pointerEvents: 'auto',
             overflow: 'hidden',
           }}

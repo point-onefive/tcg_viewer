@@ -9,6 +9,7 @@ import { Trophy, X, Globe } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
 import { ProfileBadges } from './profile-badges'
 import { ProfilePrizes } from './profile-prizes'
+import { ProfileAwardBadges } from './profile-award-badges'
 import { ProfileAvailability } from './profile-availability'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
@@ -50,7 +51,7 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
   const winRate = total > 0 ? Math.round((standing.wins / total) * 100) : 0
 
   return (
-    <ModalPortal onClose={onClose} label="Player profile" maxWidth={460}>
+    <ModalPortal onClose={onClose} label="Player profile" maxWidth={460} maxHeight="min(760px, calc(100dvh - 24px))">
       {/* Accent bar + close button */}
       <div style={{ height: 4, background: 'linear-gradient(90deg, #E85D2A, color-mix(in srgb, #E85D2A 35%, transparent))', flexShrink: 0 }} />
       <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0', flexShrink: 0 }}>
@@ -143,11 +144,10 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
         {/* Availability: self-declared play hours, converted to viewer's tz */}
         <ProfileAvailability availability={standing.availability} />
 
-        {/* Trophy case: gold/silver/bronze medals from past events */}
+        {/* Three uniform shelves (always rendered): trophy case, prizes, badges */}
         <ProfileBadges walletAddress={standing.walletAddress} />
-
-        {/* Prize shelf: the actual prizes won (image badges, hover for context) */}
         <ProfilePrizes walletAddress={standing.walletAddress} />
+        <ProfileAwardBadges walletAddress={standing.walletAddress} />
       </div>
     </ModalPortal>
   )

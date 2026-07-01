@@ -14,6 +14,7 @@ import { Loader2, Medal, X } from 'lucide-react'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import type { TournamentSnapshot } from '@/lib/tournament/types'
+import { ProfileShelf } from './profile-shelf'
 
 interface TournamentBadge {
   tournamentCode: string
@@ -54,99 +55,58 @@ export function ProfileBadges({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Still loading: render nothing (no skeleton). Most profiles have no medals,
-  // so a skeleton would just flash and vanish. Content fades in once loaded.
-  if (!badges) return null
+  const state: 'loading' | 'empty' | 'ready' = !badges ? 'loading' : badges.length === 0 ? 'empty' : 'ready'
 
-  // Nothing earned. In production we render nothing so the profile stays clean
-  // for players with no podium finishes. In development we show a faint shell
-  // so the layout can be previewed before any tournament has completed.
-  if (badges.length === 0) {
-    if (process.env.NODE_ENV === 'production') return null
-    return <BadgesEmptyPreview />
-  }
-
-  // A single swipeable row (no cap / expand) so even a prolific winner's case
-  // stays one line tall and the profile modal never needs vertical scrolling.
+  // Always render the shelf (uniform profile size). One swipeable row so even a
+  // prolific winner's case stays one line tall and never scrolls vertically.
   return (
-    <div className="mt-5 profile-section-in">
-      <div
-        className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
-        style={{ color: 'var(--text-muted)' }}
+    <>
+      <ProfileShelf
+        icon={Medal}
+        title="Trophy case"
+        state={state}
+        emptyText="No podium finishes yet - top-3 results show here."
+        skeletonWidth={190}
+        skeletonHeight={46}
       >
-        Trophy case
-      </div>
-      <div className="profile-hscroll">
-        <div className="profile-hrow gap-2">
-          {badges.map((b) => {
-            const m = medalFor(b.rank)
-            return (
-              <button
-                key={`${b.tournamentCode}-${b.rank}`}
-                onClick={() => setOpen(b)}
-                className="inline-flex items-center gap-2 px-3 py-2 text-left transition-opacity hover:opacity-90"
-                style={{
-                  background: `color-mix(in srgb, ${m.color} 12%, var(--bg))`,
-                  border: `1px solid color-mix(in srgb, ${m.color} 38%, transparent)`,
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  width: 190,
-                }}
-                title={`${m.place} of ${b.playersCount} - ${b.tournamentName}`}
-              >
-                <Medal size={18} style={{ color: m.color, flexShrink: 0 }} />
-                <span className="min-w-0 flex-1">
-                  <span
-                    className="block font-display text-xs font-bold leading-tight truncate"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {b.tournamentName}
-                  </span>
-                  <span className="block text-[11px] font-semibold" style={{ color: m.color }}>
-                    {m.place}
-                    {b.playersCount > 0 ? (
-                      <span style={{ color: 'var(--text-muted)' }}> of {b.playersCount}</span>
-                    ) : null}
-                  </span>
+        {(badges ?? []).map((b) => {
+          const m = medalFor(b.rank)
+          return (
+            <button
+              key={`${b.tournamentCode}-${b.rank}`}
+              onClick={() => setOpen(b)}
+              className="inline-flex items-center gap-2 px-3 py-2 text-left transition-opacity hover:opacity-90"
+              style={{
+                background: `color-mix(in srgb, ${m.color} 12%, var(--bg))`,
+                border: `1px solid color-mix(in srgb, ${m.color} 38%, transparent)`,
+                borderRadius: 8,
+                cursor: 'pointer',
+                width: 190,
+              }}
+              title={`${m.place} of ${b.playersCount} - ${b.tournamentName}`}
+            >
+              <Medal size={18} style={{ color: m.color, flexShrink: 0 }} />
+              <span className="min-w-0 flex-1">
+                <span
+                  className="block font-display text-xs font-bold leading-tight truncate"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {b.tournamentName}
                 </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+                <span className="block text-[11px] font-semibold" style={{ color: m.color }}>
+                  {m.place}
+                  {b.playersCount > 0 ? (
+                    <span style={{ color: 'var(--text-muted)' }}> of {b.playersCount}</span>
+                  ) : null}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </ProfileShelf>
 
       {open && <BadgeResultModal badge={open} onClose={() => setOpen(null)} />}
-    </div>
-  )
-}
-
-// ── Dev-only empty preview: the shell, with no real data ─────────────────────
-// Only rendered when NODE_ENV !== 'production', so prod profiles with no
-// podium finishes still render nothing.
-function BadgesEmptyPreview() {
-  return (
-    <div className="mt-6">
-      <div
-        className="text-[11px] font-bold uppercase tracking-wider mb-2.5"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        Trophy case
-      </div>
-      <div
-        className="inline-flex items-center gap-2 px-3 py-2"
-        style={{
-          background: 'var(--bg)',
-          border: '1px dashed var(--border-subtle)',
-          borderRadius: 8,
-          opacity: 0.7,
-        }}
-      >
-        <Medal size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-        <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
-          No medals yet - top-3 finishes show here
-        </span>
-      </div>
-    </div>
+    </>
   )
 }
 

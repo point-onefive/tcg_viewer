@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Gift } from 'lucide-react'
+import { ProfileShelf } from './profile-shelf'
 
 interface WonPrize {
   id: string
@@ -50,76 +51,24 @@ export function ProfilePrizes({ walletAddress }: { walletAddress: string }) {
     }
   }, [walletAddress])
 
-  // Still loading: render nothing (no skeleton). Most profiles have no prizes,
-  // so a skeleton would just flash and vanish. Content fades in once loaded.
-  if (!prizes) return null
+  const state: 'loading' | 'empty' | 'ready' = !prizes ? 'loading' : prizes.length === 0 ? 'empty' : 'ready'
 
-  // Nothing won. In production we render nothing so the profile stays clean. In
-  // development we show a faint shell so the layout can be previewed before any
-  // tournament has handed out prizes.
-  if (prizes.length === 0) {
-    if (process.env.NODE_ENV === 'production') return null
-    return <PrizesEmptyPreview />
-  }
-
-  // A single swipeable row (no cap / expand) so even a big winner's shelf stays
-  // one line tall and the profile modal never needs vertical scrolling.
+  // Always render the shelf (uniform profile size). One swipeable row so even a
+  // big winner's shelf stays one line tall and never scrolls vertically.
   return (
-    <div className="mt-5 profile-section-in">
-      <div className="flex items-center gap-1.5 mb-2.5">
-        <Gift size={13} style={{ color: '#E85D2A' }} />
-        <span
-          className="text-[11px] font-bold uppercase tracking-wider"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Prizes won
-        </span>
-      </div>
-      <div className="profile-hscroll">
-        <div className="profile-hrow gap-2.5">
-          {prizes.map((p) => (
-            <PrizeBadge key={p.id} prize={p} />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Dev-only empty preview: the shell, with no real data ─────────────────────
-// Only rendered when NODE_ENV !== 'production', so prod profiles with no prizes
-// still render nothing.
-function PrizesEmptyPreview() {
-  return (
-    <div className="mt-6">
-      <div className="flex items-center gap-1.5 mb-2.5">
-        <Gift size={13} style={{ color: '#E85D2A' }} />
-        <span
-          className="text-[11px] font-bold uppercase tracking-wider"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Prizes won
-        </span>
-      </div>
-      <div className="flex items-center gap-2.5">
-        <div
-          className="flex flex-col items-center justify-center"
-          style={{
-            width: 84,
-            height: 88,
-            background: 'var(--bg)',
-            border: '1px dashed var(--border-subtle)',
-            borderRadius: 8,
-            opacity: 0.7,
-          }}
-        >
-          <Gift size={22} style={{ color: 'var(--text-muted)' }} />
-        </div>
-        <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
-          No prizes yet - awards show here
-        </span>
-      </div>
-    </div>
+    <ProfileShelf
+      icon={Gift}
+      iconColor="#E85D2A"
+      title="Prizes won"
+      state={state}
+      emptyText="No prizes won yet - awards show here."
+      skeletonWidth={84}
+      skeletonHeight={88}
+    >
+      {(prizes ?? []).map((p) => (
+        <PrizeBadge key={p.id} prize={p} />
+      ))}
+    </ProfileShelf>
   )
 }
 

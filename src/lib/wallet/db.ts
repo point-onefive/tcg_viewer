@@ -331,6 +331,32 @@ export async function getPrizesWon(walletAddress: string): Promise<WonPrize[]> {
   return prizes
 }
 
+// ── Earned badges (cosmetic awards shelf) ────────────────────────────────────
+
+/** One awarded badge for a wallet. `badgeId` maps to the code-side catalog. */
+export interface EarnedBadge {
+  badgeId: string
+  awardedAt: string
+}
+
+/**
+ * All badge grants for one wallet. Resilient: a missing `profile_badges` table
+ * (migration 014 not applied) returns [] rather than throwing, so profiles
+ * still render. Ordering is left to the client (by catalog order).
+ */
+export async function getEarnedBadges(walletAddress: string): Promise<EarnedBadge[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('profile_badges')
+    .select('badge_id, awarded_at')
+    .eq('wallet_address', walletAddress.toLowerCase())
+  if (error) return []
+  return (data ?? []).map((r) => ({
+    badgeId: (r as Record<string, unknown>).badge_id as string,
+    awardedAt: ((r as Record<string, unknown>).awarded_at as string) ?? '',
+  }))
+}
+
 // ── Backfill: link existing tournament players to a wallet ──────────────────
 //
 // Players who signed up before wallet auth (or who enrolled with just their X

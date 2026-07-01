@@ -3,6 +3,7 @@ import { ArrowLeft, Trophy, Globe } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
 import { ProfileBadges } from './profile-badges'
 import { ProfilePrizes } from './profile-prizes'
+import { ProfileAwardBadges } from './profile-award-badges'
 import { ProfileAvailability } from './profile-availability'
 import { XLogo } from '@/components/gallery/x-logo'
 import { xProfileUrl, formatXLabel } from '@/lib/tournament/x-handle'
@@ -128,11 +129,10 @@ export function PlayerProfileCard({ standing }: { standing: WalletStanding }) {
             {/* Availability: self-declared play hours, converted to viewer's tz */}
             <ProfileAvailability availability={standing.availability} />
 
-            {/* Trophy case: gold/silver/bronze medals from past events */}
+            {/* Three uniform shelves (always rendered): trophy case, prizes, badges */}
             <ProfileBadges walletAddress={standing.walletAddress} />
-
-            {/* Prize shelf: the actual prizes won (image badges, hover for context) */}
             <ProfilePrizes walletAddress={standing.walletAddress} />
+            <ProfileAwardBadges walletAddress={standing.walletAddress} />
           </div>
         </div>
       </div>
