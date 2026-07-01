@@ -31,24 +31,24 @@ function Chips({ hours, fromTz, toTz }: { hours: number[]; fromTz: string; toTz:
   const viewerHours = [...new Set(hours.map((h) => convertHour(h, fromTz, toTz).hour))].sort(
     (a, b) => a - b,
   )
+  // Wrap onto as many rows as needed so every time is visible at a glance - no
+  // hidden horizontal scroll (which read as "there might be more" on desktop).
   return (
-    <div className="profile-hscroll">
-      <div className="profile-hrow gap-1.5">
-        {viewerHours.map((hour) => (
-          <span
-            key={hour}
-            className="inline-flex items-baseline px-2 py-1 text-xs font-semibold tabular-nums"
-            style={{
-              borderRadius: 6,
-              background: 'var(--bg)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {hourLabel(hour)}
-          </span>
-        ))}
-      </div>
+    <div className="flex flex-wrap gap-1.5">
+      {viewerHours.map((hour) => (
+        <span
+          key={hour}
+          className="inline-flex items-baseline px-2 py-1 text-xs font-semibold tabular-nums"
+          style={{
+            borderRadius: 6,
+            background: 'var(--bg)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          {hourLabel(hour)}
+        </span>
+      ))}
     </div>
   )
 }
@@ -76,8 +76,9 @@ export function ProfileAvailability({ availability }: { availability: Availabili
         View their availability in your timezone.
       </p>
 
-      {/* Viewer timezone picker - chips render in this zone. */}
-      <div style={{ position: 'relative', maxWidth: 280 }}>
+      {/* Viewer timezone picker - chips render in this zone. Full width so it
+          sits balanced in the card rather than floating narrow. */}
+      <div style={{ position: 'relative', width: '100%' }}>
         <select
           value={viewTz}
           onChange={(e) => setViewTz(e.target.value)}

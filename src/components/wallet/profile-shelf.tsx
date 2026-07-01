@@ -7,12 +7,98 @@
 //   - empty   -> a single discreet "nothing here yet" line
 //   - ready   -> the content in a single horizontal, swipeable row
 //
-// Overflow is always horizontal (never vertical), matching the rest of the
-// profile so the modal never needs to scroll down.
+// Overflow is horizontal, but the scroll affordance only appears WHEN the row
+// actually overflows: an edge fade plus a chevron button that scrolls. A short
+// row (a couple of items) shows neither, so it never looks faded/cut off.
 
-import type { LucideIcon } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight, type LucideIcon } from 'lucide-react'
 
 export type ShelfState = 'loading' | 'empty' | 'ready'
+
+/**
+ * A horizontally scrollable row that only reveals a scroll affordance when its
+ * content overflows. Shows an edge fade on the overflowing side(s) and a round
+ * chevron button to scroll - so on desktop it's obvious there's more, and on a
+ * non-overflowing row nothing is drawn.
+ */
+function ShelfRow({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [ov, setOv] = useState({ left: false, right: false })
+
+  const measure = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const left = el.scrollLeft > 2
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+    setOv((p) => (p.left === left && p.right === right ? p : { left, right }))
+  }, [])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    measure()
+    // ResizeObserver catches late reflow (badge/prize images finish loading and
+    // grow the row) as well as viewport resizes.
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    if (el.firstElementChild) ro.observe(el.firstElementChild)
+    el.addEventListener('scroll', measure, { passive: true })
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      el.removeEventListener('scroll', measure)
+      window.removeEventListener('resize', measure)
+    }
+  }, [measure])
+
+  const scrollByPage = (dir: number) => {
+    const el = ref.current
+    if (!el) return
+    el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: 'smooth' })
+  }
+
+  const maskClass = ov.left && ov.right ? 'hscroll-mask-both' : ov.right ? 'hscroll-mask-right' : ov.left ? 'hscroll-mask-left' : ''
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={ref} className={`hscroll ${maskClass}`}>
+        <div className="profile-hrow gap-2.5">{children}</div>
+      </div>
+      {ov.left && <ScrollChevron side="left" onClick={() => scrollByPage(-1)} />}
+      {ov.right && <ScrollChevron side="right" onClick={() => scrollByPage(1)} />}
+    </div>
+  )
+}
+
+function ScrollChevron({ side, onClick }: { side: 'left' | 'right'; onClick: () => void }) {
+  const Icon = side === 'left' ? ChevronLeft : ChevronRight
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={side === 'left' ? 'Scroll left' : 'Scroll right'}
+      className="hidden sm:flex items-center justify-center"
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        [side]: -6,
+        width: 28,
+        height: 28,
+        borderRadius: '50%',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-card)',
+        color: 'var(--text-secondary)',
+        cursor: 'pointer',
+        zIndex: 5,
+      } as React.CSSProperties}
+    >
+      <Icon size={16} />
+    </button>
+  )
+}
 
 /**
  * The one section header used across the whole profile (badges, prizes,
@@ -102,8 +188,8 @@ export function ProfileShelf({
           </span>
         </div>
       ) : (
-        <div className="profile-hscroll profile-section-in">
-          <div className="profile-hrow gap-2.5">{children}</div>
+        <div className="profile-section-in">
+          <ShelfRow>{children}</ShelfRow>
         </div>
       )}
     </div>

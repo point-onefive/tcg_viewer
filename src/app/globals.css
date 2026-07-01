@@ -2859,6 +2859,36 @@ html.lenis, html.lenis body {
   flex-shrink: 0;
 }
 
+/* Overflow-aware horizontal scroller (profile shelves). Unlike .profile-hscroll
+   the edge fade is applied by JS ONLY when the row overflows, so a short row is
+   never faded. The fade sits on whichever side has more content. */
+.hscroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+.hscroll > .profile-hrow {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+}
+.hscroll-mask-right {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 82%, transparent 100%);
+}
+.hscroll-mask-left {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 100%);
+}
+.hscroll-mask-both {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+
 /* Theme toggle with a distinct mobile size: render at the inline (mobile)
    size by default, grow to the desktop size at >= sm. */
 @media (min-width: 640px) {
