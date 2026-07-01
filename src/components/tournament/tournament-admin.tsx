@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Check, Clock, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, Clock, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -16,6 +16,7 @@ import { BonkModuleHeader, BonkModalClose } from '@/components/tournament/bonk-u
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/paste-image'
+import { normalizeBadgeImageToDataUrl } from '@/lib/tournament/badge-image'
 import { formatXLabel, normalizeXHandle, xProfileUrl } from '@/lib/tournament/x-handle'
 import { REGIONS, regionShort, type Region } from '@/lib/tournament/region'
 import { PlayerAvatar } from '@/components/wallet/player-avatar'
@@ -29,7 +30,7 @@ import {
   POLL_QUESTION_MAX,
   type PollOption,
 } from '@/lib/tournament/poll'
-import type { Match, Player, StandingRow, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
+import type { Match, Player, StandingRow, TournamentPrize, TournamentBadgeSlot, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -1044,6 +1045,28 @@ export function TournamentAdmin() {
                   }}
                 />
 
+                <BadgeEditor
+                  key={`badges-${code}`}
+                  initial={snapshot.tournament.badges}
+                  busy={busy}
+                  onSave={async (badges) => {
+                    setBusy(true)
+                    setMsg(null)
+                    setError(null)
+                    try {
+                      const r = await adminApi(adminKey, { action: 'set-badges', code, badges })
+                      setMsg(`Saved ${r.count ?? badges.length} badge${(r.count ?? badges.length) === 1 ? '' : 's'}`)
+                      await refresh(adminKey)
+                      return true
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not save badges')
+                      return false
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                />
+
                 {snapshot.tournament.status === 'complete' && snapshot.tournament.prizes.length > 0 && (
                   <PrizeAwardEditor
                     key={`award-${code}`}
@@ -1538,6 +1561,259 @@ function PrizeSlotCard({
             disabled={disabled}
             onChange={(e) => onChange({ description: e.target.value })}
             placeholder="Prize description (e.g. $50 store credit + alt-art OP01-001)"
+            rows={2}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function badgesEqual(a: TournamentBadgeSlot[], b: TournamentBadgeSlot[]): boolean {
+  if (a.length !== b.length) return false
+  return a.every((x, i) => x.title === b[i].title && x.description === b[i].description && x.image === b[i].image)
+}
+
+/**
+ * Badge-pool editor. Structurally the twin of PrizeEditor, but each slot is a
+ * per-placement badge: slot order is placing order, so N badges auto-award to
+ * the top N finishers when the event completes (no manual award step). The
+ * header is the badge name; the sub-header shows under it on the profile hover
+ * card. Uploaded art is normalized (trimmed, 1:1, 512px) client-side so it
+ * matches the existing badges exactly.
+ */
+function BadgeEditor({
+  initial,
+  busy,
+  onSave,
+}: {
+  initial: TournamentBadgeSlot[]
+  busy: boolean
+  onSave: (badges: TournamentBadgeSlot[]) => Promise<boolean>
+}) {
+  const [slots, setSlots] = useState<TournamentBadgeSlot[]>(initial)
+  const [dirty, setDirty] = useState(false)
+  const [imgError, setImgError] = useState<string | null>(null)
+  const [working, setWorking] = useState(false)
+
+  const initialKey = JSON.stringify(initial)
+  useEffect(() => {
+    if (!dirty) setSlots(initial)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialKey])
+
+  const mutate = (next: TournamentBadgeSlot[]) => {
+    setSlots(next)
+    setDirty(true)
+  }
+
+  const addSlot = () => {
+    const n = slots.length + 1
+    mutate([...slots, { title: ordinalLabel(n), description: '', image: null }])
+  }
+  const removeSlot = (i: number) => mutate(slots.filter((_, idx) => idx !== i))
+  const patch = (i: number, p: Partial<TournamentBadgeSlot>) =>
+    mutate(slots.map((s, idx) => (idx === i ? { ...s, ...p } : s)))
+
+  const handleImage = async (i: number, blob: Blob) => {
+    setImgError(null)
+    setWorking(true)
+    try {
+      const dataUrl = await normalizeBadgeImageToDataUrl(blob)
+      patch(i, { image: dataUrl })
+    } catch {
+      setImgError('Could not process that image - use a transparent PNG.')
+    } finally {
+      setWorking(false)
+    }
+  }
+
+  const canSave = dirty && !busy && !working
+  const saved = !dirty && badgesEqual(slots, initial)
+
+  return (
+    <div className="p-5" style={tintedCard('#f5b301')}>
+      <div className="flex items-center gap-2 mb-1">
+        <Award size={16} style={{ color: '#f5b301' }} />
+        <h3 className="font-display font-bold">Badge pool</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+        Optional. One slot per placement - slot 1 goes to 1st, slot 2 to 2nd, and
+        so on. Add as many as you like; the top finishers each earn theirs
+        automatically when the event ends. Upload a transparent PNG (it&apos;s
+        auto-trimmed and sized to match every other badge). The title is the
+        badge name; the description shows under it on hover.
+      </p>
+
+      {slots.length === 0 ? (
+        <p className="text-sm mb-4 rounded-md px-3 py-3 text-center" style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
+          No badges yet.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3 mb-3">
+          {slots.map((slot, i) => (
+            <BadgeSlotCard
+              key={i}
+              index={i}
+              slot={slot}
+              disabled={busy || working}
+              onChange={(p) => patch(i, p)}
+              onRemove={() => removeSlot(i)}
+              onImage={(blob) => handleImage(i, blob)}
+            />
+          ))}
+        </div>
+      )}
+
+      {imgError && <p className="text-sm mb-3" style={{ color: '#ef4444' }}>{imgError}</p>}
+      {working && (
+        <p className="text-xs mb-3 inline-flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 size={12} className="animate-spin" /> Processing image...
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <AdminBtn disabled={busy || working || slots.length >= 16} onClick={addSlot}>
+          <span className="inline-flex items-center gap-1"><Plus size={12} /> Add slot</span>
+        </AdminBtn>
+        <AdminBtn
+          primary
+          disabled={!canSave}
+          onClick={async () => {
+            const ok = await onSave(slots)
+            if (ok) setDirty(false)
+          }}
+        >
+          {saved ? 'Saved' : 'Save badges'}
+        </AdminBtn>
+        {dirty && (
+          <button
+            type="button"
+            onClick={() => {
+              setSlots(initial)
+              setDirty(false)
+              setImgError(null)
+            }}
+            className="text-xs"
+            style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Discard changes
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function BadgeSlotCard({
+  index,
+  slot,
+  disabled,
+  onChange,
+  onRemove,
+  onImage,
+}: {
+  index: number
+  slot: TournamentBadgeSlot
+  disabled: boolean
+  onChange: (p: Partial<TournamentBadgeSlot>) => void
+  onRemove: () => void
+  onImage: (blob: Blob) => void
+}) {
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <div className="rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+          {ordinalLabel(index + 1)} place badge
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={disabled}
+          aria-label={`Remove badge slot ${index + 1}`}
+          className="inline-flex items-center justify-center"
+          style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-[120px_1fr]">
+        {slot.image ? (
+          <div className="relative self-start">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={slot.image}
+              alt={slot.title || `Badge ${index + 1}`}
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 6, border: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)' }}
+            />
+            <button
+              type="button"
+              onClick={() => onChange({ image: null })}
+              aria-label="Remove image"
+              className="absolute inline-flex items-center justify-center"
+              style={{ top: 4, right: 4, width: 20, height: 20, borderRadius: 5, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5 self-start">
+            <div
+              tabIndex={0}
+              aria-label={`Click here then paste a badge image for slot ${index + 1}`}
+              onPaste={(e) => {
+                const blob = imageFromClipboard(e)
+                if (blob) {
+                  e.preventDefault()
+                  onImage(blob)
+                }
+              }}
+              className="flex flex-col items-center justify-center gap-1 text-center cursor-text"
+              style={{ height: 72, borderRadius: 6, border: '1px dashed color-mix(in srgb, var(--text-primary) 28%, transparent)', color: 'var(--text-muted)', padding: 6 }}
+            >
+              <ImagePlus size={16} />
+              <span className="text-[10px] leading-tight">Click, then paste (⌘V)</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={disabled}
+              className="footer-btn inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-bold"
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, opacity: disabled ? 0.5 : 1 }}
+            >
+              <Upload size={12} /> Upload PNG
+            </button>
+          </div>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) onImage(f)
+            e.target.value = ''
+          }}
+        />
+
+        <div className="flex flex-col gap-2 min-w-0">
+          <input
+            style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+            value={slot.title}
+            disabled={disabled}
+            onChange={(e) => onChange({ title: e.target.value })}
+            placeholder="Badge name (e.g. BONK Champion)"
+          />
+          <textarea
+            style={{ ...inputStyle, padding: '7px 9px', fontSize: 13, resize: 'vertical', minHeight: 52 }}
+            value={slot.description}
+            disabled={disabled}
+            onChange={(e) => onChange({ description: e.target.value })}
+            placeholder="Sub-header shown on hover (e.g. 1st place at the BONK Championship Series Vol. 2)"
             rows={2}
           />
         </div>

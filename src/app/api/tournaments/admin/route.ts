@@ -16,6 +16,7 @@ import {
   adminSetPollConfig,
   adminSetPollOpen,
   adminSetPrizes,
+  adminSetBadges,
   adminSetResult,
   adminStartBracket,
   adminStartFresh,
@@ -25,7 +26,7 @@ import {
   TournamentError,
 } from '@/lib/tournament/service'
 import { listWaitlist } from '@/lib/tournament/waitlist'
-import type { TournamentPrize } from '@/lib/tournament/types'
+import type { TournamentPrize, TournamentBadgeSlot } from '@/lib/tournament/types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -46,6 +47,7 @@ type Body =
   | { action: 'get-deck'; code: string; playerId: string }
   | { action: 'approve-all'; code: string }
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
+  | { action: 'set-badges'; code: string; badges: TournamentBadgeSlot[] }
   | { action: 'award-prizes'; code: string; assignments: { slotIndex: number; playerIds: string[] }[] }
   | { action: 'start-bracket'; code: string }
   | { action: 'end-tournament'; code: string }
@@ -112,6 +114,10 @@ export async function POST(request: Request) {
       }
       case 'set-prizes': {
         const res = await adminSetPrizes(body.code, body.prizes)
+        return ok({ ok: true, ...res })
+      }
+      case 'set-badges': {
+        const res = await adminSetBadges(body.code, body.badges)
         return ok({ ok: true, ...res })
       }
       case 'award-prizes': {

@@ -305,6 +305,49 @@ export async function getEarnedBadges(walletAddress: string): Promise<EarnedBadg
   }))
 }
 
+/** One per-tournament badge a wallet earned by placement (dynamic, admin-made). */
+export interface EarnedTournamentBadge {
+  id: string
+  tournamentCode: string
+  rank: number | null
+  title: string
+  description: string
+  image: string | null
+  awardedAt: string
+}
+
+/**
+ * Every per-tournament badge one wallet has been awarded, newest first. Reads
+ * the immutable awarded-badges snapshot (never the live pool). Resilient: a
+ * missing table (migration 015 not applied) returns [] so profiles still render.
+ */
+export async function getEarnedTournamentBadges(
+  walletAddress: string,
+): Promise<EarnedTournamentBadge[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('tournament_awarded_badges')
+    .select('id, rank, title, description, image, awarded_at, tournaments(code)')
+    .eq('wallet_address', walletAddress.toLowerCase())
+    .order('awarded_at', { ascending: false })
+  if (error) return []
+  const out: EarnedTournamentBadge[] = []
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    const traw = row.tournaments
+    const t = (Array.isArray(traw) ? traw[0] : traw) as Record<string, unknown> | null
+    out.push({
+      id: row.id as string,
+      tournamentCode: (t?.code as string) ?? '',
+      rank: row.rank == null ? null : Number(row.rank),
+      title: (row.title as string) ?? '',
+      description: (row.description as string) ?? '',
+      image: (row.image as string | null) ?? null,
+      awardedAt: (row.awarded_at as string) ?? '',
+    })
+  }
+  return out
+}
+
 // ── Backfill: link existing tournament players to a wallet ──────────────────
 //
 // Players who signed up before wallet auth (or who enrolled with just their X

@@ -34,6 +34,7 @@ import type {
   Tournament,
   TournamentFormat,
   TournamentPrize,
+  TournamentBadgeSlot,
   TournamentSnapshot,
   AwardedPrize,
 } from './types'
@@ -864,6 +865,11 @@ async function finalizeTournament(
   } catch {
     // Never block completion on a prize-award write.
   }
+  try {
+    await autoAwardBadgesOnComplete(tournamentId, players, allMatches)
+  } catch {
+    // Never block completion on a badge-award write.
+  }
 }
 
 // ── Awarded prizes (frozen at completion) ──────────────────────────────────
@@ -1007,6 +1013,97 @@ async function autoAwardPrizesOnComplete(
   })
   if (assignments.length === 0) return
   await persistAwardedPrizes(tournamentId, prizes, assignments)
+}
+
+// ── Awarded badges (frozen at completion, one per placement) ────────────────
+
+/**
+ * Snapshot the badge pool onto its winners: badge slot i is copied onto the
+ * i-th ranked finalist (slot 0 -> 1st, ...). Deletes-then-inserts so a re-award
+ * is idempotent. Mirrors persistAwardedPrizes but each slot has exactly one
+ * winner (its placement).
+ */
+async function persistAwardedBadges(
+  tournamentId: string,
+  badges: TournamentBadgeSlot[],
+  winnersBySlot: { slotIndex: number; playerId: string }[],
+): Promise<number> {
+  const sb = getServiceClient()
+
+  const ids = Array.from(new Set(winnersBySlot.map((w) => w.playerId))).filter(Boolean)
+  const byId = new Map<string, Record<string, unknown>>()
+  if (ids.length > 0) {
+    const { data } = await sb
+      .from('players')
+      .select('id, display_name, x_handle, wallet_address, final_rank')
+      .in('id', ids)
+    for (const r of (data ?? []) as Record<string, unknown>[]) byId.set(r.id as string, r)
+  }
+
+  const rows: Record<string, unknown>[] = []
+  for (const w of winnersBySlot) {
+    const badge = badges[w.slotIndex]
+    if (!badge) continue
+    const p = byId.get(w.playerId)
+    const wallet = (p?.wallet_address as string | null) ?? null
+    rows.push({
+      tournament_id: tournamentId,
+      player_id: w.playerId || null,
+      wallet_address: wallet ? wallet.toLowerCase() : null,
+      x_handle: (p?.x_handle as string | null) ?? null,
+      display_name: (p?.display_name as string | null) ?? null,
+      rank: p?.final_rank == null ? null : Number(p.final_rank),
+      slot_index: w.slotIndex,
+      title: badge.title,
+      description: badge.description ?? '',
+      image: badge.image ?? null,
+    })
+  }
+
+  const del = await sb.from('tournament_awarded_badges').delete().eq('tournament_id', tournamentId)
+  if (del.error) throw new TournamentError(del.error.message, 500)
+  if (rows.length > 0) {
+    const ins = await sb.from('tournament_awarded_badges').insert(rows)
+    if (ins.error) throw new TournamentError(ins.error.message, 500)
+  }
+  await sb.from('tournaments').update({ badges_awarded_at: nowIso() }).eq('id', tournamentId)
+  return rows.length
+}
+
+/**
+ * On completion, hand each badge slot to the finalist at that placement (slot i
+ * -> i-th ranked). Same guards as prizes: only if the event has badges and has
+ * not already been awarded, and never onto an unresolved (merit) tie.
+ */
+async function autoAwardBadgesOnComplete(
+  tournamentId: string,
+  players: Player[],
+  allMatches: Match[],
+): Promise<void> {
+  const sb = getServiceClient()
+  const { data: tRow } = await sb
+    .from('tournaments')
+    .select('badges, badges_awarded_at')
+    .eq('id', tournamentId)
+    .maybeSingle()
+  if (!tRow) return
+  if (tRow.badges_awarded_at) return
+  const badges = rowToTournament({ ...tRow, badges: tRow.badges }).badges
+  if (badges.length === 0) return
+
+  const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
+  const standings = computeStandings(inBracket, allMatches)
+
+  const tieAffectsBadge = standings.some((row, i) => i < badges.length && row.tied)
+  if (tieAffectsBadge) return
+
+  const winnersBySlot: { slotIndex: number; playerId: string }[] = []
+  badges.forEach((_, i) => {
+    const winner = standings[i]
+    if (winner) winnersBySlot.push({ slotIndex: i, playerId: winner.playerId })
+  })
+  if (winnersBySlot.length === 0) return
+  await persistAwardedBadges(tournamentId, badges, winnersBySlot)
 }
 
 /**
@@ -1811,6 +1908,59 @@ export async function adminSetPrizes(
   })
 
   const { error } = await sb.from('tournaments').update({ prizes: clean }).eq('id', row.id)
+  if (error) throw new TournamentError(error.message, 500)
+  return { count: clean.length }
+}
+
+/** Hard caps for the badge pool. Images are normalized to a small WebP client- */
+const MAX_BADGES = 16
+const MAX_BADGE_IMAGE_CHARS = 800_000 // normalized WebP is tiny; generous guard
+
+/**
+ * Replace a tournament's whole badge pool. Structurally identical to
+ * adminSetPrizes: slot order is placing order, so N slots => the top N finishers
+ * each earn the badge for their rank on completion. The client normalizes badge
+ * art to a small WebP data URL before sending; we still guard count + size.
+ */
+export async function adminSetBadges(
+  code: string,
+  badges: unknown,
+): Promise<{ count: number }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+
+  if (!Array.isArray(badges)) {
+    throw new TournamentError('Badges must be a list.')
+  }
+  if (badges.length > MAX_BADGES) {
+    throw new TournamentError(`At most ${MAX_BADGES} badge slots.`)
+  }
+
+  const clean: TournamentBadgeSlot[] = badges.map((b, i) => {
+    const obj = (b ?? {}) as Record<string, unknown>
+    const title = typeof obj.title === 'string' ? obj.title.trim().slice(0, 120) : ''
+    const description =
+      typeof obj.description === 'string' ? obj.description.trim().slice(0, 600) : ''
+    let image: string | null = null
+    if (typeof obj.image === 'string' && obj.image.trim()) {
+      const img = obj.image.trim()
+      const looksValid = img.startsWith('data:image/') || /^https?:\/\//i.test(img)
+      if (!looksValid) {
+        throw new TournamentError(`Badge ${i + 1}: image must be an uploaded image or a URL.`)
+      }
+      if (img.length > MAX_BADGE_IMAGE_CHARS) {
+        throw new TournamentError(`Badge ${i + 1}: image is too large.`)
+      }
+      image = img
+    }
+    // A badge is only meaningful with art; a header alone isn't a badge.
+    if (!image) {
+      throw new TournamentError(`Badge ${i + 1}: add a badge image.`)
+    }
+    return { title: title || `Top ${i + 1}`, description, image }
+  })
+
+  const { error } = await sb.from('tournaments').update({ badges: clean }).eq('id', row.id)
   if (error) throw new TournamentError(error.message, 500)
   return { count: clean.length }
 }

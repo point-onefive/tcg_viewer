@@ -5,6 +5,7 @@ import type {
   ScheduleProposal,
   Tournament,
   TournamentPrize,
+  TournamentBadgeSlot,
   MatchStatus,
   ReportedResult,
   RoundStatus,
@@ -24,6 +25,18 @@ function rowToPrizes(raw: unknown): TournamentPrize[] {
       title: typeof p.title === 'string' ? p.title : '',
       description: typeof p.description === 'string' ? p.description : '',
       image: typeof p.image === 'string' && p.image ? p.image : null,
+    }))
+}
+
+/** Defensively coerce the JSONB `badges` column into clean domain objects. */
+function rowToBadges(raw: unknown): TournamentBadgeSlot[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((b): b is Record<string, unknown> => Boolean(b) && typeof b === 'object')
+    .map((b) => ({
+      title: typeof b.title === 'string' ? b.title : '',
+      description: typeof b.description === 'string' ? b.description : '',
+      image: typeof b.image === 'string' && b.image ? b.image : null,
     }))
 }
 
@@ -65,6 +78,8 @@ export function rowToTournament(r: any): Tournament {
     maxPlayers: r.max_players ?? null,
     prizes: rowToPrizes(r.prizes),
     prizesAwardedAt: r.prizes_awarded_at ?? null,
+    badges: rowToBadges(r.badges),
+    badgesAwardedAt: r.badges_awarded_at ?? null,
     // Default open when the column is absent (pre-migration) or null.
     pollOpen: r.poll_open ?? true,
     pollQuestion: typeof r.poll_question === 'string' && r.poll_question.trim() ? r.poll_question : null,

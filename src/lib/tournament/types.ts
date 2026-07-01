@@ -71,6 +71,22 @@ export interface TournamentPrize {
   image: string | null
 }
 
+/**
+ * One slot in a tournament's badge pool. Structurally identical to a prize slot
+ * (title/description/image), but semantically a per-placement award: slot order
+ * is placing order (index 0 = 1st place), so N badges are handed to the top N
+ * finishers on completion. `image` is a normalized (trimmed, 1:1, 512px) WebP
+ * data URL produced client-side on upload - see lib/tournament/badge-image.
+ */
+export interface TournamentBadgeSlot {
+  /** Header shown on the badge hover card, e.g. "BONK Champion". */
+  title: string
+  /** Sub-header / blurb shown under the header on hover. */
+  description: string
+  /** Normalized badge image (data URL); null = no art yet. */
+  image: string | null
+}
+
 export interface Tournament {
   id: string
   /** Short human code used in the URL, e.g. "OP-7QK2". */
@@ -97,6 +113,10 @@ export interface Tournament {
   prizes: TournamentPrize[]
   /** When prizes were resolved to winners (ISO); null = not awarded yet. */
   prizesAwardedAt: string | null
+  /** Admin-curated badge pool (one per placement); empty = no badges. */
+  badges: TournamentBadgeSlot[]
+  /** When badges were resolved to winners (ISO); null = not awarded yet. */
+  badgesAwardedAt: string | null
   /** When false, the player feedback poll is closed to new votes. */
   pollOpen: boolean
   /** Custom poll heading for this event; null = use the default question. */
@@ -258,6 +278,26 @@ export interface AwardedPrize {
   /** Prize image snapshot (data URL / external URL); null for text-only. */
   image: string | null
   /** Winner identity snapshots. walletAddress is null for X-handle-only players. */
+  playerId: string | null
+  walletAddress: string | null
+  xHandle: string | null
+  displayName: string | null
+  awardedAt: string
+}
+
+/**
+ * An immutable record of one badge handed to one finisher when an event ended.
+ * Mirrors AwardedPrize: title/description/image are SNAPSHOTS at award time so
+ * later edits to the live badge pool never rewrite history.
+ */
+export interface AwardedBadge {
+  id: string
+  slotIndex: number
+  /** The finisher's placement (1 = champion); the badge maps to this rank. */
+  rank: number | null
+  title: string
+  description: string
+  image: string | null
   playerId: string | null
   walletAddress: string | null
   xHandle: string | null

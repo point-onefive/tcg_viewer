@@ -1,22 +1,18 @@
 'use client'
 
-// ProfileAwardBadges - the "Badges" shelf: cosmetic awards (participation,
-// placement, one-offs) a wallet has earned, drawn from the code-side catalog
-// and the `profile_badges` grant table. Same shelf frame as the trophy case and
-// prize shelf (skeleton while loading, discreet empty note, one horizontal row)
-// so every profile is the same size.
+// ProfileAwardBadges - the "Badges" shelf: cosmetic awards a wallet has earned.
+// The API merges two sources into one ready-to-render list: static catalog
+// badges (participation / historical placements) and dynamic per-tournament
+// badges (admin-made, assigned by placement). Same shelf frame as the prize
+// shelf (skeleton while loading, discreet empty note, one horizontal row) so
+// every profile is the same size. Clicking a badge opens its event.
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Award } from 'lucide-react'
 import { ProfileShelf } from './profile-shelf'
-import { badgeOrder, getBadgeDef, type BadgeDef, type BadgeTier } from '@/lib/wallet/badge-catalog'
-
-interface EarnedBadge {
-  badgeId: string
-  awardedAt: string
-}
+import { type BadgeTier, type DisplayBadge } from '@/lib/wallet/badge-catalog'
 
 function tierColor(tier: BadgeTier): string {
   if (tier === 'gold') return '#f5b301'
@@ -26,35 +22,28 @@ function tierColor(tier: BadgeTier): string {
 }
 
 export function ProfileAwardBadges({ walletAddress }: { walletAddress: string }) {
-  const [ids, setIds] = useState<string[] | null>(null)
+  const [badges, setBadges] = useState<DisplayBadge[] | null>(null)
 
   useEffect(() => {
     if (!walletAddress) {
-      setIds([])
+      setBadges([])
       return
     }
     let cancelled = false
     fetch(`/api/auth/profile-badges?address=${encodeURIComponent(walletAddress)}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : { badges: [] }))
       .then((d) => {
-        if (cancelled) return
-        const earned = (d.badges ?? []) as EarnedBadge[]
-        const known = earned
-          .map((e) => e.badgeId)
-          .filter((id) => getBadgeDef(id))
-          .sort((a, b) => badgeOrder(a) - badgeOrder(b))
-        setIds(known)
+        if (!cancelled) setBadges((d.badges ?? []) as DisplayBadge[])
       })
       .catch(() => {
-        if (!cancelled) setIds([])
+        if (!cancelled) setBadges([])
       })
     return () => {
       cancelled = true
     }
   }, [walletAddress])
 
-  const state: 'loading' | 'empty' | 'ready' = !ids ? 'loading' : ids.length === 0 ? 'empty' : 'ready'
-  const defs = (ids ?? []).map((id) => getBadgeDef(id)).filter((b): b is BadgeDef => Boolean(b))
+  const state: 'loading' | 'empty' | 'ready' = !badges ? 'loading' : badges.length === 0 ? 'empty' : 'ready'
 
   return (
     <ProfileShelf
@@ -66,8 +55,8 @@ export function ProfileAwardBadges({ walletAddress }: { walletAddress: string })
       skeletonHeight={72}
       skeletonRadius={12}
     >
-      {defs.map((b) => (
-        <BadgeChip key={b.id} badge={b} />
+      {(badges ?? []).map((b) => (
+        <BadgeChip key={b.key} badge={b} />
       ))}
     </ProfileShelf>
   )
@@ -75,7 +64,7 @@ export function ProfileAwardBadges({ walletAddress }: { walletAddress: string })
 
 const TIP_W = 210
 
-function BadgeChip({ badge }: { badge: BadgeDef }) {
+function BadgeChip({ badge }: { badge: DisplayBadge }) {
   const ref = useRef<HTMLElement>(null)
   const [tip, setTip] = useState<{ left: number; top: number } | null>(null)
   const color = tierColor(badge.tier)
@@ -129,9 +118,11 @@ function BadgeChip({ badge }: { badge: BadgeDef }) {
               <div className="font-display text-xs font-bold" style={{ color }}>
                 {badge.name}
               </div>
-              <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                {badge.description}
-              </p>
+              {badge.description && (
+                <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                  {badge.description}
+                </p>
+              )}
               {badge.link && (
                 <div className="text-[10px] mt-1.5 font-semibold" style={{ color: 'var(--text-muted)' }}>
                   View event &rarr;

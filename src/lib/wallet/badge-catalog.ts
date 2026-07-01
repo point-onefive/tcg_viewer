@@ -99,6 +99,31 @@ export const BADGES: BadgeDef[] = [
   },
 ]
 
+/**
+ * A badge ready to render on the profile shelf, from EITHER source: the static
+ * catalog (participation / historical placements) or a per-tournament dynamic
+ * award (admin-made, placement-assigned). The shelf treats them identically.
+ */
+export interface DisplayBadge {
+  /** Stable react key. */
+  key: string
+  /** Image path or data URL. */
+  image: string
+  name: string
+  description: string
+  /** Where clicking navigates (usually the event's past-event page). */
+  link?: string
+  tier: BadgeTier
+}
+
+/** Placement -> tier (for the frame glow on dynamic per-tournament badges). */
+export function tierByRank(rank: number | null | undefined): BadgeTier {
+  if (rank === 1) return 'gold'
+  if (rank === 2) return 'silver'
+  if (rank === 3) return 'bronze'
+  return 'special'
+}
+
 const BY_ID = new Map<string, BadgeDef>(BADGES.map((b) => [b.id, b]))
 const ORDER = new Map<string, number>(BADGES.map((b, i) => [b.id, i]))
 

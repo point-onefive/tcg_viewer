@@ -9,6 +9,42 @@ Champion"), or any future one-off. They never gate anything.
 Placement lives entirely in badges now - there is no separate "trophy case".
 Clicking a badge (or a prize) opens that event's past-event page.
 
+There are **two kinds** of badge, both rendered identically on the shelf:
+
+1. **Static catalog badges** - hand-authored, art in `public/badges/`, defined in
+   `src/lib/wallet/badge-catalog.ts`, granted via `profile_badges`. Used for the
+   original 8 (participation + the first two events' placements) and any future
+   one-off/participation award. See "Onboarding a NEW badge" below.
+2. **Dynamic per-tournament badges** - created by the host in the admin panel
+   per event, awarded automatically by placement on completion. This is the
+   go-to path for a new tournament's podium. See "Admin badge pool" below.
+
+## Admin badge pool (dynamic, per-tournament)
+
+In the tournament admin panel there's a **Badge pool** editor right below the
+**Prize pool** editor. It works exactly like prizes, but each slot is a
+placement:
+
+- Add N slots; **slot 1 -> 1st place, slot 2 -> 2nd, ... slot N -> Nth**. It's
+  flexible - 3 places or 8 places, whatever the event needs (max 16).
+- Each slot has a **title** (the badge name / header) and a **description**
+  (the sub-header shown under the name on the profile hover card).
+- Upload a **transparent PNG** per slot. It is normalized **in the browser on
+  upload** (trim -> fit longest side to 460 -> center on 512x512 -> WebP), the
+  same pipeline as the manual one below, so admin-uploaded badges come out
+  uniform with the existing 8. No manual processing needed.
+- On completion the badges **auto-assign**: each slot is snapshotted onto the
+  finalist at that rank into `tournament_awarded_badges`, and the profile shelf
+  shows it with a link to the event. Same guards as prizes: it won't auto-award
+  onto an unresolved merit tie, and a re-run won't duplicate.
+
+Data path for dynamic badges: `tournaments.badges` (live pool, editable) ->
+`autoAwardBadgesOnComplete` -> `tournament_awarded_badges` (immutable snapshot)
+-> `getEarnedTournamentBadges` -> `/api/auth/profile-badges` (merged with catalog
+badges) -> the shelf. Backed by migration `015_tournament_badges.sql`
+(`tournaments.badges` + `tournaments.badges_awarded_at` +
+`tournament_awarded_badges`).
+
 ## Where everything lives
 
 | Piece | Path |
@@ -97,7 +133,10 @@ The served file (512x512) is displayed at 72px in the shelf; 512 keeps it crisp
 on retina. Delete the heavy source PNGs from the repo root after processing -
 `public/badges/` is the source of truth.
 
-## Onboarding a NEW badge
+## Onboarding a NEW static catalog badge
+
+(For a normal tournament podium, use the admin **Badge pool** instead - see
+above. This section is for participation / one-off badges baked into the app.)
 
 1. **Art**: drop `some_badge.png` (transparent) in the repo root, normalize it
    with the command above into `public/badges/some_badge.png`.
