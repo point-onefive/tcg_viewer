@@ -28,6 +28,7 @@ unset, so the rest of the site is unaffected.
 | Refresh One Piece catalog (quick)   | `docs/data-pipeline.md` §4.1                                             |
 | Ingest a single off-catalog print   | Edit `src/lib/cards-one-piece.json` directly — see `OP01-016_p9_sc` for the pattern |
 | Refresh Lorcana catalog             | `npm run lorcana:all` then `npm run lorcana:r2` (source: LorcanaJSON)    |
+| Add / process / assign a badge      | `docs/badges.md` (PNG normalization + catalog + grants)                  |
 | Dev server                          | `npm run dev` or `npm run dev:turbo`                                     |
 | Production build                    | `npm run build`                                                          |
 

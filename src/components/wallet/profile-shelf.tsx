@@ -1,8 +1,8 @@
 'use client'
 
-// ProfileShelf - the shared frame for the three profile "shelves" (trophy case,
-// prizes, badges). Every profile renders all three in the same structure so the
-// modal is always the same size:
+// ProfileShelf - the shared frame for the profile "shelves" (badges, prizes).
+// Every profile renders each shelf in the same structure so the modal is always
+// the same size:
 //   - loading -> a horizontal row of skeleton chips (reserves the space)
 //   - empty   -> a single discreet "nothing here yet" line
 //   - ready   -> the content in a single horizontal, swipeable row
