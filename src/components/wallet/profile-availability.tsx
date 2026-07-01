@@ -9,6 +9,7 @@
 
 import { useMemo, useState } from 'react'
 import { Clock, ChevronDown } from 'lucide-react'
+import { ProfileSectionLabel } from './profile-shelf'
 import {
   type Availability,
   hasAvailability,
@@ -69,13 +70,7 @@ export function ProfileAvailability({ availability }: { availability: Availabili
 
   return (
     <div className="mt-5">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-2.5">
-        <Clock size={15} style={{ color: '#7933bc' }} />
-        <h3 className="font-display text-sm font-bold uppercase tracking-wider">Availability</h3>
-        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          (checking chat &amp; ready to play)
-        </span>
-      </div>
+      <ProfileSectionLabel icon={Clock} iconColor="#7933bc" title="Availability" note="ready to play" />
 
       <p className="text-[11px] mb-1.5" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
         View their availability in your timezone.

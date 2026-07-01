@@ -14,6 +14,39 @@ import type { LucideIcon } from 'lucide-react'
 
 export type ShelfState = 'loading' | 'empty' | 'ready'
 
+/**
+ * The one section header used across the whole profile (badges, prizes,
+ * availability) so every section reads identically: a small colored icon and an
+ * uppercase micro-label, with optional trailing note. Keeps the modal cohesive.
+ */
+export function ProfileSectionLabel({
+  icon: Icon,
+  iconColor = 'var(--tcw-accent)',
+  title,
+  note,
+}: {
+  icon: LucideIcon
+  iconColor?: string
+  title: string
+  note?: string
+}) {
+  return (
+    <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      <span className="inline-flex items-center gap-1.5">
+        <Icon size={14} style={{ color: iconColor, flexShrink: 0 }} />
+        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+          {title}
+        </span>
+      </span>
+      {note && (
+        <span className="text-[11px]" style={{ color: 'var(--text-muted)', opacity: 0.8 }}>
+          {note}
+        </span>
+      )}
+    </div>
+  )
+}
+
 export function ProfileShelf({
   icon: Icon,
   iconColor = 'var(--tcw-accent)',
@@ -39,12 +72,7 @@ export function ProfileShelf({
 }) {
   return (
     <div className="mt-5">
-      <div className="mb-2.5 flex items-center gap-1.5">
-        <Icon size={14} style={{ color: iconColor, flexShrink: 0 }} />
-        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-          {title}
-        </span>
-      </div>
+      <ProfileSectionLabel icon={Icon} iconColor={iconColor} title={title} />
 
       {state === 'loading' ? (
         <div className="profile-hscroll">

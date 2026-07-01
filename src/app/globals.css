@@ -240,6 +240,45 @@ html.lenis, html.lenis body {
   }
 }
 
+/* Award lightbox: tapping a badge/prize enlarges it in place - it covers the
+   profile card (no nested modal), and the profile stays mounted underneath.
+   Backdrop fades; the panel eases up + scales in. */
+@keyframes awardLightboxIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes awardPanelIn {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.award-lightbox { animation: awardLightboxIn 130ms ease-out both; }
+.award-lightbox__panel { animation: awardPanelIn 220ms cubic-bezier(0.2, 0.85, 0.25, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .award-lightbox,
+  .award-lightbox__panel { animation: none; }
+}
+
+/* Profile award chip: a tap target that lifts subtly and reveals its frame on
+   hover/focus. Used for both badges and prizes so the shelves feel identical. */
+.profile-chip {
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.profile-chip:hover {
+  transform: translateY(-2px);
+}
+.profile-chip:focus-visible {
+  transform: translateY(-2px);
+  outline: 2px solid color-mix(in srgb, var(--tcw-accent) 70%, transparent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-chip { transition: none; }
+  .profile-chip:hover,
+  .profile-chip:focus-visible { transform: none; }
+}
+
 .card-tile__image {
   object-fit: cover;
   transition: opacity 0.4s ease, transform 0.4s ease;
