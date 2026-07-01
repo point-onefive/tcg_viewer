@@ -2867,6 +2867,11 @@ html.lenis, html.lenis body {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  /* Vertical breathing room so a chip's hover lift + focus ring isn't clipped
+     by the (forced) overflow-y: hidden. Negative margin keeps the section's
+     vertical rhythm unchanged. */
+  padding: 7px 0;
+  margin: -7px 0;
 }
 .hscroll::-webkit-scrollbar {
   display: none;

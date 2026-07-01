@@ -9,7 +9,6 @@
 
 import { useMemo, useState } from 'react'
 import { Clock, ChevronDown } from 'lucide-react'
-import { ProfileSectionLabel } from './profile-shelf'
 import {
   type Availability,
   hasAvailability,
@@ -70,11 +69,12 @@ export function ProfileAvailability({ availability }: { availability: Availabili
 
   return (
     <div className="mt-5">
-      <ProfileSectionLabel icon={Clock} iconColor="#7933bc" title="Availability" note="ready to play" />
-
-      <p className="text-[11px] mb-1.5" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
-        View their availability in your timezone.
-      </p>
+      <div className="mb-2.5 flex items-center gap-1.5">
+        <Clock size={14} style={{ color: '#7933bc', flexShrink: 0 }} />
+        <span className="text-[13px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          View their availability in your timezone.
+        </span>
+      </div>
 
       {/* Viewer timezone picker - chips render in this zone. Full width so it
           sits balanced in the card rather than floating narrow. */}

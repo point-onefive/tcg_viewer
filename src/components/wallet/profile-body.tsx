@@ -48,13 +48,15 @@ export function ProfileBody({
   const xUrl = standing.xHandle ? xProfileUrl(standing.xHandle) : ''
   const total = standing.wins + standing.losses + standing.draws
   const winRate = total > 0 ? Math.round((standing.wins / total) * 100) : 0
+  // Win rate scales red (0%) -> yellow (50%) -> green (100%) via hue 0..120.
+  const winRateColor = total > 0 ? `hsl(${Math.round(winRate * 1.2)}, 72%, 48%)` : 'var(--text-muted)'
 
   // 3-5 numeric stats in one strip: instant "should I care?" social proof.
   const stats: { value: string | number; label: string; accent?: string }[] = [
     { value: standing.wins, label: 'Wins', accent: '#22c55e' },
     { value: standing.losses, label: 'Losses', accent: '#ef4444' },
     ...(standing.draws > 0 ? [{ value: standing.draws, label: 'Draws' }] : []),
-    { value: `${winRate}%`, label: 'Win %', accent: 'var(--tcw-accent)' },
+    { value: `${winRate}%`, label: 'Win %', accent: winRateColor },
     { value: standing.tournamentsPlayed, label: standing.tournamentsPlayed === 1 ? 'Event' : 'Events' },
   ]
 
@@ -87,7 +89,7 @@ export function ProfileBody({
                 className="inline-flex items-center gap-1.5 text-sm font-semibold"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <XLogo size={13} />
+                <XLogo size={13} style={{ color: 'var(--text-primary)' }} />
                 {formatXLabel(standing.xHandle ?? '')}
               </a>
             )}
@@ -101,10 +103,17 @@ export function ProfileBody({
         </div>
       </div>
 
-      {/* 2. Stat bar - one segmented strip, dividers between cells. */}
+      {/* 2. Stat bar - one segmented strip, dividers between cells. Accent-tinted
+          border + soft glow so it reads as the headline of the card. */}
       <div
         className="flex mt-5"
-        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 12, overflow: 'hidden' }}
+        style={{
+          background: 'var(--bg)',
+          border: '1px solid color-mix(in srgb, var(--tcw-accent) 45%, transparent)',
+          borderRadius: 12,
+          overflow: 'hidden',
+          boxShadow: '0 0 0 1px color-mix(in srgb, var(--tcw-accent) 12%, transparent), 0 8px 22px -14px color-mix(in srgb, var(--tcw-accent) 60%, transparent)',
+        }}
       >
         {stats.map((s, i) => (
           <div key={s.label} style={{ flex: 1, minWidth: 0, borderLeft: i === 0 ? 'none' : '1px solid var(--border-subtle)' }}>
