@@ -20,7 +20,16 @@ export interface BadgeDef {
   tier: BadgeTier
   /** Served image path (transparent PNG). */
   image: string
+  /**
+   * Where clicking the badge takes you: the past-event page for the tournament
+   * it commemorates (`/tournaments/<code>`), or the history list for badges that
+   * span multiple events (e.g. OG). Omit for badges tied to no event.
+   */
+  link?: string
 }
+
+const FIRST_EVENT = '/tournaments/OP-UUZY4' // "The first one"
+const BONK_EVENT = '/tournaments/OP-8BESQ' // "BONK Championship Series Vol. 1"
 
 // Order here = display order in the shelf (championship badges lead).
 export const BADGES: BadgeDef[] = [
@@ -30,6 +39,7 @@ export const BADGES: BadgeDef[] = [
     description: '1st place at the BONK Championship Series Vol. 1.',
     tier: 'gold',
     image: '/badges/bonk_king.png',
+    link: BONK_EVENT,
   },
   {
     id: 'bonk_silver',
@@ -37,6 +47,7 @@ export const BADGES: BadgeDef[] = [
     description: '2nd place at the BONK Championship Series Vol. 1.',
     tier: 'silver',
     image: '/badges/bonk_silver.png',
+    link: BONK_EVENT,
   },
   {
     id: 'bonk_bronze',
@@ -44,6 +55,7 @@ export const BADGES: BadgeDef[] = [
     description: '3rd place at the BONK Championship Series Vol. 1.',
     tier: 'bronze',
     image: '/badges/bonk_bronze.png',
+    link: BONK_EVENT,
   },
   {
     id: 'beta_king',
@@ -51,6 +63,7 @@ export const BADGES: BadgeDef[] = [
     description: "1st place at 'The first one', the first-ever Card Wall event.",
     tier: 'gold',
     image: '/badges/beta_king.png',
+    link: FIRST_EVENT,
   },
   {
     id: 'beta_silver',
@@ -58,6 +71,7 @@ export const BADGES: BadgeDef[] = [
     description: "2nd place at 'The first one'.",
     tier: 'silver',
     image: '/badges/beta_silver.png',
+    link: FIRST_EVENT,
   },
   {
     id: 'beta_bronze',
@@ -65,6 +79,7 @@ export const BADGES: BadgeDef[] = [
     description: "3rd place at 'The first one'.",
     tier: 'bronze',
     image: '/badges/beta_bronze.png',
+    link: FIRST_EVENT,
   },
   {
     id: 'og',
@@ -72,6 +87,7 @@ export const BADGES: BadgeDef[] = [
     description: 'Was there early - played in one of the first two Card Wall events.',
     tier: 'special',
     image: '/badges/og.png',
+    link: '/tournaments/history',
   },
   {
     id: 'beta_tester',
@@ -79,6 +95,7 @@ export const BADGES: BadgeDef[] = [
     description: "Competed in The Card Wall's very first tournament, 'The first one'.",
     tier: 'special',
     image: '/badges/beta_tester.png',
+    link: FIRST_EVENT,
   },
 ]
 

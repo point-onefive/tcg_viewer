@@ -7,7 +7,6 @@
 
 import { Trophy, X, Globe } from 'lucide-react'
 import { PlayerAvatar } from './player-avatar'
-import { ProfileBadges } from './profile-badges'
 import { ProfilePrizes } from './profile-prizes'
 import { ProfileAwardBadges } from './profile-award-badges'
 import { ProfileAvailability } from './profile-availability'
@@ -144,8 +143,9 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
         {/* Availability: self-declared play hours, converted to viewer's tz */}
         <ProfileAvailability availability={standing.availability} />
 
-        {/* Three uniform shelves (always rendered): trophy case, prizes, badges */}
-        <ProfileBadges walletAddress={standing.walletAddress} />
+        {/* Two uniform shelves (always rendered): prizes and badges. Placement
+            lives in the badges now (king/silver/bronze), so no separate trophy
+            case; click a prize or badge to open that event's past-event page. */}
         <ProfilePrizes walletAddress={standing.walletAddress} />
         <ProfileAwardBadges walletAddress={standing.walletAddress} />
       </div>

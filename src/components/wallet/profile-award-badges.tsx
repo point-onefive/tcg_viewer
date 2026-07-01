@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { Award } from 'lucide-react'
 import { ProfileShelf } from './profile-shelf'
 import { badgeOrder, getBadgeDef, type BadgeDef, type BadgeTier } from '@/lib/wallet/badge-catalog'
@@ -75,7 +76,7 @@ export function ProfileAwardBadges({ walletAddress }: { walletAddress: string })
 const TIP_W = 210
 
 function BadgeChip({ badge }: { badge: BadgeDef }) {
-  const ref = useRef<HTMLButtonElement>(null)
+  const ref = useRef<HTMLElement>(null)
   const [tip, setTip] = useState<{ left: number; top: number } | null>(null)
   const color = tierColor(badge.tier)
 
@@ -89,26 +90,27 @@ function BadgeChip({ badge }: { badge: BadgeDef }) {
   }
   const hide = () => setTip(null)
 
-  return (
-    <button
-      ref={ref}
-      type="button"
-      title={`${badge.name} - ${badge.description}`}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      onFocus={show}
-      onBlur={hide}
-      className="flex items-center justify-center transition-transform hover:-translate-y-0.5"
-      style={{
-        width: 72,
-        height: 72,
-        padding: 6,
-        borderRadius: 12,
-        background: `radial-gradient(circle at 50% 35%, color-mix(in srgb, ${color} 16%, var(--bg)) 0%, var(--bg) 78%)`,
-        border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
-        cursor: 'default',
-      }}
-    >
+  const shared = {
+    ref: ref as React.Ref<never>,
+    title: `${badge.name} - ${badge.description}`,
+    onMouseEnter: show,
+    onMouseLeave: hide,
+    onFocus: show,
+    onBlur: hide,
+    className: 'flex items-center justify-center transition-transform hover:-translate-y-0.5',
+    style: {
+      width: 72,
+      height: 72,
+      padding: 6,
+      borderRadius: 12,
+      background: `radial-gradient(circle at 50% 35%, color-mix(in srgb, ${color} 16%, var(--bg)) 0%, var(--bg) 78%)`,
+      border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
+      cursor: badge.link ? 'pointer' : 'default',
+    } as React.CSSProperties,
+  }
+
+  const inner = (
+    <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={badge.image}
@@ -131,10 +133,24 @@ function BadgeChip({ badge }: { badge: BadgeDef }) {
               <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                 {badge.description}
               </p>
+              {badge.link && (
+                <div className="text-[10px] mt-1.5 font-semibold" style={{ color: 'var(--text-muted)' }}>
+                  View event &rarr;
+                </div>
+              )}
             </div>
           </div>,
           document.body,
         )}
-    </button>
+    </>
   )
+
+  if (badge.link) {
+    return (
+      <Link href={badge.link} aria-label={`${badge.name} - view event`} {...shared}>
+        {inner}
+      </Link>
+    )
+  }
+  return <div {...shared}>{inner}</div>
 }

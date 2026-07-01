@@ -10,6 +10,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { Gift } from 'lucide-react'
 import { ProfileShelf } from './profile-shelf'
 
@@ -79,8 +80,9 @@ function PrizeBadge({ prize }: { prize: WonPrize }) {
   const tooltip = [prize.title, prize.tournamentName, prize.description]
     .filter(Boolean)
     .join(' - ')
+  const href = prize.tournamentCode ? `/tournaments/${encodeURIComponent(prize.tournamentCode)}` : null
 
-  const rootRef = useRef<HTMLButtonElement>(null)
+  const rootRef = useRef<HTMLElement>(null)
   // The hover card renders through a portal in fixed coords so it is never
   // clipped by the horizontal scroller's `overflow` (which would otherwise hide
   // a card that sits above the row). null = hidden.
@@ -96,26 +98,27 @@ function PrizeBadge({ prize }: { prize: WonPrize }) {
   }
   const hideTip = () => setTip(null)
 
-  return (
-    <button
-      ref={rootRef}
-      type="button"
-      className="flex flex-col overflow-hidden text-left"
-      style={{
-        width: 84,
-        background: 'var(--bg)',
-        border: `1px solid ${medal ? `color-mix(in srgb, ${medal} 45%, transparent)` : 'var(--border-subtle)'}`,
-        borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
-        borderRadius: 8,
-        cursor: 'default',
-        padding: 0,
-      }}
-      title={tooltip}
-      onMouseEnter={showTip}
-      onMouseLeave={hideTip}
-      onFocus={showTip}
-      onBlur={hideTip}
-    >
+  const shared = {
+    ref: rootRef as React.Ref<never>,
+    className: 'flex flex-col overflow-hidden text-left',
+    style: {
+      width: 84,
+      background: 'var(--bg)',
+      border: `1px solid ${medal ? `color-mix(in srgb, ${medal} 45%, transparent)` : 'var(--border-subtle)'}`,
+      borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
+      borderRadius: 8,
+      cursor: href ? 'pointer' : 'default',
+      padding: 0,
+    } as React.CSSProperties,
+    title: tooltip,
+    onMouseEnter: showTip,
+    onMouseLeave: hideTip,
+    onFocus: showTip,
+    onBlur: hideTip,
+  }
+
+  const inner = (
+    <>
       {prize.image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -185,12 +188,26 @@ function PrizeBadge({ prize }: { prize: WonPrize }) {
                   {prize.description}
                 </p>
               )}
+              {href && (
+                <div className="text-[10px] mt-1.5 font-semibold" style={{ color: 'var(--text-muted)' }}>
+                  View event &rarr;
+                </div>
+              )}
             </div>
           </div>,
           document.body,
         )}
-    </button>
+    </>
   )
+
+  if (href) {
+    return (
+      <Link href={href} aria-label={`${prize.title} - view event`} {...shared}>
+        {inner}
+      </Link>
+    )
+  }
+  return <div {...shared}>{inner}</div>
 }
 
 function ordinal(n: number): string {
