@@ -92,7 +92,6 @@ function BadgeChip({ badge }: { badge: BadgeDef }) {
 
   const shared = {
     ref: ref as React.Ref<never>,
-    title: `${badge.name} - ${badge.description}`,
     onMouseEnter: show,
     onMouseLeave: hide,
     onFocus: show,

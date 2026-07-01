@@ -77,9 +77,6 @@ const TIP_W = 200
 
 function PrizeBadge({ prize }: { prize: WonPrize }) {
   const medal = medalColor(prize.rank)
-  const tooltip = [prize.title, prize.tournamentName, prize.description]
-    .filter(Boolean)
-    .join(' - ')
   const href = prize.tournamentCode ? `/tournaments/${encodeURIComponent(prize.tournamentCode)}` : null
 
   const rootRef = useRef<HTMLElement>(null)
@@ -110,7 +107,6 @@ function PrizeBadge({ prize }: { prize: WonPrize }) {
       cursor: href ? 'pointer' : 'default',
       padding: 0,
     } as React.CSSProperties,
-    title: tooltip,
     onMouseEnter: showTip,
     onMouseLeave: hideTip,
     onFocus: showTip,
