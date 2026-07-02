@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Award, Check, Clock, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, Clock, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -204,6 +204,9 @@ export function TournamentAdmin() {
     { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
   >([])
 
+  // Transient "copied!" feedback for the copy-handles button.
+  const [copiedHandles, setCopiedHandles] = useState(false)
+
   // Admin lists can grow long; show a slice with a "Load more" toggle.
   const [waitlistLimit, setWaitlistLimit] = useState(8)
   const [rosterLimit, setRosterLimit] = useState(8)
@@ -322,6 +325,27 @@ export function TournamentAdmin() {
   const missingDeck = approved.filter((p) => !p.hasDeckList)
   const visiblePlayers =
     tab === 'pending' ? pending : tab === 'approved' ? approved : tab === 'rejected' ? rejected : players
+
+  // X handles for whichever tab is showing, one per line as "@handle", for
+  // pinging the group. Skips anyone missing a handle and de-dupes.
+  const visibleHandles = [
+    ...new Set(
+      visiblePlayers
+        .map((p) => p.xHandle?.trim().replace(/^@+/, ''))
+        .filter((h): h is string => Boolean(h)),
+    ),
+  ].map((h) => `@${h}`)
+
+  async function copyHandles() {
+    if (visibleHandles.length === 0) return
+    try {
+      await navigator.clipboard.writeText(visibleHandles.join('\n'))
+      setCopiedHandles(true)
+      setTimeout(() => setCopiedHandles(false), 1600)
+    } catch {
+      // Clipboard can be blocked (permissions / insecure context); no-op.
+    }
+  }
 
   const nameById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const status = snapshot?.tournament.status
@@ -915,9 +939,32 @@ export function TournamentAdmin() {
                 )}
 
                 <div className="p-5" style={tintedCard('#14b8a6')}>
-                  <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>
-                    Current tournament sign-ups
-                  </h3>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                      Current tournament sign-ups
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={copyHandles}
+                      disabled={visibleHandles.length === 0}
+                      title="Copy the X handles shown in this tab, one per line"
+                      className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
+                      style={{
+                        background: 'var(--bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 6,
+                        opacity: visibleHandles.length === 0 ? 0.5 : 1,
+                        cursor: visibleHandles.length === 0 ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {copiedHandles ? (
+                        <><Check size={13} style={{ color: '#22c55e' }} /> Copied {visibleHandles.length}</>
+                      ) : (
+                        <><Copy size={13} /> Copy handles ({visibleHandles.length})</>
+                      )}
+                    </button>
+                  </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     <ParticipantTab label="All" count={players.length} active={tab === 'all'} onClick={() => { setTab('all'); setRosterLimit(8) }} />
