@@ -123,6 +123,11 @@ export interface Tournament {
   pollQuestion: string | null
   /** Custom ballot for this event; null/empty = use the default options. */
   pollOptions: PollOption[] | null
+  /**
+   * Visual theme id for the public tournament page (see lib/tournament/theme).
+   * null means unbranded until an explicit theme is set in admin.
+   */
+  theme: string | null
   createdAt: string
 }
 

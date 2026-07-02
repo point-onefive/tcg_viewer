@@ -84,6 +84,7 @@ export function rowToTournament(r: any): Tournament {
     pollOpen: r.poll_open ?? true,
     pollQuestion: typeof r.poll_question === 'string' && r.poll_question.trim() ? r.poll_question : null,
     pollOptions: rowToPollOptions(r.poll_options),
+    theme: typeof r.theme === 'string' && r.theme.trim() ? r.theme : null,
     createdAt: r.created_at,
   }
 }

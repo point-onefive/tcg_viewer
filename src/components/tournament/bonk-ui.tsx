@@ -14,6 +14,7 @@
 
 import type React from 'react'
 import { X } from 'lucide-react'
+import type { PrizePoolLockup } from '@/lib/tournament/theme'
 
 type IconType = React.ComponentType<{ size?: number; style?: React.CSSProperties }>
 
@@ -125,7 +126,8 @@ export function BonkModalClose({ onClose }: { onClose: () => void }) {
  * motion is reserved for the hero + footer. Hidden on mobile to keep the band a
  * clean single line.
  */
-export function BonkHeaderMascot({ src, height = BONK_HEADER_HEIGHT - 8 }: { src: string; height?: number }) {
+export function BonkHeaderMascot({ src, height = BONK_HEADER_HEIGHT - 8 }: { src: string | null; height?: number }) {
+  if (!src) return null
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -156,10 +158,10 @@ export function BonkSceneBody({
   style,
   children,
 }: {
-  /** Dark-theme scene path under /bonk/scenes (cosmic / night imagery). */
-  scene: string
+  /** Dark-theme scene path under /bonk/scenes (cosmic / night imagery). null = none. */
+  scene: string | null
   /** Light-theme scene (warmer daytime imagery). Defaults to `scene`. */
-  sceneLight?: string
+  sceneLight?: string | null
   /** background-position for the scene image. */
   position?: string
   className?: string
@@ -169,17 +171,112 @@ export function BonkSceneBody({
   const light = sceneLight ?? scene
   return (
     <div className={`relative ${className ?? ''}`} style={style}>
-      <div
-        aria-hidden
-        className="bonk-scene-layer bonk-scene-layer--dark pointer-events-none absolute inset-0"
-        style={{ backgroundImage: `url(${scene})`, backgroundSize: 'cover', backgroundPosition: position }}
-      />
-      <div
-        aria-hidden
-        className="bonk-scene-layer bonk-scene-layer--light pointer-events-none absolute inset-0"
-        style={{ backgroundImage: `url(${light})`, backgroundSize: 'cover', backgroundPosition: position }}
-      />
+      {scene && (
+        <div
+          aria-hidden
+          className="bonk-scene-layer bonk-scene-layer--dark pointer-events-none absolute inset-0"
+          style={{ backgroundImage: `url(${scene})`, backgroundSize: 'cover', backgroundPosition: position }}
+        />
+      )}
+      {light && (
+        <div
+          aria-hidden
+          className="bonk-scene-layer bonk-scene-layer--light pointer-events-none absolute inset-0"
+          style={{ backgroundImage: `url(${light})`, backgroundSize: 'cover', backgroundPosition: position }}
+        />
+      )}
       <div className="relative">{children}</div>
+    </div>
+  )
+}
+
+/**
+ * Prize-pool header lockup: "powered by" + partner image or the canonical Card
+ * Wall header mark (mascot chip + wordmark). Matches the BONK linear lockup
+ * footprint on the dark section band.
+ */
+export function PrizePoolPoweredBy({ lockup }: { lockup: PrizePoolLockup }) {
+  if (lockup.kind === 'image') {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={lockup.src}
+        alt={lockup.alt}
+        className="relative block w-auto shrink-0"
+        style={{ height: 'clamp(20px, 4vw, 30px)' }}
+      />
+    )
+  }
+
+  return (
+    <div className="relative flex shrink-0 items-center gap-2" aria-label="powered by The Card Wall">
+      <span
+        className="bonk-mono whitespace-nowrap text-[9px] font-bold lowercase tracking-[0.06em] sm:text-[10px]"
+        style={{ color: 'color-mix(in srgb, var(--bonk-band-fg) 78%, transparent)' }}
+      >
+        powered by
+      </span>
+      <span
+        className="inline-flex items-stretch overflow-hidden"
+        style={{
+          background: '#fff',
+          color: '#0a0a0a',
+          borderRadius: 5,
+          height: 'clamp(20px, 4vw, 26px)',
+        }}
+      >
+        <span
+          className="inline-flex items-center justify-center rounded-l-[5px]"
+          style={{
+            background: '#0a0a0a',
+            padding: '0 4px',
+            border: '1px solid #fff',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/site-logo.png"
+            alt=""
+            aria-hidden
+            width={11}
+            height={16}
+            style={{
+              width: 'clamp(10px, 2.5vw, 11px)',
+              height: 'clamp(15px, 3.8vw, 16px)',
+              imageRendering: 'pixelated',
+              display: 'block',
+            }}
+          />
+        </span>
+        <span
+          className="inline-flex items-center whitespace-nowrap"
+          style={{
+            padding: '0 clamp(6px, 2vw, 9px)',
+            fontFamily: "'BonkPoppins', var(--font-display)",
+            fontWeight: 800,
+            fontSize: 'clamp(9px, 2.2vw, 12px)',
+            lineHeight: 1,
+            letterSpacing: '-0.015em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              fontSize: '0.72em',
+              fontWeight: 500,
+              fontStyle: 'italic',
+              letterSpacing: '0.02em',
+              textTransform: 'lowercase',
+              opacity: 0.65,
+              marginRight: '0.28em',
+            }}
+          >
+            the
+          </span>
+          Card Wall
+        </span>
+      </span>
     </div>
   )
 }

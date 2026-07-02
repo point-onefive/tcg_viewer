@@ -17,6 +17,7 @@ import {
   adminSetPollOpen,
   adminSetPrizes,
   adminSetBadges,
+  adminSetTheme,
   adminSetResult,
   adminStartBracket,
   adminStartFresh,
@@ -33,7 +34,7 @@ export const dynamic = 'force-dynamic'
 
 type Body =
   | { action: 'ping' }
-  | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string }
+  | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string; theme?: string }
   | { action: 'add-player'; code: string; xHandle: string; deckList?: string }
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
@@ -52,6 +53,7 @@ type Body =
   | { action: 'start-bracket'; code: string }
   | { action: 'end-tournament'; code: string }
   | { action: 'set-result'; code: string; matchId: string; result: 'p1' | 'p2' | 'draw' }
+  | { action: 'set-theme'; code: string; theme: string }
   | { action: 'set-poll'; code: string; open: boolean }
   | { action: 'set-poll-config'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
   | { action: 'list-waitlist' }
@@ -133,6 +135,10 @@ export async function POST(request: Request) {
       case 'set-result':
         await adminSetResult(body.code, body.matchId, body.result)
         return ok({ ok: true })
+      case 'set-theme': {
+        const res = await adminSetTheme(body.code, body.theme)
+        return ok({ ok: true, ...res })
+      }
       case 'set-poll':
         await adminSetPollOpen(body.code, body.open)
         return ok({ ok: true })

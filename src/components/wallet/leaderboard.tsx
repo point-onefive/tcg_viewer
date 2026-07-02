@@ -193,7 +193,7 @@ function LeaderboardRow({
   )
 }
 
-export function Leaderboard() {
+export function Leaderboard({ mascot = null }: { mascot?: string | null } = {}) {
   const [standings, setStandings] = useState<WalletStanding[] | null>(null)
   const [error, setError] = useState(false)
   const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT)
@@ -224,7 +224,7 @@ export function Leaderboard() {
         icon={Medal}
         title="All-time leaderboard"
         subtitle="Wins across every Card Wall event"
-        right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_ThumbsUp_001_LR.png" />}
+        right={<BonkHeaderMascot src={mascot} />}
       />
 
       {standings === null ? (

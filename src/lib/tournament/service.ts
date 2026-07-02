@@ -42,6 +42,7 @@ import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { type Region, sanitizeRegion } from './region'
 import { validateDeckList } from './deck-list'
 import { extractLeader } from './leader'
+import { TOURNAMENT_THEMES } from './theme'
 import {
   emptyPollResults,
   isValidChoice,
@@ -1277,6 +1278,21 @@ export async function adminSetPollConfig(
   return { count: normalized.options.length }
 }
 
+/**
+ * Set the public page theme for an event (host-only). Requires a registered
+ * theme id. Unknown ids are rejected so a typo can't silently break the page.
+ */
+export async function adminSetTheme(code: string, theme: unknown): Promise<{ theme: string }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  if (typeof theme !== 'string' || !TOURNAMENT_THEMES[theme]) {
+    throw new TournamentError('Unknown theme.', 400)
+  }
+  const { error } = await sb.from('tournaments').update({ theme }).eq('id', row.id)
+  if (error) throw new TournamentError(`Could not update the theme: ${error.message}`, 500)
+  return { theme }
+}
+
 // ── Snapshot (public read) ──────────────────────────────────────────────--
 
 /**
@@ -1567,11 +1583,24 @@ export async function adminStartFresh(input: {
   maxPlayers?: number | null
   rules?: string | null
   contactUrl?: string | null
+  theme?: string | null
 }): Promise<{ code: string }> {
   const sb = getServiceClient()
   const name = input.name?.trim()
   if (!name) throw new TournamentError('Tournament name is required.')
   const format: TournamentFormat = input.format === 'single-elim' ? 'single-elim' : 'swiss'
+
+  const { data: prevLive } = await sb
+    .from('tournaments')
+    .select('theme')
+    .eq('is_live', true)
+    .maybeSingle()
+  const inheritedTheme =
+    typeof input.theme === 'string' && TOURNAMENT_THEMES[input.theme]
+      ? input.theme
+      : typeof prevLive?.theme === 'string' && TOURNAMENT_THEMES[prevLive.theme]
+        ? prevLive.theme
+        : null
 
   await sb.from('tournaments').update({ is_live: false }).eq('is_live', true)
 
@@ -1599,6 +1628,7 @@ export async function adminStartFresh(input: {
         host_token_hash: hashToken(hostToken),
         is_live: true,
         max_players: input.maxPlayers ?? null,
+        theme: inheritedTheme,
       })
       .select('*')
       .single()

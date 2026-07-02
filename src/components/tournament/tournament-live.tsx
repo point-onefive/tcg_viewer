@@ -21,7 +21,10 @@ import { DEFAULT_POLL_QUESTION, POLL_OPTIONS, type PollOption, type PollResults 
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
-import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose } from '@/components/tournament/bonk-ui'
+import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose, PrizePoolPoweredBy } from '@/components/tournament/bonk-ui'
+import type { PrizePoolLockup } from '@/lib/tournament/theme'
+import { getTournamentTheme, type TournamentTheme } from '@/lib/tournament/theme'
+import { useTournamentTheme } from '@/components/tournament/theme-context'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
@@ -377,7 +380,7 @@ function medalColor(i: number): string | null {
 }
 
 /** Public, read-only prize pool. Centered, medal-accented showcase. */
-function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: AwardedPrize[] }) {
+function PrizePool({ prizes, awarded, lockup, scene }: { prizes: TournamentPrize[]; awarded?: AwardedPrize[]; lockup: PrizePoolLockup; scene?: string | null }) {
   // Once the event is complete, fold the declared winners straight into the
   // branded prize cards (grouped by slot, so a split prize lists everyone).
   const winnersBySlot = useMemo(() => {
@@ -413,11 +416,11 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
       <div
         key={`${keyPrefix}${i}`}
         aria-hidden={opts.dup || undefined}
-        className={`flex flex-col overflow-hidden${i === 0 ? ' bonk-prize-glow' : ''}`}
+        className={`relative flex flex-col overflow-hidden${i === 0 ? ' bonk-prize-glow' : ''}`}
         style={{
           width: opts.mobile ? 188 : 'min(100%, 240px)',
           flex: '0 0 auto',
-          background: 'var(--bg)',
+          background: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
           borderTop: `3px solid ${medal ?? 'var(--border-subtle)'}`,
           borderRadius: 12,
@@ -552,7 +555,15 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
   }, [prizes.length])
 
   return (
-    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+    <div className="relative mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+      {/* Scene behind the whole prize section - tiles sit on top as gray chips. */}
+      {scene && (
+        <div
+          aria-hidden
+          className="bonk-scene-layer bonk-scene-layer--dark pointer-events-none absolute inset-0"
+          style={{ backgroundImage: `url(${scene})`, backgroundSize: 'cover', backgroundPosition: 'center 40%', opacity: 0.22 }}
+        />
+      )}
       {/* Co-branded module header: the sponsor identity lives in the
           module chrome (a dark BONK section band), not as a sticker in
           the content. Title left, official BONK lockup right. */}
@@ -569,15 +580,8 @@ function PrizePool({ prizes, awarded }: { prizes: TournamentPrize[]; awarded?: A
             Prize pool
           </h3>
         </div>
-        {/* Official "powered by BONK" linear lockup, sized to sit beside the
-            title without crowding it on mobile (clamped) or wrapping. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/bonk/web-img/powered_by_bonk_linear_white.png"
-          alt="powered by BONK"
-          className="relative block w-auto shrink-0"
-          style={{ height: 'clamp(20px, 4vw, 30px)' }}
-        />
+        {/* "powered by <partner>" lockup beside the title. */}
+        <PrizePoolPoweredBy lockup={lockup} />
       </div>
       {/* Sun-gradient hairline ties the dark header to the bright prizes. */}
       <div style={{ height: 2, background: 'var(--bonk-grad-sun)' }} />
@@ -1258,8 +1262,9 @@ function LinkOut({ href, children }: { href: string; children: React.ReactNode }
 }
 
 /** Punchy "how the event runs" explainer so there are no surprises. */
-function HowItWorks() {
+function HowItWorks({ theme }: { theme: TournamentTheme }) {
   const [deckHelp, setDeckHelp] = useState(false)
+  const payout = theme.playbook.payout
   type StepTone = 'default' | 'danger' | 'success'
   const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
     {
@@ -1285,31 +1290,29 @@ function HowItWorks() {
         </>
       ),
     },
-    {
-      lead: (
-        <span className="flex items-center gap-1.5">
-          Set up
-          <a
-            href="https://bonkuji.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/bonk/web-img/bonkuji_logo.png" alt="Bonkuji" className="bonkuji-breathe" style={{ height: 18, width: 'auto', display: 'block' }} />
-            <ExternalLink size={12} strokeWidth={2.5} style={{ color: 'var(--bonk-ui-yellow)', flexShrink: 0 }} />
-          </a>
-        </span>
-      ),
-      cta: true,
-      body: (
-        <>
-          Prizes are paid out through Bonkuji, so a free account is required to collect. Sign in with your
-          wallet, X, Google, or email - it takes about two seconds. Every top prize and participation reward
-          lands here.
-        </>
-      ),
-    },
+    // Sponsor payout step (e.g. "Set up Bonkuji"). Omitted for self-hosted
+    // events with no external payout provider; the rest renumber automatically.
+    ...(payout
+      ? [{
+          lead: (
+            <span className="flex items-center gap-1.5">
+              Set up
+              <a
+                href={payout.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={payout.logo} alt={payout.name} className="bonkuji-breathe" style={{ height: 18, width: 'auto', display: 'block' }} />
+                <ExternalLink size={12} strokeWidth={2.5} style={{ color: 'var(--bonk-ui-yellow)', flexShrink: 0 }} />
+              </a>
+            </span>
+          ),
+          cta: true,
+          body: <>{payout.body}</>,
+        }]
+      : []),
     {
       lead: 'Get verified',
       body: 'A tournament official reviews every sign-up and approves or declines it. Approved players are locked into the bracket.',
@@ -1374,14 +1377,16 @@ function HowItWorks() {
               </h3>
             </div>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/bonk/web-img/BONK_Pose_Point_001_LR.png"
-            alt=""
-            aria-hidden
-            className="hidden shrink-0 select-none sm:block"
-            style={{ width: 104, height: 'auto', marginTop: -34, marginBottom: -20, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.5))' }}
-          />
+          {theme.playbook.mascot && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={theme.playbook.mascot}
+              alt=""
+              aria-hidden
+              className="hidden shrink-0 select-none sm:block"
+              style={{ width: 104, height: 'auto', marginTop: -34, marginBottom: -20, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.5))' }}
+            />
+          )}
         </div>
 
         {/* Steps as glass cards over the scene - two columns on desktop. */}
@@ -1588,6 +1593,7 @@ function PollCard({
   pollOpen: boolean
   onVoted: () => void
 }) {
+  const pollTheme = useTournamentTheme()
   const [results, setResults] = useState<PollResults>(poll)
   const [voted, setVoted] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -1636,7 +1642,7 @@ function PollCard({
         icon={PieChart}
         eyebrow="Player feedback"
         title="Community Poll"
-        right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_003_LR.png" />}
+        right={<BonkHeaderMascot src={pollTheme?.mascots.poll ?? null} />}
       />
       <div className="p-5">
       <h3 className="font-display text-lg font-bold tracking-tight text-center">{question}</h3>
@@ -1808,37 +1814,47 @@ function PollCard({
  * headline, a peeking BONK Dog on the right, warm orange glow + embers. Sits
  * flush under the page header and spans the viewport width.
  */
-function BonkHero() {
+function BonkHero({ theme }: { theme: TournamentTheme }) {
+  const h = theme.hero
   return (
-    <section className="bonk-hero" aria-label="BONK Championship Series">
-      {/* Desktop-only faded cosmic scene to fill the wide real estate. Masked
-          toward the left so the headline keeps full contrast. */}
-      <div aria-hidden className="bonk-hero__scene" />
-      <div aria-hidden className="bonk-hero__embers" />
+    <section className="bonk-hero" aria-label={h.ariaLabel}>
+      {/* Desktop-only faded scene to fill the wide real estate. Masked toward
+          the left so the headline keeps full contrast. Themes can drop it. */}
+      {h.scene && (
+        <div
+          aria-hidden
+          className="bonk-hero__scene"
+          style={{ backgroundImage: `url(${h.scene.src})`, backgroundPosition: h.scene.position ?? 'center 38%' }}
+        />
+      )}
+      {h.embers && <div aria-hidden className="bonk-hero__embers" />}
       <div aria-hidden className="bonk-hero__glow" />
-      {/* Mascot is a direct child of the full-bleed section (not the padded
-          wrap) so right:0 lands it flush against the true container edge. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/bonk/web-img/BONK_Pose_One_001_LR.png"
-        alt="BONK Dog"
-        className="bonk-hero__mascot select-none"
-      />
+      {/* The hero visual: a sponsor mascot (flush bottom-right) or a featured
+          promo card (framed, centered right). */}
+      {h.feature.kind === 'character' ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={h.feature.src} alt={h.feature.alt ?? ''} className="bonk-hero__mascot select-none" />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={h.feature.src} alt={h.feature.alt ?? ''} className="bonk-hero__feature-card select-none" />
+      )}
       <div className="bonk-hero__wrap">
         <div className="bonk-hero__inner">
           <div className="bonk-hero__copy">
-            <span className="bonk-hero__badge bonk-mono">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden />
-              Official prize partner
-            </span>
+            {h.partnerPill && (
+              <span className="bonk-hero__badge bonk-mono">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={h.partnerPill.logo} alt="" aria-hidden />
+                {h.partnerPill.text}
+              </span>
+            )}
             <h1 className="bonk-hero__title bonk-display">
-              BONK Championship<br className="hidden sm:block" /> Series
-              <span className="bonk-hero__bang">!!!</span>
+              {h.titleLine1}
+              {h.titleLine2 && <br className="hidden sm:block" />}
+              {h.titleLine2 ? ` ${h.titleLine2}` : ''}
+              {h.bang && <span className="bonk-hero__bang">!!!</span>}
             </h1>
-            <p className="bonk-hero__sub">
-              Prizes for winners, participants, and content creators.
-            </p>
+            <p className="bonk-hero__sub">{h.subhead}</p>
           </div>
         </div>
       </div>
@@ -1851,7 +1867,9 @@ function BonkHero() {
  * BONK Dog (peace), the brand's own community line, and an attributed
  * "powered by BONK" lockup linking out to bonkcoin.com.
  */
-function BonkFooter() {
+function BonkFooter({ theme }: { theme: TournamentTheme }) {
+  const f = theme.footer
+  if (!f) return null
   return (
     <div
       className="relative mt-8 overflow-hidden"
@@ -1866,41 +1884,48 @@ function BonkFooter() {
       <div aria-hidden className="bonk-foot-scene bonk-foot-scene--dark pointer-events-none" />
       <div aria-hidden className="bonk-foot-wash bonk-foot-wash--light pointer-events-none" />
       <div aria-hidden className="bonk-foot-wash bonk-foot-wash--dark pointer-events-none" />
-      {/* Warm light source bottom-left, the way BONK lights its dark scenes. */}
+      {/* Warm light source bottom-left, the way the dark scene is lit. */}
       <div
         aria-hidden
         className="bonk-dark-only pointer-events-none absolute inset-0"
         style={{ background: 'radial-gradient(70% 130% at 12% 100%, color-mix(in srgb, var(--bonk-ui-orange) 38%, transparent) 0%, transparent 60%)' }}
       />
       <div className="relative z-[1] flex flex-col items-center gap-5 px-6 py-8 text-center sm:flex-row sm:gap-7 sm:px-10 sm:text-left">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/bonk/web-img/BONK_Pose_Peace_001_LR.png"
-          alt="BONK Dog"
-          className="bonk-sway shrink-0"
-          style={{ width: 'clamp(96px, 18vw, 128px)', height: 'auto', marginTop: -14, marginBottom: -14, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.45))' }}
-        />
+        {f.character && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={f.character}
+            alt=""
+            aria-hidden
+            className="bonk-sway shrink-0"
+            style={{ width: 'clamp(96px, 18vw, 128px)', height: 'auto', marginTop: -14, marginBottom: -14, filter: 'drop-shadow(0 14px 22px rgba(0,0,0,0.45))' }}
+          />
+        )}
         <div className="min-w-0 flex-1">
           <p className="bonk-display bonk-band-title" style={{ color: 'var(--bonk-band-fg)', fontSize: 'clamp(18px, 2.6vw, 26px)', fontWeight: 800, lineHeight: 1.15 }}>
-            BONK Dog is a winner<span style={{ color: 'var(--bonk-foot-bang)' }}>!!!</span>
+            {f.headline}
+            {f.bang && <span style={{ color: 'var(--bonk-foot-bang)' }}>!!!</span>}
           </p>
           <p className="mt-2 text-sm font-medium" style={{ color: 'color-mix(in srgb, var(--bonk-band-fg) 76%, transparent)', lineHeight: 1.5 }}>
-            He wins for the community, never gives up, and never surrenders. This
-            event&rsquo;s prize pool is proudly backed by BONK.
+            {f.body}
           </p>
         </div>
-        <a
-          href="https://bonkcoin.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bonk-mono shrink-0 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.08em] transition-transform hover:-translate-y-0.5"
-          style={{ background: 'var(--bonk-grad-ui)', color: '#fff', boxShadow: '0 10px 26px -10px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)' }}
-          aria-label="Learn more about BONK at bonkcoin.com"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/bonk/web-img/master_logo.png" alt="" aria-hidden style={{ height: 26, width: 'auto', display: 'block' }} />
-          bonkcoin.com
-        </a>
+        {f.cta && (
+          <a
+            href={f.cta.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bonk-mono shrink-0 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.08em] transition-transform hover:-translate-y-0.5"
+            style={{ background: 'var(--bonk-grad-ui)', color: '#fff', boxShadow: '0 10px 26px -10px color-mix(in srgb, var(--bonk-ui-orange) 80%, transparent)' }}
+            aria-label={`Learn more at ${f.cta.label}`}
+          >
+            {f.cta.logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={f.cta.logo} alt="" aria-hidden style={{ height: 26, width: 'auto', display: 'block' }} />
+            )}
+            {f.cta.label}
+          </a>
+        )}
       </div>
     </div>
   )
@@ -2216,15 +2241,9 @@ export function TournamentLive() {
 
   if (loadError && !snapshot) {
     return (
-      <TournamentShell hero={<BonkHero />} bonk>
+      <TournamentShell>
         <div className="mx-auto" style={{ maxWidth: 1080 }}>
           <div className="mx-auto mb-6 max-w-md p-8 text-center" style={card}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/bonk/web-img/BONK_Pose_Head_001_LR.png"
-              alt="BONK Dog"
-              style={{ width: 116, height: 'auto', margin: '0 auto 14px', display: 'block', filter: 'drop-shadow(0 12px 20px rgba(23,0,28,0.2))' }}
-            />
             <p className="font-display text-lg font-bold">No active tournament</p>
             <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {loadError.includes('No tournament') ? 'Check back when the next event opens, or get in line below.' : loadError}
@@ -2248,7 +2267,7 @@ export function TournamentLive() {
 
   if (!snapshot || !tournament) {
     return (
-      <TournamentShell hero={<BonkHero />} bonk>
+      <TournamentShell>
         <div className="flex justify-center py-20 gap-2" style={{ color: 'var(--text-muted)' }}>
           <Loader2 size={18} className="animate-spin" /> Loading…
         </div>
@@ -2256,13 +2275,19 @@ export function TournamentLive() {
     )
   }
 
+  // Resolve the theme now that the row (and its theme id) is loaded. Unset
+  // events fall back to BONK so existing events look unchanged; the loading and
+  // error states above render an unbranded shell so a themed event never
+  // flashes BONK before its own theme is known.
+  const theme = getTournamentTheme(tournament.theme)
+
   return (
-    <TournamentShell hero={<BonkHero />} bonk>
+    <TournamentShell hero={<BonkHero theme={theme} />} theme={theme}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
       {/* Global leaderboard across all tournaments. The archive of finished
           events (Past events) now lives in the leaderboard's footer row, so it
           reads as a deliberate companion action instead of floating loose. */}
-      <Leaderboard />
+      <Leaderboard mascot={theme?.mascots.leaderboard ?? null} />
 
       {/* Next-event waitlist. Shown when the current event is not actively
           enrolling, OR when it is enrolling but already full - either way new
@@ -2284,7 +2309,7 @@ export function TournamentLive() {
           title={tournament.name}
           right={<span className="hidden sm:block"><StatusPill status={tournament.status} enrollExpired={enrollExpired} /></span>}
         />
-        <BonkSceneBody scene="/bonk/scenes/scene-snowglobe.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 28%" className="p-5 sm:p-6">
+        <BonkSceneBody scene={theme?.scenes.eventDark ?? null} sceneLight={theme?.scenes.eventLight ?? null} position="center 28%" className="p-5 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="min-w-0">
               {/* Mobile: even 2-col grid so the chips read as a tidy block
@@ -2341,7 +2366,7 @@ export function TournamentLive() {
             <BonkModuleHeader
               icon={UserPlus}
               title="Sign up"
-              right={<BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Wave_001_LR.png" />}
+              right={<BonkHeaderMascot src={theme?.mascots.signup ?? null} />}
             />
             <div className="p-5">
             {signedUp ? (
@@ -2494,7 +2519,7 @@ export function TournamentLive() {
                 >
                   {approvedCount}
                 </span>
-                <BonkHeaderMascot src="/bonk/web-img/BONK_Pose_Peace_001_LR.png" />
+                <BonkHeaderMascot src={theme?.mascots.roster ?? null} />
               </>
             }
           />
@@ -2541,10 +2566,12 @@ export function TournamentLive() {
       </div>
       )}
 
-      {tournament.prizes.length > 0 && (
+      {tournament.prizes.length > 0 && theme && (
         <PrizePool
           prizes={tournament.prizes}
           awarded={tournament.status === 'complete' ? snapshot.awardedPrizes : undefined}
+          lockup={theme.prizePoolLockup}
+          scene={theme.scenes.prizeDark}
         />
       )}
 
@@ -2611,10 +2638,10 @@ export function TournamentLive() {
         onVoted={refresh}
       />
 
-      <HowItWorks />
+      {theme && <HowItWorks theme={theme} />}
 
       {/* Closing co-brand strip */}
-      <BonkFooter />
+      {theme && <BonkFooter theme={theme} />}
       </div>
     </TournamentShell>
   )
@@ -2739,6 +2766,7 @@ function SwissBoard({
   swissRounds: number | null
   complete: boolean
 }) {
+  const swissTheme = useTournamentTheme()
   const standings = useMemo(() => {
     const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
     return computeStandings(inBracket, matches)
@@ -2769,7 +2797,7 @@ function SwissBoard({
           <>Swiss · {totalRounds} rounds total · everyone keeps playing. Pairings shuffle by record.</>
         }
       />
-      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
+      <BonkSceneBody scene={swissTheme?.scenes.roundDark ?? null} sceneLight={swissTheme?.scenes.roundLight ?? null} position="center 20%" className="p-5 sm:p-6">
         {selectedRound?.status === 'active' && selectedRound.endsAt && (
           <div className="mb-5 flex justify-end">
             <CountdownStat label={`Round ${selectedRound.number} ends in`} value={roundCountdown} />
@@ -2991,6 +3019,7 @@ function ElimBracket({
   matches: Match[]
   nameById: Map<string, Player>
 }) {
+  const elimTheme = useTournamentTheme()
   const sortedRounds = useMemo(() => [...rounds].sort((a, b) => a.number - b.number), [rounds])
 
   const columns = useMemo(() => {
@@ -3050,7 +3079,7 @@ function ElimBracket({
           ) : undefined
         }
       />
-      <BonkSceneBody scene="/bonk/scenes/scene-astronaut.jpg" sceneLight="/bonk/scenes/scene-bonk-day.jpg" position="center 20%" className="p-5 sm:p-6">
+      <BonkSceneBody scene={elimTheme?.scenes.roundDark ?? null} sceneLight={elimTheme?.scenes.roundLight ?? null} position="center 20%" className="p-5 sm:p-6">
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
           DM your opponent on <XLogo /> to schedule, then report your result. Matches confirm automatically and winners advance - the admin only steps in to settle disputes.
         </p>

@@ -2532,11 +2532,11 @@ html.lenis, html.lenis body {
   border-bottom: 1px solid color-mix(in srgb, var(--bonk-ui-orange) 42%, transparent);
 }
 [data-theme="dark"] .bonk-hero {
-  /* Night / cosmic. */
-  background:
+  /* Night / cosmic. Overridable per theme via --bonk-hero-bg-dark. */
+  background: var(--bonk-hero-bg-dark,
     radial-gradient(115% 130% at 92% 6%, rgba(255, 92, 1, 0.30) 0%, transparent 50%),
     radial-gradient(95% 120% at 3% 100%, rgba(121, 51, 188, 0.55) 0%, transparent 60%),
-    linear-gradient(157deg, #2b0c3c 0%, #190021 52%, #200034 100%);
+    linear-gradient(157deg, #2b0c3c 0%, #190021 52%, #200034 100%));
   border-bottom-color: color-mix(in srgb, var(--bonk-ui-orange) 26%, transparent);
 }
 .bonk-hero__wrap {
@@ -2617,6 +2617,27 @@ html.lenis, html.lenis body {
   pointer-events: none;
   filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.32));
 }
+/* Featured card variant of the hero visual (Card Wall self-hosted events show
+   the event's promo card instead of a sponsor mascot). Framed, rounded, gently
+   tilted, and vertically centered on the right - not flush to the bottom edge
+   like the mascot PNG. */
+.bonk-hero__feature-card {
+  position: absolute;
+  right: clamp(16px, 5vw, 72px);
+  top: 50%;
+  transform: translateY(-50%) rotate(-5deg);
+  width: clamp(120px, 24vw, 232px);
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 12px;
+  box-shadow:
+    0 2px 0 1px rgba(255, 255, 255, 0.12),
+    0 26px 46px -14px rgba(0, 0, 0, 0.6);
+}
+@media (max-width: 480px) {
+  .bonk-hero__feature-card { right: clamp(8px, 3vw, 20px); transform: translateY(-50%) rotate(-4deg); }
+}
 .bonk-hero__glow {
   position: absolute;
   right: -6%;
@@ -2629,7 +2650,7 @@ html.lenis, html.lenis body {
   background: radial-gradient(48% 48% at 62% 55%, rgba(255, 240, 220, 0.42) 0%, transparent 70%);
 }
 [data-theme="dark"] .bonk-hero__glow {
-  background: radial-gradient(46% 46% at 64% 50%, rgba(255, 92, 1, 0.42) 0%, transparent 72%);
+  background: var(--bonk-hero-glow-dark, radial-gradient(46% 46% at 64% 50%, rgba(255, 92, 1, 0.42) 0%, transparent 72%));
 }
 .bonk-hero__embers {
   position: absolute;
@@ -2681,14 +2702,14 @@ html.lenis, html.lenis body {
    sunrise scene under a warm wash; dark mode shows the cosmic DJ scene under a
    purple-night wash. Both keep the white heading + glass step cards legible. */
 .bonk-how-scene { position: absolute; inset: 0; background-size: cover; background-position: center 30%; transition: opacity 200ms ease; }
-.bonk-how-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); opacity: 1; }
-.bonk-how-scene--dark { background-image: url(/bonk/scenes/scene-dj.jpg); opacity: 0; }
+.bonk-how-scene--light { background-image: var(--bonk-how-scene-light, url(/bonk/scenes/scene-bonk-day.jpg)); opacity: 1; }
+.bonk-how-scene--dark { background-image: var(--bonk-how-scene-dark, url(/bonk/scenes/scene-dj.jpg)); opacity: 0; }
 [data-theme="dark"] .bonk-how-scene--light { opacity: 0; }
 [data-theme="dark"] .bonk-how-scene--dark { opacity: 1; }
 
 .bonk-how-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
-.bonk-how-wash--light { opacity: 1; background: linear-gradient(118deg, rgba(255, 120, 32, 0.50) 0%, rgba(255, 148, 52, 0.34) 52%, rgba(255, 182, 84, 0.18) 100%); }
-.bonk-how-wash--dark { opacity: 0; background: linear-gradient(108deg, rgba(18, 2, 24, 0.94) 30%, rgba(40, 8, 52, 0.7) 72%, rgba(58, 12, 72, 0.5) 100%); }
+.bonk-how-wash--light { opacity: 1; background: var(--bonk-how-wash-light, linear-gradient(118deg, rgba(255, 120, 32, 0.50) 0%, rgba(255, 148, 52, 0.34) 52%, rgba(255, 182, 84, 0.18) 100%)); }
+.bonk-how-wash--dark { opacity: 0; background: var(--bonk-how-wash-dark, linear-gradient(108deg, rgba(18, 2, 24, 0.94) 30%, rgba(40, 8, 52, 0.7) 72%, rgba(58, 12, 72, 0.5) 100%)); }
 [data-theme="dark"] .bonk-how-wash--light { opacity: 0; }
 [data-theme="dark"] .bonk-how-wash--dark { opacity: 1; }
 
@@ -2696,14 +2717,14 @@ html.lenis, html.lenis body {
    strip reads as warm daytime in light mode and a cosmic sunset at night,
    instead of staying locked to the dark "night" gradient. */
 .bonk-foot-scene { position: absolute; inset: 0; background-size: cover; transition: opacity 200ms ease; }
-.bonk-foot-scene--light { background-image: url(/bonk/scenes/scene-bonk-day.jpg); background-position: center 40%; opacity: 0; }
-.bonk-foot-scene--dark { background-image: url(/bonk/scenes/scene-sunset.jpg); background-position: center 60%; opacity: 0; }
+.bonk-foot-scene--light { background-image: var(--bonk-foot-scene-light, url(/bonk/scenes/scene-bonk-day.jpg)); background-position: center 40%; opacity: 0; }
+.bonk-foot-scene--dark { background-image: var(--bonk-foot-scene-dark, url(/bonk/scenes/scene-sunset.jpg)); background-position: center 60%; opacity: 0; }
 [data-theme="dark"] .bonk-foot-scene--light { opacity: 0; }
 [data-theme="dark"] .bonk-foot-scene--dark { opacity: 1; }
 
 .bonk-foot-wash { position: absolute; inset: 0; transition: opacity 200ms ease; }
-.bonk-foot-wash--light { opacity: 1; background: linear-gradient(105deg, #ff7d22 0%, #ff9a3c 55%, #ffb24f 100%); }
-.bonk-foot-wash--dark { opacity: 0; background: linear-gradient(100deg, rgba(15, 2, 20, 0.9) 38%, rgba(15, 2, 20, 0.62) 78%, rgba(15, 2, 20, 0.45) 100%); }
+.bonk-foot-wash--light { opacity: 1; background: var(--bonk-foot-wash-light, linear-gradient(105deg, #ff7d22 0%, #ff9a3c 55%, #ffb24f 100%)); }
+.bonk-foot-wash--dark { opacity: 0; background: var(--bonk-foot-wash-dark, linear-gradient(100deg, rgba(15, 2, 20, 0.9) 38%, rgba(15, 2, 20, 0.62) 78%, rgba(15, 2, 20, 0.45) 100%)); }
 [data-theme="dark"] .bonk-foot-wash--light { opacity: 0; }
 [data-theme="dark"] .bonk-foot-wash--dark { opacity: 1; }
 

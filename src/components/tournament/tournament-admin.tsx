@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Award, Check, Clock, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, Clock, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -31,6 +31,7 @@ import {
   type PollOption,
 } from '@/lib/tournament/poll'
 import type { Match, Player, StandingRow, TournamentPrize, TournamentBadgeSlot, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
+import { themeOptions, getLastAdminTheme, setLastAdminTheme } from '@/lib/tournament/theme'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -180,6 +181,7 @@ export function TournamentAdmin() {
     roundMinutes: number
     format: 'swiss' | 'single-elim'
     maxPlayers: number
+    theme?: string
   } | null>(null)
   // Same fat-finger guard for ending a running event: confirm before we lock
   // standings and flip the public page to the podium showcase.
@@ -278,6 +280,7 @@ export function TournamentAdmin() {
     roundMinutes: number
     format: 'swiss' | 'single-elim'
     maxPlayers: number
+    theme?: string
   }) {
     run(async () => {
       const r = await adminApi(adminKey, { action: 'start-fresh', ...params })
@@ -478,12 +481,15 @@ export function TournamentAdmin() {
                   setFormError('Max players must be at least 2.')
                   return
                 }
+                const inheritedTheme =
+                  snapshot?.tournament.theme ?? getLastAdminTheme() ?? undefined
                 const params = {
                   name: name.trim() || 'Card Wall Tournament',
                   signupMinutes: signup * 60,
                   roundMinutes: round * 60,
                   format,
                   maxPlayers: max,
+                  ...(inheritedTheme ? { theme: inheritedTheme } : {}),
                 }
                 // Guard against fat-fingering: if a tournament is still live
                 // (enrolling or running), confirm before taking it offline.
@@ -1092,6 +1098,54 @@ export function TournamentAdmin() {
                     }}
                   />
                 )}
+
+                {/* Page theme - reskins the public tournament page per event. */}
+                <div className="p-5" style={card}>
+                  <div className="flex items-center gap-2">
+                    <Palette size={16} style={{ color: 'var(--tcw-accent)' }} />
+                    <h3 className="font-display font-bold">Page theme</h3>
+                  </div>
+                  <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Controls the public tournament page look: palette, hero visual, co-brand lockup,
+                    and the payout step. Your last pick is remembered for the next event.
+                  </p>
+                  <div className="mt-4">
+                    <select
+                      aria-label="Page theme"
+                      value={
+                        snapshot.tournament.theme ??
+                        getLastAdminTheme() ??
+                        themeOptions()[0]?.id ??
+                        ''
+                      }
+                      disabled={busy}
+                      onChange={(e) => {
+                        const v = e.target.value
+                        if (!v) return
+                        setLastAdminTheme(v)
+                        run(async () => {
+                          await adminApi(adminKey, { action: 'set-theme', code, theme: v })
+                          setMsg(`Theme set to ${v}`)
+                        })
+                      }}
+                      style={{
+                        width: '100%',
+                        maxWidth: 320,
+                        background: 'var(--bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 8,
+                        padding: '9px 12px',
+                        fontSize: 14,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {themeOptions().map((o) => (
+                        <option key={o.id} value={o.id}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
                 <PollConfigEditor
                   key={`poll-${code}`}
