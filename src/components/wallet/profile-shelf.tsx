@@ -22,7 +22,7 @@ export type ShelfState = 'loading' | 'empty' | 'ready'
  * chevron button to scroll - so on desktop it's obvious there's more, and on a
  * non-overflowing row nothing is drawn.
  */
-function ShelfRow({ children }: { children: React.ReactNode }) {
+export function ShelfRow({ children, gapClass = 'gap-2.5' }: { children: React.ReactNode; gapClass?: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [ov, setOv] = useState({ left: false, right: false })
 
@@ -63,7 +63,7 @@ function ShelfRow({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ position: 'relative' }}>
       <div ref={ref} className={`hscroll ${maskClass}`}>
-        <div className="profile-hrow gap-2.5">{children}</div>
+        <div className={`profile-hrow ${gapClass}`}>{children}</div>
       </div>
       {ov.left && <ScrollChevron side="left" onClick={() => scrollByPage(-1)} />}
       {ov.right && <ScrollChevron side="right" onClick={() => scrollByPage(1)} />}
@@ -78,7 +78,7 @@ function ScrollChevron({ side, onClick }: { side: 'left' | 'right'; onClick: () 
       type="button"
       onClick={onClick}
       aria-label={side === 'left' ? 'Scroll left' : 'Scroll right'}
-      className="hidden sm:flex items-center justify-center"
+      className="flex items-center justify-center"
       style={{
         position: 'absolute',
         top: '50%',

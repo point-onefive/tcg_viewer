@@ -22,7 +22,13 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
   const [selected, setSelected] = useState<AwardItem | null>(null)
 
   return (
-    <ModalPortal onClose={onClose} label="Player profile" maxWidth={460} maxHeight="min(760px, calc(100dvh - 24px))">
+    <ModalPortal
+      onClose={onClose}
+      label="Player profile"
+      maxWidth={460}
+      height="min(680px, calc(100dvh - 24px))"
+      maxHeight="calc(100dvh - 24px)"
+    >
       {/* Relative wrapper so the award lightbox can cover the whole card. */}
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
         {/* Accent bar */}
@@ -50,7 +56,10 @@ export function PlayerProfileView({ standing, onClose }: PlayerProfileViewProps)
           </button>
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
+        {/* One fixed size, no vertical scroll: every shelf scrolls sideways and
+            always renders (with a placeholder when empty), so the modal is the
+            same height for every profile. */}
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: '0 24px 24px' }}>
           <ProfileBody standing={standing} onSelectAward={setSelected} />
         </div>
 

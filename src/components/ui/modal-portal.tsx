@@ -29,6 +29,12 @@ interface ModalPortalProps {
    * scroll on desktop/laptop.
    */
   maxHeight?: string
+  /**
+   * Fixed height CSS value. When set, the card is always exactly this tall
+   * (still clamped by maxHeight for small viewports), so a modal can be one
+   * static size regardless of content. Leave unset for content-driven height.
+   */
+  height?: string
   /** If false, clicking the backdrop will not close. Default true. */
   closeOnBackdrop?: boolean
   /**
@@ -45,6 +51,7 @@ export function ModalPortal({
   label,
   maxWidth = 420,
   maxHeight = 'min(680px, calc(100dvh - 24px))',
+  height,
   closeOnBackdrop = true,
   className,
 }: ModalPortalProps) {
@@ -101,6 +108,7 @@ export function ModalPortal({
             boxShadow: 'var(--shadow-card)',
             width: '100%',
             maxWidth,
+            height,
             maxHeight,
             pointerEvents: 'auto',
             overflow: 'hidden',

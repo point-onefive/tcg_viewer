@@ -61,7 +61,7 @@ export function AwardLightbox({ item, onClose }: { item: AwardItem; onClose: () 
       }}
     >
       {/* Back row - 44px tap target, top-left per mobile convention. */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '12px 12px 4px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '12px 12px 2px', flexShrink: 0 }}>
         <button
           type="button"
           onClick={(e) => {
@@ -84,52 +84,55 @@ export function AwardLightbox({ item, onClose }: { item: AwardItem; onClose: () 
         </button>
       </div>
 
-      {/* Enlarged art + meta, centered. Stops click-through so taps here don't
-          dismiss. Scrolls only if a long description ever overflows. */}
+      {/* Enlarged art + meta. The image frame flexes to consume the remaining
+          height so the whole thing ALWAYS fits the fixed modal - no scroll, no
+          clipped top. Stops click-through so taps here don't dismiss. */}
       <div
         onClick={(e) => e.stopPropagation()}
         className="award-lightbox__panel"
         style={{
           flex: 1,
           minHeight: 0,
-          overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: 18,
-          padding: '4px 24px 28px',
+          gap: 16,
+          padding: '2px 24px 24px',
           textAlign: 'center',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 'min(280px, 66vw)',
-            maxHeight: '42vh',
-            padding: 18,
-            borderRadius: 18,
-            background: `radial-gradient(circle at 50% 30%, color-mix(in srgb, ${accent} 18%, var(--bg)) 0%, var(--bg) 80%)`,
-            border: `1px solid color-mix(in srgb, ${accent} 40%, transparent)`,
-            boxShadow: `0 24px 60px -22px color-mix(in srgb, ${accent} 55%, transparent)`,
-          }}
-        >
-          {item.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.image}
-              alt={item.title}
-              style={{ width: '100%', height: 'auto', maxHeight: 'calc(42vh - 36px)', objectFit: 'contain', display: 'block' }}
-            />
-          ) : (
-            <div style={{ width: '100%', aspectRatio: '1 / 1' }} />
-          )}
+        {/* Image area: grows/shrinks to fill leftover space; image scales in. */}
+        <div style={{ flex: '1 1 auto', minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              maxWidth: 'min(280px, 80%)',
+              maxHeight: '100%',
+              padding: 16,
+              borderRadius: 18,
+              boxSizing: 'border-box',
+              background: `radial-gradient(circle at 50% 30%, color-mix(in srgb, ${accent} 18%, var(--bg)) 0%, var(--bg) 80%)`,
+              border: `1px solid color-mix(in srgb, ${accent} 40%, transparent)`,
+              boxShadow: `0 24px 60px -22px color-mix(in srgb, ${accent} 55%, transparent)`,
+            }}
+          >
+            {item.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.image}
+                alt={item.title}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
+              />
+            ) : (
+              <div style={{ width: 120, height: 120 }} />
+            )}
+          </div>
         </div>
 
-        <div style={{ maxWidth: 320 }}>
-          <h2 className="font-display" style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+        <div style={{ flexShrink: 0, maxWidth: 320 }}>
+          <h2 className="font-display" style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--text-primary)', lineHeight: 1.2 }}>
             {item.title}
           </h2>
           {item.subtitle && (
@@ -138,7 +141,7 @@ export function AwardLightbox({ item, onClose }: { item: AwardItem; onClose: () 
             </div>
           )}
           {item.description && (
-            <p className="mt-2 text-sm whitespace-pre-wrap" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p className="mt-1.5 text-[13px] whitespace-pre-wrap" style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {item.description}
             </p>
           )}
@@ -149,6 +152,7 @@ export function AwardLightbox({ item, onClose }: { item: AwardItem; onClose: () 
             href={item.link}
             className="inline-flex items-center justify-center gap-2 font-display font-bold"
             style={{
+              flexShrink: 0,
               minHeight: 44,
               padding: '0 20px',
               borderRadius: 11,
