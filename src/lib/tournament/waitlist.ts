@@ -215,3 +215,73 @@ export async function convertWaitlistToTournament(
     return 0
   }
 }
+
+/**
+ * Promote a single waitlist entry into an existing tournament as a PENDING
+ * player. Mirrors convertWaitlistToTournament but for one entry - used by the
+ * operator to backfill a slot freed by a reject/drop while the event is still
+ * enrolling. Host auth, tournament status, and the capacity check live in the
+ * service caller; here we do the entry lookup, dup guard, insert, and stamp the
+ * waitlist row converted so the promoted person drops off the list.
+ */
+export async function promoteWaitlistEntry(
+  tournamentId: string,
+  entryId: string,
+): Promise<{ promoted: boolean; alreadyIn: boolean; xHandle: string }> {
+  const sb = getServiceClient()
+
+  const { data: entry, error } = await sb
+    .from('tournament_waitlist')
+    .select('id, wallet_address, x_handle, region')
+    .eq('id', entryId)
+    .is('converted_at', null)
+    .maybeSingle()
+  if (error) throw new TournamentError(error.message, 500)
+  if (!entry) {
+    throw new TournamentError('That waitlist entry is no longer available.', 404)
+  }
+
+  const handle = (entry.x_handle as string).toLowerCase()
+  const label = formatXLabel(handle)
+  const nowIso = new Date().toISOString()
+
+  // Already an active sign-up for this event (e.g. they also signed up
+  // directly)? Don't duplicate - just retire the waitlist row.
+  const { data: existingRows } = await sb
+    .from('players')
+    .select('id, approval_status')
+    .eq('tournament_id', tournamentId)
+    .eq('x_handle', handle)
+  const alreadyActive = (existingRows ?? []).some(
+    (r) => (r.approval_status as string) !== 'rejected',
+  )
+  if (alreadyActive) {
+    await sb
+      .from('tournament_waitlist')
+      .update({ converted_at: nowIso, converted_tournament_id: tournamentId })
+      .eq('id', entry.id)
+    return { promoted: false, alreadyIn: true, xHandle: label }
+  }
+
+  const playerToken = generateToken()
+  const { error: insertErr } = await sb.from('players').insert({
+    tournament_id: tournamentId,
+    display_name: label,
+    x_handle: handle,
+    approval_status: 'pending',
+    discord_handle: null,
+    wallet_address: (entry.wallet_address as string) ?? null,
+    region: sanitizeRegion(entry.region),
+    player_token_hash: hashToken(playerToken),
+  })
+  if (insertErr) {
+    throw new TournamentError(`Could not promote from the waitlist: ${insertErr.message}`, 500)
+  }
+
+  await sb
+    .from('tournament_waitlist')
+    .update({ converted_at: nowIso, converted_tournament_id: tournamentId })
+    .eq('id', entry.id)
+
+  return { promoted: true, alreadyIn: false, xHandle: label }
+}

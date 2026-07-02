@@ -13,6 +13,7 @@ import {
   adminSetMaxPlayers,
   adminSetRoundMinutes,
   adminGetDeck,
+  adminPromoteFromWaitlist,
   adminSetPollConfig,
   adminSetPollOpen,
   adminSetPrizes,
@@ -57,6 +58,7 @@ type Body =
   | { action: 'set-poll'; code: string; open: boolean }
   | { action: 'set-poll-config'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
   | { action: 'list-waitlist' }
+  | { action: 'promote-waitlist'; code: string; entryId: string }
   | { action: 'recompute-placements' }
 
 // POST /api/tournaments/admin - admin-only tournament control
@@ -149,6 +151,10 @@ export async function POST(request: Request) {
       case 'list-waitlist': {
         const entries = await listWaitlist()
         return ok({ ok: true, entries, count: entries.length })
+      }
+      case 'promote-waitlist': {
+        const res = await adminPromoteFromWaitlist(body.code, body.entryId)
+        return ok({ ok: true, ...res })
       }
       case 'recompute-placements': {
         const count = await recomputeAllPlacements()

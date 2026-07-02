@@ -156,6 +156,9 @@ export async function adminApi(
   ok?: boolean
   deckList?: string | null
   entries?: { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
+  promoted?: boolean
+  alreadyIn?: boolean
+  xHandle?: string
 }> {
   return post('/api/tournaments/admin', body, adminKey)
 }

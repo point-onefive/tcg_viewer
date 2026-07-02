@@ -1773,6 +1773,38 @@ export async function adminRejectPlayer(code: string, playerId: string): Promise
     .eq('tournament_id', row.id)
 }
 
+/**
+ * Promote one waitlist entry into the current event as a PENDING sign-up.
+ * Guardrails: only while the event is still 'enrolling' (before the bracket is
+ * drawn), and only when the roster is under its player cap. A full roster must
+ * free a slot (reject or drop someone) before a waitlister can take it, which
+ * mirrors the public sign-up cap check. The promoted person drops off the
+ * waitlist. Returns whether a new row was created (vs. they were already in).
+ */
+export async function adminPromoteFromWaitlist(
+  code: string,
+  entryId: string,
+): Promise<{ promoted: boolean; alreadyIn: boolean; xHandle: string }> {
+  const row = await requireHost(code)
+  if (row.status !== 'enrolling') {
+    throw new TournamentError(
+      'Sign-ups are closed - you can only promote from the waitlist before the bracket starts.',
+    )
+  }
+  const players = await fetchPlayers(row.id)
+  const cap = row.max_players ?? MAX_PLAYERS
+  const activeSignups = players.filter((p) => p.approvalStatus !== 'rejected')
+  if (activeSignups.length >= cap) {
+    throw new TournamentError(
+      'The current sign-ups are full. Reject or drop someone to free a slot before promoting from the waitlist.',
+    )
+  }
+  // Deferred import: waitlist.ts imports TournamentError from this module, so a
+  // static import would create a cycle (same pattern as the auto-convert path).
+  const { promoteWaitlistEntry } = await import('./waitlist')
+  return promoteWaitlistEntry(row.id, entryId)
+}
+
 // ── Deck lists ───────────────────────────────────────────────────────────--
 
 /**

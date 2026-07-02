@@ -349,6 +349,15 @@ export function TournamentAdmin() {
 
   const nameById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const status = snapshot?.tournament.status
+
+  // Roster capacity for waitlist promotion. Non-rejected sign-ups count toward
+  // the cap (matches the server-side check). `spotsLeft === null` means no cap
+  // (unlimited). Promotion is only offered while the event is still enrolling
+  // and there's a free slot, so a full roster must free one first.
+  const rosterCap = snapshot?.tournament.maxPlayers ?? null
+  const activeSignupCount = players.filter((p) => p.approvalStatus !== 'rejected').length
+  const spotsLeft = rosterCap != null ? Math.max(0, rosterCap - activeSignupCount) : null
+  const canPromoteWaitlist = status === 'enrolling' && (spotsLeft == null || spotsLeft > 0)
   // Sign-up timer has elapsed while still 'enrolling' (bracket is started
   // manually, so status never auto-flips). Mirrors the public hero so the
   // panel and the public page never disagree about whether sign-ups are open.
@@ -421,6 +430,17 @@ export function TournamentAdmin() {
       if (!code) return
       await adminApi(adminKey, { action: 'drop-player', code, playerId: p.id })
       setMsg(`Dropped @${p.xHandle}`)
+    })
+  const promoteFromWaitlist = (entryId: string) =>
+    run(async () => {
+      if (!code) return
+      const res = await adminApi(adminKey, { action: 'promote-waitlist', code, entryId })
+      const handle = res.xHandle ?? 'player'
+      setMsg(
+        res.alreadyIn
+          ? `${handle} was already signed up - cleared from waitlist`
+          : `Promoted ${handle} into sign-ups (pending)`,
+      )
     })
 
   const setPollOpen = (open: boolean) =>
@@ -1066,6 +1086,20 @@ export function TournamentAdmin() {
                     one). When you start a fresh event above, everyone here is auto-added to it as a
                     <strong> pending</strong> sign-up for you to approve or decline, then this list clears.
                   </p>
+                  {waitlist.length > 0 && (
+                    <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                      {status !== 'enrolling' ? (
+                        <>Promotion is only available while sign-ups are open.</>
+                      ) : spotsLeft === 0 ? (
+                        <><strong style={{ color: 'var(--tcw-accent)' }}>Sign-ups are full.</strong> Reject or drop someone to free a slot, then you can promote from the waitlist into the current event.</>
+                      ) : (
+                        <>
+                          <strong style={{ color: 'var(--text-primary)' }}>Promote</strong> pulls someone into the current event now as a pending sign-up.{' '}
+                          {spotsLeft == null ? 'No player cap set.' : `${spotsLeft} open slot${spotsLeft === 1 ? '' : 's'}.`}
+                        </>
+                      )}
+                    </p>
+                  )}
                   {waitlist.length === 0 ? (
                     <p className="mt-3 text-sm py-3 text-center" style={{ color: 'var(--text-muted)' }}>
                       Nobody on the waitlist yet.
@@ -1093,6 +1127,29 @@ export function TournamentAdmin() {
                             <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
                               {new Date(w.createdAt).toLocaleDateString()}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => promoteFromWaitlist(w.id)}
+                              disabled={busy || !canPromoteWaitlist}
+                              title={
+                                canPromoteWaitlist
+                                  ? 'Promote into the current event as a pending sign-up'
+                                  : status !== 'enrolling'
+                                    ? 'Sign-ups are closed'
+                                    : 'Sign-ups are full - free a slot first'
+                              }
+                              className="footer-btn inline-flex shrink-0 items-center gap-1 px-2.5 py-1 text-xs font-bold"
+                              style={{
+                                background: canPromoteWaitlist ? 'var(--tcw-accent)' : 'var(--bg-surface)',
+                                color: canPromoteWaitlist ? '#fff' : 'var(--text-muted)',
+                                border: canPromoteWaitlist ? 'none' : '1px solid var(--border-subtle)',
+                                borderRadius: 6,
+                                opacity: busy || !canPromoteWaitlist ? 0.5 : 1,
+                                cursor: busy || !canPromoteWaitlist ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              <Plus size={12} /> Promote
+                            </button>
                           </li>
                         ))}
                       </ul>
