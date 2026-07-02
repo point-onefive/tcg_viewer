@@ -2689,6 +2689,17 @@ html.lenis, html.lenis body {
 @media (min-width: 1024px) {
   [data-theme="dark"] .bonk-hero__scene { opacity: 0.22; }
 }
+/* Mobile / tablet: the horizontal left-fade mask above only reveals a thin
+   sliver on the right of a narrow viewport, so the scene reads as "missing".
+   Show it full-bleed instead (behind the copy, which keeps its text-shadow),
+   with a soft top fade so the badge + title stay clean. */
+@media (max-width: 1023.98px) {
+  [data-theme="dark"] .bonk-hero__scene {
+    opacity: 0.2;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, #000 38%, #000 100%);
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, #000 38%, #000 100%);
+  }
+}
 
 /* Faded container scene: two layers, one per theme, so light mode can show a
    warmer daytime image while dark mode keeps its cosmic/night scene. */
