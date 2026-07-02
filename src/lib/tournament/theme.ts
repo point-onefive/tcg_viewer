@@ -209,7 +209,7 @@ const SUMMER_2026_THEME: TournamentTheme = {
     titleLine1: 'One Piece TCG',
     titleLine2: 'Summer Popup',
     bang: false,
-    subhead: 'Battle for the NatsuComi 2026 Metakira Monkey D. Luffy Promo - Eiichiro Oda Signature.',
+    subhead: 'Battle for NatsuComi 2026 Metakira Monkey D. Luffy Promos - Eiichiro Oda Signature.',
     feature: { kind: 'card', src: `${SUMMER_ASSETS}/hero-card.webp`, alt: 'NatsuComi 2026 Summer promo - Monkey D. Luffy' },
     scene: { src: `${SUMMER_ASSETS}/scene-hero.webp`, position: 'center 30%' },
     embers: false,
