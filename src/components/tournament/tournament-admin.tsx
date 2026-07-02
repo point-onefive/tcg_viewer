@@ -171,6 +171,10 @@ export function TournamentAdmin() {
   const [roundHours, setRoundHours] = useState('48')
   const [maxPlayers, setMaxPlayers] = useState('32')
   const [format, setFormat] = useState<'swiss' | 'single-elim'>('swiss')
+  // Page theme is chosen up front when starting an event (a tournament keeps
+  // its theme for its whole life; there's no mid-event reskin). Defaults to the
+  // last theme used so back-to-back events stay on-brand without re-picking.
+  const [themeId, setThemeId] = useState<string>(() => getLastAdminTheme() ?? themeOptions()[0]?.id ?? 'bonk')
   const [formError, setFormError] = useState<string | null>(null)
   // When a non-complete tournament is already live, "Start new" parks the
   // validated params here and opens a confirm modal instead of firing, so a
@@ -481,15 +485,14 @@ export function TournamentAdmin() {
                   setFormError('Max players must be at least 2.')
                   return
                 }
-                const inheritedTheme =
-                  snapshot?.tournament.theme ?? getLastAdminTheme() ?? undefined
+                setLastAdminTheme(themeId)
                 const params = {
                   name: name.trim() || 'Card Wall Tournament',
                   signupMinutes: signup * 60,
                   roundMinutes: round * 60,
                   format,
                   maxPlayers: max,
-                  ...(inheritedTheme ? { theme: inheritedTheme } : {}),
+                  theme: themeId,
                 }
                 // Guard against fat-fingering: if a tournament is still live
                 // (enrolling or running), confirm before taking it offline.
@@ -527,6 +530,34 @@ export function TournamentAdmin() {
                     onClick={() => setFormat('single-elim')}
                   />
                 </div>
+              </div>
+
+              <div>
+                <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                  <Palette size={12} style={{ color: 'var(--tcw-accent)' }} /> Page theme
+                </span>
+                <select
+                  aria-label="Page theme"
+                  value={themeId}
+                  onChange={(e) => setThemeId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 6,
+                    padding: '9px 12px',
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {themeOptions().map((o) => (
+                    <option key={o.id} value={o.id}>{o.label}</option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                  Sets the public page look for this event (palette, hero, scenes, lockup). Each event keeps its own theme for its whole life.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -1098,54 +1129,6 @@ export function TournamentAdmin() {
                     }}
                   />
                 )}
-
-                {/* Page theme - reskins the public tournament page per event. */}
-                <div className="p-5" style={card}>
-                  <div className="flex items-center gap-2">
-                    <Palette size={16} style={{ color: 'var(--tcw-accent)' }} />
-                    <h3 className="font-display font-bold">Page theme</h3>
-                  </div>
-                  <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Controls the public tournament page look: palette, hero visual, co-brand lockup,
-                    and the payout step. Your last pick is remembered for the next event.
-                  </p>
-                  <div className="mt-4">
-                    <select
-                      aria-label="Page theme"
-                      value={
-                        snapshot.tournament.theme ??
-                        getLastAdminTheme() ??
-                        themeOptions()[0]?.id ??
-                        ''
-                      }
-                      disabled={busy}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        if (!v) return
-                        setLastAdminTheme(v)
-                        run(async () => {
-                          await adminApi(adminKey, { action: 'set-theme', code, theme: v })
-                          setMsg(`Theme set to ${v}`)
-                        })
-                      }}
-                      style={{
-                        width: '100%',
-                        maxWidth: 320,
-                        background: 'var(--bg)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 8,
-                        padding: '9px 12px',
-                        fontSize: 14,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {themeOptions().map((o) => (
-                        <option key={o.id} value={o.id}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
 
                 <PollConfigEditor
                   key={`poll-${code}`}
