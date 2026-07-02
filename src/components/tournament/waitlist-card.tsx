@@ -130,7 +130,7 @@ export function WaitlistCard({ note }: { note?: string }) {
       style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}
     >
       {note ??
-        'Sign-ups for the current event are closed. Join the waitlist and you\u2019ll be auto-entered (pending approval) the moment the next tournament opens.'}
+        'Sign-ups for the current event are closed. Join the waitlist to line up for the next one. When it opens, players are added in the order they joined, up to the roster cap - so the earlier you\u2019re in line, the better your shot at a spot.'}
     </p>
   )
 
@@ -166,11 +166,12 @@ export function WaitlistCard({ note }: { note?: string }) {
               className="font-display font-bold"
               style={{ color: 'var(--text-primary)' }}
             >
-              You&rsquo;re on the list
+              You&rsquo;re in line
               {profile?.xHandle ? ` as @${profile.xHandle}` : ''}.
             </span>{' '}
-            We&rsquo;ll add you to the next tournament&rsquo;s sign-ups automatically,
-            pending admin approval.
+            When the next tournament opens we&rsquo;ll add players in join order, up to the
+            roster cap (pending admin approval). Spots aren&rsquo;t guaranteed, but you&rsquo;re
+            in the queue.
           </p>
         </div>
       </Shell>

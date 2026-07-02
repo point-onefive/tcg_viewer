@@ -1269,7 +1269,7 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
   const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
     {
       lead: 'Join the waitlist',
-      body: 'No event running yet? Connect your wallet to claim your place. The waitlist holds your spot for the upcoming tournament - when sign-ups open, you are dropped in automatically.',
+      body: 'No event running yet? Connect your wallet to get in line. When the next tournament opens, players are added in the order they joined, up to the roster cap - so the earlier you join, the better your chances of a seat.',
     },
     {
       lead: 'Sign up + submit your deck',
@@ -2296,7 +2296,7 @@ export function TournamentLive() {
         <WaitlistCard
           note={
             signupOpen && isFull
-              ? 'This event is full. Join the waitlist and you\u2019ll be auto-entered (pending approval) the moment the next tournament opens.'
+              ? 'This event is full. Join the waitlist to line up for the next one. Players are added in the order they joined, up to the roster cap, so joining early gives you the best shot at a spot.'
               : undefined
           }
         />
@@ -2434,8 +2434,9 @@ export function TournamentLive() {
                 <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   The roster
                   {tournament.maxPlayers ? ` of ${tournament.maxPlayers}` : ''} is set, so
-                  sign-ups are closed. Hop on the next-event waitlist above and you&rsquo;ll be
-                  auto-entered (pending approval) the moment the next tournament opens.
+                  sign-ups are closed. Hop on the next-event waitlist above to line up for the
+                  next one. Players are added in the order they joined, up to the cap, so the
+                  sooner you join the better your chances of a spot.
                 </p>
               </div>
             ) : walletStatus === 'loading' ? (
