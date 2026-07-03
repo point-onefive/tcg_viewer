@@ -14,6 +14,7 @@ import {
   adminSetRoundMinutes,
   adminGetDeck,
   adminPromoteFromWaitlist,
+  adminResetPoll,
   adminSetPollConfig,
   adminSetPollOpen,
   adminSetPrizes,
@@ -57,6 +58,7 @@ type Body =
   | { action: 'set-theme'; code: string; theme: string }
   | { action: 'set-poll'; code: string; open: boolean }
   | { action: 'set-poll-config'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
+  | { action: 'new-poll'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
   | { action: 'list-waitlist' }
   | { action: 'promote-waitlist'; code: string; entryId: string }
   | { action: 'recompute-placements' }
@@ -146,6 +148,10 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'set-poll-config': {
         const res = await adminSetPollConfig(body.code, body.question, body.options)
+        return ok({ ok: true, ...res })
+      }
+      case 'new-poll': {
+        const res = await adminResetPoll(body.code, body.question, body.options)
         return ok({ ok: true, ...res })
       }
       case 'list-waitlist': {

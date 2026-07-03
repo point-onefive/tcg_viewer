@@ -1304,6 +1304,45 @@ export async function adminSetPollConfig(
 }
 
 /**
+ * Start a FRESH poll on the live/active event: apply the given question +
+ * ballot, wipe every existing vote for this tournament, and (re)open voting.
+ * Unlike adminSetPollConfig - which preserves a kept option's running tally -
+ * this guarantees a clean slate, so the host can change the poll at any time
+ * without prior votes carrying over. Host-only.
+ */
+export async function adminResetPoll(
+  code: string,
+  question: unknown,
+  options: unknown,
+): Promise<{ count: number }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  let normalized: { question: string; options: PollOption[] }
+  try {
+    normalized = normalizePollConfig(question, options)
+  } catch (e) {
+    throw new TournamentError(e instanceof Error ? e.message : 'Invalid poll configuration.')
+  }
+  const { error } = await sb
+    .from('tournaments')
+    .update({
+      poll_question: normalized.question,
+      poll_options: normalized.options,
+      poll_open: true,
+    })
+    .eq('id', row.id)
+  if (error) throw new TournamentError(`Could not start a new poll: ${error.message}`, 500)
+
+  // Clear prior votes so tallies start at zero. Best-effort: a missing
+  // poll_votes table (migration not run) just means there's nothing to clear.
+  const { error: delErr } = await sb.from('poll_votes').delete().eq('tournament_id', row.id)
+  if (delErr && (delErr as { code?: string }).code !== '42P01') {
+    throw new TournamentError(`Could not clear prior votes: ${delErr.message}`, 500)
+  }
+  return { count: normalized.options.length }
+}
+
+/**
  * Set the public page theme for an event (host-only). Requires a registered
  * theme id. Unknown ids are rejected so a typo can't silently break the page.
  */

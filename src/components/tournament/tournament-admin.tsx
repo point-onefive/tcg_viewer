@@ -1297,6 +1297,23 @@ export function TournamentAdmin() {
                       setBusy(false)
                     }
                   }}
+                  onNewPoll={async (question, options) => {
+                    setBusy(true)
+                    setMsg(null)
+                    setError(null)
+                    try {
+                      const r = await adminApi(adminKey, { action: 'new-poll', code, question, options })
+                      const n = r.count ?? options.length
+                      setMsg(`Started a new poll (${n} option${n === 1 ? '' : 's'}) - previous votes cleared`)
+                      await refresh(adminKey)
+                      return true
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not start a new poll')
+                      return false
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
                 />
               </>
             )}
@@ -1360,16 +1377,20 @@ function PollConfigEditor({
   options: initialOptions,
   busy,
   onSave,
+  onNewPoll,
 }: {
   question: string
   options: PollOption[]
   busy: boolean
   onSave: (question: string, options: PollOption[]) => Promise<boolean>
+  onNewPoll: (question: string, options: PollOption[]) => Promise<boolean>
 }) {
   const [question, setQuestion] = useState(initialQuestion)
   const [options, setOptions] = useState<PollOption[]>(initialOptions)
   const [dirty, setDirty] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
+  // Two-click guard for the destructive "New poll" (wipes votes) action.
+  const [confirmingNew, setConfirmingNew] = useState(false)
 
   const initialKey = JSON.stringify([initialQuestion, initialOptions])
   useEffect(() => {
@@ -1410,6 +1431,24 @@ function PollConfigEditor({
     }
     setLocalError(null)
     const ok = await onSave(question.trim() || DEFAULT_POLL_QUESTION, filled)
+    if (ok) setDirty(false)
+  }
+
+  // Start a brand-new poll from the current question/options and clear all
+  // prior votes. Destructive, so require a second confirming click.
+  const newPoll = async () => {
+    const filled = options.filter((o) => o.label.trim())
+    if (filled.length < POLL_MIN_OPTIONS) {
+      setLocalError(`Add at least ${POLL_MIN_OPTIONS} options with a label.`)
+      return
+    }
+    setLocalError(null)
+    if (!confirmingNew) {
+      setConfirmingNew(true)
+      return
+    }
+    setConfirmingNew(false)
+    const ok = await onNewPoll(question.trim() || DEFAULT_POLL_QUESTION, filled)
     if (ok) setDirty(false)
   }
 
@@ -1502,7 +1541,40 @@ function PollConfigEditor({
             Discard changes
           </button>
         )}
+        <span className="ml-auto inline-flex items-center gap-2">
+          {confirmingNew && (
+            <button
+              type="button"
+              onClick={() => setConfirmingNew(false)}
+              className="text-xs"
+              style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={newPoll}
+            disabled={busy}
+            title="Apply the current question + options and clear all existing votes"
+            className="footer-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+            style={{
+              background: confirmingNew ? '#ef4444' : 'var(--bg)',
+              color: confirmingNew ? '#fff' : 'var(--text-primary)',
+              border: confirmingNew ? 'none' : '1px solid var(--border-subtle)',
+              borderRadius: 6,
+              opacity: busy ? 0.6 : 1,
+              cursor: busy ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {confirmingNew ? 'Confirm - clears all votes' : 'New poll'}
+          </button>
+        </span>
       </div>
+      <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        <strong>New poll</strong> applies the question + options above and wipes every existing vote,
+        so tallies restart at zero. Use it to change the poll cleanly at any time.
+      </p>
     </div>
   )
 }
