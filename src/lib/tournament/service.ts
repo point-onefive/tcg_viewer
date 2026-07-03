@@ -261,6 +261,23 @@ async function fetchPlayerByWalletOrHandle(
 
 // ── Enroll ─────────────────────────────────────────────────────────────────
 
+/**
+ * Look up a wallet profile's saved region by X handle. Used as a fallback for
+ * operator-seeded sign-ups that don't carry a region, so the roster still gets
+ * a geo bucket when the player has a profile. Returns null when no profile /
+ * region is on file. `limit(1)` guards against the rare duplicate-handle case.
+ */
+async function regionFromProfileByHandle(handle: string): Promise<Region | null> {
+  if (!handle) return null
+  const sb = getServiceClient()
+  const { data } = await sb
+    .from('wallet_profiles')
+    .select('region')
+    .eq('x_handle', handle)
+    .limit(1)
+  return sanitizeRegion(data?.[0]?.region)
+}
+
 export async function enroll(
   code: string,
   xHandleRaw: string,
@@ -301,6 +318,14 @@ export async function enroll(
     throw new TournamentError('That X handle is already registered.')
   }
 
+  // Region is required at the public route, but operator-seeded walk-ins
+  // (admin add-player) call in without one. Fall back to the wallet profile's
+  // saved region (matched by handle) so those entries still get a geo bucket.
+  let resolvedRegion = sanitizeRegion(region)
+  if (!resolvedRegion) {
+    resolvedRegion = await regionFromProfileByHandle(xHandle)
+  }
+
   const playerToken = generateToken()
   const label = formatXLabel(xHandle)
   const { data, error } = await sb
@@ -313,7 +338,7 @@ export async function enroll(
       discord_handle: null,
       deck_list: deckList,
       wallet_address: walletAddress ? walletAddress.toLowerCase() : null,
-      region: sanitizeRegion(region),
+      region: resolvedRegion,
       player_token_hash: hashToken(playerToken),
     })
     .select('*')

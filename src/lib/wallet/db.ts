@@ -396,6 +396,54 @@ export async function linkPlayersByXHandle(
 }
 
 /**
+ * Backfill a coarse region onto this wallet's tournament rows that are still
+ * "Unspecified". Runs after a profile edit that sets a region, so legacy
+ * waitlist entries and existing player rows (including pre-wallet sign-ups that
+ * were just linked by handle) inherit it instead of staying null. Only fills
+ * nulls - never overwrites a region a player already chose for a specific
+ * event. Matches by wallet address and, as a safety net, by X handle for rows
+ * not yet wallet-linked. Best-effort; returns how many rows were filled.
+ */
+export async function backfillRegionForWallet(
+  walletAddress: string,
+  xHandle: string | null,
+  region: Region,
+): Promise<{ players: number; waitlist: number }> {
+  const supabase = getSupabase()
+  const addr = walletAddress.toLowerCase()
+  const handle = xHandle ? normalizeXHandle(xHandle) : null
+
+  async function fillNulls(table: 'players' | 'tournament_waitlist'): Promise<number> {
+    let filled = 0
+    // By wallet first; rows it fills drop out of the handle pass below since
+    // they're no longer null, so nothing is double-counted.
+    const byWallet = await supabase
+      .from(table)
+      .update({ region })
+      .is('region', null)
+      .eq('wallet_address', addr)
+      .select('id')
+    filled += byWallet.data?.length ?? 0
+    if (handle) {
+      const byHandle = await supabase
+        .from(table)
+        .update({ region })
+        .is('region', null)
+        .eq('x_handle', handle)
+        .select('id')
+      filled += byHandle.data?.length ?? 0
+    }
+    return filled
+  }
+
+  const [players, waitlist] = await Promise.all([
+    fillNulls('players'),
+    fillNulls('tournament_waitlist'),
+  ])
+  return { players, waitlist }
+}
+
+/**
  * Admin backfill: link players by X handle to a wallet that already has that
  * handle on its profile. Used when reconciling a known participant manually.
  * Looks up the wallet by username so an operator can pass a friendly name.

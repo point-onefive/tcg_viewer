@@ -171,6 +171,16 @@ export async function convertWaitlistToTournament(
     const cap = opts?.maxPlayers ?? null
     let slotsLeft = cap != null ? Math.max(0, cap - taken.size) : Infinity
 
+    // Legacy entries (joined before region was required) have region=null.
+    // Fill from the wallet's saved profile region at conversion time so the
+    // whole field lands with a geo bucket. Batch-fetch to avoid N queries.
+    const regionByWallet = await profileRegionsForWallets(
+      sb,
+      pending
+        .filter((e) => !sanitizeRegion(e.region) && e.wallet_address)
+        .map((e) => (e.wallet_address as string).toLowerCase()),
+    )
+
     let converted = 0
     for (const entry of pending) {
       if (slotsLeft <= 0) break
@@ -186,6 +196,8 @@ export async function convertWaitlistToTournament(
         continue
       }
 
+      const addr = (entry.wallet_address as string | null)?.toLowerCase() ?? null
+      const region = sanitizeRegion(entry.region) ?? (addr ? regionByWallet.get(addr) ?? null : null)
       const playerToken = generateToken()
       const { error: insertErr } = await sb.from('players').insert({
         tournament_id: tournamentId,
@@ -194,7 +206,7 @@ export async function convertWaitlistToTournament(
         approval_status: 'pending',
         discord_handle: null,
         wallet_address: (entry.wallet_address as string) ?? null,
-        region: sanitizeRegion(entry.region),
+        region,
         player_token_hash: hashToken(playerToken),
       })
       if (insertErr) {
@@ -244,6 +256,15 @@ export async function promoteWaitlistEntry(
   const handle = (entry.x_handle as string).toLowerCase()
   const label = formatXLabel(handle)
   const nowIso = new Date().toISOString()
+  const addr = (entry.wallet_address as string | null)?.toLowerCase() ?? null
+
+  // Legacy entry with no region? Fall back to the wallet's profile region so
+  // the promoted player still carries a geo bucket into the event.
+  let region = sanitizeRegion(entry.region)
+  if (!region && addr) {
+    const map = await profileRegionsForWallets(sb, [addr])
+    region = map.get(addr) ?? null
+  }
 
   // Already an active sign-up for this event (e.g. they also signed up
   // directly)? Don't duplicate - just retire the waitlist row.
@@ -271,7 +292,7 @@ export async function promoteWaitlistEntry(
     approval_status: 'pending',
     discord_handle: null,
     wallet_address: (entry.wallet_address as string) ?? null,
-    region: sanitizeRegion(entry.region),
+    region,
     player_token_hash: hashToken(playerToken),
   })
   if (insertErr) {
@@ -284,4 +305,28 @@ export async function promoteWaitlistEntry(
     .eq('id', entry.id)
 
   return { promoted: true, alreadyIn: false, xHandle: label }
+}
+
+/**
+ * Batch lookup of saved profile regions for a set of wallet addresses. Used to
+ * backfill a geo bucket onto waitlist conversions whose entry predates the
+ * region requirement. Returns a lowercased-address -> Region map, omitting
+ * wallets with no profile or an unset/invalid region.
+ */
+async function profileRegionsForWallets(
+  sb: ReturnType<typeof getServiceClient>,
+  walletAddresses: string[],
+): Promise<Map<string, Region>> {
+  const out = new Map<string, Region>()
+  const addrs = [...new Set(walletAddresses.filter(Boolean))]
+  if (addrs.length === 0) return out
+  const { data } = await sb
+    .from('wallet_profiles')
+    .select('wallet_address, region')
+    .in('wallet_address', addrs)
+  for (const p of data ?? []) {
+    const r = sanitizeRegion(p.region)
+    if (r) out.set((p.wallet_address as string).toLowerCase(), r)
+  }
+  return out
 }

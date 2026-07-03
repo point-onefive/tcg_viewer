@@ -7,6 +7,7 @@ import {
   validateXHandle,
   normalizeXHandle,
   linkPlayersByXHandle,
+  backfillRegionForWallet,
 } from '@/lib/wallet/db'
 import { resolveAvatarUrl, isManagedAvatarUrl, isSocialProfileUrl } from '@/lib/wallet/avatar'
 import { snapshotAvatarToR2 } from '@/lib/wallet/avatar-snapshot'
@@ -142,6 +143,18 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       await linkPlayersByXHandle(session.address, profile.xHandle)
     } catch (err) {
       console.error('auth/profile: player backfill failed', err)
+    }
+  }
+
+  // Backfill region onto this wallet's tournament rows that are still
+  // "Unspecified" (legacy waitlist entries + pre-region player rows), so
+  // setting a region on the profile propagates to everyone's event data.
+  // Runs after the handle-link above so freshly-linked rows are covered too.
+  if (profile.region) {
+    try {
+      await backfillRegionForWallet(session.address, profile.xHandle, profile.region)
+    } catch (err) {
+      console.error('auth/profile: region backfill failed', err)
     }
   }
 
