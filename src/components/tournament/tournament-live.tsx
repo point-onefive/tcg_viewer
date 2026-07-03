@@ -2121,6 +2121,17 @@ export function TournamentLive() {
         )),
   )
 
+  // Who may line up for the NEXT-event waitlist:
+  //  - Once the current event has officially begun (running/complete), anyone
+  //    can queue for the next one - including people playing right now.
+  //  - While it's still enrolling, only people NOT in the current field can
+  //    queue, and only when they can't just sign up (roster full or the
+  //    window closed). Someone already signed up is committed to this event
+  //    and can't also queue until it begins. Mirrors the server-side guard in
+  //    joinWaitlist so the UI never offers an action the API would reject.
+  const enrolling = tournament?.status === 'enrolling'
+  const canJoinWaitlist = !enrolling || (!signedUp && (isFull || !signupOpen))
+
   // Resolve the signed-in wallet to its player row (by X handle). Used both for
   // the deck-list prompts and to find the player's active-round match so we can
   // surface a "report your result" card at the top while the event is running.
@@ -2292,7 +2303,7 @@ export function TournamentLive() {
       {/* Next-event waitlist. Shown when the current event is not actively
           enrolling, OR when it is enrolling but already full - either way new
           arrivals can still queue for the next one. */}
-      {(!signupOpen || (isFull && !signedUp)) && (
+      {canJoinWaitlist && (
         <WaitlistCard
           note={
             signupOpen && isFull

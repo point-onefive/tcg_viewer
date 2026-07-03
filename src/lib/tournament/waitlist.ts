@@ -1,6 +1,6 @@
 import 'server-only'
 import { getServiceClient } from './supabase'
-import { TournamentError } from './service'
+import { TournamentError, getLiveTournamentRow } from './service'
 import { generateToken, hashToken } from './tokens'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { type Region, sanitizeRegion } from './region'
@@ -45,6 +45,16 @@ export async function joinWaitlist(
     )
   }
 
+  // A player who's already in the CURRENT event can't also queue for the next
+  // one until this event officially begins (leaves 'enrolling'). They're
+  // committed here; the waitlist is for people not in the current field.
+  if (await isLockedIntoCurrentEvent(addr, xHandle)) {
+    throw new TournamentError(
+      "You're signed up for the current event. You can line up for the next one once this tournament begins.",
+      409,
+    )
+  }
+
   const sb = getServiceClient()
 
   // Already waiting on this wallet OR this handle? Treat as success.
@@ -68,6 +78,40 @@ export async function joinWaitlist(
     throw new TournamentError(`Could not join the waitlist: ${error.message}`, 500)
   }
   return { alreadyOnList: false }
+}
+
+/**
+ * True when this identity is an active (non-rejected) sign-up in the current
+ * live event AND that event is still enrolling (has not officially begun).
+ * Such a player is committed to the current field, so they can't also queue
+ * for the next event until this one starts running. Returns false when there's
+ * no live event, it's already running/complete, or the identity isn't in it.
+ * Never throws - a lookup hiccup should never block joining the waitlist.
+ */
+async function isLockedIntoCurrentEvent(
+  walletAddress: string,
+  xHandle: string,
+): Promise<boolean> {
+  try {
+    const row = await getLiveTournamentRow()
+    if (row.status !== 'enrolling') return false
+    const sb = getServiceClient()
+    const addr = walletAddress.toLowerCase()
+    const handle = normalizeXHandle(xHandle)
+    const { data } = await sb
+      .from('players')
+      .select('wallet_address, x_handle, approval_status')
+      .eq('tournament_id', row.id)
+    return (data ?? []).some(
+      (p) =>
+        (p.approval_status as string) !== 'rejected' &&
+        (((p.wallet_address as string | null)?.toLowerCase() === addr) ||
+          (handle !== '' && (p.x_handle as string | null) === handle)),
+    )
+  } catch {
+    // No live event (404) or a transient error: don't block joining.
+    return false
+  }
 }
 
 /**
