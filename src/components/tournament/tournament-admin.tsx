@@ -204,8 +204,9 @@ export function TournamentAdmin() {
     { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
   >([])
 
-  // Transient "copied!" feedback for the copy-handles button.
+  // Transient "copied!" feedback for the copy-handles buttons.
   const [copiedHandles, setCopiedHandles] = useState(false)
+  const [copiedWaitlist, setCopiedWaitlist] = useState(false)
 
   // Admin lists can grow long; show a slice with a "Load more" toggle.
   const [waitlistLimit, setWaitlistLimit] = useState(8)
@@ -342,6 +343,27 @@ export function TournamentAdmin() {
       await navigator.clipboard.writeText(visibleHandles.join('\n'))
       setCopiedHandles(true)
       setTimeout(() => setCopiedHandles(false), 1600)
+    } catch {
+      // Clipboard can be blocked (permissions / insecure context); no-op.
+    }
+  }
+
+  // Waitlist X handles, one per line as "@handle". Only one status here, so no
+  // filtering - it's a straight copy of everyone waiting.
+  const waitlistHandles = [
+    ...new Set(
+      waitlist
+        .map((w) => w.xHandle?.trim().replace(/^@+/, ''))
+        .filter((h): h is string => Boolean(h)),
+    ),
+  ].map((h) => `@${h}`)
+
+  async function copyWaitlistHandles() {
+    if (waitlistHandles.length === 0) return
+    try {
+      await navigator.clipboard.writeText(waitlistHandles.join('\n'))
+      setCopiedWaitlist(true)
+      setTimeout(() => setCopiedWaitlist(false), 1600)
     } catch {
       // Clipboard can be blocked (permissions / insecure context); no-op.
     }
@@ -1080,6 +1102,26 @@ export function TournamentAdmin() {
                         waiting
                       </span>
                     </span>
+                    {waitlist.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={copyWaitlistHandles}
+                        title="Copy every waitlist X handle, one per line"
+                        className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
+                        style={{
+                          background: 'var(--bg)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 6,
+                        }}
+                      >
+                        {copiedWaitlist ? (
+                          <><Check size={13} style={{ color: '#22c55e' }} /> Copied {waitlistHandles.length}</>
+                        ) : (
+                          <><Copy size={13} /> Copy handles ({waitlistHandles.length})</>
+                        )}
+                      </button>
+                    )}
                   </div>
                   <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Wallet profiles queued for the <strong>next</strong> tournament (not the current
