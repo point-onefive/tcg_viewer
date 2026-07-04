@@ -2156,6 +2156,13 @@ export function TournamentLive() {
   // we only know `hasDeckList` here, never the text.
   const owesDeckList = Boolean(myPlayer && !myPlayer.hasDeckList)
 
+  // A player promoted or converted from the waitlist can land in the field
+  // after the public sign-up window has closed but before the bracket is drawn.
+  // They still owe a deck list, so keep the entry panel available (it collapses
+  // to just the deck-submission prompt) whenever a signed-up player owes one,
+  // even when sign-ups are otherwise closed.
+  const showSignupPanel = signupOpen || (signedUp && owesDeckList)
+
   const myActiveMatch = useMemo(() => {
     if (!myPlayer || !activeRound) return null
     return (
@@ -2374,13 +2381,13 @@ export function TournamentLive() {
           redundant (everyone shows in the bracket/standings), so the whole
           block only renders while the event is still enrolling. */}
       {tournament.status === 'enrolling' && (
-      <div className={signupOpen ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
+      <div className={showSignupPanel ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
         {/* Sign up */}
-        {signupOpen && (
+        {showSignupPanel && (
           <div className="overflow-hidden" style={{ ...card, borderRadius: 14 }}>
             <BonkModuleHeader
               icon={UserPlus}
-              title="Sign up"
+              title={signupOpen ? 'Sign up' : 'Your entry'}
               right={<BonkHeaderMascot src={theme?.mascots.signup ?? null} />}
             />
             <div className="p-5">
