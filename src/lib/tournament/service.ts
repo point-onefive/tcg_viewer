@@ -2209,14 +2209,15 @@ export async function adminSetPollOpen(code: string, open: boolean): Promise<voi
 
 /**
  * Hands-off maintenance, run by Vercel Cron:
- *  1. Auto-confirm single-sided reports, with anti-gaming rules:
- *     - A self-reported LOSS only ever helps the opponent, so it can't be used
- *       to steal a win. We confirm it after the short grace window
- *       (CONFIRM_WINDOW_MINUTES), which also gives the reporter a beat to undo a
- *       fat-fingered loss before it locks.
- *     - A self-reported WIN (or a lone DRAW) is self-serving, so we hold it
- *       until the round's deadline passes. That gives the opponent the entire
- *       round to dispute a false claim before it auto-confirms.
+ *  1. Auto-confirm single-sided reports, but ONLY the common, unambiguous case:
+ *     a lone SELF-WIN, and only once the round's deadline has passed (so the
+ *     opponent had the entire round to report or dispute the claim). In
+ *     practice the winner is usually the only one who bothers to report, so
+ *     this clears the bulk of matches automatically.
+ *     Every other single-sided report is left 'reported' for admin review:
+ *     a self-reported LOSS / opponent-win and a lone DRAW are ambiguous enough
+ *     (opponent never confirmed) that the operator eyeballs them instead of the
+ *     result auto-locking.
  *  2. We never auto-award a match with ZERO reports - there's no signal to
  *     trust, so it stays pending for an admin to resolve.
  *  3. Advance any round that became fully resolved as a result.
@@ -2252,20 +2253,16 @@ export async function sweep(): Promise<{
     const only = match.player1Report ?? match.player2Report
     if (!only) continue // guard - a 'reported' match always has exactly one report
 
-    const reportedMs = ms(match.reportedAt) ?? nowMs
-    const windowReady = reportedMs + windowMs <= nowMs
+    // Auto-confirm ONLY a lone self-win. A self-loss / opponent-win or a lone
+    // draw is left 'reported' for admin review rather than auto-confirming.
+    if (only !== 'win') continue
 
-    let ready: boolean
-    if (only === 'loss') {
-      // Self-loss: safe from gaming, confirm after the grace window.
-      ready = windowReady
-    } else {
-      // Self-win / lone draw: hold until the round deadline so the opponent has
-      // the full round to dispute. If no deadline is on record, fall back to the
-      // grace window so it can never hang forever.
-      const endsMs = match.roundId ? ms(endsByRound.get(match.roundId)) : null
-      ready = endsMs != null ? endsMs <= nowMs : windowReady
-    }
+    // Hold the self-win until the round deadline so the opponent had the whole
+    // round to report or dispute. If no deadline is on record, fall back to the
+    // grace window so it can never hang forever.
+    const endsMs = match.roundId ? ms(endsByRound.get(match.roundId)) : null
+    const reportedMs = ms(match.reportedAt) ?? nowMs
+    const ready = endsMs != null ? endsMs <= nowMs : reportedMs + windowMs <= nowMs
     if (!ready) continue
 
     // Provisional winner was already stored at report time; confirm it.
