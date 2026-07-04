@@ -3160,29 +3160,28 @@ function ParticipantRow({
         >
           {status.label}
         </span>
-        <span
-          className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
-          style={
-            player.hasDeckList
-              ? { color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 7px', borderRadius: 5 }
-              : { color: 'var(--tcw-accent)', background: 'rgba(232,93,42,0.15)', padding: '2px 7px', borderRadius: 5 }
-          }
-        >
-          {player.hasDeckList ? 'Deck ✓' : 'No deck'}
-        </span>
-        {player.hasDeckList && deckCheck && (
-          <span
-            title={deckCheck.ok ? 'Every code resolves - 1 leader + 50 cards' : deckCheck.issues.join(' · ')}
-            className="shrink-0 text-[10px] font-bold uppercase tracking-wide cursor-help"
-            style={
-              deckCheck.ok
-                ? { color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 7px', borderRadius: 5 }
-                : { color: '#ef4444', background: 'rgba(239,68,68,0.15)', padding: '2px 7px', borderRadius: 5 }
-            }
-          >
-            {deckCheck.ok ? 'Valid ✓' : 'Check ⚠'}
-          </span>
-        )}
+        {(() => {
+          // One deck pill that folds "has a list?" and "does it validate?" into
+          // a single status: red No deck, green Deck valid, yellow Review deck
+          // (structural problem or unrecognized codes), or a neutral Deck ✓ while
+          // the validation audit is still loading.
+          const pill = !player.hasDeckList
+            ? { label: 'No deck', fg: '#ef4444', bg: 'rgba(239,68,68,0.15)', title: 'No deck list submitted yet.' }
+            : !deckCheck
+              ? { label: 'Deck ✓', fg: 'var(--text-secondary)', bg: 'var(--border-subtle)', title: 'Deck on file - validating…' }
+              : deckCheck.ok
+                ? { label: 'Deck valid', fg: '#22c55e', bg: 'rgba(34,197,94,0.15)', title: 'Every code resolves - 1 leader + 50 cards.' }
+                : { label: 'Review deck', fg: '#f59e0b', bg: 'rgba(245,158,11,0.15)', title: deckCheck.issues.join(' · ') }
+          return (
+            <span
+              title={pill.title}
+              className="shrink-0 text-[10px] font-bold uppercase tracking-wide cursor-help"
+              style={{ color: pill.fg, background: pill.bg, padding: '2px 7px', borderRadius: 5 }}
+            >
+              {pill.label}
+            </span>
+          )
+        })()}
         {player.dropped && (
           <span
             className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
