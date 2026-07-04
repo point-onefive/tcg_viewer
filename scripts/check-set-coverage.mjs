@@ -149,6 +149,19 @@ async function upstreamGundam() {
   return out
 }
 
+async function upstreamLorcana() {
+  // LorcanaJSON ships one big allCards.json ({ metadata, sets, cards }); there
+  // is no sets-only endpoint. `sets` is keyed by setCode ("1", "Q1", …). Mirror
+  // the generator and only count sets that actually have cards, so a card-less
+  // future set upstream lists early isn't flagged before there's data to ingest.
+  const payload = await fetchJSON('https://lorcanajson.org/files/current/en/allCards.json')
+  const sets = payload.sets ?? {}
+  const withCards = new Set((payload.cards ?? []).map((c) => c.setCode))
+  return Object.entries(sets)
+    .filter(([code]) => withCards.has(code))
+    .map(([code, meta]) => ({ code, name: meta?.name || code, releaseDate: meta?.releaseDate }))
+}
+
 // ---------- Comparison ----------
 
 // Upstream entries that match these codes/names are ignored: they are promo
@@ -199,6 +212,13 @@ const TCGS = {
     fetch: upstreamGundam,
     ignoreCodes: [],
     ignoreNames: ['Other Product Card', 'Edition Beta', 'Basic Cards', 'Promotion card'],
+  },
+  lorcana: {
+    label: 'Lorcana',
+    local: 'sets-lorcana.json',
+    fetch: upstreamLorcana,
+    ignoreCodes: [],
+    ignoreNames: [],
   },
 }
 
