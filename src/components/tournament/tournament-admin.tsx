@@ -207,6 +207,7 @@ export function TournamentAdmin() {
   // Transient "copied!" feedback for the copy-handles buttons.
   const [copiedHandles, setCopiedHandles] = useState(false)
   const [copiedWaitlist, setCopiedWaitlist] = useState(false)
+  const [copiedPairings, setCopiedPairings] = useState(false)
 
   // Admin lists can grow long; show a slice with a "Load more" toggle.
   const [waitlistLimit, setWaitlistLimit] = useState(8)
@@ -407,6 +408,35 @@ export function TournamentAdmin() {
         .sort((a, b) => a.number - b.number),
     [snapshot?.matches, activeRound],
   )
+
+  // "@p1 vs @p2" for every head-to-head in the active round, one per line, for
+  // pasting a round-pairings announcement. Byes have no opponent, so they're
+  // skipped. Mirrors the copy-handles buttons on the roster/waitlist panels.
+  const pairingLines = useMemo(() => {
+    const at = (id: string | null) => {
+      const h = id ? nameById.get(id)?.xHandle?.trim().replace(/^@+/, '') : ''
+      return h ? `@${h}` : null
+    }
+    return activeMatches
+      .filter((m) => m.player2Id && m.status !== 'bye')
+      .map((m) => {
+        const a = at(m.player1Id)
+        const b = at(m.player2Id)
+        return a && b ? `${a} vs ${b}` : null
+      })
+      .filter((line): line is string => Boolean(line))
+  }, [activeMatches, nameById])
+
+  async function copyPairings() {
+    if (pairingLines.length === 0) return
+    try {
+      await navigator.clipboard.writeText(pairingLines.join('\n'))
+      setCopiedPairings(true)
+      setTimeout(() => setCopiedPairings(false), 1600)
+    } catch {
+      // Clipboard can be blocked (permissions / insecure context); no-op.
+    }
+  }
   // Matches in the active round that have no confirmed result yet - surfaced in
   // the "end tournament" confirm so the host knows what gets frozen.
   const openMatchCount = activeMatches.filter(
@@ -960,9 +990,32 @@ export function TournamentAdmin() {
                         <Swords size={16} style={{ color: 'var(--tcw-accent)' }} />
                         <h3 className="font-display font-bold">Round {activeRound.number} decisions</h3>
                       </div>
-                      <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                        {activeMatches.filter((m) => m.status === 'confirmed' || m.status === 'bye').length}/{activeMatches.length} done
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={copyPairings}
+                          disabled={pairingLines.length === 0}
+                          title="Copy this round's matchups as '@p1 vs @p2', one per line"
+                          className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
+                          style={{
+                            background: 'var(--bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 6,
+                            opacity: pairingLines.length === 0 ? 0.5 : 1,
+                            cursor: pairingLines.length === 0 ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          {copiedPairings ? (
+                            <><Check size={13} style={{ color: '#22c55e' }} /> Copied {pairingLines.length}</>
+                          ) : (
+                            <><Copy size={13} /> Copy pairings ({pairingLines.length})</>
+                          )}
+                        </button>
+                        <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                          {activeMatches.filter((m) => m.status === 'confirmed' || m.status === 'bye').length}/{activeMatches.length} done
+                        </span>
+                      </div>
                     </div>
                     <p className="text-xs mb-4" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
                       Tap the winner of each match.{' '}
