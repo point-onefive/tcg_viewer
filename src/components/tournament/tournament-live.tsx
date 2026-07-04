@@ -2041,7 +2041,11 @@ export function TournamentLive() {
   const roundCountdown = useCountdown(activeRound?.endsAt ?? null)
 
   const visiblePlayers = useMemo(() => {
-    const active = (snapshot?.players ?? []).filter((p) => p.approvalStatus !== 'rejected')
+    // Dropped and rejected sign-ups are out of the field, so they never appear
+    // in the public Registered/Competitors roster or its counts.
+    const active = (snapshot?.players ?? []).filter(
+      (p) => p.approvalStatus !== 'rejected' && !p.dropped,
+    )
     // Verified (approved) players float to the top; within each group everyone
     // keeps their original sign-up order (Array.sort is stable).
     return [...active].sort(
