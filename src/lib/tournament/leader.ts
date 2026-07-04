@@ -27,18 +27,29 @@ const INDEX = leadersIndex as Record<string, LeaderEntry>
 const CARD_ID = /^([A-Z]{1,4}\d{2}-\d{3}|P-\d{3})/i
 // Leading OPTCG Sim quantity prefix, e.g. "4x" / "1 x " before the card id.
 const QTY_PREFIX = /^\s*\d+\s*[xX]\s*/
+// Token separators across every paste format we accept: whitespace / newlines
+// (OPTCG Sim line format "1xOP01-001") plus quotes, commas and brackets (the
+// onepiecetopdecks.com JSON-array export, e.g. `["Exported...","OP15-058",…]`).
+// Splitting first, then matching each token, keeps the leader resolvable no
+// matter which exporter a player pasted from.
+const TOKEN_SPLIT = /[\s",[\]]+/
 
 /**
  * Resolve the Leader card from a deck list, or null when none of its card ids
  * match a known leader. Display-only: never throws, never blocks anything.
+ *
+ * A 50-card One Piece deck has exactly one Leader, and the Leader is the only
+ * card that appears in the leaders index - so we scan tokens in order and return
+ * the first one that is a known leader, which is format-agnostic.
  */
 export function extractLeader(deckList: string | null | undefined): LeaderInfo | null {
   if (!deckList) return null
-  for (const rawLine of deckList.split('\n')) {
+  for (const rawToken of deckList.split(TOKEN_SPLIT)) {
+    if (!rawToken) continue
     // Strip the "<count>x" quantity prefix so the greedy id match never eats
     // the separating "x" (e.g. "1xOP01-001" -> "OP01-001", not "XOP01-001").
-    const line = rawLine.replace(QTY_PREFIX, '')
-    const m = line.match(CARD_ID)
+    const token = rawToken.replace(QTY_PREFIX, '')
+    const m = token.match(CARD_ID)
     if (!m) continue
     const id = m[1].toUpperCase()
     const entry = INDEX[id]
