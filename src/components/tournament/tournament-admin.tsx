@@ -319,13 +319,18 @@ export function TournamentAdmin() {
   const code = snapshot?.tournament.code
   const pollOpen = snapshot?.tournament.pollOpen ?? true
   const players = snapshot?.players ?? []
-  const pending = players.filter((p) => p.approvalStatus === 'pending')
-  const approved = players.filter((p) => p.approvalStatus === 'approved')
+  // Dropped and rejected sign-ups no longer occupy a slot in the field, so they
+  // are excluded from the pending/approved buckets, the "All" roster, the copy
+  // handles, and every roster count. Rejected are still viewable in their own
+  // tab; dropped fall out of the roster entirely (they're out of the event).
+  const pending = players.filter((p) => p.approvalStatus === 'pending' && !p.dropped)
+  const approved = players.filter((p) => p.approvalStatus === 'approved' && !p.dropped)
   const rejected = players.filter((p) => p.approvalStatus === 'rejected')
+  const active = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
   // Approved players still owing a deck list block the bracket start.
   const missingDeck = approved.filter((p) => !p.hasDeckList)
   const visiblePlayers =
-    tab === 'pending' ? pending : tab === 'approved' ? approved : tab === 'rejected' ? rejected : players
+    tab === 'pending' ? pending : tab === 'approved' ? approved : tab === 'rejected' ? rejected : active
 
   // X handles for whichever tab is showing, one per line as "@handle", for
   // pinging the group. Skips anyone missing a handle and de-dupes.
@@ -378,7 +383,7 @@ export function TournamentAdmin() {
   // Promotion is only offered while the event is still enrolling and there's a
   // free slot, so a full roster must free one first.
   const rosterCap = snapshot?.tournament.maxPlayers ?? null
-  const activeSignupCount = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected').length
+  const activeSignupCount = active.length
   const spotsLeft = rosterCap != null ? Math.max(0, rosterCap - activeSignupCount) : null
   const canPromoteWaitlist = status === 'enrolling' && (spotsLeft == null || spotsLeft > 0)
   // Sign-up timer has elapsed while still 'enrolling' (bracket is started
@@ -1010,15 +1015,15 @@ export function TournamentAdmin() {
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    <ParticipantTab label="All" count={players.length} active={tab === 'all'} onClick={() => { setTab('all'); setRosterLimit(8) }} />
+                    <ParticipantTab label="All" count={active.length} active={tab === 'all'} onClick={() => { setTab('all'); setRosterLimit(8) }} />
                     <ParticipantTab label="Pending" count={pending.length} active={tab === 'pending'} onClick={() => { setTab('pending'); setRosterLimit(8) }} />
                     <ParticipantTab label="Approved" count={approved.length} active={tab === 'approved'} onClick={() => { setTab('approved'); setRosterLimit(8) }} />
                     <ParticipantTab label="Rejected" count={rejected.length} active={tab === 'rejected'} onClick={() => { setTab('rejected'); setRosterLimit(8) }} />
                   </div>
 
-                  {/* Region mix of non-rejected sign-ups (planning signal). */}
+                  {/* Region mix of the active field (planning signal). */}
                   <RegionCounts
-                    regions={players.filter((p) => p.approvalStatus !== 'rejected').map((p) => p.region)}
+                    regions={active.map((p) => p.region)}
                     className="mb-4"
                   />
 
@@ -1036,7 +1041,7 @@ export function TournamentAdmin() {
 
                   {visiblePlayers.length === 0 ? (
                     <p className="text-sm py-4 text-center" style={{ color: 'var(--text-muted)' }}>
-                      {players.length === 0 ? 'No sign-ups yet.' : `No ${tab === 'all' ? '' : tab + ' '}participants.`}
+                      {active.length === 0 && rejected.length === 0 ? 'No sign-ups yet.' : `No ${tab === 'all' ? '' : tab + ' '}participants.`}
                     </p>
                   ) : (
                     <>
