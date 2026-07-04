@@ -1162,6 +1162,51 @@ function MyMatchCard({
 }
 
 /**
+ * Read-only view of the caller's own locked deck list while the event is live.
+ * The list is set-once (frozen at sign-up), so this can never edit it - it just
+ * lets a competitor pull up the exact deck they committed, and copy it. Renders
+ * collapsed by default so it never pushes the bracket down.
+ */
+function MyDeckCard({ deckList }: { deckList: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 14 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full text-left"
+        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+      >
+        <BonkModuleHeader
+          icon={ListChecks}
+          title="Your deck list"
+          eyebrow="Locked for the event"
+          right={
+            <span className="inline-flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--bonk-band-fg)' }}>
+              {deckCardCount(deckList)} cards
+              <ChevronDown
+                size={16}
+                style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 160ms ease' }}
+              />
+            </span>
+          }
+        />
+      </button>
+      {open && (
+        <div className="p-5">
+          <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            This is the deck you committed at sign-up. It&rsquo;s locked for the whole event and
+            can&rsquo;t be changed - shown here so you can reference or copy it.
+          </p>
+          <DeckListBlock deckList={deckList} maxHeight={480} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
  * Lets a signed-up player remove themselves from the event. Two-step confirm so
  * it can't be fat-fingered. While the event is live, dropping forfeits the
  * player's current match server-side so the round can still advance.
@@ -2608,6 +2653,12 @@ export function TournamentLive() {
           format={tournament.format}
           onReported={refresh}
         />
+      )}
+
+      {/* Your locked deck list - view-only reference for a competitor while the
+          event runs (set-once at sign-up, so it can't be edited here). */}
+      {tournament.status === 'running' && myPlayer && ownDeck.text && (
+        <MyDeckCard deckList={ownDeck.text} />
       )}
 
       {/* Round board */}
