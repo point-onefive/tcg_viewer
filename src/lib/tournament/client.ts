@@ -109,6 +109,23 @@ export async function apiOwnDeck(
   return data as { enrolled: boolean; deckList: string | null }
 }
 
+export interface DeckCheckResult {
+  ok: boolean
+  leaderCount: number
+  deckCount: number
+  unknownIds: string[]
+  issues: string[]
+}
+
+/**
+ * Advisory validation of a pasted deck list (resolves every code + checks the
+ * 1-leader/50-card format). Read-only; used for the live pass/fail on the
+ * sign-up form. Throws on the size-cap guard so the caller can surface it.
+ */
+export async function apiDeckCheck(deckList: string): Promise<DeckCheckResult> {
+  return post('/api/tournaments/deck-check', { deckList })
+}
+
 // ── Next-event waitlist ─────────────────────────────────────────────────────
 
 /**
@@ -155,6 +172,8 @@ export async function adminApi(
   count?: number
   ok?: boolean
   deckList?: string | null
+  check?: { ok: boolean; leaderCount: number; deckCount: number; unknownIds: string[]; issues: string[] } | null
+  results?: { playerId: string; hasDeck: boolean; ok: boolean; issues: string[] }[]
   entries?: { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
   promoted?: boolean
   alreadyIn?: boolean

@@ -41,6 +41,7 @@ import type {
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { type Region, sanitizeRegion } from './region'
 import { validateDeckList } from './deck-list'
+import { checkDeckList, type DeckCheck } from './deck-check'
 import { extractLeader } from './leader'
 import { TOURNAMENT_THEMES } from './theme'
 import {
@@ -1956,16 +1957,43 @@ export async function adminSetDeck(
   return { deckList: checked.value }
 }
 
-/** Operator read of one player's full deck list (host-gated, on demand). */
+/** Operator read of one player's full deck list (host-gated, on demand). The
+ * `check` field is the definitive resolve/format validation (see deck-check). */
 export async function adminGetDeck(
   code: string,
   playerId: string,
-): Promise<{ deckList: string | null }> {
+): Promise<{ deckList: string | null; check: DeckCheck | null }> {
   const row = await requireHost(code)
   const players = await fetchPlayers(row.id)
   const player = players.find((p) => p.id === playerId)
   if (!player) throw new TournamentError('Player not found.', 404)
-  return { deckList: player.deckList }
+  return {
+    deckList: player.deckList,
+    check: player.deckList ? checkDeckList(player.deckList) : null,
+  }
+}
+
+/**
+ * Host-gated one-shot audit of every player's deck: runs the definitive
+ * resolve/format check (see deck-check) against each stored list in a single
+ * round-trip so the admin roster can badge each entry pass/fail without
+ * fetching decks one by one. Advisory only - never blocks anything. Dropped and
+ * rejected entries are skipped since they're out of the field.
+ */
+export async function adminAuditDecks(
+  code: string,
+): Promise<{ playerId: string; hasDeck: boolean; ok: boolean; issues: string[] }[]> {
+  const row = await requireHost(code)
+  const players = await fetchPlayers(row.id)
+  return players
+    .filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
+    .map((p) => {
+      if (!p.deckList) {
+        return { playerId: p.id, hasDeck: false, ok: false, issues: ['No deck list submitted.'] }
+      }
+      const check = checkDeckList(p.deckList)
+      return { playerId: p.id, hasDeck: true, ok: check.ok, issues: check.issues }
+    })
 }
 
 /**

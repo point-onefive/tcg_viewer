@@ -197,6 +197,14 @@ export function TournamentAdmin() {
   // Which player's deck-list modal is open (view + operator override).
   const [deckPlayer, setDeckPlayer] = useState<Player | null>(null)
 
+  // Advisory deck validation, keyed by playerId: does every code resolve to a
+  // real card and is the format legal (1 leader + 50 cards)? Fetched in one
+  // host-gated call so the roster can badge each entry pass/fail at a glance.
+  // Never blocks anything - a brand-new print could read as "unknown".
+  const [deckAudit, setDeckAudit] = useState<Map<string, { ok: boolean; hasDeck: boolean; issues: string[] }>>(
+    new Map(),
+  )
+
   // Next-event waitlist (people queued for the NEXT tournament, separate from
   // the current event's sign-ups). Auto-converted into pending sign-ups when a
   // fresh tournament is started.
@@ -239,9 +247,11 @@ export function TournamentAdmin() {
   }, [])
 
   const refresh = useCallback(async (key: string) => {
+    let activeCode: string | undefined
     try {
       const snap = await apiActiveSnapshot()
       setSnapshot(snap)
+      activeCode = snap.tournament.code
       setError(null)
     } catch (err) {
       setSnapshot(null)
@@ -254,6 +264,20 @@ export function TournamentAdmin() {
       setWaitlist(r.entries ?? [])
     } catch {
       setWaitlist([])
+    }
+    // Deck validation audit for every entry (advisory pass/fail badges). Best
+    // effort: any failure just clears the badges, never blocks the panel.
+    if (activeCode) {
+      try {
+        const r = await adminApi(key, { action: 'deck-audit', code: activeCode })
+        const next = new Map<string, { ok: boolean; hasDeck: boolean; issues: string[] }>()
+        for (const row of r.results ?? []) {
+          next.set(row.playerId, { ok: row.ok, hasDeck: row.hasDeck, issues: row.issues })
+        }
+        setDeckAudit(next)
+      } catch {
+        setDeckAudit(new Map())
+      }
     }
   }, [])
 
@@ -1103,6 +1127,7 @@ export function TournamentAdmin() {
                           <ParticipantRow
                             key={p.id}
                             player={p}
+                            deckCheck={p.hasDeckList ? deckAudit.get(p.id) : undefined}
                             disabled={busy}
                             running={status === 'running'}
                             onApprove={() => approvePlayer(p)}
@@ -3085,6 +3110,7 @@ const STATUS_STYLE: Record<Player['approvalStatus'], { label: string; fg: string
  */
 function ParticipantRow({
   player,
+  deckCheck,
   disabled,
   running,
   onApprove,
@@ -3093,6 +3119,7 @@ function ParticipantRow({
   onViewDeck,
 }: {
   player: Player
+  deckCheck?: { ok: boolean; hasDeck: boolean; issues: string[] }
   disabled: boolean
   running: boolean
   onApprove: () => void
@@ -3143,6 +3170,19 @@ function ParticipantRow({
         >
           {player.hasDeckList ? 'Deck ✓' : 'No deck'}
         </span>
+        {player.hasDeckList && deckCheck && (
+          <span
+            title={deckCheck.ok ? 'Every code resolves - 1 leader + 50 cards' : deckCheck.issues.join(' · ')}
+            className="shrink-0 text-[10px] font-bold uppercase tracking-wide cursor-help"
+            style={
+              deckCheck.ok
+                ? { color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 7px', borderRadius: 5 }
+                : { color: '#ef4444', background: 'rgba(239,68,68,0.15)', padding: '2px 7px', borderRadius: 5 }
+            }
+          >
+            {deckCheck.ok ? 'Valid ✓' : 'Check ⚠'}
+          </span>
+        )}
         {player.dropped && (
           <span
             className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
@@ -3226,6 +3266,9 @@ function AdminDeckModal({
 }) {
   const [loading, setLoading] = useState(true)
   const [text, setText] = useState<string | null>(null)
+  const [check, setCheck] = useState<
+    { ok: boolean; leaderCount: number; deckCount: number; unknownIds: string[]; issues: string[] } | null
+  >(null)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -3238,6 +3281,7 @@ function AdminDeckModal({
         const r = await adminApi(adminKey, { action: 'get-deck', code, playerId: player.id })
         if (!alive) return
         setText(r.deckList ?? null)
+        setCheck(r.check ?? null)
       } catch (e) {
         if (alive) setErr(e instanceof Error ? e.message : 'Could not load deck list')
       } finally {
@@ -3262,6 +3306,13 @@ function AdminDeckModal({
       setText(deck)
       setEditing(false)
       onSaved()
+      // Re-pull so the validation banner reflects the freshly-saved list.
+      try {
+        const r = await adminApi(adminKey, { action: 'get-deck', code, playerId: player.id })
+        setCheck(r.check ?? null)
+      } catch {
+        setCheck(null)
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Could not save deck list')
     } finally {
@@ -3306,6 +3357,29 @@ function AdminDeckModal({
         <>
           {text ? (
             <>
+              {check && (
+                <div
+                  className="mb-3 rounded-md px-3 py-2 text-xs"
+                  style={
+                    check.ok
+                      ? { color: '#16a34a', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.35)' }
+                      : { color: '#dc2626', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.35)' }
+                  }
+                >
+                  {check.ok ? (
+                    <span className="font-bold">Valid ✓ - every code resolves, 1 leader + 50 cards</span>
+                  ) : (
+                    <>
+                      <span className="font-bold">Needs review ⚠</span>
+                      <ul className="mt-1 list-disc pl-4">
+                        {check.issues.map((issue, i) => (
+                          <li key={i}>{issue}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
               <p className="mb-2 text-xs" style={{ color: 'var(--text-muted)' }}>
                 {deckCardCount(text)} cards
               </p>

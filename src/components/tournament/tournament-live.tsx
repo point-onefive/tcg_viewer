@@ -8,6 +8,7 @@ import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
   apiCastVote,
+  apiDeckCheck,
   apiEnroll,
   apiOwnDeck,
   apiSubmitDeckList,
@@ -16,6 +17,7 @@ import {
   loadVotedChoice,
   loadVoterId,
   saveVotedChoice,
+  type DeckCheckResult,
 } from '@/lib/tournament/client'
 import { DEFAULT_POLL_QUESTION, POLL_OPTIONS, type PollOption, type PollResults } from '@/lib/tournament/poll'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
@@ -1992,6 +1994,13 @@ export function TournamentLive() {
   // Deck list the player is committing to (required at sign-up). Locked once
   // submitted - the server refuses to overwrite an existing list.
   const [deckDraft, setDeckDraft] = useState('')
+  // Live advisory validation of the draft (debounced). Green when every code
+  // resolves + the format is legal; structural problems hard-block submit;
+  // unrecognized codes only warn (could be a brand-new print) and clear once
+  // the player acknowledges. See doEnroll / doSubmitDeck for the gate.
+  const [deckCheck, setDeckCheck] = useState<DeckCheckResult | null>(null)
+  const [deckChecking, setDeckChecking] = useState(false)
+  const [deckWarnAck, setDeckWarnAck] = useState(false)
   // Region the player will play from (required at sign-up). Pre-filled from the
   // wallet profile's saved region so a returning player doesn't re-pick.
   const [regionDraft, setRegionDraft] = useState<Region | null>(null)
@@ -2228,6 +2237,73 @@ export function TournamentLive() {
     return oppId ? playerById.get(oppId) ?? null : null
   }, [myPlayer, myActiveMatch, playerById])
 
+  // Debounced live validation of the draft as it's typed/pasted. Any edit
+  // clears a prior "submit anyway" acknowledgement so a fresh warning is
+  // required after changes.
+  useEffect(() => {
+    const deck = deckDraft.trim()
+    setDeckWarnAck(false)
+    if (deck.length < 3) {
+      setDeckCheck(null)
+      setDeckChecking(false)
+      return
+    }
+    let cancelled = false
+    setDeckChecking(true)
+    const t = setTimeout(() => {
+      apiDeckCheck(deck)
+        .then((r) => {
+          if (!cancelled) setDeckCheck(r)
+        })
+        .catch(() => {
+          if (!cancelled) setDeckCheck(null)
+        })
+        .finally(() => {
+          if (!cancelled) setDeckChecking(false)
+        })
+    }, 500)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [deckDraft])
+
+  // Deck submission gate shared by sign-up + post-entry submit. Runs a fresh
+  // check so it matches the exact text being committed. Returns true to proceed.
+  // Structural failures (wrong leader/card total, unparseable) block outright;
+  // unrecognized codes only warn (they might be a brand-new print) and let the
+  // player confirm on a second tap. If the validator is unreachable we fall
+  // back to the server's own guard rather than block a legitimate entry.
+  const gateDeck = useCallback(
+    async (deck: string): Promise<boolean> => {
+      let check: DeckCheckResult
+      try {
+        check = await apiDeckCheck(deck)
+        setDeckCheck(check)
+      } catch {
+        return true
+      }
+      if (check.ok) return true
+      if (check.unknownIds.length === 0) {
+        setActionError(check.issues.join(' '))
+        return false
+      }
+      if (!deckWarnAck) {
+        setActionError(
+          `We couldn\u2019t recognize ${check.unknownIds.join(', ')}. If ${
+            check.unknownIds.length === 1 ? 'it\u2019s a brand-new card' : 'they\u2019re brand-new cards'
+          } you can submit anyway - tap again to confirm. Otherwise fix the code${
+            check.unknownIds.length === 1 ? '' : 's'
+          }.`,
+        )
+        setDeckWarnAck(true)
+        return false
+      }
+      return true
+    },
+    [deckWarnAck],
+  )
+
   async function doEnroll() {
     if (!tournament) return
     const deck = deckDraft.trim()
@@ -2241,6 +2317,10 @@ export function TournamentLive() {
     }
     setBusy(true)
     setActionError(null)
+    if (!(await gateDeck(deck))) {
+      setBusy(false)
+      return
+    }
     try {
       await apiEnroll(tournament.code, deck, regionDraft)
       setSignedUpCode(tournament.code)
@@ -2268,6 +2348,10 @@ export function TournamentLive() {
     }
     setSubmitDeckBusy(true)
     setActionError(null)
+    if (!(await gateDeck(deck))) {
+      setSubmitDeckBusy(false)
+      return
+    }
     try {
       await apiSubmitDeckList(tournament.code, deck)
       setDeckDraft('')
@@ -2453,6 +2537,8 @@ export function TournamentLive() {
                       value={deckDraft}
                       onChange={setDeckDraft}
                       disabled={submitDeckBusy}
+                      check={deckCheck}
+                      checking={deckChecking}
                     />
                     {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                     <button
@@ -2542,6 +2628,8 @@ export function TournamentLive() {
                   value={deckDraft}
                   onChange={setDeckDraft}
                   disabled={busy}
+                  check={deckCheck}
+                  checking={deckChecking}
                 />
                 <RegionPicker
                   value={regionDraft}
@@ -2730,12 +2818,30 @@ function DeckListField({
   value,
   onChange,
   disabled,
+  check,
+  checking,
 }: {
   value: string
   onChange: (v: string) => void
   disabled?: boolean
+  check?: DeckCheckResult | null
+  checking?: boolean
 }) {
   const count = deckCardCount(value)
+  // Status kinds: pass (green), warn (amber - unrecognized codes), fail (red -
+  // structural). Only shown once the user has typed something worth checking.
+  const status: 'checking' | 'pass' | 'warn' | 'fail' | null =
+    value.trim().length < 3
+      ? null
+      : checking
+        ? 'checking'
+        : !check
+          ? null
+          : check.ok
+            ? 'pass'
+            : check.unknownIds.length > 0
+              ? 'warn'
+              : 'fail'
   return (
     <div className="flex flex-col gap-1.5">
       <label className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
@@ -2789,6 +2895,33 @@ function DeckListField({
       <span className="self-end text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
         {count > 0 ? `${count} cards` : 'Paste your list'}
       </span>
+      {status === 'checking' && (
+        <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 size={12} className="animate-spin" /> Checking your list…
+        </span>
+      )}
+      {status === 'pass' && (
+        <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#16a34a' }}>
+          <Check size={13} /> Looks legal - 1 leader + 50 cards, every code resolves.
+        </span>
+      )}
+      {status === 'warn' && check && (
+        <span className="flex items-start gap-1.5 text-xs" style={{ color: '#b45309', lineHeight: 1.5 }}>
+          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>
+            We couldn&rsquo;t recognize {check.unknownIds.join(', ')}. Double-check{' '}
+            {check.unknownIds.length === 1 ? 'this code' : 'these codes'} - if{' '}
+            {check.unknownIds.length === 1 ? 'it\u2019s a brand-new card' : 'they\u2019re brand-new cards'} you can still
+            submit.
+          </span>
+        </span>
+      )}
+      {status === 'fail' && check && (
+        <span className="flex items-start gap-1.5 text-xs" style={{ color: '#dc2626', lineHeight: 1.5 }}>
+          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>{check.issues.join(' ')}</span>
+        </span>
+      )}
     </div>
   )
 }

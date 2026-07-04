@@ -13,6 +13,7 @@ import {
   adminSetMaxPlayers,
   adminSetRoundMinutes,
   adminGetDeck,
+  adminAuditDecks,
   adminPromoteFromWaitlist,
   adminResetPoll,
   adminSetPollConfig,
@@ -48,6 +49,7 @@ type Body =
   | { action: 'drop-player'; code: string; playerId: string }
   | { action: 'set-deck'; code: string; playerId: string; deckList: string }
   | { action: 'get-deck'; code: string; playerId: string }
+  | { action: 'deck-audit'; code: string }
   | { action: 'approve-all'; code: string }
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
   | { action: 'set-badges'; code: string; badges: TournamentBadgeSlot[] }
@@ -113,6 +115,10 @@ export async function POST(request: Request) {
       case 'get-deck': {
         const res = await adminGetDeck(body.code, body.playerId)
         return ok({ ok: true, ...res })
+      }
+      case 'deck-audit': {
+        const results = await adminAuditDecks(body.code)
+        return ok({ ok: true, results })
       }
       case 'approve-all': {
         const count = await adminApproveAllPending(body.code)
