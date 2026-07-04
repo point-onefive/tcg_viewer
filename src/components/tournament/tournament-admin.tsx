@@ -216,6 +216,7 @@ export function TournamentAdmin() {
   const [copiedHandles, setCopiedHandles] = useState(false)
   const [copiedWaitlist, setCopiedWaitlist] = useState(false)
   const [copiedPairings, setCopiedPairings] = useState(false)
+  const [copiedOpenPairings, setCopiedOpenPairings] = useState(false)
 
   // Admin lists can grow long; show a slice with a "Load more" toggle.
   const [waitlistLimit, setWaitlistLimit] = useState(8)
@@ -433,30 +434,43 @@ export function TournamentAdmin() {
     [snapshot?.matches, activeRound],
   )
 
-  // "@p1 vs @p2" for every head-to-head in the active round, one per line, for
-  // pasting a round-pairings announcement. Byes have no opponent, so they're
-  // skipped. Mirrors the copy-handles buttons on the roster/waitlist panels.
-  const pairingLines = useMemo(() => {
-    const at = (id: string | null) => {
-      const h = id ? nameById.get(id)?.xHandle?.trim().replace(/^@+/, '') : ''
-      return h ? `@${h}` : null
-    }
-    return activeMatches
-      .filter((m) => m.player2Id && m.status !== 'bye')
-      .map((m) => {
-        const a = at(m.player1Id)
-        const b = at(m.player2Id)
-        return a && b ? `${a} vs ${b}` : null
-      })
-      .filter((line): line is string => Boolean(line))
-  }, [activeMatches, nameById])
+  // "@p1 vs @p2" per head-to-head, one per line, for pasting a round-pairings
+  // announcement. Byes have no opponent, so they're skipped. Mirrors the
+  // copy-handles buttons on the roster/waitlist panels.
+  const buildPairingLines = useCallback(
+    (matches: Match[]) => {
+      const at = (id: string | null) => {
+        const h = id ? nameById.get(id)?.xHandle?.trim().replace(/^@+/, '') : ''
+        return h ? `@${h}` : null
+      }
+      return matches
+        .filter((m) => m.player2Id && m.status !== 'bye')
+        .map((m) => {
+          const a = at(m.player1Id)
+          const b = at(m.player2Id)
+          return a && b ? `${a} vs ${b}` : null
+        })
+        .filter((line): line is string => Boolean(line))
+    },
+    [nameById],
+  )
 
-  async function copyPairings() {
-    if (pairingLines.length === 0) return
+  // Every head-to-head in the round.
+  const pairingLines = useMemo(() => buildPairingLines(activeMatches), [buildPairingLines, activeMatches])
+  // Only the ones still to be played: 'pending' (awaiting the match). Excludes
+  // confirmed (done), reported (awaiting confirmation), and disputed (awaiting
+  // the host's ruling) - those matches have already happened.
+  const openPairingLines = useMemo(
+    () => buildPairingLines(activeMatches.filter((m) => m.status === 'pending')),
+    [buildPairingLines, activeMatches],
+  )
+
+  async function copyLines(lines: string[], mark: (v: boolean) => void) {
+    if (lines.length === 0) return
     try {
-      await navigator.clipboard.writeText(pairingLines.join('\n'))
-      setCopiedPairings(true)
-      setTimeout(() => setCopiedPairings(false), 1600)
+      await navigator.clipboard.writeText(lines.join('\n'))
+      mark(true)
+      setTimeout(() => mark(false), 1600)
     } catch {
       // Clipboard can be blocked (permissions / insecure context); no-op.
     }
@@ -1014,12 +1028,33 @@ export function TournamentAdmin() {
                         <Swords size={16} style={{ color: 'var(--tcw-accent)' }} />
                         <h3 className="font-display font-bold">Round {activeRound.number} decisions</h3>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {openPairingLines.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => void copyLines(openPairingLines, setCopiedOpenPairings)}
+                            title="Copy only the matchups still to be played (awaiting the match), as '@p1 vs @p2', one per line"
+                            className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
+                            style={{
+                              background: 'var(--bg)',
+                              color: 'var(--text-primary)',
+                              border: '1px solid var(--border-subtle)',
+                              borderRadius: 6,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {copiedOpenPairings ? (
+                              <><Check size={13} style={{ color: '#22c55e' }} /> Copied {openPairingLines.length}</>
+                            ) : (
+                              <><Copy size={13} /> Copy unplayed ({openPairingLines.length})</>
+                            )}
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={copyPairings}
+                          onClick={() => void copyLines(pairingLines, setCopiedPairings)}
                           disabled={pairingLines.length === 0}
-                          title="Copy this round's matchups as '@p1 vs @p2', one per line"
+                          title="Copy every matchup in this round as '@p1 vs @p2', one per line"
                           className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
                           style={{
                             background: 'var(--bg)',
@@ -1033,7 +1068,7 @@ export function TournamentAdmin() {
                           {copiedPairings ? (
                             <><Check size={13} style={{ color: '#22c55e' }} /> Copied {pairingLines.length}</>
                           ) : (
-                            <><Copy size={13} /> Copy pairings ({pairingLines.length})</>
+                            <><Copy size={13} /> Copy all ({pairingLines.length})</>
                           )}
                         </button>
                         <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
