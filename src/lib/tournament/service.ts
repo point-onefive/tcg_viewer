@@ -1926,10 +1926,13 @@ export async function submitDeckList(
 }
 
 /**
- * Operator override of a player's deck list. Allowed only before the bracket
- * is generated (status 'enrolling'), so it doubles as the typo-fix escape
- * hatch and the way to record a walk-in's list. Once the bracket starts, lists
- * are frozen for everyone.
+ * Operator override of a player's deck list (host-gated). Doubles as the typo-
+ * fix escape hatch, the way to record a walk-in's list, and the way to correct
+ * a malformed submission mid-event (e.g. a player who pasted the wrong deck
+ * code) before resorting to a disqualification. Unlike player self-submit -
+ * which freezes once the bracket starts so nobody can swap decks mid-event -
+ * this operator path stays open through the running event and only locks once
+ * the tournament is over.
  */
 export async function adminSetDeck(
   code: string,
@@ -1938,8 +1941,8 @@ export async function adminSetDeck(
 ): Promise<{ deckList: string }> {
   const sb = getServiceClient()
   const row = await requireHost(code)
-  if (row.status !== 'enrolling') {
-    throw new TournamentError('Deck lists are locked once the bracket has started.')
+  if (row.status === 'complete' || row.status === 'cancelled') {
+    throw new TournamentError('Deck lists are locked once the event is over.')
   }
   const checked = validateDeckList(deckListRaw)
   if (!checked.ok) throw new TournamentError(checked.error)

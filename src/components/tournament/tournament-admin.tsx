@@ -1129,7 +1129,7 @@ export function TournamentAdmin() {
                     player={deckPlayer}
                     code={code ?? ''}
                     adminKey={adminKey}
-                    canEdit={status === 'enrolling'}
+                    canEdit={status === 'enrolling' || status === 'running'}
                     onClose={() => setDeckPlayer(null)}
                     onSaved={() => refresh(adminKey)}
                   />
@@ -3202,11 +3202,12 @@ function ParticipantRow({
 }
 
 /**
- * Host view of one player's deck list, with an operator override editor while
- * sign-ups are open (status 'enrolling'). Fetches the full list on open (it is
- * redacted from the public snapshot). The override doubles as the way to record
- * a walk-in's list and the typo-fix escape hatch; lists freeze once the bracket
- * starts.
+ * Host view of one player's deck list, with an operator override editor that
+ * stays available through the running event (it only locks once the event is
+ * complete). Fetches the full list on open (it is redacted from the public
+ * snapshot). The override doubles as the way to record a walk-in's list, the
+ * typo-fix escape hatch, and the way to correct a malformed submission before
+ * a disqualification. Player self-submit still freezes at bracket start.
  */
 function AdminDeckModal({
   player,
@@ -3332,7 +3333,7 @@ function AdminDeckModal({
           )}
           {!canEdit && (
             <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-              Deck lists are locked once the bracket has started.
+              Deck lists are locked once the event is over.
             </p>
           )}
         </>
