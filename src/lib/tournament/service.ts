@@ -310,7 +310,8 @@ export async function enroll(
 
   const players = await fetchPlayers(row.id)
   const cap = row.max_players ?? MAX_PLAYERS
-  const activeSignups = players.filter((p) => p.approvalStatus !== 'rejected')
+  // Dropped and rejected sign-ups don't occupy a slot.
+  const activeSignups = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
   if (activeSignups.length >= cap) {
     throw new TournamentError('This tournament is full.')
   }
@@ -1857,7 +1858,9 @@ export async function adminPromoteFromWaitlist(
   }
   const players = await fetchPlayers(row.id)
   const cap = row.max_players ?? MAX_PLAYERS
-  const activeSignups = players.filter((p) => p.approvalStatus !== 'rejected')
+  // Dropped and rejected sign-ups don't occupy a slot, so either frees room for
+  // a waitlist promotion (matches the UI's spotsLeft calc).
+  const activeSignups = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
   if (activeSignups.length >= cap) {
     throw new TournamentError(
       'The current sign-ups are full. Reject or drop someone to free a slot before promoting from the waitlist.',

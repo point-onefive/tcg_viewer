@@ -372,12 +372,13 @@ export function TournamentAdmin() {
   const nameById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const status = snapshot?.tournament.status
 
-  // Roster capacity for waitlist promotion. Non-rejected sign-ups count toward
-  // the cap (matches the server-side check). `spotsLeft === null` means no cap
-  // (unlimited). Promotion is only offered while the event is still enrolling
-  // and there's a free slot, so a full roster must free one first.
+  // Roster capacity for waitlist promotion. Only sign-ups that actually occupy a
+  // slot count toward the cap (matches the server-side check): dropped and
+  // rejected sign-ups free a slot. `spotsLeft === null` means no cap (unlimited).
+  // Promotion is only offered while the event is still enrolling and there's a
+  // free slot, so a full roster must free one first.
   const rosterCap = snapshot?.tournament.maxPlayers ?? null
-  const activeSignupCount = players.filter((p) => p.approvalStatus !== 'rejected').length
+  const activeSignupCount = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected').length
   const spotsLeft = rosterCap != null ? Math.max(0, rosterCap - activeSignupCount) : null
   const canPromoteWaitlist = status === 'enrolling' && (spotsLeft == null || spotsLeft > 0)
   // Sign-up timer has elapsed while still 'enrolling' (bracket is started
