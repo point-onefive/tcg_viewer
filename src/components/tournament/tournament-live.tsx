@@ -3054,6 +3054,31 @@ function SwissBoard({
   )
 }
 
+/**
+ * Competition-style rank numbers for display. Players flagged `tied` on the
+ * same `tieGroup` share one rank; the next rank skips (1, 1, 3 not 1, 2, 3).
+ * Backend `StandingRow.rank` stays sequential for prize/admin logic.
+ */
+function displayRanks(standings: StandingRow[]): Map<string, number> {
+  const map = new Map<string, number>()
+  let i = 0
+  let nextRank = 1
+  while (i < standings.length) {
+    const row = standings[i]
+    if (row.tied && row.tieGroup != null) {
+      const groupSize = standings.filter((s) => s.tieGroup === row.tieGroup).length
+      for (let g = 0; g < groupSize; g++) map.set(standings[i + g].playerId, nextRank)
+      i += groupSize
+      nextRank += groupSize
+    } else {
+      map.set(row.playerId, nextRank)
+      i++
+      nextRank++
+    }
+  }
+  return map
+}
+
 export function StandingsTable({ standings, nameById, complete }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean }) {
   // Inline deck-list expansion: once the event is complete and lists are public,
   // each row with a published deck can expand in place (no separate archive).
@@ -3065,18 +3090,24 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
       else next.add(id)
       return next
     })
+  const rankById = useMemo(() => displayRanks(standings), [standings])
+  const hasTiedGroups = useMemo(() => standings.some((s) => s.tied), [standings])
 
   if (standings.length === 0) return null
   return (
     <div className="mt-6">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-3">
         <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} />
         <h4 className="font-display text-sm font-bold uppercase tracking-wider">
           {complete ? 'Final standings' : 'Standings'}
         </h4>
-        {complete && (
+        {complete ? (
           <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
             · tap a deck to view the list
+          </span>
+        ) : (
+          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            · sorted by record · same # = tied
           </span>
         )}
       </div>
@@ -3094,8 +3125,9 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
           </thead>
           <tbody>
             {standings.map((s) => {
-              const top = s.rank <= 3 && complete
-              const medal = s.rank === 1 ? '#f5b301' : s.rank === 2 ? '#c4cad3' : s.rank === 3 ? '#cd7f32' : null
+              const displayRank = rankById.get(s.playerId) ?? s.rank
+              const top = displayRank <= 3 && complete
+              const medal = displayRank === 1 ? '#f5b301' : displayRank === 2 ? '#c4cad3' : displayRank === 3 ? '#cd7f32' : null
               const player = nameById.get(s.playerId)
               const deck = player?.deckList?.trim() ?? ''
               const canExpand = complete && deck !== ''
@@ -3109,7 +3141,7 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                       className="inline-flex items-center justify-center text-[11px] font-bold tabular-nums"
                       style={{ minWidth: 22, height: 22, borderRadius: 5, background: medal ?? 'var(--bg)', color: medal ? '#1a1a1a' : 'var(--text-muted)', border: medal ? 'none' : '1px solid var(--border-subtle)' }}
                     >
-                      {s.rank}
+                      {displayRank}
                     </span>
                   </td>
                   <td className="py-2 px-2 min-w-0">
@@ -3125,15 +3157,6 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                       />
                       {s.dropped && (
                         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>dropped</span>
-                      )}
-                      {s.tied && (
-                        <span
-                          title="Tied on every tiebreaker - placement decided by a tiebreaker, not by name."
-                          className="inline-flex items-center text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5"
-                          style={{ color: '#f5b301', background: 'color-mix(in srgb, #f5b301 14%, transparent)', borderRadius: 4, lineHeight: 1 }}
-                        >
-                          tied
-                        </span>
                       )}
                     </span>
                   </td>
@@ -3193,12 +3216,10 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
           </tbody>
         </table>
       </div>
-      {standings.some((s) => s.tied) ? (
+      {complete && hasTiedGroups ? (
         <p className="mt-2 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          Ties break on merit only: match points, then opponents&rsquo; win % (OMW),
-          head-to-head, then opponents&rsquo; opponents&rsquo; win %. Players still
-          dead-even are marked <span style={{ color: '#f5b301', fontWeight: 700 }}>tied</span> and,
-          if it affects a placing, settled by a tiebreaker - never by name.
+          Players who share a rank are tied on every tiebreaker. If that affects a
+          prize spot, the host settles it with a tiebreaker.
         </p>
       ) : null}
     </div>
