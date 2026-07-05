@@ -3520,15 +3520,26 @@ function ElimSlot({
       </span>
       <div className="min-w-0 flex-1">
         {player ? (
-          <XProfileLink
-            handle={player.xHandle}
-            username={player.username}
-            avatarUrl={player.avatarUrl}
-            walletAddress={player.walletAddress}
-            country={player.country}
-            avatarSize={20}
-            className="text-[13px] truncate block"
-          />
+          <div className="flex items-center gap-1.5 min-w-0">
+            <XProfileLink
+              handle={player.xHandle}
+              username={player.username}
+              avatarUrl={player.avatarUrl}
+              walletAddress={player.walletAddress}
+              country={player.country}
+              avatarSize={20}
+              className="text-[13px] truncate block min-w-0"
+            />
+            {player.dropped && (
+              <span
+                className="shrink-0 text-[9px] font-bold uppercase tracking-wide"
+                style={{ color: 'var(--text-muted)' }}
+                title="Dropped from the event - the opponent takes the win by forfeit."
+              >
+                dropped
+              </span>
+            )}
+          </div>
         ) : (
           <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>TBD</span>
         )}
@@ -3670,15 +3681,26 @@ function BracketSlot({
       </span>
       <div className="min-w-0 flex-1">
         {player ? (
-          <XProfileLink
-            handle={player.xHandle}
-            username={player.username}
-            avatarUrl={player.avatarUrl}
-            walletAddress={player.walletAddress}
-            country={player.country}
-            avatarSize={24}
-            className="text-sm truncate block"
-          />
+          <div className="flex items-center gap-1.5 min-w-0">
+            <XProfileLink
+              handle={player.xHandle}
+              username={player.username}
+              avatarUrl={player.avatarUrl}
+              walletAddress={player.walletAddress}
+              country={player.country}
+              avatarSize={24}
+              className="text-sm truncate block min-w-0"
+            />
+            {player.dropped && (
+              <span
+                className="shrink-0 text-[9px] font-bold uppercase tracking-wide"
+                style={{ color: 'var(--text-muted)' }}
+                title="Dropped from the event - the opponent takes the win by forfeit."
+              >
+                dropped
+              </span>
+            )}
+          </div>
         ) : (
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>TBD</span>
         )}
