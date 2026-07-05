@@ -35,7 +35,7 @@ import {
   buildExportFilename,
   captureChartPng,
   copyBlobToClipboard,
-  downloadBlob,
+  saveOrShareBlob,
 } from '@/lib/chart-export'
 
 /* ──────────────────────────────────────────────────────────────
@@ -899,7 +899,8 @@ export function ChartRaceMaker() {
     setExporting(true)
     try {
       const blob = await captureChartPng(frameRef.current)
-      downloadBlob(blob, buildExportFilename(title || 'chart-race', 'png'))
+      // Share sheet on phones (iOS ignores <a download>), anchor on desktop.
+      await saveOrShareBlob(blob, buildExportFilename(title || 'chart-race', 'png'))
     } catch {
       // Swallow: a failed capture shouldn't crash the page. The
       // button simply re-enables so the user can retry.

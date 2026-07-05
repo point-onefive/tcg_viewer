@@ -49,7 +49,7 @@ import {
   buildExportFilename,
   captureChartPng,
   copyBlobToClipboard,
-  downloadBlob,
+  saveOrShareBlob,
 } from '@/lib/chart-export'
 import { BrandLockup } from '@/components/gallery/brand-lockup'
 import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
@@ -1329,10 +1329,11 @@ export function TierListMaker() {
       } else {
         // Clipboard write rejected (no permission, no user gesture
         // path, Safari/Firefox image-write gating, etc.) -- fall
-        // through to a download so the user still walks away with
+        // through to share/download so the user still walks away with
         // their snapshot instead of an empty error.
-        downloadBlob(blob, buildExportFilename(title, 'png'))
-        flashExport('Clipboard blocked - downloaded PNG instead')
+        const outcome = await saveOrShareBlob(blob, buildExportFilename(title, 'png'))
+        if (outcome === 'shared') flashExport('Shared PNG')
+        else if (outcome === 'downloaded') flashExport('Clipboard blocked - downloaded PNG instead')
       }
     } catch (err) {
       console.error('Copy PNG failed', err)
@@ -1348,8 +1349,11 @@ export function TierListMaker() {
     setExportFlash(null)
     try {
       const blob = await captureChartPng(chartFrameRef.current)
-      downloadBlob(blob, buildExportFilename(title, 'png'))
-      flashExport('Saved PNG')
+      // On phones a hidden <a download> silently fails (iOS Safari),
+      // so route through the native share sheet when available.
+      const outcome = await saveOrShareBlob(blob, buildExportFilename(title, 'png'))
+      if (outcome === 'shared') flashExport('Shared PNG')
+      else if (outcome === 'downloaded') flashExport('Saved PNG')
     } catch (err) {
       console.error('PNG export failed', err)
       flashExport('Export failed - try again')

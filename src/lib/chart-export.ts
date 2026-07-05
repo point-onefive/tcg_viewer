@@ -88,6 +88,66 @@ export function downloadBlob(blob: Blob, filename: string) {
 }
 
 /**
+ * True on touch-first devices (phones / tablets). Used to decide
+ * whether a PNG should go through the native share sheet instead of
+ * a hidden `<a download>`, which iOS Safari silently refuses to
+ * honour for `blob:` URLs -- the tap looks like it errored and
+ * nothing lands in the camera roll (the "can't save image" bug).
+ */
+function isTouchDevice(): boolean {
+  if (typeof window === 'undefined') return false
+  const coarse =
+    typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+  const touch = typeof navigator !== 'undefined' && (navigator.maxTouchPoints || 0) > 0
+  return coarse || touch
+}
+
+/**
+ * Save a PNG blob the way the current device actually supports.
+ *
+ *  - Desktop: a hidden `<a download>` (unchanged, works everywhere).
+ *  - Mobile: `<a download>` is a no-op on iOS Safari for `blob:`
+ *    URLs, so the export looked broken. When the browser can share
+ *    files (`navigator.canShare({ files })`, true on iOS 15+ and
+ *    modern Android) we hand the PNG to the native share sheet,
+ *    which surfaces "Save Image" / "Save to Photos" / "Save to
+ *    Files". If sharing is unavailable, or the share call throws for
+ *    any reason other than the user dismissing the sheet, we fall
+ *    back to the download anchor so the user still walks away with
+ *    something.
+ *
+ * Returns which path ran so the caller can tailor its status flash
+ * (`cancelled` = user backed out of the share sheet -> stay silent).
+ */
+export async function saveOrShareBlob(
+  blob: Blob,
+  filename: string,
+): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  if (
+    isTouchDevice() &&
+    typeof navigator !== 'undefined' &&
+    typeof navigator.canShare === 'function' &&
+    typeof navigator.share === 'function'
+  ) {
+    try {
+      const file = new File([blob], filename, { type: blob.type || 'image/png' })
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file] })
+        return 'shared'
+      }
+    } catch (err) {
+      // AbortError = the user tapped away from the share sheet. Treat
+      // it as a deliberate cancel and do NOT also fire a download.
+      // Any other failure (e.g. the share gesture expired) drops
+      // through to the download fallback below.
+      if (err instanceof Error && err.name === 'AbortError') return 'cancelled'
+    }
+  }
+  downloadBlob(blob, filename)
+  return 'downloaded'
+}
+
+/**
  * Try to copy an image blob to the clipboard. Browsers / OS combos
  * that don't allow image clipboard writes (Safari without HTTPS,
  * Firefox at the time of writing, no user gesture, etc.) return
