@@ -179,8 +179,29 @@ export async function adminApi(
   promoted?: boolean
   alreadyIn?: boolean
   xHandle?: string
+  recipients?: {
+    walletAddress: string
+    username: string | null
+    xHandle: string | null
+    avatarUrl: string | null
+  }[]
+  award?: ManualBadgeAward
+  awards?: ManualBadgeAward[]
 }> {
   return post('/api/tournaments/admin', body, adminKey)
+}
+
+/** A standalone (tournament-agnostic) badge award, as returned by the admin API. */
+export interface ManualBadgeAward {
+  id: string
+  walletAddress: string
+  username: string | null
+  xHandle: string | null
+  displayName: string | null
+  title: string
+  description: string
+  image: string | null
+  awardedAt: string
 }
 
 // ── Prize-distribution poll ────────────────────────────────────────────────

@@ -21,6 +21,10 @@ import {
   adminSetPrizes,
   adminSetBadges,
   adminSetParticipationBadge,
+  listBadgeRecipients,
+  grantManualBadge,
+  listRecentManualBadges,
+  revokeManualBadge,
   adminSetTheme,
   adminSetResult,
   adminStartBracket,
@@ -66,6 +70,10 @@ type Body =
   | { action: 'list-waitlist' }
   | { action: 'promote-waitlist'; code: string; entryId: string }
   | { action: 'recompute-placements' }
+  | { action: 'list-badge-recipients' }
+  | { action: 'grant-badge'; walletAddress: string; badge: TournamentBadgeSlot }
+  | { action: 'list-recent-badges' }
+  | { action: 'revoke-badge'; id: string }
 
 // POST /api/tournaments/admin - admin-only tournament control
 export async function POST(request: Request) {
@@ -177,6 +185,22 @@ export async function POST(request: Request) {
       case 'recompute-placements': {
         const count = await recomputeAllPlacements()
         return ok({ ok: true, count })
+      }
+      case 'list-badge-recipients': {
+        const recipients = await listBadgeRecipients()
+        return ok({ ok: true, recipients })
+      }
+      case 'grant-badge': {
+        const award = await grantManualBadge(body.walletAddress, body.badge)
+        return ok({ ok: true, award })
+      }
+      case 'list-recent-badges': {
+        const awards = await listRecentManualBadges()
+        return ok({ ok: true, awards })
+      }
+      case 'revoke-badge': {
+        await revokeManualBadge(body.id)
+        return ok({ ok: true })
       }
       default:
         throw new TournamentError('Unknown action.', 400)

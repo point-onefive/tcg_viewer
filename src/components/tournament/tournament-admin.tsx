@@ -10,6 +10,7 @@ import {
   clearAdminKey,
   loadAdminKey,
   saveAdminKey,
+  type ManualBadgeAward,
 } from '@/lib/tournament/client'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { BonkModuleHeader, BonkModalClose } from '@/components/tournament/bonk-ui'
@@ -1500,6 +1501,11 @@ export function TournamentAdmin() {
             )}
           </>
         )}
+
+        {/* Standalone badge granter - always available once unlocked, whether or
+            not a tournament is running. Award a cosmetic badge to any registered
+            user by hand. */}
+        <StandaloneBadgeGranter adminKey={adminKey} />
       </div>
     </TournamentShell>
   )
@@ -2423,6 +2429,414 @@ function ParticipationBadgeEditor({
           </button>
         )}
       </div>
+    </div>
+  )
+}
+
+interface BadgeRecipientOption {
+  walletAddress: string
+  username: string | null
+  xHandle: string | null
+  avatarUrl: string | null
+}
+
+/** Display label for a recipient: username, else @handle, else short wallet. */
+function recipientLabel(r: BadgeRecipientOption): string {
+  if (r.username && r.username.trim()) return r.username.trim()
+  if (r.xHandle && r.xHandle.trim()) return `@${normalizeXHandle(r.xHandle)}`
+  return `${r.walletAddress.slice(0, 6)}…${r.walletAddress.slice(-4)}`
+}
+
+/**
+ * Searchable, overflow-safe recipient picker. Loads the registered roster once,
+ * filters client-side by username / X handle / wallet, and shows matches in a
+ * scrollable dropdown so a large user base never blows out the layout.
+ */
+function RecipientPicker({
+  recipients,
+  loading,
+  value,
+  onChange,
+  disabled,
+}: {
+  recipients: BadgeRecipientOption[]
+  loading: boolean
+  value: BadgeRecipientOption | null
+  onChange: (r: BadgeRecipientOption | null) => void
+  disabled?: boolean
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const boxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [])
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase().replace(/^@/, '')
+    if (!q) return recipients.slice(0, 50)
+    return recipients
+      .filter((r) => {
+        const u = (r.username ?? '').toLowerCase()
+        const h = normalizeXHandle(r.xHandle ?? '')
+        const w = r.walletAddress.toLowerCase()
+        return u.includes(q) || h.includes(q) || w.includes(q)
+      })
+      .slice(0, 50)
+  }, [query, recipients])
+
+  return (
+    <div ref={boxRef} className="relative">
+      {value ? (
+        <div
+          className="flex items-center gap-2 rounded-md px-2.5 py-2"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
+        >
+          <PlayerAvatar
+            username={value.username}
+            xHandle={value.xHandle}
+            avatarUrl={value.avatarUrl}
+            walletAddress={value.walletAddress}
+            size={22}
+          />
+          <span className="text-sm font-semibold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
+            {recipientLabel(value)}
+          </span>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(null)}
+            aria-label="Clear recipient"
+            className="ml-auto inline-flex items-center justify-center"
+            style={{ width: 22, height: 22, borderRadius: 5, background: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <input
+          style={{ ...inputStyle, padding: '9px 11px' }}
+          value={query}
+          disabled={disabled}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setOpen(true)
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder={loading ? 'Loading users…' : 'Search a username or @handle…'}
+        />
+      )}
+
+      {open && !value && (
+        <div
+          className="absolute z-30 mt-1 w-full overflow-y-auto rounded-md"
+          style={{ maxHeight: 240, background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', boxShadow: 'var(--shadow-card)' }}
+        >
+          {loading ? (
+            <div className="px-3 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>Loading…</div>
+          ) : matches.length === 0 ? (
+            <div className="px-3 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>No matching users.</div>
+          ) : (
+            matches.map((r) => (
+              <button
+                key={r.walletAddress}
+                type="button"
+                onClick={() => {
+                  onChange(r)
+                  setOpen(false)
+                  setQuery('')
+                }}
+                className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left"
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <PlayerAvatar
+                  username={r.username}
+                  xHandle={r.xHandle}
+                  avatarUrl={r.avatarUrl}
+                  walletAddress={r.walletAddress}
+                  size={22}
+                />
+                <span className="text-sm truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
+                  {recipientLabel(r)}
+                </span>
+                {r.username && r.xHandle && (
+                  <span className="ml-auto text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>
+                    @{normalizeXHandle(r.xHandle)}
+                  </span>
+                )}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Tournament-agnostic badge granter. Always available in the admin panel: pick
+ * any registered user, upload + auto-normalize a transparent PNG, set a title
+ * and sub-header, and award it. Awards land in manual_awarded_badges and show
+ * on the recipient's profile shelf like any other badge. A "recently awarded"
+ * list lets the operator revoke a mistaken grant.
+ */
+function StandaloneBadgeGranter({ adminKey }: { adminKey: string }) {
+  const empty: TournamentBadgeSlot = { title: '', description: '', image: null }
+  const [slot, setSlot] = useState<TournamentBadgeSlot>(empty)
+  const [recipient, setRecipient] = useState<BadgeRecipientOption | null>(null)
+  const [recipients, setRecipients] = useState<BadgeRecipientOption[]>([])
+  const [loadingRecipients, setLoadingRecipients] = useState(true)
+  const [recent, setRecent] = useState<ManualBadgeAward[]>([])
+  const [busy, setBusy] = useState(false)
+  const [working, setWorking] = useState(false)
+  const [imgError, setImgError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let live = true
+    setLoadingRecipients(true)
+    Promise.all([
+      adminApi(adminKey, { action: 'list-badge-recipients' }),
+      adminApi(adminKey, { action: 'list-recent-badges' }),
+    ])
+      .then(([rec, awards]) => {
+        if (!live) return
+        setRecipients(rec.recipients ?? [])
+        setRecent(awards.awards ?? [])
+      })
+      .catch(() => {
+        /* best effort - a missing table just leaves the lists empty */
+      })
+      .finally(() => {
+        if (live) setLoadingRecipients(false)
+      })
+    return () => {
+      live = false
+    }
+  }, [adminKey])
+
+  const handleImage = async (blob: Blob) => {
+    setImgError(null)
+    setWorking(true)
+    try {
+      const dataUrl = await normalizeBadgeImageToDataUrl(blob)
+      setSlot((s) => ({ ...s, image: dataUrl }))
+    } catch {
+      setImgError('Could not process that image - use a transparent PNG.')
+    } finally {
+      setWorking(false)
+    }
+  }
+
+  const canAward =
+    !busy && !working && Boolean(recipient) && slot.image !== null && slot.title.trim().length > 0
+
+  const award = async () => {
+    if (!recipient || !slot.image) return
+    setBusy(true)
+    setError(null)
+    setMsg(null)
+    try {
+      const r = await adminApi(adminKey, {
+        action: 'grant-badge',
+        walletAddress: recipient.walletAddress,
+        badge: { title: slot.title.trim(), description: slot.description?.trim() ?? '', image: slot.image },
+      })
+      if (r.award) setRecent((prev) => [r.award as ManualBadgeAward, ...prev])
+      setMsg(`Awarded "${slot.title.trim()}" to ${recipientLabel(recipient)}.`)
+      setSlot(empty)
+      setRecipient(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not award the badge.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const revoke = async (id: string) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await adminApi(adminKey, { action: 'revoke-badge', id })
+      setRecent((prev) => prev.filter((a) => a.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not revoke the badge.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="p-5" style={tintedCard('#a855f7')}>
+      <div className="flex items-center gap-2 mb-1">
+        <Award size={16} style={{ color: '#a855f7' }} />
+        <h3 className="font-display font-bold">Award a badge</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        Give a cosmetic badge to any registered user, anytime - no tournament
+        needed. Pick a recipient, upload a transparent PNG (auto-trimmed and sized
+        to match every other badge), and add a title + sub-header. It appears on
+        their profile badge shelf.
+      </p>
+
+      <div className="flex flex-col gap-3 rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}>
+        <label className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+          Recipient
+        </label>
+        <RecipientPicker
+          recipients={recipients}
+          loading={loadingRecipients}
+          value={recipient}
+          onChange={setRecipient}
+          disabled={busy}
+        />
+
+        <div className="grid gap-2 sm:grid-cols-[120px_1fr]">
+          {slot.image ? (
+            <div className="relative self-start">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={slot.image}
+                alt={slot.title || 'Badge'}
+                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 6, border: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)' }}
+              />
+              <button
+                type="button"
+                onClick={() => setSlot((s) => ({ ...s, image: null }))}
+                aria-label="Remove image"
+                className="absolute inline-flex items-center justify-center"
+                style={{ top: 4, right: 4, width: 20, height: 20, borderRadius: 5, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5 self-start">
+              <div
+                tabIndex={0}
+                aria-label="Click here then paste a badge image"
+                onPaste={(e) => {
+                  const blob = imageFromClipboard(e)
+                  if (blob) {
+                    e.preventDefault()
+                    handleImage(blob)
+                  }
+                }}
+                className="flex flex-col items-center justify-center gap-1 text-center cursor-text"
+                style={{ height: 72, borderRadius: 6, border: '1px dashed color-mix(in srgb, var(--text-primary) 28%, transparent)', color: 'var(--text-muted)', padding: 6 }}
+              >
+                <ImagePlus size={16} />
+                <span className="text-[10px] leading-tight">Click, then paste (⌘V)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={busy || working}
+                className="footer-btn inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-bold"
+                style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, opacity: busy || working ? 0.5 : 1 }}
+              >
+                <Upload size={12} /> Upload PNG
+              </button>
+            </div>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) handleImage(f)
+              e.target.value = ''
+            }}
+          />
+
+          <div className="flex flex-col gap-2 min-w-0">
+            <input
+              style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+              value={slot.title}
+              disabled={busy || working}
+              onChange={(e) => setSlot((s) => ({ ...s, title: e.target.value }))}
+              placeholder="Badge name (e.g. Community MVP)"
+            />
+            <textarea
+              style={{ ...inputStyle, padding: '7px 9px', fontSize: 13, resize: 'vertical', minHeight: 52 }}
+              value={slot.description}
+              disabled={busy || working}
+              onChange={(e) => setSlot((s) => ({ ...s, description: e.target.value }))}
+              placeholder="Sub-header shown on hover (e.g. Awarded for outstanding community contributions)"
+              rows={2}
+            />
+          </div>
+        </div>
+      </div>
+
+      {imgError && <p className="text-sm mt-3" style={{ color: '#ef4444' }}>{imgError}</p>}
+      {error && <p className="text-sm mt-3" style={{ color: '#ef4444' }}>{error}</p>}
+      {working && (
+        <p className="text-xs mt-3 inline-flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 size={12} className="animate-spin" /> Processing image...
+        </p>
+      )}
+      {msg && (
+        <p className="text-xs mt-3 inline-flex items-center gap-1.5" style={{ color: '#22c55e' }}>
+          <Check size={12} /> {msg}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        <AdminBtn primary disabled={!canAward} onClick={award}>
+          Award badge
+        </AdminBtn>
+      </div>
+
+      {recent.length > 0 && (
+        <div className="mt-5">
+          <h4 className="text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Recently awarded
+          </h4>
+          <div className="flex flex-col gap-1.5">
+            {recent.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-center gap-2 rounded-md px-2.5 py-1.5"
+                style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
+              >
+                {a.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={a.image} alt="" style={{ width: 26, height: 26, borderRadius: 5, flexShrink: 0 }} />
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                    {a.title}
+                  </div>
+                  <div className="text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>
+                    {a.displayName || (a.xHandle ? `@${normalizeXHandle(a.xHandle)}` : `${a.walletAddress.slice(0, 6)}…${a.walletAddress.slice(-4)}`)}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => revoke(a.id)}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold"
+                  style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', opacity: busy ? 0.5 : 1 }}
+                >
+                  <Trash2 size={12} /> Revoke
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

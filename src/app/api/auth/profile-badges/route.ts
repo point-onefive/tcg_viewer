@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getEarnedBadges, getEarnedTournamentBadges, getStandingByUsername } from '@/lib/wallet/db'
+import { getEarnedBadges, getEarnedTournamentBadges, getManualBadges, getStandingByUsername } from '@/lib/wallet/db'
 import { badgeOrder, getBadgeDef, tierByRank, type DisplayBadge } from '@/lib/wallet/badge-catalog'
 
 // GET /api/auth/profile-badges?address=0x... | ?username=foo
@@ -23,9 +23,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
     if (!wallet) return NextResponse.json({ badges: [] })
 
-    const [catalogGrants, tournamentBadges] = await Promise.all([
+    const [catalogGrants, tournamentBadges, manualBadges] = await Promise.all([
       getEarnedBadges(wallet),
       getEarnedTournamentBadges(wallet),
+      getManualBadges(wallet),
     ])
 
     // Dynamic per-tournament badges first (newest event first, already sorted).
@@ -38,6 +39,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         description: b.description,
         link: b.tournamentCode ? `/tournaments/${encodeURIComponent(b.tournamentCode)}` : undefined,
         tier: tierByRank(b.rank),
+      }))
+
+    // Standalone hand-granted badges (not tied to any event, so no link).
+    const manual: DisplayBadge[] = manualBadges
+      .filter((b) => b.image)
+      .map((b) => ({
+        key: `m:${b.id}`,
+        image: b.image as string,
+        name: b.title,
+        description: b.description,
+        tier: 'special' as const,
       }))
 
     // Static catalog badges, in catalog display order.
@@ -54,7 +66,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         tier: def.tier,
       }))
 
-    return NextResponse.json({ badges: [...dynamic, ...catalog] })
+    return NextResponse.json({ badges: [...dynamic, ...manual, ...catalog] })
   } catch (err) {
     console.error('auth/profile-badges failed', err)
     // Soft-fail: a profile should still render without its badges.

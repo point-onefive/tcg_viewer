@@ -348,6 +348,40 @@ export async function getEarnedTournamentBadges(
   return out
 }
 
+/** A standalone, hand-granted badge (not tied to any tournament). */
+export interface ManualBadge {
+  id: string
+  title: string
+  description: string
+  image: string | null
+  awardedAt: string
+}
+
+/**
+ * Every standalone badge a wallet has been hand-granted, newest first. Reads
+ * manual_awarded_badges (migration 019). Resilient: a missing table returns []
+ * so profiles still render.
+ */
+export async function getManualBadges(walletAddress: string): Promise<ManualBadge[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('manual_awarded_badges')
+    .select('id, title, description, image, awarded_at')
+    .eq('wallet_address', walletAddress.toLowerCase())
+    .order('awarded_at', { ascending: false })
+  if (error) return []
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>
+    return {
+      id: row.id as string,
+      title: (row.title as string) ?? '',
+      description: (row.description as string) ?? '',
+      image: (row.image as string | null) ?? null,
+      awardedAt: (row.awarded_at as string) ?? '',
+    }
+  })
+}
+
 // ── Backfill: link existing tournament players to a wallet ──────────────────
 //
 // Players who signed up before wallet auth (or who enrolled with just their X

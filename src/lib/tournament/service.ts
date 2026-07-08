@@ -2485,3 +2485,130 @@ export async function sweep(): Promise<{
     tournamentsAdvanced: advanced.size,
   }
 }
+
+// ── Standalone (tournament-agnostic) badges ────────────────────────────────
+//
+// Hand-granted cosmetic badges the operator can award to any registered user
+// at any time, independent of any tournament. Stored in manual_awarded_badges
+// (migration 019) and merged onto the profile shelf alongside tournament
+// badges. Same snapshot shape (title/description/normalized image data URL).
+
+export interface BadgeRecipient {
+  walletAddress: string
+  username: string | null
+  xHandle: string | null
+  avatarUrl: string | null
+}
+
+export interface ManualBadgeAward {
+  id: string
+  walletAddress: string
+  username: string | null
+  xHandle: string | null
+  displayName: string | null
+  title: string
+  description: string
+  image: string | null
+  awardedAt: string
+}
+
+/**
+ * Every registered profile that could receive a badge, i.e. anyone with a
+ * username or an X handle set. Newest profiles first. The recipient picker in
+ * the admin panel searches/filters this client-side, so we return the whole
+ * (small) roster rather than paging.
+ */
+export async function listBadgeRecipients(): Promise<BadgeRecipient[]> {
+  const sb = getServiceClient()
+  const { data, error } = await sb
+    .from('wallet_profiles')
+    .select('wallet_address, username, x_handle, avatar_url, created_at')
+    .or('username.not.is.null,x_handle.not.is.null')
+    .order('created_at', { ascending: false })
+    .limit(1000)
+  if (error) throw new TournamentError(error.message, 500)
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>
+    return {
+      walletAddress: row.wallet_address as string,
+      username: (row.username as string | null) ?? null,
+      xHandle: (row.x_handle as string | null) ?? null,
+      avatarUrl: (row.avatar_url as string | null) ?? null,
+    }
+  })
+}
+
+function rowToManualBadge(r: Record<string, unknown>): ManualBadgeAward {
+  return {
+    id: r.id as string,
+    walletAddress: (r.wallet_address as string) ?? '',
+    username: null,
+    xHandle: (r.x_handle as string | null) ?? null,
+    displayName: (r.display_name as string | null) ?? null,
+    title: (r.title as string) ?? '',
+    description: (r.description as string) ?? '',
+    image: (r.image as string | null) ?? null,
+    awardedAt: (r.awarded_at as string) ?? '',
+  }
+}
+
+/**
+ * Grant a standalone badge to one registered wallet. Snapshots the recipient's
+ * handle/name so the award still reads if they later change their profile.
+ */
+export async function grantManualBadge(
+  walletAddress: string,
+  badge: TournamentBadgeSlot,
+): Promise<ManualBadgeAward> {
+  const wallet = (walletAddress || '').trim().toLowerCase()
+  if (!/^0x[0-9a-f]{40}$/.test(wallet)) {
+    throw new TournamentError('Pick a valid recipient.', 400)
+  }
+  if (!badge.title.trim()) throw new TournamentError('Badge needs a title.', 400)
+  if (!badge.image) throw new TournamentError('Badge needs an image.', 400)
+
+  const sb = getServiceClient()
+  // Snapshot the recipient's current handle/name for display.
+  const { data: profile } = await sb
+    .from('wallet_profiles')
+    .select('username, x_handle')
+    .eq('wallet_address', wallet)
+    .maybeSingle()
+  if (!profile) throw new TournamentError('That wallet has no profile.', 404)
+
+  const row = {
+    wallet_address: wallet,
+    x_handle: (profile.x_handle as string | null) ?? null,
+    display_name: (profile.username as string | null) ?? null,
+    title: badge.title.trim(),
+    description: badge.description?.trim() ?? '',
+    image: badge.image,
+  }
+  const { data, error } = await sb
+    .from('manual_awarded_badges')
+    .insert(row)
+    .select('id, wallet_address, x_handle, display_name, title, description, image, awarded_at')
+    .single()
+  if (error) throw new TournamentError(error.message, 500)
+  return rowToManualBadge(data as Record<string, unknown>)
+}
+
+/** The most recently hand-granted standalone badges, newest first (for undo). */
+export async function listRecentManualBadges(limit = 25): Promise<ManualBadgeAward[]> {
+  const sb = getServiceClient()
+  const { data, error } = await sb
+    .from('manual_awarded_badges')
+    .select('id, wallet_address, x_handle, display_name, title, description, image, awarded_at')
+    .order('awarded_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new TournamentError(error.message, 500)
+  return (data ?? []).map((r) => rowToManualBadge(r as Record<string, unknown>))
+}
+
+/** Revoke a single hand-granted badge by id. */
+export async function revokeManualBadge(id: string): Promise<void> {
+  if (!id) throw new TournamentError('Missing badge id.', 400)
+  const sb = getServiceClient()
+  const { error } = await sb.from('manual_awarded_badges').delete().eq('id', id)
+  if (error) throw new TournamentError(error.message, 500)
+}
