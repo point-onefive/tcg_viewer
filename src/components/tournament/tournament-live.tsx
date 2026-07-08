@@ -3298,20 +3298,28 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
           </tbody>
         </table>
       </div>
-      <details className="mt-2">
+      <details
+        className="mt-3 overflow-hidden rounded-md"
+        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
+      >
         <summary
-          className="cursor-pointer select-none text-[11px] font-semibold"
-          style={{ color: 'var(--text-muted)' }}
+          className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-2 text-xs font-bold"
+          style={{ color: 'var(--text-primary)' }}
         >
+          <Trophy size={13} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} aria-hidden />
           How standings are ranked
         </summary>
-        <div className="mt-1.5 space-y-1 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+        <div
+          className="space-y-2 px-3 pb-3 text-xs leading-relaxed"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           <p>
-            Ranked by <strong>match points</strong> first: 3 for a win, 1 for a draw,
-            0 for a loss.
+            Ranked by <strong style={{ color: 'var(--text-primary)' }}>match points</strong> first:
+            3 for a win, 1 for a draw, 0 for a loss.
           </p>
           <p>
-            Players level on points break by <strong>OMW%</strong> - the average win
+            Players level on points break by{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>OMW%</strong> - the average win
             rate of everyone they&rsquo;ve faced, so a tougher schedule ranks higher.
             If that&rsquo;s still even it goes to head-to-head, then opponents&rsquo;
             opponents&rsquo; win %, then total wins.
