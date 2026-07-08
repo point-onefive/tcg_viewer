@@ -3260,17 +3260,10 @@ function displayRanks(standings: StandingRow[]): Map<string, number> {
 /**
  * Horizontal-scroll frame for the standings table. On narrow viewports the
  * table is wider than the screen (the OMW column sits off the right edge), so
- * this makes it scrollable and, crucially, shows that it is: an edge fade on the
- * overflowing side(s) plus an `onOverflow` signal the header uses to print a
- * "scroll for OMW" hint. A table that fits shows no fade and no hint.
+ * this makes it scrollable and shows that it is with an edge fade on the
+ * overflowing side(s). A table that fits shows no fade.
  */
-function StandingsScroller({
-  children,
-  onOverflow,
-}: {
-  children: React.ReactNode
-  onOverflow: (right: boolean) => void
-}) {
+function StandingsScroller({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const [ov, setOv] = useState({ left: false, right: false })
   const measure = useCallback(() => {
@@ -3295,9 +3288,6 @@ function StandingsScroller({
       window.removeEventListener('resize', measure)
     }
   }, [measure])
-  useEffect(() => {
-    onOverflow(ov.right)
-  }, [ov.right, onOverflow])
   const maskClass = ov.left && ov.right ? 'hscroll-mask-both' : ov.right ? 'hscroll-mask-right' : ov.left ? 'hscroll-mask-left' : ''
   return (
     <div
@@ -3327,8 +3317,6 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
       return next
     })
   const rankById = useMemo(() => displayRanks(standings), [standings])
-  // Set when the table is wider than its frame so the header can prompt to scroll.
-  const [scrollHint, setScrollHint] = useState(false)
 
   if (standings.length === 0) return null
   return (
@@ -3347,13 +3335,8 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
             · sorted by record · same # = tied
           </span>
         )}
-        {scrollHint && (
-          <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold" style={{ color: 'var(--tcw-accent)' }}>
-            · scroll for OMW <ChevronRight size={12} style={{ marginTop: 1 }} />
-          </span>
-        )}
       </div>
-      <StandingsScroller onOverflow={setScrollHint}>
+      <StandingsScroller>
         <table className="w-full text-sm" style={{ borderCollapse: 'collapse', minWidth: 440 }}>
           <thead>
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
