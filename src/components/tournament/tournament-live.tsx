@@ -3026,6 +3026,61 @@ export function RoundBoard({
   )
 }
 
+/**
+ * Round picker as a single-row horizontally scrollable pill strip. Never wraps
+ * (that looked clunky past ~6 rounds), scrolls on overflow, and auto-centers the
+ * active round so it stays in view on mobile as rounds advance.
+ */
+function RoundStrip({
+  rounds,
+  selectedId,
+  onSelect,
+}: {
+  rounds: Round[]
+  selectedId: string | undefined
+  onSelect: (id: string) => void
+}) {
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const activeRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    const el = activeRef.current
+    const scroller = scrollerRef.current
+    if (!el || !scroller) return
+    const target = el.offsetLeft - scroller.clientWidth / 2 + el.clientWidth / 2
+    scroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
+  }, [selectedId])
+  return (
+    <div
+      ref={scrollerRef}
+      className="no-scrollbar flex items-center gap-1.5 mb-5 overflow-x-auto"
+      style={{ scrollSnapType: 'x proximity', WebkitOverflowScrolling: 'touch' }}
+    >
+      {rounds.map((r) => {
+        const on = r.id === selectedId
+        return (
+          <button
+            key={r.id}
+            ref={on ? activeRef : undefined}
+            type="button"
+            onClick={() => onSelect(r.id)}
+            className="footer-btn inline-flex shrink-0 items-center px-3.5 py-1.5 text-xs font-bold"
+            style={{
+              scrollSnapAlign: 'center',
+              background: on ? 'var(--text-primary)' : 'var(--bg)',
+              color: on ? 'var(--bg)' : 'var(--text-primary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 999,
+              transition: 'background-color 140ms ease, color 140ms ease',
+            }}
+          >
+            Round {r.number}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function SwissBoard({
   rounds,
   matches,
@@ -3082,27 +3137,7 @@ function SwissBoard({
         )}
 
         {sortedRounds.length > 1 && (
-          <div className="flex flex-wrap gap-1.5 mb-5">
-            {sortedRounds.map((r) => {
-              const on = r.id === selectedRound?.id
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => setSelectedRoundId(r.id)}
-                  className="footer-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
-                  style={{
-                    background: on ? 'var(--text-primary)' : 'var(--bg)',
-                    color: on ? 'var(--bg)' : 'var(--text-primary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 6,
-                  }}
-                >
-                  Round {r.number}
-                </button>
-              )
-            })}
-          </div>
+          <RoundStrip rounds={sortedRounds} selectedId={selectedRound?.id} onSelect={setSelectedRoundId} />
         )}
 
         <p className="mb-5 text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -3184,12 +3219,12 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
         <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
-              <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-2" style={{ fontSize: 10, width: 44 }}>#</th>
-              <th className="text-left font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10 }}>Player</th>
-              <th className="text-left font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10 }}>Deck</th>
-              <th className="text-center font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10, width: 90 }}>W-L-D</th>
-              <th className="text-right font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10, width: 56 }}>Pts</th>
-              <th className="text-right font-bold uppercase tracking-wider py-2 pl-2 pr-3 hidden sm:table-cell" style={{ fontSize: 10, width: 72 }}>OMW%</th>
+              <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-1 sm:pr-2" style={{ fontSize: 10, width: 40 }}>#</th>
+              <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10 }}>Player</th>
+              <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10 }}>Deck</th>
+              <th className="text-center font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10, width: 74 }}>W-L-D</th>
+              <th className="text-right font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10, width: 40 }}>Pts</th>
+              <th className="text-right font-bold uppercase tracking-wider py-2 pl-1.5 pr-3 sm:pl-2" style={{ fontSize: 10, width: 52 }} title="Opponents' average match-win %">OMW</th>
             </tr>
           </thead>
           <tbody>
@@ -3264,22 +3299,13 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                       <span style={{ color: 'var(--text-muted)' }}>-</span>
                     )}
                   </td>
-                  <td className="py-2 px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+                  <td className="py-2 px-1.5 sm:px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
                     {s.wins}-{s.losses}-{s.draws}
                   </td>
-                  <td className="py-2 px-2 pr-3 sm:pr-2 text-right tabular-nums align-middle">
-                    <span className="font-bold">{s.points}</span>
-                    {/* OMW rides under the points on mobile (its own column is
-                        hidden there); keeps the tiebreaker visible without a
-                        cramped extra column. */}
-                    <span
-                      className="sm:hidden block text-[9px] font-normal leading-tight"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      OMW {(s.oppWinPct * 100).toFixed(1)}%
-                    </span>
+                  <td className="py-2 px-1.5 sm:px-2 text-right tabular-nums font-bold">
+                    {s.points}
                   </td>
-                  <td className="py-2 pl-2 pr-3 text-right tabular-nums hidden sm:table-cell" style={{ color: 'var(--text-muted)' }}>
+                  <td className="py-2 pl-1.5 pr-3 sm:pl-2 text-right tabular-nums" style={{ color: 'var(--text-muted)' }}>
                     {(s.oppWinPct * 100).toFixed(1)}
                   </td>
                 </tr>

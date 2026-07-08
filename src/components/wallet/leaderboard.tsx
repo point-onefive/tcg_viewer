@@ -240,13 +240,66 @@ function MobileSortBar({
   )
 }
 
+/** The green/red W / L (/ D) record, shared by the desktop column and the
+ *  mobile metric so they read identically. */
+function WinLossRecord({ standing }: { standing: WalletStanding }) {
+  return (
+    <>
+      <span style={{ color: '#22c55e' }}>{standing.wins}</span>
+      <span style={{ color: 'var(--text-muted)' }}> / </span>
+      <span style={{ color: '#ef4444' }}>{standing.losses}</span>
+      {standing.draws > 0 && (
+        <>
+          <span style={{ color: 'var(--text-muted)' }}> / </span>
+          <span style={{ color: 'var(--text-secondary)' }}>{standing.draws}</span>
+        </>
+      )}
+    </>
+  )
+}
+
+/** Mobile-only trailing metric: shows whatever the board is sorted by, so the
+ *  one number we have room for on a phone always matches the active sort. */
+function MobileMetric({ standing, sortKey }: { standing: WalletStanding; sortKey: SortKey }) {
+  const style: React.CSSProperties = {
+    fontSize: 13,
+    fontWeight: 700,
+    fontVariantNumeric: 'tabular-nums',
+    textAlign: 'right',
+    flexShrink: 0,
+  }
+  if (sortKey === 'winRate') {
+    const g = gamesPlayed(standing)
+    return (
+      <span className="sm:hidden" style={{ ...style, color: 'var(--text-primary)' }}>
+        {g > 0 ? `${Math.round(winPct(standing) * 100)}%` : '-'}
+      </span>
+    )
+  }
+  if (sortKey === 'events') {
+    return (
+      <span className="sm:hidden" style={{ ...style, color: 'var(--text-primary)' }}>
+        {standing.tournamentsPlayed}
+        <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> ev</span>
+      </span>
+    )
+  }
+  return (
+    <span className="sm:hidden" style={style}>
+      <WinLossRecord standing={standing} />
+    </span>
+  )
+}
+
 function LeaderboardRow({
   standing,
   rank,
+  sortKey,
   onSelect,
 }: {
   standing: WalletStanding
   rank: number
+  sortKey: SortKey
   onSelect: (standing: WalletStanding) => void
 }) {
   const username = standing.username ?? ''
@@ -254,7 +307,7 @@ function LeaderboardRow({
     <button
       type="button"
       onClick={() => onSelect(standing)}
-      className="flex items-center gap-3 px-3 sm:px-4 transition-colors w-full text-left"
+      className="flex items-center gap-3 px-3 sm:px-4 w-full text-left"
       style={{
         height: 52,
         borderTop: rank === 1 ? 'none' : '1px solid var(--border-subtle)',
@@ -262,6 +315,7 @@ function LeaderboardRow({
         background: 'transparent',
         border: 'none',
         cursor: 'pointer',
+        transition: 'background-color 150ms ease',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -288,19 +342,12 @@ function LeaderboardRow({
         {standing.tournamentsPlayed} event{standing.tournamentsPlayed === 1 ? '' : 's'}
       </span>
       <span
-        className="sm:w-14"
+        className="hidden sm:block sm:w-14"
         style={{ fontSize: 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
       >
-        <span style={{ color: '#22c55e' }}>{standing.wins}</span>
-        <span style={{ color: 'var(--text-muted)' }}> / </span>
-        <span style={{ color: '#ef4444' }}>{standing.losses}</span>
-        {standing.draws > 0 && (
-          <>
-            <span style={{ color: 'var(--text-muted)' }}> / </span>
-            <span style={{ color: 'var(--text-secondary)' }}>{standing.draws}</span>
-          </>
-        )}
+        <WinLossRecord standing={standing} />
       </span>
+      <MobileMetric standing={standing} sortKey={sortKey} />
     </button>
   )
 }
@@ -362,7 +409,7 @@ export function Leaderboard({ mascot = null }: { mascot?: string | null } = {}) 
           <MobileSortBar sortKey={sortKey} onSort={setSortKey} />
           <LeaderboardHeader sortKey={sortKey} onSort={setSortKey} />
           {visible.map((s, i) => (
-            <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} onSelect={setSelected} />
+            <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} sortKey={sortKey} onSelect={setSelected} />
           ))}
           {(canShowMore || canShowLess) && (
             <div className="flex" style={{ borderTop: '1px solid var(--border-subtle)' }}>
