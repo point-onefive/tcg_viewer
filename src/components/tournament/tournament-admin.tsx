@@ -1397,6 +1397,11 @@ export function TournamentAdmin() {
                   }}
                 />
 
+                {/* Standalone badge granter - kept with the other badge editors.
+                    Works regardless of tournament state (see the no-tournament
+                    render below for when nothing is live). */}
+                <StandaloneBadgeGranter adminKey={adminKey} />
+
                 {snapshot.tournament.status === 'complete' && snapshot.tournament.prizes.length > 0 && (
                   <PrizeAwardEditor
                     key={`award-${code}`}
@@ -1465,31 +1470,6 @@ export function TournamentAdmin() {
               </>
             )}
 
-            {/* Maintenance - backfill finalist badges for past events. Rarely
-                run, so it lives at the bottom of the panel. */}
-            <div className="p-5" style={card}>
-              <div className="flex items-center gap-2">
-                <Medal size={16} style={{ color: '#f5b301' }} />
-                <h3 className="font-display font-bold">Finalist badges</h3>
-              </div>
-              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                New tournaments record final placements automatically when they finish. Run this
-                once to backfill gold/silver/bronze badges for events that completed before this
-                feature. Safe to run anytime.
-              </p>
-              <div className="mt-4 flex justify-center">
-                <AdminBtn
-                  disabled={busy}
-                  onClick={() => run(async () => {
-                    const r = await adminApi(adminKey, { action: 'recompute-placements' })
-                    setMsg(`Placements recomputed for ${r.count ?? 0} tournament${r.count === 1 ? '' : 's'}`)
-                  })}
-                >
-                  Recompute placements
-                </AdminBtn>
-              </div>
-            </div>
-
             {error && snapshot && (
               <div className="p-4 text-sm" style={{ ...card, color: '#ef4444' }}>{error}</div>
             )}
@@ -1502,10 +1482,10 @@ export function TournamentAdmin() {
           </>
         )}
 
-        {/* Standalone badge granter - always available once unlocked, whether or
-            not a tournament is running. Award a cosmetic badge to any registered
-            user by hand. */}
-        <StandaloneBadgeGranter adminKey={adminKey} />
+        {/* When no tournament is live, the badge granter still needs a home so
+            it's available regardless of tournament state. With a live event it
+            renders up with the other badge editors instead. */}
+        {!(snapshot && code) && <StandaloneBadgeGranter adminKey={adminKey} />}
       </div>
     </TournamentShell>
   )
