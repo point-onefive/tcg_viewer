@@ -3044,6 +3044,7 @@ function RoundStrip({
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef<HTMLButtonElement>(null)
+  const interacted = useRef(false)
   const [ov, setOv] = useState({ left: false, right: false })
 
   const measure = useCallback(() => {
@@ -3054,35 +3055,55 @@ function RoundStrip({
     setOv((p) => (p.left === left && p.right === right ? p : { left, right }))
   }, [])
 
-  useEffect(() => {
-    const el = scrollerRef.current
-    if (!el) return
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    if (el.firstElementChild) ro.observe(el.firstElementChild)
-    el.addEventListener('scroll', measure, { passive: true })
-    window.addEventListener('resize', measure)
-    return () => {
-      ro.disconnect()
-      el.removeEventListener('scroll', measure)
-      window.removeEventListener('resize', measure)
-    }
-  }, [measure])
-
-  // Keep the selected round in view as rounds advance. Right-align it rather
-  // than center it: the default selection is the latest round, so aligning it to
-  // the right edge lands the strip at the end (only a left "more" fade, never a
-  // misleading right one). An earlier round pins right with later rounds to its
-  // right, and the first round clamps to the far left (right fade only).
-  useEffect(() => {
+  // Right-align the selected round rather than center it: the default selection
+  // is the latest round, so aligning it to the right edge lands the strip at the
+  // end (only a left "more" fade, never a misleading right one). An earlier round
+  // pins right with later rounds to its right; the first round clamps to the far
+  // left (right fade only).
+  const alignSelected = useCallback((behavior: ScrollBehavior) => {
     const el = activeRef.current
     const scroller = scrollerRef.current
     if (!el || !scroller) return
     const maxScroll = scroller.scrollWidth - scroller.clientWidth
     const target = el.offsetLeft + el.offsetWidth - scroller.clientWidth
-    scroller.scrollTo({ left: Math.min(maxScroll, Math.max(0, target)), behavior: 'smooth' })
-  }, [selectedId])
+    scroller.scrollTo({ left: Math.min(maxScroll, Math.max(0, target)), behavior })
+  }, [])
+
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    measure()
+    // Re-align on late reflow (the display font loads after first paint and
+    // widens the pills, which otherwise leaves the strip short of the end and
+    // shows a bogus right fade). Stop once the user takes over scrolling.
+    const ro = new ResizeObserver(() => {
+      measure()
+      if (!interacted.current) alignSelected('auto')
+    })
+    ro.observe(el)
+    if (el.firstElementChild) ro.observe(el.firstElementChild)
+    const markInteracted = () => {
+      interacted.current = true
+    }
+    el.addEventListener('scroll', measure, { passive: true })
+    el.addEventListener('pointerdown', markInteracted, { passive: true })
+    el.addEventListener('wheel', markInteracted, { passive: true })
+    el.addEventListener('touchstart', markInteracted, { passive: true })
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      el.removeEventListener('scroll', measure)
+      el.removeEventListener('pointerdown', markInteracted)
+      el.removeEventListener('wheel', markInteracted)
+      el.removeEventListener('touchstart', markInteracted)
+      window.removeEventListener('resize', measure)
+    }
+  }, [measure, alignSelected])
+
+  // Keep the selected round in view as rounds advance / when the user picks one.
+  useEffect(() => {
+    alignSelected('smooth')
+  }, [selectedId, alignSelected])
 
   const scrollByPage = (dir: number) => {
     const el = scrollerRef.current
