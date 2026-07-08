@@ -21,6 +21,8 @@ import {
 } from '@/lib/tournament/client'
 import { DEFAULT_POLL_QUESTION, POLL_OPTIONS, type PollOption, type PollResults } from '@/lib/tournament/poll'
 import { deckCardCount, MAX_DECK_CHARS } from '@/lib/tournament/deck-list'
+import { useStore } from '@/lib/store'
+import { deckToText, deckTotalCount, type Deck } from '@/lib/deck-types'
 import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose, PrizePoolPoweredBy } from '@/components/tournament/bonk-ui'
@@ -2539,6 +2541,7 @@ export function TournamentLive() {
                       disabled={submitDeckBusy}
                       check={deckCheck}
                       checking={deckChecking}
+                      game={tournament.game}
                     />
                     {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                     <button
@@ -2630,6 +2633,7 @@ export function TournamentLive() {
                   disabled={busy}
                   check={deckCheck}
                   checking={deckChecking}
+                  game={tournament.game}
                 />
                 <RegionPicker
                   value={regionDraft}
@@ -2814,20 +2818,49 @@ export function TournamentLive() {
  * textarea with the OPTCG Sim format hint and a live card count. Validation is
  * light (server stores verbatim) - the count is display-only.
  */
+/**
+ * Tournament games map 1:1 to deckbuilder collections except Dragon Ball,
+ * which the store keys as `dbs`. Games without a deckbuilder collection
+ * (e.g. `other`) return null so the saved-deck picker stays hidden.
+ */
+function gameToDeckCollection(game?: string): string | null {
+  if (!game) return null
+  if (game === 'dragon-ball') return 'dbs'
+  const known = ['one-piece', 'pokemon', 'gundam', 'digimon', 'lorcana']
+  return known.includes(game) ? game : null
+}
+
 function DeckListField({
   value,
   onChange,
   disabled,
   check,
   checking,
+  game,
 }: {
   value: string
   onChange: (v: string) => void
   disabled?: boolean
   check?: DeckCheckResult | null
   checking?: boolean
+  game?: string
 }) {
   const count = deckCardCount(value)
+  // Saved decks live in localStorage (zustand persist), so they're only
+  // available after the client mounts. Gating on `mounted` also avoids an
+  // SSR/client hydration mismatch from the picker rendering.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const allDecks = useStore((s) => s.decks)
+  const deckCollection = gameToDeckCollection(game)
+  const savedDecks: Deck[] =
+    mounted && deckCollection
+      ? allDecks.filter((d) => d.collection === deckCollection && d.entries.length > 0)
+      : []
+  const loadDeck = (id: string) => {
+    const deck = savedDecks.find((d) => d.id === id)
+    if (deck) onChange(deckToText(deck))
+  }
   // Status kinds: pass (green), warn (amber - unrecognized codes), fail (red -
   // structural). Only shown once the user has typed something worth checking.
   const status: 'checking' | 'pass' | 'warn' | 'fail' | null =
@@ -2881,6 +2914,43 @@ function DeckListField({
           </button>
         </span>
       </div>
+      {savedDecks.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="deck-picker"
+            className="text-xs font-semibold"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Or load one of your saved decks
+          </label>
+          <select
+            id="deck-picker"
+            value=""
+            disabled={disabled}
+            onChange={(e) => {
+              if (e.target.value) loadDeck(e.target.value)
+            }}
+            className="w-full rounded-md px-2.5 py-2 text-xs"
+            style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
+              appearance: 'none',
+            }}
+          >
+            <option value="">Pick a deck from the deckbuilder…</option>
+            {savedDecks.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name} · {deckTotalCount(d)} cards
+              </option>
+            ))}
+          </select>
+          <span className="text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
+            Decks you built on this device in the deckbuilder. Selecting one fills
+            the box below - you can still edit it before submitting.
+          </span>
+        </div>
+      )}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
