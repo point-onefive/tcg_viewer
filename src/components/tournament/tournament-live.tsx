@@ -3686,20 +3686,6 @@ function publicMatchStatus(
   }
 }
 
-/** Plain-words meaning for each public match status (for the strip's tooltip/toast). */
-function statusMeaning(status: Match['status']): string {
-  switch (status) {
-    case 'confirmed':
-      return 'Both players agreed on the result.'
-    case 'disputed':
-      return 'Reports conflict - an admin will settle it.'
-    case 'reported':
-      return 'Only one player has reported.'
-    default:
-      return 'No result reported yet.'
-  }
-}
-
 function statusIcon(icon: 'check' | 'hourglass' | 'alert' | 'clock', px: number) {
   if (icon === 'check') return <Check size={px} strokeWidth={3} style={{ flexShrink: 0 }} />
   if (icon === 'alert') return <AlertTriangle size={px} style={{ flexShrink: 0 }} />
@@ -3707,73 +3693,21 @@ function statusIcon(icon: 'check' | 'hourglass' | 'alert' | 'clock', px: number)
   return <Hourglass size={px} style={{ flexShrink: 0 }} />
 }
 
-/**
- * Single-line match-status strip that carries its own explanation instead of a
- * separate legend. Same icon/color/label as before; the meaning surfaces as a
- * native tooltip on hover (desktop) and a brief tap toast (mobile, no hover).
- * Stays one line so it never wraps on a narrow bracket tile.
- */
+/** Single-line match-status strip: icon + color + label, nothing else. */
 function MatchStatusStrip({ status, size = 'md' }: { status: Match['status']; size?: 'md' | 'sm' }) {
   const pub = publicMatchStatus(status)
-  const [toast, setToast] = useState(false)
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(false), 2800)
-    return () => clearTimeout(t)
-  }, [toast])
   if (!pub) return null
-  const meaning = statusMeaning(status)
   const iconPx = size === 'sm' ? 10 : 11
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setToast(true)}
-        title={meaning}
-        aria-label={`${pub.label}: ${meaning}`}
-        className={`flex w-full items-center gap-1.5 font-bold uppercase tracking-widest ${
-          size === 'sm' ? 'px-2.5 py-1.5 text-[9px]' : 'px-3 py-1.5 text-[10px]'
-        }`}
-        style={{
-          borderTop: '1px solid var(--border-subtle)',
-          borderRight: 'none',
-          borderBottom: 'none',
-          borderLeft: 'none',
-          background: 'var(--bg-surface)',
-          color: pub.tone,
-          textAlign: 'left',
-          cursor: 'pointer',
-        }}
-      >
-        {statusIcon(pub.icon, iconPx)}
-        {pub.label}
-      </button>
-      {toast &&
-        createPortal(
-          <div
-            role="status"
-            className="tcw-status-toast"
-            style={{ position: 'fixed', left: '50%', bottom: 24, transform: 'translateX(-50%)', zIndex: 300, pointerEvents: 'none' }}
-          >
-            <div
-              className="flex items-center gap-2 rounded-lg px-3.5 py-2.5"
-              style={{
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-subtle)',
-                boxShadow: 'var(--shadow-card)',
-                maxWidth: 'calc(100vw - 32px)',
-              }}
-            >
-              <span style={{ color: pub.tone, display: 'inline-flex' }}>{statusIcon(pub.icon, 13)}</span>
-              <span className="text-xs font-bold uppercase tracking-wide" style={{ color: pub.tone, whiteSpace: 'nowrap' }}>
-                {pub.label}
-              </span>
-              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{meaning}</span>
-            </div>
-          </div>,
-          document.body,
-        )}
-    </>
+    <div
+      className={`flex items-center gap-1.5 font-bold uppercase tracking-widest ${
+        size === 'sm' ? 'px-2.5 py-1.5 text-[9px]' : 'px-3 py-1.5 text-[10px]'
+      }`}
+      style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
+    >
+      {statusIcon(pub.icon, iconPx)}
+      {pub.label}
+    </div>
   )
 }
 
