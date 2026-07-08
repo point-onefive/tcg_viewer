@@ -3118,8 +3118,6 @@ function SwissBoard({
           ))}
         </div>
 
-        <MatchStatusLegend />
-
         {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
       </BonkSceneBody>
     </div>
@@ -3448,8 +3446,6 @@ function ElimBracket({
             ))}
           </div>
         </BracketScroller>
-
-        <MatchStatusLegend />
       </BonkSceneBody>
     </div>
   )
@@ -3590,7 +3586,6 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
   // don't surface them as a decided bracket result.
   const decided = match.status === 'confirmed' || match.status === 'bye'
   const winnerId = decided ? match.winnerId : null
-  const pub = publicMatchStatus(match.status)
   return (
     <div
       className="overflow-hidden"
@@ -3608,23 +3603,7 @@ function ElimMatchCard({ match, nameById }: { match: Match | null; nameById: Map
       ) : (
         <ElimSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} />
       )}
-      {pub && (
-        <div
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-widest"
-          style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
-        >
-          {pub.icon === 'check' ? (
-            <Check size={10} strokeWidth={3} style={{ flexShrink: 0 }} />
-          ) : pub.icon === 'alert' ? (
-            <AlertTriangle size={10} style={{ flexShrink: 0 }} />
-          ) : pub.icon === 'clock' ? (
-            <Clock size={10} style={{ flexShrink: 0 }} />
-          ) : (
-            <Hourglass size={10} style={{ flexShrink: 0 }} />
-          )}
-          {pub.label}
-        </div>
-      )}
+      <MatchStatusStrip status={match.status} size="sm" />
     </div>
   )
 }
@@ -3707,46 +3686,94 @@ function publicMatchStatus(
   }
 }
 
+/** Plain-words meaning for each public match status (for the strip's tooltip/toast). */
+function statusMeaning(status: Match['status']): string {
+  switch (status) {
+    case 'confirmed':
+      return 'Both players agreed on the result.'
+    case 'disputed':
+      return 'Reports conflict - an admin will settle it.'
+    case 'reported':
+      return 'Only one player has reported.'
+    default:
+      return 'No result reported yet.'
+  }
+}
+
+function statusIcon(icon: 'check' | 'hourglass' | 'alert' | 'clock', px: number) {
+  if (icon === 'check') return <Check size={px} strokeWidth={3} style={{ flexShrink: 0 }} />
+  if (icon === 'alert') return <AlertTriangle size={px} style={{ flexShrink: 0 }} />
+  if (icon === 'clock') return <Clock size={px} style={{ flexShrink: 0 }} />
+  return <Hourglass size={px} style={{ flexShrink: 0 }} />
+}
+
 /**
- * Bottom-of-board legend decoding the per-match status strip. Uses the exact
- * icons, colors and labels the cards use (see publicMatchStatus) so the key
- * reads as the same language, then spells out what each state means in a few
- * plain words - "Awaiting confirmation" especially isn't self-explanatory.
+ * Single-line match-status strip that carries its own explanation instead of a
+ * separate legend. Same icon/color/label as before; the meaning surfaces as a
+ * native tooltip on hover (desktop) and a brief tap toast (mobile, no hover).
+ * Stays one line so it never wraps on a narrow bracket tile.
  */
-function MatchStatusLegend() {
-  const items: {
-    icon: 'check' | 'hourglass' | 'clock'
-    label: string
-    tone: string
-    meaning: string
-  }[] = [
-    { icon: 'check', label: 'Confirmed', tone: '#22c55e', meaning: 'both players agreed on the result' },
-    { icon: 'hourglass', label: 'Awaiting confirmation', tone: '#eab308', meaning: 'only one player has reported' },
-    { icon: 'clock', label: 'Awaiting match', tone: 'var(--text-muted)', meaning: 'no result reported yet' },
-  ]
+function MatchStatusStrip({ status, size = 'md' }: { status: Match['status']; size?: 'md' | 'sm' }) {
+  const pub = publicMatchStatus(status)
+  const [toast, setToast] = useState(false)
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(false), 2800)
+    return () => clearTimeout(t)
+  }, [toast])
+  if (!pub) return null
+  const meaning = statusMeaning(status)
+  const iconPx = size === 'sm' ? 10 : 11
   return (
-    <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-      <div className="flex flex-col gap-2">
-        {items.map((it) => (
-          <div key={it.label} className="flex items-center gap-2 flex-wrap">
-            <span
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
-              style={{ color: it.tone }}
+    <>
+      <button
+        type="button"
+        onClick={() => setToast(true)}
+        title={meaning}
+        aria-label={`${pub.label}: ${meaning}`}
+        className={`flex w-full items-center gap-1.5 font-bold uppercase tracking-widest ${
+          size === 'sm' ? 'px-2.5 py-1.5 text-[9px]' : 'px-3 py-1.5 text-[10px]'
+        }`}
+        style={{
+          borderTop: '1px solid var(--border-subtle)',
+          borderRight: 'none',
+          borderBottom: 'none',
+          borderLeft: 'none',
+          background: 'var(--bg-surface)',
+          color: pub.tone,
+          textAlign: 'left',
+          cursor: 'pointer',
+        }}
+      >
+        {statusIcon(pub.icon, iconPx)}
+        {pub.label}
+      </button>
+      {toast &&
+        createPortal(
+          <div
+            role="status"
+            className="tcw-status-toast"
+            style={{ position: 'fixed', left: '50%', bottom: 24, transform: 'translateX(-50%)', zIndex: 300, pointerEvents: 'none' }}
+          >
+            <div
+              className="flex items-center gap-2 rounded-lg px-3.5 py-2.5"
+              style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-card)',
+                maxWidth: 'calc(100vw - 32px)',
+              }}
             >
-              {it.icon === 'check' ? (
-                <Check size={11} strokeWidth={3} style={{ flexShrink: 0 }} />
-              ) : it.icon === 'hourglass' ? (
-                <Hourglass size={11} style={{ flexShrink: 0 }} />
-              ) : (
-                <Clock size={11} style={{ flexShrink: 0 }} />
-              )}
-              {it.label}
-            </span>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>= {it.meaning}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+              <span style={{ color: pub.tone, display: 'inline-flex' }}>{statusIcon(pub.icon, 13)}</span>
+              <span className="text-xs font-bold uppercase tracking-wide" style={{ color: pub.tone, whiteSpace: 'nowrap' }}>
+                {pub.label}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{meaning}</span>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
   )
 }
 
@@ -3768,7 +3795,6 @@ function BracketMatchCard({
   // A confirmed match with no winner is a draw (Swiss only). Both slots get a
   // yellow treatment, mirroring the green "W" used for a win.
   const isDraw = decided && !isBye && match.winnerId === null
-  const pub = publicMatchStatus(match.status)
 
   return (
     <div
@@ -3793,23 +3819,7 @@ function BracketMatchCard({
       ) : (
         <BracketSlot player={p2 ?? undefined} seed={p2?.seed} winner={winnerId === match.player2Id} draw={isDraw} top={false} />
       )}
-      {pub && (
-        <div
-          className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest"
-          style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: pub.tone }}
-        >
-          {pub.icon === 'check' ? (
-            <Check size={11} strokeWidth={3} style={{ flexShrink: 0 }} />
-          ) : pub.icon === 'alert' ? (
-            <AlertTriangle size={11} style={{ flexShrink: 0 }} />
-          ) : pub.icon === 'clock' ? (
-            <Clock size={11} style={{ flexShrink: 0 }} />
-          ) : (
-            <Hourglass size={11} style={{ flexShrink: 0 }} />
-          )}
-          {pub.label}
-        </div>
-      )}
+      <MatchStatusStrip status={match.status} />
     </div>
   )
 }
