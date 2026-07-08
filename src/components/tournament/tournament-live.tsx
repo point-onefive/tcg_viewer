@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -3028,8 +3028,10 @@ export function RoundBoard({
 
 /**
  * Round picker as a single-row horizontally scrollable pill strip. Never wraps
- * (that looked clunky past ~6 rounds), scrolls on overflow, and auto-centers the
- * active round so it stays in view on mobile as rounds advance.
+ * (that looked clunky past ~6 rounds). When it overflows it shows a proper
+ * scroll affordance - an edge fade on the overflowing side(s) plus a round
+ * chevron button - and auto-centers the active round so it stays in view as
+ * rounds advance. A short strip that fits shows neither, so it never looks cut.
  */
 function RoundStrip({
   rounds,
@@ -3042,6 +3044,33 @@ function RoundStrip({
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef<HTMLButtonElement>(null)
+  const [ov, setOv] = useState({ left: false, right: false })
+
+  const measure = useCallback(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    const left = el.scrollLeft > 2
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+    setOv((p) => (p.left === left && p.right === right ? p : { left, right }))
+  }, [])
+
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    if (el.firstElementChild) ro.observe(el.firstElementChild)
+    el.addEventListener('scroll', measure, { passive: true })
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      el.removeEventListener('scroll', measure)
+      window.removeEventListener('resize', measure)
+    }
+  }, [measure])
+
+  // Keep the selected round in view as rounds advance.
   useEffect(() => {
     const el = activeRef.current
     const scroller = scrollerRef.current
@@ -3049,35 +3078,74 @@ function RoundStrip({
     const target = el.offsetLeft - scroller.clientWidth / 2 + el.clientWidth / 2
     scroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
   }, [selectedId])
+
+  const scrollByPage = (dir: number) => {
+    const el = scrollerRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: 'smooth' })
+  }
+
+  const maskClass = ov.left && ov.right ? 'hscroll-mask-both' : ov.right ? 'hscroll-mask-right' : ov.left ? 'hscroll-mask-left' : ''
+
   return (
-    <div
-      ref={scrollerRef}
-      className="no-scrollbar flex items-center gap-1.5 mb-5 overflow-x-auto"
-      style={{ scrollSnapType: 'x proximity', WebkitOverflowScrolling: 'touch' }}
-    >
-      {rounds.map((r) => {
-        const on = r.id === selectedId
-        return (
-          <button
-            key={r.id}
-            ref={on ? activeRef : undefined}
-            type="button"
-            onClick={() => onSelect(r.id)}
-            className="footer-btn inline-flex shrink-0 items-center px-3.5 py-1.5 text-xs font-bold"
-            style={{
-              scrollSnapAlign: 'center',
-              background: on ? 'var(--text-primary)' : 'var(--bg)',
-              color: on ? 'var(--bg)' : 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 999,
-              transition: 'background-color 140ms ease, color 140ms ease',
-            }}
-          >
-            Round {r.number}
-          </button>
-        )
-      })}
+    <div className="relative mb-5">
+      <div ref={scrollerRef} className={`hscroll ${maskClass}`}>
+        <div className="profile-hrow gap-1.5" style={{ paddingLeft: 1, paddingRight: 1 }}>
+          {rounds.map((r) => {
+            const on = r.id === selectedId
+            return (
+              <button
+                key={r.id}
+                ref={on ? activeRef : undefined}
+                type="button"
+                onClick={() => onSelect(r.id)}
+                className="footer-btn inline-flex items-center px-3.5 py-1.5 text-xs font-bold"
+                style={{
+                  background: on ? 'var(--text-primary)' : 'var(--bg)',
+                  color: on ? 'var(--bg)' : 'var(--text-primary)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 999,
+                  transition: 'background-color 140ms ease, color 140ms ease',
+                }}
+              >
+                Round {r.number}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      {ov.left && <RoundScrollChevron side="left" onClick={() => scrollByPage(-1)} />}
+      {ov.right && <RoundScrollChevron side="right" onClick={() => scrollByPage(1)} />}
     </div>
+  )
+}
+
+function RoundScrollChevron({ side, onClick }: { side: 'left' | 'right'; onClick: () => void }) {
+  const Icon = side === 'left' ? ChevronLeft : ChevronRight
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={side === 'left' ? 'Scroll rounds left' : 'Scroll rounds right'}
+      className="flex items-center justify-center"
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        [side]: -6,
+        width: 26,
+        height: 26,
+        borderRadius: '50%',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-card)',
+        color: 'var(--text-secondary)',
+        cursor: 'pointer',
+        zIndex: 5,
+      } as React.CSSProperties}
+    >
+      <Icon size={15} />
+    </button>
   )
 }
 
