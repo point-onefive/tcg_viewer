@@ -3118,9 +3118,9 @@ function SwissBoard({
           ))}
         </div>
 
-        {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
-
         <MatchStatusLegend />
+
+        {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
       </BonkSceneBody>
     </div>
   )
