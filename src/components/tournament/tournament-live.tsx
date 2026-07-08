@@ -3252,6 +3252,64 @@ function displayRanks(standings: StandingRow[]): Map<string, number> {
   return map
 }
 
+/**
+ * Horizontal-scroll frame for the standings table. On narrow viewports the
+ * table is wider than the screen (the OMW column sits off the right edge), so
+ * this makes it scrollable and, crucially, shows that it is: an edge fade on the
+ * overflowing side(s) plus an `onOverflow` signal the header uses to print a
+ * "scroll for OMW" hint. A table that fits shows no fade and no hint.
+ */
+function StandingsScroller({
+  children,
+  onOverflow,
+}: {
+  children: React.ReactNode
+  onOverflow: (right: boolean) => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [ov, setOv] = useState({ left: false, right: false })
+  const measure = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const left = el.scrollLeft > 2
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+    setOv((p) => (p.left === left && p.right === right ? p : { left, right }))
+  }, [])
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    if (el.firstElementChild) ro.observe(el.firstElementChild)
+    el.addEventListener('scroll', measure, { passive: true })
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      el.removeEventListener('scroll', measure)
+      window.removeEventListener('resize', measure)
+    }
+  }, [measure])
+  useEffect(() => {
+    onOverflow(ov.right)
+  }, [ov.right, onOverflow])
+  const maskClass = ov.left && ov.right ? 'hscroll-mask-both' : ov.right ? 'hscroll-mask-right' : ov.left ? 'hscroll-mask-left' : ''
+  return (
+    <div
+      className="overflow-hidden"
+      style={{ border: '1px solid var(--border-subtle)', borderRadius: 6, background: 'var(--bg-surface)' }}
+    >
+      <div
+        ref={ref}
+        className={`no-scrollbar ${maskClass}`}
+        style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export function StandingsTable({ standings, nameById, complete }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean }) {
   // Inline deck-list expansion: once the event is complete and lists are public,
   // each row with a published deck can expand in place (no separate archive).
@@ -3264,6 +3322,8 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
       return next
     })
   const rankById = useMemo(() => displayRanks(standings), [standings])
+  // Set when the table is wider than its frame so the header can prompt to scroll.
+  const [scrollHint, setScrollHint] = useState(false)
 
   if (standings.length === 0) return null
   return (
@@ -3282,9 +3342,14 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
             · sorted by record · same # = tied
           </span>
         )}
+        {scrollHint && (
+          <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold" style={{ color: 'var(--tcw-accent)' }}>
+            · scroll for OMW <ChevronRight size={12} style={{ marginTop: 1 }} />
+          </span>
+        )}
       </div>
-      <div className="overflow-hidden" style={{ border: '1px solid var(--border-subtle)', borderRadius: 6 }}>
-        <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+      <StandingsScroller onOverflow={setScrollHint}>
+        <table className="w-full text-sm" style={{ borderCollapse: 'collapse', minWidth: 440 }}>
           <thead>
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
               <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-1 sm:pr-2" style={{ fontSize: 10, width: 40 }}>#</th>
@@ -3389,7 +3454,7 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
             })}
           </tbody>
         </table>
-      </div>
+      </StandingsScroller>
       <details
         className="mt-3 overflow-hidden rounded-md"
         style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
