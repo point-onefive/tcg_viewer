@@ -3119,6 +3119,8 @@ function SwissBoard({
         </div>
 
         {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
+
+        <MatchStatusLegend />
       </BonkSceneBody>
     </div>
   )
@@ -3438,6 +3440,8 @@ function ElimBracket({
             ))}
           </div>
         </BracketScroller>
+
+        <MatchStatusLegend />
       </BonkSceneBody>
     </div>
   )
@@ -3693,6 +3697,49 @@ function publicMatchStatus(
     default:
       return { label: 'Awaiting match', tone: 'var(--text-muted)', icon: 'clock' }
   }
+}
+
+/**
+ * Bottom-of-board legend decoding the per-match status strip. Uses the exact
+ * icons, colors and labels the cards use (see publicMatchStatus) so the key
+ * reads as the same language, then spells out what each state means in a few
+ * plain words - "Awaiting confirmation" especially isn't self-explanatory.
+ */
+function MatchStatusLegend() {
+  const items: {
+    icon: 'check' | 'hourglass' | 'clock'
+    label: string
+    tone: string
+    meaning: string
+  }[] = [
+    { icon: 'check', label: 'Confirmed', tone: '#22c55e', meaning: 'both players agreed on the result' },
+    { icon: 'hourglass', label: 'Awaiting confirmation', tone: '#eab308', meaning: 'only one player has reported' },
+    { icon: 'clock', label: 'Awaiting match', tone: 'var(--text-muted)', meaning: 'no result reported yet' },
+  ]
+  return (
+    <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+      <div className="flex flex-col gap-2">
+        {items.map((it) => (
+          <div key={it.label} className="flex items-center gap-2 flex-wrap">
+            <span
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: it.tone }}
+            >
+              {it.icon === 'check' ? (
+                <Check size={11} strokeWidth={3} style={{ flexShrink: 0 }} />
+              ) : it.icon === 'hourglass' ? (
+                <Hourglass size={11} style={{ flexShrink: 0 }} />
+              ) : (
+                <Clock size={11} style={{ flexShrink: 0 }} />
+              )}
+              {it.label}
+            </span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>= {it.meaning}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function BracketMatchCard({
