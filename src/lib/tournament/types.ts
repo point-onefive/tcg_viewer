@@ -117,6 +117,13 @@ export interface Tournament {
   badges: TournamentBadgeSlot[]
   /** When badges were resolved to winners (ISO); null = not awarded yet. */
   badgesAwardedAt: string | null
+  /**
+   * Optional single badge handed to EVERY participant (not by placement).
+   * null = none set. Structurally a badge slot (title/description/image).
+   */
+  participationBadge: TournamentBadgeSlot | null
+  /** When the participation badge was handed out (ISO); null = not yet. */
+  participationBadgeAwardedAt: string | null
   /** When false, the player feedback poll is closed to new votes. */
   pollOpen: boolean
   /** Custom poll heading for this event; null = use the default question. */

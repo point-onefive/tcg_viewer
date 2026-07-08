@@ -20,6 +20,7 @@ import {
   adminSetPollOpen,
   adminSetPrizes,
   adminSetBadges,
+  adminSetParticipationBadge,
   adminSetTheme,
   adminSetResult,
   adminStartBracket,
@@ -53,6 +54,7 @@ type Body =
   | { action: 'approve-all'; code: string }
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
   | { action: 'set-badges'; code: string; badges: TournamentBadgeSlot[] }
+  | { action: 'set-participation-badge'; code: string; badge: TournamentBadgeSlot | null }
   | { action: 'award-prizes'; code: string; assignments: { slotIndex: number; playerIds: string[] }[] }
   | { action: 'start-bracket'; code: string }
   | { action: 'end-tournament'; code: string }
@@ -130,6 +132,10 @@ export async function POST(request: Request) {
       }
       case 'set-badges': {
         const res = await adminSetBadges(body.code, body.badges)
+        return ok({ ok: true, ...res })
+      }
+      case 'set-participation-badge': {
+        const res = await adminSetParticipationBadge(body.code, body.badge)
         return ok({ ok: true, ...res })
       }
       case 'award-prizes': {

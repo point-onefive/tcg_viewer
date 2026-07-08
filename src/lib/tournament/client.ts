@@ -170,6 +170,7 @@ export async function adminApi(
   code?: string
   approved?: number
   count?: number
+  awarded?: number
   ok?: boolean
   deckList?: string | null
   check?: { ok: boolean; leaderCount: number; deckCount: number; unknownIds: string[]; issues: string[] } | null

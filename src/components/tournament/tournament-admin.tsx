@@ -1369,6 +1369,33 @@ export function TournamentAdmin() {
                   }}
                 />
 
+                <ParticipationBadgeEditor
+                  key={`participation-${code}`}
+                  initial={snapshot.tournament.participationBadge}
+                  isComplete={snapshot.tournament.status === 'complete'}
+                  awardedAt={snapshot.tournament.participationBadgeAwardedAt}
+                  busy={busy}
+                  onSave={async (badge) => {
+                    setBusy(true)
+                    setMsg(null)
+                    setError(null)
+                    try {
+                      const r = await adminApi(adminKey, { action: 'set-participation-badge', code, badge })
+                      if (!badge) setMsg('Participation badge removed')
+                      else if (r.awarded && r.awarded > 0)
+                        setMsg(`Participation badge granted to ${r.awarded} participant${r.awarded === 1 ? '' : 's'}`)
+                      else setMsg('Participation badge saved - awards on completion')
+                      await refresh(adminKey)
+                      return true
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not save participation badge')
+                      return false
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                />
+
                 {snapshot.tournament.status === 'complete' && snapshot.tournament.prizes.length > 0 && (
                   <PrizeAwardEditor
                     key={`award-${code}`}
@@ -2191,6 +2218,210 @@ function BadgeSlotCard({
             rows={2}
           />
         </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Participation badge editor - a single, OPTIONAL badge handed to EVERY
+ * participant (not by placement). Sits under the placement Badge pool. Uses the
+ * same client-side normalization (transparent PNG -> trimmed 1:1 512px WebP) so
+ * it matches every other badge. Saving on a completed event grants it to all
+ * participants right away; on a still-running event it's handed out at
+ * completion. Clearing the image + saving removes the badge and its awards.
+ */
+function ParticipationBadgeEditor({
+  initial,
+  isComplete,
+  awardedAt,
+  busy,
+  onSave,
+}: {
+  initial: TournamentBadgeSlot | null
+  isComplete: boolean
+  awardedAt: string | null
+  busy: boolean
+  onSave: (badge: TournamentBadgeSlot | null) => Promise<boolean>
+}) {
+  const empty: TournamentBadgeSlot = { title: '', description: '', image: null }
+  const [slot, setSlot] = useState<TournamentBadgeSlot>(initial ?? empty)
+  const [dirty, setDirty] = useState(false)
+  const [imgError, setImgError] = useState<string | null>(null)
+  const [working, setWorking] = useState(false)
+
+  const initialKey = JSON.stringify(initial)
+  useEffect(() => {
+    if (!dirty) setSlot(initial ?? { title: '', description: '', image: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialKey])
+
+  const patch = (p: Partial<TournamentBadgeSlot>) => {
+    setSlot((s) => ({ ...s, ...p }))
+    setDirty(true)
+  }
+
+  const handleImage = async (blob: Blob) => {
+    setImgError(null)
+    setWorking(true)
+    try {
+      const dataUrl = await normalizeBadgeImageToDataUrl(blob)
+      patch({ image: dataUrl })
+    } catch {
+      setImgError('Could not process that image - use a transparent PNG.')
+    } finally {
+      setWorking(false)
+    }
+  }
+
+  const fileRef = useRef<HTMLInputElement>(null)
+  const canSave = dirty && !busy && !working && slot.image !== null
+  const saved = !dirty && Boolean(initial?.image)
+
+  return (
+    <div className="p-5" style={tintedCard('#38bdf8')}>
+      <div className="flex items-center gap-2 mb-1">
+        <Users size={16} style={{ color: '#38bdf8' }} />
+        <h3 className="font-display font-bold">Participation badge</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+        Optional. One badge handed to <strong>every participant</strong> of this
+        event (not by placement). Upload a transparent PNG - it&apos;s auto-trimmed
+        and sized to match every other badge.{' '}
+        {isComplete
+          ? 'Since this event is complete, saving grants it to all participants immediately.'
+          : 'It&apos;s handed out automatically when the event ends.'}
+      </p>
+
+      <div className="rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}>
+        <div className="grid gap-2 sm:grid-cols-[120px_1fr]">
+          {slot.image ? (
+            <div className="relative self-start">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={slot.image}
+                alt={slot.title || 'Participation badge'}
+                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 6, border: '1px solid var(--border-subtle)', background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)' }}
+              />
+              <button
+                type="button"
+                onClick={() => patch({ image: null })}
+                aria-label="Remove image"
+                className="absolute inline-flex items-center justify-center"
+                style={{ top: 4, right: 4, width: 20, height: 20, borderRadius: 5, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5 self-start">
+              <div
+                tabIndex={0}
+                aria-label="Click here then paste a participation badge image"
+                onPaste={(e) => {
+                  const blob = imageFromClipboard(e)
+                  if (blob) {
+                    e.preventDefault()
+                    handleImage(blob)
+                  }
+                }}
+                className="flex flex-col items-center justify-center gap-1 text-center cursor-text"
+                style={{ height: 72, borderRadius: 6, border: '1px dashed color-mix(in srgb, var(--text-primary) 28%, transparent)', color: 'var(--text-muted)', padding: 6 }}
+              >
+                <ImagePlus size={16} />
+                <span className="text-[10px] leading-tight">Click, then paste (⌘V)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={busy || working}
+                className="footer-btn inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-bold"
+                style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, opacity: busy || working ? 0.5 : 1 }}
+              >
+                <Upload size={12} /> Upload PNG
+              </button>
+            </div>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) handleImage(f)
+              e.target.value = ''
+            }}
+          />
+
+          <div className="flex flex-col gap-2 min-w-0">
+            <input
+              style={{ ...inputStyle, padding: '7px 9px', fontSize: 13 }}
+              value={slot.title}
+              disabled={busy || working}
+              onChange={(e) => patch({ title: e.target.value })}
+              placeholder="Badge name (e.g. Summer Popup Participant)"
+            />
+            <textarea
+              style={{ ...inputStyle, padding: '7px 9px', fontSize: 13, resize: 'vertical', minHeight: 52 }}
+              value={slot.description}
+              disabled={busy || working}
+              onChange={(e) => patch({ description: e.target.value })}
+              placeholder="Sub-header shown on hover (e.g. Played the One Piece TCG Summer Popup)"
+              rows={2}
+            />
+          </div>
+        </div>
+      </div>
+
+      {imgError && <p className="text-sm mt-3" style={{ color: '#ef4444' }}>{imgError}</p>}
+      {working && (
+        <p className="text-xs mt-3 inline-flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 size={12} className="animate-spin" /> Processing image...
+        </p>
+      )}
+      {awardedAt && !dirty && (
+        <p className="text-xs mt-3 inline-flex items-center gap-1.5" style={{ color: '#22c55e' }}>
+          <Check size={12} /> Awarded to participants.
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        <AdminBtn
+          primary
+          disabled={!canSave}
+          onClick={async () => {
+            const ok = await onSave(slot.image ? slot : null)
+            if (ok) setDirty(false)
+          }}
+        >
+          {saved ? 'Saved' : 'Save badge'}
+        </AdminBtn>
+        {initial?.image && (
+          <AdminBtn
+            disabled={busy || working}
+            onClick={async () => {
+              const ok = await onSave(null)
+              if (ok) setDirty(false)
+            }}
+          >
+            <span className="inline-flex items-center gap-1"><Trash2 size={12} /> Remove badge</span>
+          </AdminBtn>
+        )}
+        {dirty && (
+          <button
+            type="button"
+            onClick={() => {
+              setSlot(initial ?? { title: '', description: '', image: null })
+              setDirty(false)
+              setImgError(null)
+            }}
+            className="text-xs"
+            style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Discard changes
+          </button>
+        )}
       </div>
     </div>
   )

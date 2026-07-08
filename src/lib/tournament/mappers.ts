@@ -40,6 +40,19 @@ function rowToBadges(raw: unknown): TournamentBadgeSlot[] {
     }))
 }
 
+/** Coerce the JSONB `participation_badge` column into a single slot or null. */
+function rowToParticipationBadge(raw: unknown): TournamentBadgeSlot | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const b = raw as Record<string, unknown>
+  const image = typeof b.image === 'string' && b.image ? b.image : null
+  if (!image) return null
+  return {
+    title: typeof b.title === 'string' ? b.title : '',
+    description: typeof b.description === 'string' ? b.description : '',
+    image,
+  }
+}
+
 /** Coerce the JSONB `poll_options` column; null when absent/empty/invalid. */
 function rowToPollOptions(raw: unknown): PollOption[] | null {
   if (!Array.isArray(raw)) return null
@@ -80,6 +93,8 @@ export function rowToTournament(r: any): Tournament {
     prizesAwardedAt: r.prizes_awarded_at ?? null,
     badges: rowToBadges(r.badges),
     badgesAwardedAt: r.badges_awarded_at ?? null,
+    participationBadge: rowToParticipationBadge(r.participation_badge),
+    participationBadgeAwardedAt: r.participation_badge_awarded_at ?? null,
     // Default open when the column is absent (pre-migration) or null.
     pollOpen: r.poll_open ?? true,
     pollQuestion: typeof r.poll_question === 'string' && r.poll_question.trim() ? r.poll_question : null,

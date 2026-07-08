@@ -898,6 +898,11 @@ async function finalizeTournament(
   } catch {
     // Never block completion on a badge-award write.
   }
+  try {
+    await autoAwardParticipationBadgeOnComplete(tournamentId, players)
+  } catch {
+    // Never block completion on a participation-badge write.
+  }
 }
 
 // ── Awarded prizes (frozen at completion) ──────────────────────────────────
@@ -1088,7 +1093,13 @@ async function persistAwardedBadges(
     })
   }
 
-  const del = await sb.from('tournament_awarded_badges').delete().eq('tournament_id', tournamentId)
+  // Scope to placement rows only (slot_index >= 0) so a re-award never wipes the
+  // participation badge (which lives in the same table with slot_index = -1).
+  const del = await sb
+    .from('tournament_awarded_badges')
+    .delete()
+    .eq('tournament_id', tournamentId)
+    .gte('slot_index', 0)
   if (del.error) throw new TournamentError(del.error.message, 500)
   if (rows.length > 0) {
     const ins = await sb.from('tournament_awarded_badges').insert(rows)
@@ -1096,6 +1107,102 @@ async function persistAwardedBadges(
   }
   await sb.from('tournaments').update({ badges_awarded_at: nowIso() }).eq('id', tournamentId)
   return rows.length
+}
+
+// ── Participation badge (single, handed to every participant) ───────────────
+
+/** Marker slot_index for participation-badge rows in tournament_awarded_badges. */
+const PARTICIPATION_SLOT = -1
+
+/**
+ * A participant, for the purposes of the participation badge, is anyone who made
+ * it into the bracket (`seed != null`) and wasn't rejected. Dropped players are
+ * INCLUDED - they still took part in the event.
+ */
+function participationRecipients(players: Player[]): Player[] {
+  return players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
+}
+
+/**
+ * Hand the participation badge to every participant. Idempotent: clears the
+ * tournament's participation rows (slot_index = -1) then re-inserts one per
+ * recipient, snapshotting the badge art/title so later edits never rewrite
+ * history. Stamps participation_badge_awarded_at. Returns the recipient count.
+ */
+async function persistParticipationBadge(
+  tournamentId: string,
+  badge: TournamentBadgeSlot,
+  players: Player[],
+): Promise<number> {
+  const sb = getServiceClient()
+  const recipients = participationRecipients(players)
+
+  const rows = recipients.map((p) => ({
+    tournament_id: tournamentId,
+    player_id: p.id || null,
+    wallet_address: p.walletAddress ? p.walletAddress.toLowerCase() : null,
+    x_handle: p.xHandle || null,
+    display_name: p.displayName || null,
+    rank: null,
+    slot_index: PARTICIPATION_SLOT,
+    title: badge.title,
+    description: badge.description ?? '',
+    image: badge.image ?? null,
+  }))
+
+  const del = await sb
+    .from('tournament_awarded_badges')
+    .delete()
+    .eq('tournament_id', tournamentId)
+    .lt('slot_index', 0)
+  if (del.error) throw new TournamentError(del.error.message, 500)
+  if (rows.length > 0) {
+    const ins = await sb.from('tournament_awarded_badges').insert(rows)
+    if (ins.error) throw new TournamentError(ins.error.message, 500)
+  }
+  await sb
+    .from('tournaments')
+    .update({ participation_badge_awarded_at: nowIso() })
+    .eq('id', tournamentId)
+  return rows.length
+}
+
+/** Remove every participation-badge row for a tournament and clear the stamp. */
+async function clearParticipationBadgeAwards(tournamentId: string): Promise<void> {
+  const sb = getServiceClient()
+  const del = await sb
+    .from('tournament_awarded_badges')
+    .delete()
+    .eq('tournament_id', tournamentId)
+    .lt('slot_index', 0)
+  if (del.error) throw new TournamentError(del.error.message, 500)
+  await sb
+    .from('tournaments')
+    .update({ participation_badge_awarded_at: null })
+    .eq('id', tournamentId)
+}
+
+/**
+ * On completion, hand the participation badge (if set) to every participant.
+ * Guarded by participation_badge_awarded_at so it doesn't rewrite an award the
+ * host already triggered by hand.
+ */
+async function autoAwardParticipationBadgeOnComplete(
+  tournamentId: string,
+  players: Player[],
+): Promise<void> {
+  const sb = getServiceClient()
+  const { data: tRow } = await sb
+    .from('tournaments')
+    .select('participation_badge, participation_badge_awarded_at')
+    .eq('id', tournamentId)
+    .maybeSingle()
+  if (!tRow) return
+  if (tRow.participation_badge_awarded_at) return
+  const badge = rowToTournament({ ...tRow, participation_badge: tRow.participation_badge })
+    .participationBadge
+  if (!badge) return
+  await persistParticipationBadge(tournamentId, badge, players)
 }
 
 /**
@@ -2123,6 +2230,64 @@ export async function adminSetBadges(
   const { error } = await sb.from('tournaments').update({ badges: clean }).eq('id', row.id)
   if (error) throw new TournamentError(error.message, 500)
   return { count: clean.length }
+}
+
+/**
+ * Replace (or clear) a tournament's single participation badge - the optional
+ * badge handed to EVERY participant, independent of placement. Pass null (or a
+ * badge with no image) to remove it. If the event is already complete, the badge
+ * is granted to all participants immediately (idempotent); otherwise it's handed
+ * out automatically when the event finalizes. Clearing removes any awarded rows.
+ */
+export async function adminSetParticipationBadge(
+  code: string,
+  badge: unknown,
+): Promise<{ count: number; awarded: number }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+
+  // Normalize / validate. A null (or image-less) badge clears the slot.
+  let clean: TournamentBadgeSlot | null = null
+  if (badge && typeof badge === 'object' && !Array.isArray(badge)) {
+    const obj = badge as Record<string, unknown>
+    const title = typeof obj.title === 'string' ? obj.title.trim().slice(0, 120) : ''
+    const description =
+      typeof obj.description === 'string' ? obj.description.trim().slice(0, 600) : ''
+    let image: string | null = null
+    if (typeof obj.image === 'string' && obj.image.trim()) {
+      const img = obj.image.trim()
+      const looksValid = img.startsWith('data:image/') || /^https?:\/\//i.test(img)
+      if (!looksValid) {
+        throw new TournamentError('Participation badge: image must be an uploaded image or a URL.')
+      }
+      if (img.length > MAX_BADGE_IMAGE_CHARS) {
+        throw new TournamentError('Participation badge: image is too large.')
+      }
+      image = img
+    }
+    if (image) clean = { title: title || 'Participant', description, image }
+  }
+
+  const { error } = await sb
+    .from('tournaments')
+    .update({ participation_badge: clean })
+    .eq('id', row.id)
+  if (error) throw new TournamentError(error.message, 500)
+
+  // Cleared: drop any previously-awarded participation rows and reset the stamp.
+  if (!clean) {
+    await clearParticipationBadgeAwards(row.id)
+    return { count: 0, awarded: 0 }
+  }
+
+  // Already complete: grant right now so past events can be badged retroactively.
+  // Still running / enrolling: it'll auto-award at completion.
+  if (row.status === 'complete') {
+    const players = await fetchPlayers(row.id)
+    const awarded = await persistParticipationBadge(row.id, clean, players)
+    return { count: 1, awarded }
+  }
+  return { count: 1, awarded: 0 }
 }
 
 /**
