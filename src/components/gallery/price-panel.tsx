@@ -47,7 +47,6 @@ export function PricePanel({ wallCardId, collection = 'one-piece' }: PricePanelP
     : subtype
       ? `TCGPlayer ${subtype.toLowerCase()}`
       : 'TCGPlayer market'
-  const listings = pricing.listings
   const syncedAt = pricing.syncedAt
   const phantomMarket = (pricing.flags ?? []).includes('phantom_market')
 
@@ -91,18 +90,10 @@ export function PricePanel({ wallCardId, collection = 'one-piece' }: PricePanelP
               <div className="lbp-price">{formatUsd(heroValue)}</div>
               <div className="lbp-hero-meta">
                 <span className="lbp-hero-label">{heroLabel}</span>
-                {/* Listing counts are only shown for the eBay source, where they
-                    reflect a real active-listings query. The TCGPlayer feed
-                    reports a near-constant page-size default (mostly 25), so it
-                    is not a trustworthy per-card count and is omitted. */}
-                {isEbaySource && listings ? (
-                  <>
-                    <span className="lbp-hero-dot">·</span>
-                    <span title="NM single listings filtered">
-                      {listings.toLocaleString()} listing{listings === 1 ? '' : 's'}
-                    </span>
-                  </>
-                ) : null}
+                {/* Listing counts are intentionally never shown. eBay's count is
+                    a real active-listings query and TCGPlayer's is a near-constant
+                    page-size default, but neither is trustworthy enough per-card to
+                    surface, so we omit the count for every source/game. */}
                 {syncedAt ? (
                   <>
                     <span className="lbp-hero-dot">·</span>
