@@ -5,9 +5,9 @@
 // profile in a gentle popup (PlayerProfileView) - same styling as the wallet
 // menu's "View profile" modal - rather than navigating to a new page.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Medal, ChevronDown, ChevronRight, Trophy } from 'lucide-react'
+import { Loader2, Medal, ChevronDown, ChevronRight, Trophy, ArrowDown } from 'lucide-react'
 import { fetchLeaderboard } from '@/lib/wallet/api-client'
 import type { WalletStanding } from '@/lib/wallet/db'
 import { PlayerAvatar } from './player-avatar'
@@ -26,6 +26,39 @@ const card: React.CSSProperties = {
 const COLLAPSED_COUNT = 5
 // How many extra rows each "Show more" click reveals.
 const STEP = 10
+
+// Which column the board is sorted by. 'wins' is the default (total match wins,
+// the all-time ranking the board is named for); the others let a viewer re-rank.
+type SortKey = 'wins' | 'winRate' | 'events'
+
+function gamesPlayed(s: WalletStanding): number {
+  return s.wins + s.losses + s.draws
+}
+
+function winPct(s: WalletStanding): number {
+  const g = gamesPlayed(s)
+  return g > 0 ? s.wins / g : 0
+}
+
+/**
+ * Filter out inactive profiles (no confirmed match results) then sort by the
+ * chosen key. Every key falls back to the others so ties resolve deterministically
+ * and the default 'wins' order matches the server's wins -> events ranking.
+ */
+function rankStandings(standings: WalletStanding[], key: SortKey): WalletStanding[] {
+  const active = standings.filter((s) => gamesPlayed(s) > 0)
+  const byWins = (a: WalletStanding, b: WalletStanding) =>
+    b.wins - a.wins || b.tournamentsPlayed - a.tournamentsPlayed || winPct(b) - winPct(a)
+  return active.sort((a, b) => {
+    if (key === 'winRate') {
+      return winPct(b) - winPct(a) || byWins(a, b)
+    }
+    if (key === 'events') {
+      return b.tournamentsPlayed - a.tournamentsPlayed || byWins(a, b)
+    }
+    return byWins(a, b)
+  })
+}
 
 function medalColor(rank: number): string | null {
   if (rank === 1) return '#f5b301'
@@ -104,8 +137,15 @@ function WinRateBar({ wins, losses, draws }: { wins: number; losses: number; dra
   )
 }
 
-/** Faint column header, desktop-only, so the rows below read as a table. */
-function LeaderboardHeader() {
+/** Faint column header, desktop-only, so the rows below read as a table. The
+ *  Win rate / Events / W / L cells are clickable to sort by that column. */
+function LeaderboardHeader({
+  sortKey,
+  onSort,
+}: {
+  sortKey: SortKey
+  onSort: (key: SortKey) => void
+}) {
   const cell: React.CSSProperties = {
     fontSize: 10,
     fontWeight: 700,
@@ -113,6 +153,20 @@ function LeaderboardHeader() {
     textTransform: 'uppercase',
     color: 'var(--text-muted)',
   }
+  const sortBtn: React.CSSProperties = {
+    ...cell,
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 3,
+  }
+  const arrow = (key: SortKey) =>
+    sortKey === key ? <ArrowDown size={11} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> : null
+  const active = (key: SortKey): React.CSSProperties =>
+    sortKey === key ? { color: 'var(--text-secondary)' } : {}
   return (
     <div
       className="hidden sm:flex items-center gap-3 px-4 py-2"
@@ -121,9 +175,67 @@ function LeaderboardHeader() {
       <span style={{ ...cell, width: 26, textAlign: 'center' }}>#</span>
       <span style={{ width: 32, flexShrink: 0 }} aria-hidden />
       <span style={{ ...cell, width: 176, flexShrink: 0 }}>Player</span>
-      <span style={{ ...cell, flex: 1, minWidth: 0 }}>Win rate</span>
-      <span style={{ ...cell, width: 64, textAlign: 'right' }}>Events</span>
-      <span style={{ ...cell, width: 56, textAlign: 'right' }}>W / L</span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <button type="button" onClick={() => onSort('winRate')} style={{ ...sortBtn, ...active('winRate') }} aria-label="Sort by win rate">
+          Win rate {arrow('winRate')}
+        </button>
+      </span>
+      <span style={{ width: 64, textAlign: 'right' }}>
+        <button type="button" onClick={() => onSort('events')} style={{ ...sortBtn, ...active('events'), justifyContent: 'flex-end', width: '100%' }} aria-label="Sort by events played">
+          Events {arrow('events')}
+        </button>
+      </span>
+      <span style={{ width: 56, textAlign: 'right' }}>
+        <button type="button" onClick={() => onSort('wins')} style={{ ...sortBtn, ...active('wins'), justifyContent: 'flex-end', width: '100%' }} aria-label="Sort by wins">
+          W / L {arrow('wins')}
+        </button>
+      </span>
+    </div>
+  )
+}
+
+/** Mobile-only sort control (the desktop header is hidden on small screens). */
+function MobileSortBar({
+  sortKey,
+  onSort,
+}: {
+  sortKey: SortKey
+  onSort: (key: SortKey) => void
+}) {
+  const opts: { key: SortKey; label: string }[] = [
+    { key: 'wins', label: 'Wins' },
+    { key: 'winRate', label: 'Win rate' },
+    { key: 'events', label: 'Events' },
+  ]
+  return (
+    <div
+      className="flex sm:hidden items-center gap-1.5 px-3 py-2"
+      style={{ borderBottom: '1px solid var(--border-subtle)' }}
+    >
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+        Sort
+      </span>
+      {opts.map((o) => {
+        const on = sortKey === o.key
+        return (
+          <button
+            key={o.key}
+            type="button"
+            onClick={() => onSort(o.key)}
+            className="text-[11px] font-bold"
+            style={{
+              padding: '3px 9px',
+              borderRadius: 999,
+              cursor: 'pointer',
+              background: on ? 'var(--tcw-accent)' : 'var(--bg)',
+              color: on ? '#fff' : 'var(--text-secondary)',
+              border: `1px solid ${on ? 'transparent' : 'var(--border-subtle)'}`,
+            }}
+          >
+            {o.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -198,6 +310,7 @@ export function Leaderboard({ mascot = null }: { mascot?: string | null } = {}) 
   const [error, setError] = useState(false)
   const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT)
   const [selected, setSelected] = useState<WalletStanding | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('wins')
 
   useEffect(() => {
     let cancelled = false
@@ -207,16 +320,23 @@ export function Leaderboard({ mascot = null }: { mascot?: string | null } = {}) 
     return () => { cancelled = true }
   }, [])
 
+  // Inactive profiles (0/0, never played) are dropped; the rest are ranked by
+  // the chosen column. Recomputed only when the data or sort changes.
+  const ranked = useMemo(
+    () => (standings ? rankStandings(standings, sortKey) : []),
+    [standings, sortKey],
+  )
+
   // Hide the whole section only if the feature is unavailable (API error).
   if (error) return null
 
-  const total = standings?.length ?? 0
-  const visible = (standings ?? []).slice(0, visibleCount)
+  const total = ranked.length
+  const visible = ranked.slice(0, visibleCount)
   const remaining = total - visibleCount
   const canShowMore = remaining > 0
   const canShowLess = visibleCount > COLLAPSED_COUNT
   const nextStep = Math.min(STEP, remaining)
-  const isEmpty = standings !== null && standings.length === 0
+  const isEmpty = standings !== null && ranked.length === 0
 
   return (
     <section aria-label="All-time leaderboard" className="mb-6" style={card}>
@@ -239,7 +359,8 @@ export function Leaderboard({ mascot = null }: { mascot?: string | null } = {}) 
         </div>
       ) : (
         <>
-          <LeaderboardHeader />
+          <MobileSortBar sortKey={sortKey} onSort={setSortKey} />
+          <LeaderboardHeader sortKey={sortKey} onSort={setSortKey} />
           {visible.map((s, i) => (
             <LeaderboardRow key={s.walletAddress} standing={s} rank={i + 1} onSelect={setSelected} />
           ))}
@@ -299,7 +420,7 @@ export function Leaderboard({ mascot = null }: { mascot?: string | null } = {}) 
         style={{ borderTop: '1px solid var(--border-subtle)' }}
       >
         <p className="text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          {standings && standings.length > 0
+          {ranked.length > 0
             ? 'Win rate counts confirmed match results only. Byes are not included.'
             : '\u00A0'}
         </p>
