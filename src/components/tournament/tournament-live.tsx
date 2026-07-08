@@ -3070,13 +3070,18 @@ function RoundStrip({
     }
   }, [measure])
 
-  // Keep the selected round in view as rounds advance.
+  // Keep the selected round in view as rounds advance. Right-align it rather
+  // than center it: the default selection is the latest round, so aligning it to
+  // the right edge lands the strip at the end (only a left "more" fade, never a
+  // misleading right one). An earlier round pins right with later rounds to its
+  // right, and the first round clamps to the far left (right fade only).
   useEffect(() => {
     const el = activeRef.current
     const scroller = scrollerRef.current
     if (!el || !scroller) return
-    const target = el.offsetLeft - scroller.clientWidth / 2 + el.clientWidth / 2
-    scroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
+    const maxScroll = scroller.scrollWidth - scroller.clientWidth
+    const target = el.offsetLeft + el.offsetWidth - scroller.clientWidth
+    scroller.scrollTo({ left: Math.min(maxScroll, Math.max(0, target)), behavior: 'smooth' })
   }, [selectedId])
 
   const scrollByPage = (dir: number) => {
