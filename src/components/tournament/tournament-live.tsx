@@ -3091,7 +3091,6 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
       return next
     })
   const rankById = useMemo(() => displayRanks(standings), [standings])
-  const hasTiedGroups = useMemo(() => standings.some((s) => s.tied), [standings])
 
   if (standings.length === 0) return null
   return (
@@ -3198,7 +3197,18 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                   <td className="py-2 px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
                     {s.wins}-{s.losses}-{s.draws}
                   </td>
-                  <td className="py-2 px-2 text-right font-bold tabular-nums">{s.points}</td>
+                  <td className="py-2 px-2 pr-3 sm:pr-2 text-right tabular-nums align-middle">
+                    <span className="font-bold">{s.points}</span>
+                    {/* OMW rides under the points on mobile (its own column is
+                        hidden there); keeps the tiebreaker visible without a
+                        cramped extra column. */}
+                    <span
+                      className="sm:hidden block text-[9px] font-normal leading-tight"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      OMW {(s.oppWinPct * 100).toFixed(1)}%
+                    </span>
+                  </td>
                   <td className="py-2 pl-2 pr-3 text-right tabular-nums hidden sm:table-cell" style={{ color: 'var(--text-muted)' }}>
                     {(s.oppWinPct * 100).toFixed(1)}
                   </td>
@@ -3216,12 +3226,30 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
           </tbody>
         </table>
       </div>
-      {complete && hasTiedGroups ? (
-        <p className="mt-2 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          Players who share a rank are tied on every tiebreaker. If that affects a
-          prize spot, the host settles it with a tiebreaker.
-        </p>
-      ) : null}
+      <details className="mt-2">
+        <summary
+          className="cursor-pointer select-none text-[11px] font-semibold"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          How standings are ranked
+        </summary>
+        <div className="mt-1.5 space-y-1 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          <p>
+            Ranked by <strong>match points</strong> first: 3 for a win, 1 for a draw,
+            0 for a loss.
+          </p>
+          <p>
+            Players level on points break by <strong>OMW%</strong> - the average win
+            rate of everyone they&rsquo;ve faced, so a tougher schedule ranks higher.
+            If that&rsquo;s still even it goes to head-to-head, then opponents&rsquo;
+            opponents&rsquo; win %, then total wins.
+          </p>
+          <p>
+            Anyone dead-even after all of that shares a rank. If it affects a prize
+            spot, the host settles it with a tiebreaker - never by name.
+          </p>
+        </div>
+      </details>
     </div>
   )
 }
