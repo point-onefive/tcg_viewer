@@ -3488,12 +3488,6 @@ function StandingMathBreakdown({
             + {breakdown.byes} bye{breakdown.byes === 1 ? '' : 's'} (free win, not counted toward OMW)
           </p>
         )}
-        {breakdown.opponents.length > 0 && (
-          <p className="mt-2" style={{ color: 'var(--text-secondary)' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>OMW</strong> = average of those win rates ={' '}
-            <strong style={{ color: winRateColor(breakdown.omw) }}>{fmtPct(breakdown.omw)}</strong>
-          </p>
-        )}
       </div>
     </div>
   )
