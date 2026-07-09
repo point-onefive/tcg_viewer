@@ -3489,24 +3489,38 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
   // Inline deck-list expansion: once the event is complete and lists are public,
   // each row with a published deck can expand in place (no separate archive).
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
-  const toggle = (id: string) =>
+  // Inline tiebreaker math: tapping a rank number expands the exact opponents,
+  // their win rates and the OMW/OOMW figures that decided the placement. Only
+  // available when match data is supplied (Swiss), where OMW actually ranks.
+  const [openMath, setOpenMath] = useState<Set<string>>(new Set())
+  // Deck list and math are both accordion panels under the same row, so they are
+  // kept mutually exclusive per player: opening one closes the other on that row
+  // (different rows can each keep their own panel open). This prevents two
+  // stacked panels from ever piling up under a single standing.
+  const dropFrom = (id: string) => (cur: Set<string>) => {
+    if (!cur.has(id)) return cur
+    const next = new Set(cur)
+    next.delete(id)
+    return next
+  }
+  const toggle = (id: string) => {
     setExpanded((cur) => {
       const next = new Set(cur)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
-  // Inline tiebreaker math: tapping a rank number expands the exact opponents,
-  // their win rates and the OMW/OOMW figures that decided the placement. Only
-  // available when match data is supplied (Swiss), where OMW actually ranks.
-  const [openMath, setOpenMath] = useState<Set<string>>(new Set())
-  const toggleMath = (id: string) =>
+    setOpenMath(dropFrom(id))
+  }
+  const toggleMath = (id: string) => {
     setOpenMath((cur) => {
       const next = new Set(cur)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
+    setExpanded(dropFrom(id))
+  }
   // Compute the breakdown over exactly the ranked player set (same input the
   // standings were computed from) so its OMW figures match the table 1:1.
   const rankedPlayers = useMemo(
