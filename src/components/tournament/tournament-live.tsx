@@ -3549,15 +3549,15 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
         </p>
       </div>
       <StandingsScroller>
-        <table className="w-full text-sm" style={{ borderCollapse: 'collapse', minWidth: 440 }}>
+        <table className="w-full text-sm" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <thead>
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
-              <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-1 sm:pr-2" style={{ fontSize: 10, width: 40 }}>#</th>
+              <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-1 sm:pr-2" style={{ fontSize: 10, width: 34 }}>#</th>
               <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10 }}>Player</th>
-              <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10 }}>Deck</th>
-              <th className="text-center font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10, width: 74 }}>W-L-D</th>
-              <th className="text-right font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10, width: 40 }}>Pts</th>
-              <th className="text-right font-bold uppercase tracking-wider py-2 pl-1.5 pr-3 sm:pl-2" style={{ fontSize: 10, width: 52 }} title="Opponents' average match-win %">OMW</th>
+              <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2 hidden sm:table-cell" style={{ fontSize: 10, width: 150 }}>Deck</th>
+              <th className="text-center font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 60 }}>W-L-D</th>
+              <th className="text-right font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 34 }}>Pts</th>
+              <th className="text-right font-bold uppercase tracking-wider py-2 pl-1 pr-3 sm:pl-2" style={{ fontSize: 10, width: 46 }} title="Opponents' average match-win %">OMW</th>
             </tr>
           </thead>
           <tbody>
@@ -3607,7 +3607,7 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                     )}
                   </td>
                   <td className="py-2 px-2 min-w-0">
-                    <span className="inline-flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <XProfileLink
                         handle={player?.xHandle ?? s.displayName}
                         username={player?.username}
@@ -3618,11 +3618,38 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                         className="truncate font-semibold"
                       />
                       {s.dropped && (
-                        <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>dropped</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wide shrink-0" style={{ color: 'var(--text-muted)' }}>dropped</span>
                       )}
-                    </span>
+                      {/* Deck lives in its own column on desktop; on mobile we fold
+                          the leader thumb (and deck-list toggle) in here so the
+                          table fits the viewport with no horizontal scroll. */}
+                      {player?.leaderCardId && (
+                        <span className="ml-auto flex items-center gap-1 shrink-0 sm:hidden">
+                          <LeaderThumb
+                            image={player.leaderImage}
+                            name={player.leaderName}
+                            cardId={player.leaderCardId}
+                          />
+                          {canExpand && (
+                            <button
+                              type="button"
+                              onClick={() => toggle(s.playerId)}
+                              aria-expanded={isOpen}
+                              title="View deck list"
+                              className="inline-flex items-center transition-opacity hover:opacity-80"
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                            >
+                              <ChevronDown
+                                size={14}
+                                style={{ flexShrink: 0, color: 'var(--tcw-accent)', transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform 160ms ease' }}
+                              />
+                            </button>
+                          )}
+                        </span>
+                      )}
+                    </div>
                   </td>
-                  <td className="py-2 px-2 min-w-0">
+                  <td className="py-2 px-2 min-w-0 hidden sm:table-cell">
                     {player?.leaderCardId ? (
                       <div className="flex items-center gap-1.5">
                         <LeaderThumb
@@ -3657,13 +3684,13 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                       <span style={{ color: 'var(--text-muted)' }}>-</span>
                     )}
                   </td>
-                  <td className="py-2 px-1.5 sm:px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+                  <td className="py-2 px-1 sm:px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
                     {s.wins}-{s.losses}-{s.draws}
                   </td>
-                  <td className="py-2 px-1.5 sm:px-2 text-right tabular-nums font-bold">
+                  <td className="py-2 px-1 sm:px-2 text-right tabular-nums font-bold">
                     {s.points}
                   </td>
-                  <td className="py-2 pl-1.5 pr-3 sm:pl-2 text-right tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                  <td className="py-2 pl-1 pr-3 sm:pl-2 text-right tabular-nums" style={{ color: 'var(--text-muted)' }}>
                     {(s.oppWinPct * 100).toFixed(1)}
                   </td>
                 </tr>
@@ -3676,22 +3703,14 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                 )}
                 {breakdown && mathOpen && (
                   <tr style={{ background: 'var(--bg)' }}>
-                    <td colSpan={6} style={{ borderTop: '1px solid var(--border-subtle)', padding: 0 }}>
-                      {/* Pin the content to the left of the scroll viewport and
-                          cap it to the visible width so this text panel never
-                          forces the horizontal scroll the wide table needs. */}
-                      <div
-                        className="px-3 py-3"
-                        style={{ position: 'sticky', left: 0, width: 'calc(100vw - 72px)', maxWidth: 620 }}
-                      >
-                        <StandingMathBreakdown
-                          row={s}
-                          displayRank={displayRank}
-                          breakdown={breakdown.get(s.playerId) ?? null}
-                          standings={standings}
-                          nameById={nameById}
-                        />
-                      </div>
+                    <td colSpan={6} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <StandingMathBreakdown
+                        row={s}
+                        displayRank={displayRank}
+                        breakdown={breakdown.get(s.playerId) ?? null}
+                        standings={standings}
+                        nameById={nameById}
+                      />
                     </td>
                   </tr>
                 )}
