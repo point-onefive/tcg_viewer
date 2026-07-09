@@ -3514,25 +3514,31 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
   if (standings.length === 0) return null
   return (
     <div className="mt-6">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-3">
-        <Trophy size={15} style={{ color: 'var(--tcw-accent)' }} />
-        <h4 className="font-display text-sm font-bold uppercase tracking-wider">
-          {complete ? 'Final standings' : 'Standings'}
-        </h4>
-        {complete ? (
-          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-            · tap a deck to view the list
-          </span>
-        ) : (
-          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-            · sorted by record · same # = tied
-          </span>
-        )}
+      <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <span className="inline-flex items-center gap-1.5">
+          <Trophy size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+          <h4 className="font-display text-sm font-bold uppercase tracking-wider">
+            {complete ? 'Final standings' : 'Standings'}
+          </h4>
+        </span>
         {breakdown && (
-          <span className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-            · tap a <span style={{ color: 'var(--tcw-accent)', fontWeight: 700 }}>#</span> for the standings math
+          <span
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+            style={{
+              background: 'color-mix(in srgb, var(--tcw-accent) 14%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--tcw-accent) 35%, transparent)',
+              color: 'var(--text-primary)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Tap a <span style={{ color: 'var(--tcw-accent)', fontWeight: 800 }}>#</span> for standings math
           </span>
         )}
+        <p className="w-full text-[11px] leading-snug" style={{ color: 'var(--text-muted)' }}>
+          {complete
+            ? 'Tap a deck to view its list. Players sharing a rank number are tied.'
+            : 'Sorted by record. Players sharing a rank number are tied.'}
+        </p>
       </div>
       <StandingsScroller>
         <table className="w-full text-sm" style={{ borderCollapse: 'collapse', minWidth: 440 }}>
