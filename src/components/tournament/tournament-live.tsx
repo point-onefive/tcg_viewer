@@ -3687,19 +3687,22 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
           </tbody>
         </table>
       </StandingsScroller>
-      <details
+      {/* Ranking methodology, always visible (round 1 through the finish) so the
+          math behind every placement is never hidden behind a click. The exact
+          per-player numbers live one tap deeper on each rank. */}
+      <div
         className="mt-3 overflow-hidden rounded-md"
         style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)' }}
       >
-        <summary
-          className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-2 text-xs font-bold"
-          style={{ color: 'var(--text-primary)' }}
+        <div
+          className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
+          style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-subtle)' }}
         >
           <Trophy size={13} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} aria-hidden />
           How standings are ranked
-        </summary>
+        </div>
         <div
-          className="space-y-2 px-3 pb-3 text-xs leading-relaxed"
+          className="space-y-2 px-3 py-3 text-xs leading-relaxed"
           style={{ color: 'var(--text-secondary)' }}
         >
           <p>
@@ -3717,8 +3720,15 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
             Anyone dead-even after all of that shares a rank. If it affects a prize
             spot, the host settles it with a tiebreaker - never by name.
           </p>
+          {breakdown && (
+            <p style={{ color: 'var(--text-muted)' }}>
+              Want the receipts? Tap any{' '}
+              <strong style={{ color: 'var(--tcw-accent)' }}>#</strong> to see that player&rsquo;s
+              opponents, each opponent&rsquo;s win rate, and how their OMW was worked out.
+            </p>
+          )}
         </div>
-      </details>
+      </div>
     </div>
   )
 }
