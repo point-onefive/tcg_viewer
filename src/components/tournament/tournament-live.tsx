@@ -3554,8 +3554,7 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
               <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-1 sm:pr-2" style={{ fontSize: 10, width: 34 }}>#</th>
               <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10 }}>Player</th>
-              <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2 hidden sm:table-cell" style={{ fontSize: 10, width: 150 }}>Deck</th>
-              <th className="text-center font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 60 }}>W-L-D</th>
+              <th className="text-center font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 62 }}>W-L-D</th>
               <th className="text-right font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 34 }}>Pts</th>
               <th className="text-right font-bold uppercase tracking-wider py-2 pl-1 pr-3 sm:pl-2" style={{ fontSize: 10, width: 46 }} title="Opponents' average match-win %">OMW</th>
             </tr>
@@ -3620,69 +3619,42 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                       {s.dropped && (
                         <span className="text-[9px] font-bold uppercase tracking-wide shrink-0" style={{ color: 'var(--text-muted)' }}>dropped</span>
                       )}
-                      {/* Deck lives in its own column on desktop; on mobile we fold
-                          the leader thumb (and deck-list toggle) in here so the
-                          table fits the viewport with no horizontal scroll. */}
+                      {/* Leader + deck-list toggle folded into the player cell (one
+                          column at every width) so the table has no hidden column
+                          to reserve phantom space and the row layout never shifts
+                          when the math breakdown expands. */}
                       {player?.leaderCardId && (
-                        <span className="ml-auto flex items-center gap-1 shrink-0 sm:hidden">
+                        <span className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
                           <LeaderThumb
                             image={player.leaderImage}
                             name={player.leaderName}
                             cardId={player.leaderCardId}
                           />
-                          {canExpand && (
+                          {canExpand ? (
                             <button
                               type="button"
                               onClick={() => toggle(s.playerId)}
                               aria-expanded={isOpen}
                               title="View deck list"
-                              className="inline-flex items-center transition-opacity hover:opacity-80"
-                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                              className="inline-flex items-center gap-1 transition-opacity hover:opacity-80"
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-secondary)' }}
                             >
+                              <span className="hidden truncate lg:inline" style={{ maxWidth: 120 }}>
+                                {player.leaderName ?? player.leaderCardId}
+                              </span>
                               <ChevronDown
                                 size={14}
                                 style={{ flexShrink: 0, color: 'var(--tcw-accent)', transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform 160ms ease' }}
                               />
                             </button>
+                          ) : (
+                            <span className="hidden truncate lg:inline" style={{ color: 'var(--text-secondary)', maxWidth: 120 }} title={player.leaderName ?? player.leaderCardId}>
+                              {player.leaderName ?? player.leaderCardId}
+                            </span>
                           )}
                         </span>
                       )}
                     </div>
-                  </td>
-                  <td className="py-2 px-2 min-w-0 hidden sm:table-cell">
-                    {player?.leaderCardId ? (
-                      <div className="flex items-center gap-1.5">
-                        <LeaderThumb
-                          image={player.leaderImage}
-                          name={player.leaderName}
-                          cardId={player.leaderCardId}
-                        />
-                        {canExpand ? (
-                          <button
-                            type="button"
-                            onClick={() => toggle(s.playerId)}
-                            aria-expanded={isOpen}
-                            title="View deck list"
-                            className="inline-flex min-w-0 items-center gap-1 transition-opacity hover:opacity-80"
-                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-secondary)' }}
-                          >
-                            <span className="hidden truncate sm:inline" style={{ maxWidth: 130 }}>
-                              {player.leaderName ?? player.leaderCardId}
-                            </span>
-                            <ChevronDown
-                              size={14}
-                              style={{ flexShrink: 0, color: 'var(--tcw-accent)', transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform 160ms ease' }}
-                            />
-                          </button>
-                        ) : (
-                          <span className="hidden truncate sm:inline" style={{ color: 'var(--text-secondary)', maxWidth: 130 }} title={player.leaderName ?? player.leaderCardId}>
-                            {player.leaderName ?? player.leaderCardId}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span style={{ color: 'var(--text-muted)' }}>-</span>
-                    )}
                   </td>
                   <td className="py-2 px-1 sm:px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
                     {s.wins}-{s.losses}-{s.draws}
@@ -3696,14 +3668,14 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                 </tr>
                 {canExpand && isOpen && (
                   <tr style={{ background: 'var(--bg)' }}>
-                    <td colSpan={6} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <td colSpan={5} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                       <DeckListBlock deckList={deck} />
                     </td>
                   </tr>
                 )}
                 {breakdown && mathOpen && (
                   <tr style={{ background: 'var(--bg)' }}>
-                    <td colSpan={6} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <td colSpan={5} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                       <StandingMathBreakdown
                         row={s}
                         displayRank={displayRank}
