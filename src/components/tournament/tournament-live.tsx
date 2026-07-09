@@ -3477,7 +3477,6 @@ function StandingMathBreakdown({
           <p className="mt-2" style={{ color: 'var(--text-secondary)' }}>
             <strong style={{ color: 'var(--text-primary)' }}>OMW</strong> = average of those win rates ={' '}
             <strong style={{ color: 'var(--text-primary)' }}>{fmtPct(breakdown.omw)}</strong>
-            <span style={{ color: 'var(--text-muted)' }}> (each floored at 33.3% so facing a later-dropout isn&rsquo;t punishing)</span>
           </p>
         )}
       </div>
