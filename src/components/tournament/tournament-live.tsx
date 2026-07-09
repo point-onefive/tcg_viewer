@@ -3529,8 +3529,8 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
           </span>
         )}
         {breakdown && (
-          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-            · tap a <span style={{ color: 'var(--tcw-accent)', fontWeight: 700 }}>#</span> for the tiebreaker math
+          <span className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+            · tap a <span style={{ color: 'var(--tcw-accent)', fontWeight: 700 }}>#</span> for the standings math
           </span>
         )}
       </div>
