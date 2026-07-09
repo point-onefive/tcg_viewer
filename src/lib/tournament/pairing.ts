@@ -42,82 +42,175 @@ function nextPow2(n: number): number {
  * at 1/3 per opponent so a player isn't punished for facing someone who later
  * dropped (mirrors real TCG software).
  */
-export function computeStandings(players: Player[], matches: Match[]): StandingRow[] {
-  const byId = new Map(players.map((p) => [p.id, p]))
-  const wins = new Map<string, number>()
-  const losses = new Map<string, number>()
-  const draws = new Map<string, number>()
-  const opponents = new Map<string, string[]>()
-  const games = new Map<string, number>() // decided matches (excl. byes)
-  const gameWins = new Map<string, number>() // wins in decided matches only
-  const gameDraws = new Map<string, number>() // draws in decided matches only
+/** Match result from one player's perspective (byes are tracked separately). */
+export type HeadToHeadResult = 'win' | 'loss' | 'draw'
 
+/**
+ * Per-match tallies shared by the standings ranker and the transparency
+ * breakdown, so both read from the exact same numbers.
+ */
+interface MatchTally {
+  wins: Map<string, number>
+  losses: Map<string, number>
+  draws: Map<string, number>
+  byes: Map<string, number>
+  opponents: Map<string, string[]>
+  results: Map<string, { opponentId: string; result: HeadToHeadResult }[]>
+  games: Map<string, number> // decided matches (excl. byes)
+  gameWins: Map<string, number> // wins in decided matches only
+  gameDraws: Map<string, number> // draws in decided matches only
+}
+
+function tallyMatches(players: Player[], matches: Match[]): MatchTally {
+  const t: MatchTally = {
+    wins: new Map(),
+    losses: new Map(),
+    draws: new Map(),
+    byes: new Map(),
+    opponents: new Map(),
+    results: new Map(),
+    games: new Map(),
+    gameWins: new Map(),
+    gameDraws: new Map(),
+  }
   for (const p of players) {
-    wins.set(p.id, 0)
-    losses.set(p.id, 0)
-    draws.set(p.id, 0)
-    opponents.set(p.id, [])
-    games.set(p.id, 0)
-    gameWins.set(p.id, 0)
-    gameDraws.set(p.id, 0)
+    t.wins.set(p.id, 0)
+    t.losses.set(p.id, 0)
+    t.draws.set(p.id, 0)
+    t.byes.set(p.id, 0)
+    t.opponents.set(p.id, [])
+    t.results.set(p.id, [])
+    t.games.set(p.id, 0)
+    t.gameWins.set(p.id, 0)
+    t.gameDraws.set(p.id, 0)
   }
 
   const inc = (m: Map<string, number>, k: string, by = 1) => m.set(k, (m.get(k) ?? 0) + by)
+  const rec = (id: string, opponentId: string, result: HeadToHeadResult) =>
+    t.results.get(id)?.push({ opponentId, result })
 
   for (const match of matches) {
     // Only resolved matches count toward the record.
     if (match.status === 'bye') {
       // Bye = a free win, but doesn't add an opponent for tiebreaks.
-      inc(wins, match.player1Id)
+      inc(t.wins, match.player1Id)
+      inc(t.byes, match.player1Id)
       continue
     }
     if (match.status !== 'confirmed') continue
     const p1 = match.player1Id
     const p2 = match.player2Id
     if (!p2) {
-      inc(wins, p1)
+      inc(t.wins, p1)
+      inc(t.byes, p1)
       continue
     }
-    opponents.get(p1)?.push(p2)
-    opponents.get(p2)?.push(p1)
-    inc(games, p1)
-    inc(games, p2)
+    t.opponents.get(p1)?.push(p2)
+    t.opponents.get(p2)?.push(p1)
+    inc(t.games, p1)
+    inc(t.games, p2)
     if (match.winnerId === p1) {
-      inc(wins, p1)
-      inc(gameWins, p1)
-      inc(losses, p2)
+      inc(t.wins, p1)
+      inc(t.gameWins, p1)
+      inc(t.losses, p2)
+      rec(p1, p2, 'win')
+      rec(p2, p1, 'loss')
     } else if (match.winnerId === p2) {
-      inc(wins, p2)
-      inc(gameWins, p2)
-      inc(losses, p1)
+      inc(t.wins, p2)
+      inc(t.gameWins, p2)
+      inc(t.losses, p1)
+      rec(p2, p1, 'win')
+      rec(p1, p2, 'loss')
     } else {
-      inc(draws, p1)
-      inc(draws, p2)
-      inc(gameDraws, p1)
-      inc(gameDraws, p2)
+      inc(t.draws, p1)
+      inc(t.draws, p2)
+      inc(t.gameDraws, p1)
+      inc(t.gameDraws, p2)
+      rec(p1, p2, 'draw')
+      rec(p2, p1, 'draw')
     }
   }
+  return t
+}
 
-  const matchWinRate = (id: string): number => {
-    const w = gameWins.get(id) ?? 0
-    const d = gameDraws.get(id) ?? 0
-    const total = games.get(id) ?? 0 // byes excluded from the rate
+/** Match-win-rate for one player, floored at 1/3 (as fed into opponents' OMW). */
+function makeMatchWinRate(t: MatchTally) {
+  return (id: string): number => {
+    const w = t.gameWins.get(id) ?? 0
+    const d = t.gameDraws.get(id) ?? 0
+    const total = t.games.get(id) ?? 0 // byes excluded from the rate
     if (total <= 0) return 1 / 3
     const rate = (w * POINTS_WIN + d * POINTS_DRAW) / (total * POINTS_WIN)
     return Math.max(rate, 1 / 3)
   }
+}
 
-  // OMW (opponent match-win %): average of each opponent's match-win-rate.
+/** OMW map: each player's average opponent match-win-rate. */
+function computeOmw(players: Player[], t: MatchTally, matchWinRate: (id: string) => number) {
   const omw = new Map<string, number>()
   for (const p of players) {
-    const opps = opponents.get(p.id) ?? []
+    const opps = t.opponents.get(p.id) ?? []
     omw.set(p.id, opps.length ? opps.reduce((s, o) => s + matchWinRate(o), 0) / opps.length : 0)
   }
+  return omw
+}
+
+/**
+ * Per-player transparency breakdown: the exact opponents faced, each opponent's
+ * match-win-rate as counted toward OMW, and the resulting OMW/OOMW. Uses the
+ * same tally as computeStandings so the figures always match the ranking.
+ */
+export interface OpponentBreakdown {
+  opponentId: string
+  result: HeadToHeadResult
+  matchWinRate: number
+}
+export interface StandingBreakdown {
+  opponents: OpponentBreakdown[]
+  byes: number
+  omw: number
+  oomw: number
+}
+export function computeStandingsBreakdown(players: Player[], matches: Match[]): Map<string, StandingBreakdown> {
+  const t = tallyMatches(players, matches)
+  const matchWinRate = makeMatchWinRate(t)
+  const omw = computeOmw(players, t, matchWinRate)
+  const oomwOf = (id: string): number => {
+    const opps = t.opponents.get(id) ?? []
+    return opps.length ? opps.reduce((s, o) => s + Math.max(omw.get(o) ?? 1 / 3, 1 / 3), 0) / opps.length : 0
+  }
+  const out = new Map<string, StandingBreakdown>()
+  for (const p of players) {
+    const results = t.results.get(p.id) ?? []
+    out.set(p.id, {
+      opponents: results.map((r) => ({
+        opponentId: r.opponentId,
+        result: r.result,
+        matchWinRate: matchWinRate(r.opponentId),
+      })),
+      byes: t.byes.get(p.id) ?? 0,
+      omw: omw.get(p.id) ?? 0,
+      oomw: oomwOf(p.id),
+    })
+  }
+  return out
+}
+
+export function computeStandings(players: Player[], matches: Match[]): StandingRow[] {
+  const byId = new Map(players.map((p) => [p.id, p]))
+  const t = tallyMatches(players, matches)
+  const wins = t.wins
+  const losses = t.losses
+  const draws = t.draws
+  const matchWinRate = makeMatchWinRate(t)
+
+  // OMW (opponent match-win %): average of each opponent's match-win-rate.
+  const omw = computeOmw(players, t, matchWinRate)
   // OOMW (opponents' opponents' win %): the deeper strength-of-schedule tiebreak
   // used by standard TCG software. Floor each opponent's OMW at 1/3 (mirrors the
   // match-win-rate floor) so facing someone who later collapsed isn't punishing.
   const oomw = (id: string): number => {
-    const opps = opponents.get(id) ?? []
+    const opps = t.opponents.get(id) ?? []
     return opps.length ? opps.reduce((s, o) => s + Math.max(omw.get(o) ?? 1 / 3, 1 / 3), 0) / opps.length : 0
   }
 

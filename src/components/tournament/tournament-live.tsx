@@ -43,7 +43,7 @@ import { countryFlag } from '@/lib/wallet/country'
 import { fetchProfileByHandle, type WalletStanding } from '@/lib/wallet/api-client'
 import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
 import { formatXLabel, normalizeXHandle, xProfileUrl } from '@/lib/tournament/x-handle'
-import { computeStandings, recommendedSwissRounds } from '@/lib/tournament/pairing'
+import { computeStandings, computeStandingsBreakdown, recommendedSwissRounds, type StandingBreakdown } from '@/lib/tournament/pairing'
 import type { Match, Player, Round, StandingRow, Tournament, TournamentPrize, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
 
 const POLL_MS = 12_000
@@ -3247,7 +3247,7 @@ function SwissBoard({
           ))}
         </div>
 
-        {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} />}
+        {hasResults && <StandingsTable standings={standings} nameById={nameById} complete={complete} matches={matches} />}
       </BonkSceneBody>
     </div>
   )
@@ -3326,7 +3326,158 @@ function StandingsScroller({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function StandingsTable({ standings, nameById, complete }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean }) {
+/** W / L / D pill used in the tiebreaker breakdown's opponent list. */
+function ResultPill({ result }: { result: 'win' | 'loss' | 'draw' }) {
+  const map = {
+    win: { label: 'W', tone: '#22c55e' },
+    loss: { label: 'L', tone: '#ef4444' },
+    draw: { label: 'D', tone: 'var(--text-muted)' },
+  } as const
+  const { label, tone } = map[result]
+  return (
+    <span
+      className="inline-flex items-center justify-center text-[10px] font-bold"
+      style={{ width: 18, height: 18, borderRadius: 4, color: tone, background: `color-mix(in srgb, ${tone} 16%, transparent)` }}
+    >
+      {label}
+    </span>
+  )
+}
+
+const fmtPct = (x: number) => `${(x * 100).toFixed(1)}%`
+
+/**
+ * The transparency breakdown shown when a rank number is tapped. Spells out the
+ * exact opponents faced with each opponent's win rate, the OMW/OOMW figures, and
+ * a plain-language note on why this player sits where they do relative to the
+ * player just above - so a photo-finish placement (e.g. losing 2nd on OMW) is
+ * backed by the cold hard numbers instead of feeling arbitrary.
+ */
+function StandingMathBreakdown({
+  row,
+  displayRank,
+  breakdown,
+  standings,
+  nameById,
+}: {
+  row: StandingRow
+  displayRank: number
+  breakdown: StandingBreakdown | null
+  standings: StandingRow[]
+  nameById: Map<string, Player>
+}) {
+  if (!breakdown) return null
+  const samePct = (a: number, b: number) => Math.round(a * 1000) === Math.round(b * 1000)
+  const approxEq = (a: number, b: number) => Math.abs(a - b) < 1e-9
+  const nameOf = (id: string) => {
+    const p = nameById.get(id)
+    return p?.username || p?.xHandle || p?.displayName || 'Unknown'
+  }
+  const idx = standings.findIndex((r) => r.playerId === row.playerId)
+  const above = idx > 0 ? standings[idx - 1] : null
+
+  // One-line "why here" note, comparing to the player directly above.
+  let context: React.ReactNode = null
+  if (!above) {
+    context = <>Top of the standings - nobody finished ahead.</>
+  } else if (above.points !== row.points) {
+    context = (
+      <>
+        Behind <strong>{nameOf(above.playerId)}</strong> on match points ({above.points} vs {row.points}).
+      </>
+    )
+  } else if (!approxEq(above.oppWinPct, row.oppWinPct)) {
+    context = samePct(above.oppWinPct, row.oppWinPct) ? (
+      <>
+        Level on points with <strong>{nameOf(above.playerId)}</strong> ({row.points}); they edged ahead on OMW by a hair (too close to show at 0.1%).
+      </>
+    ) : (
+      <>
+        Level on points with <strong>{nameOf(above.playerId)}</strong> ({row.points}); ranked just behind on{' '}
+        <strong>OMW</strong> ({fmtPct(above.oppWinPct)} vs {fmtPct(row.oppWinPct)}).
+      </>
+    )
+  } else {
+    context = (
+      <>
+        Level on points and OMW with <strong>{nameOf(above.playerId)}</strong>; separated by the deeper tiebreakers -
+        head-to-head, then OOMW ({fmtPct(above.oppOppWinPct)} vs {fmtPct(row.oppOppWinPct)}), then total wins ({above.wins} vs {row.wins}).
+      </>
+    )
+  }
+
+  const metric = (label: string, value: string, hint?: string) => (
+    <div className="flex items-baseline justify-between gap-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <span style={{ color: 'var(--text-muted)' }}>
+        {label}
+        {hint && <span className="ml-1" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>{hint}</span>}
+      </span>
+      <span className="font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{value}</span>
+    </div>
+  )
+
+  return (
+    <div className="space-y-3 text-xs leading-relaxed">
+      <p style={{ color: 'var(--text-secondary)' }}>
+        <span className="font-bold" style={{ color: 'var(--text-primary)' }}>#{displayRank} {nameOf(row.playerId)}</span>
+        {row.tied && (
+          <span className="ml-1" style={{ color: 'var(--text-muted)' }}>· shares this rank (tied on every tiebreaker)</span>
+        )}
+      </p>
+      <p style={{ color: 'var(--text-secondary)' }}>{context}</p>
+
+      <div className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
+        {metric('Match points', `${row.points}`, '3 win / 1 draw')}
+        {metric('OMW%', fmtPct(row.oppWinPct), 'opponents\u2019 win rate')}
+        {metric('OOMW%', fmtPct(row.oppOppWinPct), 'opponents\u2019 opponents')}
+        {metric('Match wins', `${row.wins}`)}
+      </div>
+
+      <div>
+        <p className="mb-1.5 font-bold uppercase tracking-wider" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+          Opponents faced ({breakdown.opponents.length})
+        </p>
+        {breakdown.opponents.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>No decided matches yet.</p>
+        ) : (
+          <ul className="space-y-1">
+            {breakdown.opponents.map((o, i) => (
+              <li key={`${o.opponentId}-${i}`} className="flex items-center gap-2">
+                <ResultPill result={o.result} />
+                <XProfileLink
+                  handle={nameById.get(o.opponentId)?.xHandle ?? nameOf(o.opponentId)}
+                  username={nameById.get(o.opponentId)?.username}
+                  avatarUrl={nameById.get(o.opponentId)?.avatarUrl}
+                  walletAddress={nameById.get(o.opponentId)?.walletAddress}
+                  country={nameById.get(o.opponentId)?.country}
+                  showAvatar={false}
+                  className="truncate font-semibold"
+                />
+                <span className="ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                  {fmtPct(o.matchWinRate)} win rate
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {breakdown.byes > 0 && (
+          <p className="mt-1.5" style={{ color: 'var(--text-muted)' }}>
+            + {breakdown.byes} bye{breakdown.byes === 1 ? '' : 's'} (free win, not counted toward OMW)
+          </p>
+        )}
+        {breakdown.opponents.length > 0 && (
+          <p className="mt-2" style={{ color: 'var(--text-secondary)' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>OMW</strong> = average of those win rates ={' '}
+            <strong style={{ color: 'var(--text-primary)' }}>{fmtPct(breakdown.omw)}</strong>
+            <span style={{ color: 'var(--text-muted)' }}> (each floored at 33.3% so facing a later-dropout isn&rsquo;t punishing)</span>
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export function StandingsTable({ standings, nameById, complete, matches }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean; matches?: Match[] }) {
   // Inline deck-list expansion: once the event is complete and lists are public,
   // each row with a published deck can expand in place (no separate archive).
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -3337,6 +3488,27 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
       else next.add(id)
       return next
     })
+  // Inline tiebreaker math: tapping a rank number expands the exact opponents,
+  // their win rates and the OMW/OOMW figures that decided the placement. Only
+  // available when match data is supplied (Swiss), where OMW actually ranks.
+  const [openMath, setOpenMath] = useState<Set<string>>(new Set())
+  const toggleMath = (id: string) =>
+    setOpenMath((cur) => {
+      const next = new Set(cur)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  // Compute the breakdown over exactly the ranked player set (same input the
+  // standings were computed from) so its OMW figures match the table 1:1.
+  const rankedPlayers = useMemo(
+    () => standings.map((s) => nameById.get(s.playerId)).filter((p): p is Player => !!p),
+    [standings, nameById],
+  )
+  const breakdown = useMemo(
+    () => (matches ? computeStandingsBreakdown(rankedPlayers, matches) : null),
+    [rankedPlayers, matches],
+  )
   const rankById = useMemo(() => displayRanks(standings), [standings])
 
   if (standings.length === 0) return null
@@ -3354,6 +3526,11 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
         ) : (
           <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
             · sorted by record · same # = tied
+          </span>
+        )}
+        {breakdown && (
+          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            · tap a <span style={{ color: 'var(--tcw-accent)', fontWeight: 700 }}>#</span> for the tiebreaker math
           </span>
         )}
       </div>
@@ -3378,17 +3555,42 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
               const deck = player?.deckList?.trim() ?? ''
               const canExpand = complete && deck !== ''
               const isOpen = expanded.has(s.playerId)
+              const mathOpen = openMath.has(s.playerId)
               const rowBg = top ? `color-mix(in srgb, ${medal} 10%, var(--bg-surface))` : 'var(--bg-surface)'
+              const rankBadge = (
+                <span
+                  className="inline-flex items-center justify-center text-[11px] font-bold tabular-nums"
+                  style={{ minWidth: 22, height: 22, borderRadius: 5, background: medal ?? 'var(--bg)', color: medal ? '#1a1a1a' : 'var(--text-muted)', border: medal ? 'none' : '1px solid var(--border-subtle)' }}
+                >
+                  {displayRank}
+                </span>
+              )
               return (
                 <Fragment key={s.playerId}>
                 <tr style={{ borderTop: '1px solid var(--border-subtle)', background: rowBg }}>
                   <td className="py-2 pl-3 pr-2">
-                    <span
-                      className="inline-flex items-center justify-center text-[11px] font-bold tabular-nums"
-                      style={{ minWidth: 22, height: 22, borderRadius: 5, background: medal ?? 'var(--bg)', color: medal ? '#1a1a1a' : 'var(--text-muted)', border: medal ? 'none' : '1px solid var(--border-subtle)' }}
-                    >
-                      {displayRank}
-                    </span>
+                    {breakdown ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleMath(s.playerId)}
+                        aria-expanded={mathOpen}
+                        title="How this rank was calculated"
+                        className="inline-flex items-center rounded-md transition-opacity hover:opacity-80"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          outline: mathOpen ? '2px solid var(--tcw-accent)' : 'none',
+                          outlineOffset: 2,
+                          borderRadius: 5,
+                        }}
+                      >
+                        {rankBadge}
+                      </button>
+                    ) : (
+                      rankBadge
+                    )}
                   </td>
                   <td className="py-2 px-2 min-w-0">
                     <span className="inline-flex items-center gap-1.5">
@@ -3455,6 +3657,27 @@ export function StandingsTable({ standings, nameById, complete }: { standings: S
                   <tr style={{ background: 'var(--bg)' }}>
                     <td colSpan={6} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                       <DeckListBlock deckList={deck} />
+                    </td>
+                  </tr>
+                )}
+                {breakdown && mathOpen && (
+                  <tr style={{ background: 'var(--bg)' }}>
+                    <td colSpan={6} style={{ borderTop: '1px solid var(--border-subtle)', padding: 0 }}>
+                      {/* Pin the content to the left of the scroll viewport and
+                          cap it to the visible width so this text panel never
+                          forces the horizontal scroll the wide table needs. */}
+                      <div
+                        className="px-3 py-3"
+                        style={{ position: 'sticky', left: 0, width: 'calc(100vw - 72px)', maxWidth: 620 }}
+                      >
+                        <StandingMathBreakdown
+                          row={s}
+                          displayRank={displayRank}
+                          breakdown={breakdown.get(s.playerId) ?? null}
+                          standings={standings}
+                          nameById={nameById}
+                        />
+                      </div>
                     </td>
                   </tr>
                 )}
