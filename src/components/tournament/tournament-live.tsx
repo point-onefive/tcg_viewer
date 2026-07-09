@@ -3406,6 +3406,14 @@ function StandingMathBreakdown({
     )
   }
 
+  // Describe what makes up the match points (3 per win, 1 per draw). Only
+  // mention draws when there are any so a clean 4-0 record reads "4 wins".
+  const pointsHint = (() => {
+    const parts = [`${row.wins} win${row.wins === 1 ? '' : 's'}`]
+    if (row.draws > 0) parts.push(`${row.draws} draw${row.draws === 1 ? '' : 's'}`)
+    return parts.join(', ')
+  })()
+
   const metric = (label: string, value: string, hint?: string) => (
     <div className="flex items-baseline justify-between gap-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
       <span style={{ color: 'var(--text-muted)' }}>
@@ -3427,7 +3435,7 @@ function StandingMathBreakdown({
       <p style={{ color: 'var(--text-secondary)' }}>{context}</p>
 
       <div className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
-        {metric('Match points', `${row.points}`, '3 win / 1 draw')}
+        {metric('Match points', `${row.points}`, pointsHint)}
         {metric('OMW%', fmtPct(row.oppWinPct), 'opponents\u2019 win rate')}
         {metric('OOMW%', fmtPct(row.oppOppWinPct), 'opponents\u2019 opponents')}
         {metric('Match wins', `${row.wins}`)}
