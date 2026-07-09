@@ -3459,7 +3459,9 @@ function StandingMathBreakdown({
           <p style={{ color: 'var(--text-muted)' }}>No decided matches yet.</p>
         ) : (
           <ul className="space-y-1">
-            {breakdown.opponents.map((o, i) => (
+            {[...breakdown.opponents]
+              .sort((a, b) => b.matchWinRate - a.matchWinRate)
+              .map((o, i) => (
               <li key={`${o.opponentId}-${i}`} className="flex items-center gap-2">
                 <ResultPill result={o.result} />
                 <XProfileLink
