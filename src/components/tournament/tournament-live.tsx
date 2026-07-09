@@ -3346,6 +3346,16 @@ function ResultPill({ result }: { result: 'win' | 'loss' | 'draw' }) {
 
 const fmtPct = (x: number) => `${(x * 100).toFixed(1)}%`
 
+// Red (weak opponent) -> green (strong) scale for a match-win rate, so the
+// strength of a schedule reads at a glance. Match-win rates are floored at 1/3,
+// so we anchor the low end there and keep the tones muted (not neon) so the
+// standings stay clean rather than tacky.
+const winRateColor = (rate: number) => {
+  const t = Math.max(0, Math.min(1, (rate - 1 / 3) / (1 - 1 / 3)))
+  const hue = Math.round(t * 128) // 0 = red, 128 = green
+  return `hsl(${hue}, 58%, 55%)`
+}
+
 /**
  * The transparency breakdown shown when a rank number is tapped. Spells out the
  * exact opponents faced with each opponent's win rate, the OMW/OOMW figures, and
@@ -3414,13 +3424,13 @@ function StandingMathBreakdown({
     return parts.join(', ')
   })()
 
-  const metric = (label: string, value: string, hint?: string) => (
+  const metric = (label: string, value: string, hint?: string, valueColor?: string) => (
     <div className="flex items-baseline justify-between gap-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
       <span style={{ color: 'var(--text-muted)' }}>
         {label}
         {hint && <span className="ml-1" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>{hint}</span>}
       </span>
-      <span className="font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{value}</span>
+      <span className="font-bold tabular-nums" style={{ color: valueColor ?? 'var(--text-primary)' }}>{value}</span>
     </div>
   )
 
@@ -3436,8 +3446,8 @@ function StandingMathBreakdown({
 
       <div className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
         {metric('Match points', `${row.points}`, pointsHint)}
-        {metric('OMW%', fmtPct(row.oppWinPct), 'opponents\u2019 win rate')}
-        {metric('OOMW%', fmtPct(row.oppOppWinPct), 'opponents\u2019 opponents')}
+        {metric('OMW%', fmtPct(row.oppWinPct), 'opponents\u2019 win rate', winRateColor(row.oppWinPct))}
+        {metric('OOMW%', fmtPct(row.oppOppWinPct), 'opponents\u2019 opponents', winRateColor(row.oppOppWinPct))}
         {metric('Match wins', `${row.wins}`)}
       </div>
 
@@ -3461,8 +3471,11 @@ function StandingMathBreakdown({
                   showAvatar={false}
                   className="truncate font-semibold"
                 />
-                <span className="ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                  {fmtPct(o.matchWinRate)} win rate
+                <span className="ml-auto tabular-nums whitespace-nowrap">
+                  <span className="font-semibold" style={{ color: winRateColor(o.matchWinRate) }}>
+                    {fmtPct(o.matchWinRate)}
+                  </span>
+                  <span style={{ color: 'var(--text-muted)' }}> win rate</span>
                 </span>
               </li>
             ))}
@@ -3476,7 +3489,7 @@ function StandingMathBreakdown({
         {breakdown.opponents.length > 0 && (
           <p className="mt-2" style={{ color: 'var(--text-secondary)' }}>
             <strong style={{ color: 'var(--text-primary)' }}>OMW</strong> = average of those win rates ={' '}
-            <strong style={{ color: 'var(--text-primary)' }}>{fmtPct(breakdown.omw)}</strong>
+            <strong style={{ color: winRateColor(breakdown.omw) }}>{fmtPct(breakdown.omw)}</strong>
           </p>
         )}
       </div>
