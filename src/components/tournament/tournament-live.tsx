@@ -3497,7 +3497,27 @@ function StandingMathBreakdown({
   )
 }
 
+/**
+ * True once the viewport is >= the `sm` breakpoint. Starts false so the SSR/first
+ * client render match (mobile-first), then updates on mount and on resize. Used
+ * to render the Deck as its own column on desktop vs. folding it into the player
+ * cell on mobile - avoiding a display:none column, which a fixed table layout
+ * would otherwise reserve as phantom width.
+ */
+function useIsDesktop(query = '(min-width: 640px)'): boolean {
+  const [isDesktop, setIsDesktop] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const update = () => setIsDesktop(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [query])
+  return isDesktop
+}
+
 export function StandingsTable({ standings, nameById, complete, matches }: { standings: StandingRow[]; nameById: Map<string, Player>; complete: boolean; matches?: Match[] }) {
+  const isDesktop = useIsDesktop()
   // Inline deck-list expansion: once the event is complete and lists are public,
   // each row with a published deck can expand in place (no separate archive).
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -3580,6 +3600,9 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
             <tr style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
               <th className="text-left font-bold uppercase tracking-wider py-2 pl-3 pr-1 sm:pr-2" style={{ fontSize: 10, width: 34 }}>#</th>
               <th className="text-left font-bold uppercase tracking-wider py-2 px-1.5 sm:px-2" style={{ fontSize: 10 }}>Player</th>
+              {isDesktop && (
+                <th className="text-left font-bold uppercase tracking-wider py-2 px-2" style={{ fontSize: 10, width: 170 }}>Deck</th>
+              )}
               <th className="text-center font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 62 }}>W-L-D</th>
               <th className="text-right font-bold uppercase tracking-wider py-2 px-1 sm:px-2" style={{ fontSize: 10, width: 34 }}>Pts</th>
               <th className="text-right font-bold uppercase tracking-wider py-2 pl-1 pr-3 sm:pl-2" style={{ fontSize: 10, width: 46 }} title="Opponents' average match-win %">OMW</th>
@@ -3645,12 +3668,40 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                       {s.dropped && (
                         <span className="text-[9px] font-bold uppercase tracking-wide shrink-0" style={{ color: 'var(--text-muted)' }}>dropped</span>
                       )}
-                      {/* Leader + deck-list toggle folded into the player cell (one
-                          column at every width) so the table has no hidden column
-                          to reserve phantom space and the row layout never shifts
-                          when the math breakdown expands. */}
-                      {player?.leaderCardId && (
+                      {/* Mobile: fold a compact leader thumb + deck toggle into the
+                          player cell (pinned right) so there is no separate Deck
+                          column to reserve width. On desktop the Deck lives in its
+                          own aligned column (rendered below). */}
+                      {!isDesktop && player?.leaderCardId && (
                         <span className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
+                          <LeaderThumb
+                            image={player.leaderImage}
+                            name={player.leaderName}
+                            cardId={player.leaderCardId}
+                          />
+                          {canExpand && (
+                            <button
+                              type="button"
+                              onClick={() => toggle(s.playerId)}
+                              aria-expanded={isOpen}
+                              title="View deck list"
+                              className="inline-flex items-center transition-opacity hover:opacity-80"
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                            >
+                              <ChevronDown
+                                size={14}
+                                style={{ flexShrink: 0, color: 'var(--tcw-accent)', transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform 160ms ease' }}
+                              />
+                            </button>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  {isDesktop && (
+                    <td className="py-2 px-2 min-w-0">
+                      {player?.leaderCardId ? (
+                        <div className="flex items-center gap-1.5 min-w-0">
                           <LeaderThumb
                             image={player.leaderImage}
                             name={player.leaderName}
@@ -3662,10 +3713,10 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                               onClick={() => toggle(s.playerId)}
                               aria-expanded={isOpen}
                               title="View deck list"
-                              className="inline-flex items-center gap-1 transition-opacity hover:opacity-80"
+                              className="inline-flex min-w-0 items-center gap-1 transition-opacity hover:opacity-80"
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-secondary)' }}
                             >
-                              <span className="hidden truncate lg:inline" style={{ maxWidth: 120 }}>
+                              <span className="truncate" style={{ maxWidth: 120 }}>
                                 {player.leaderName ?? player.leaderCardId}
                               </span>
                               <ChevronDown
@@ -3674,14 +3725,16 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                               />
                             </button>
                           ) : (
-                            <span className="hidden truncate lg:inline" style={{ color: 'var(--text-secondary)', maxWidth: 120 }} title={player.leaderName ?? player.leaderCardId}>
+                            <span className="truncate" style={{ color: 'var(--text-secondary)', maxWidth: 130 }} title={player.leaderName ?? player.leaderCardId}>
                               {player.leaderName ?? player.leaderCardId}
                             </span>
                           )}
-                        </span>
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>-</span>
                       )}
-                    </div>
-                  </td>
+                    </td>
+                  )}
                   <td className="py-2 px-1 sm:px-2 text-center tabular-nums" style={{ color: 'var(--text-secondary)' }}>
                     {s.wins}-{s.losses}-{s.draws}
                   </td>
@@ -3694,14 +3747,14 @@ export function StandingsTable({ standings, nameById, complete, matches }: { sta
                 </tr>
                 {canExpand && isOpen && (
                   <tr style={{ background: 'var(--bg)' }}>
-                    <td colSpan={5} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <td colSpan={isDesktop ? 6 : 5} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                       <DeckListBlock deckList={deck} />
                     </td>
                   </tr>
                 )}
                 {breakdown && mathOpen && (
                   <tr style={{ background: 'var(--bg)' }}>
-                    <td colSpan={5} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <td colSpan={isDesktop ? 6 : 5} className="px-3 py-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                       <StandingMathBreakdown
                         row={s}
                         displayRank={displayRank}
