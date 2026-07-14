@@ -1,0 +1,44 @@
+[
+  {
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardCount": 129
+  },
+  {
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardCount": 17
+  },
+  {
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardCount": 17
+  },
+  {
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardCount": 17
+  },
+  {
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardCount": 17
+  },
+  {
+    "setCode": "AZP",
+    "setName": "Promo",
+    "releaseOrder": 301,
+    "cardCount": 3
+  },
+  {
+    "setCode": "IKZ",
+    "setName": "IKZ Tokens",
+    "releaseOrder": 302,
+    "cardCount": 2
+  }
+]

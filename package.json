@@ -45,6 +45,12 @@
     "lorcana:images": "node scripts/download-lorcana-images.mjs",
     "lorcana:all": "npm run lorcana:fetch && npm run lorcana:images && npm run lorcana:generate",
     "lorcana:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-lorcana --prefix=cards/lorcana --ext=webp",
+    "azuki:fetch": "node scripts/fetch-azuki-data.mjs",
+    "azuki:generate": "node scripts/generate-azuki-data.mjs",
+    "azuki:images": "node scripts/download-azuki-images.mjs",
+    "azuki:all": "npm run azuki:fetch && npm run azuki:images && npm run azuki:generate",
+    "azuki:r2": "node scripts/upload-to-r2.mjs --dir=public/cards-azuki --prefix=cards/azuki --ext=jpg",
+    "azuki:scan": "node scripts/scan-for-new-azuki.mjs",
     "tournament:simulate": "node scripts/tournament/simulate-signups.mjs",
     "tournament:stress": "node scripts/tournament/stress-flow.mjs"
   },

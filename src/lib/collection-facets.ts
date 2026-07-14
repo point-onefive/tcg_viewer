@@ -87,6 +87,9 @@ const COLOR_SWATCHES: Record<string, string> = {
   Ruby:      '#dc2626',
   Sapphire:  '#2563eb',
   Steel:     '#64748b',
+  // Azuki elements
+  Earth:     '#92400e',
+  Neutral:   '#a8a29e',
 }
 
 const colorOpt = (name: string): FacetOption => ({
@@ -269,6 +272,38 @@ const LORCANA: CollectionFacets = {
   hasVariants: false,
 }
 
+const AZUKI: CollectionFacets = {
+  cardTypes: [
+    { value: 'Leader', label: 'Leader' },
+    { value: 'Entity', label: 'Entity' },
+    { value: 'Weapon', label: 'Weapon' },
+    { value: 'Spell',  label: 'Spell' },
+    { value: 'Gate',   label: 'Gate' },
+    { value: 'IKZ',    label: 'IKZ' },
+  ],
+  // Full ladder - Azuki ships a compact rarity set plus star-foil tiers
+  // (★ / ★★). Ordered high prestige to low.
+  rarities: [
+    { value: 'L ★★',  label: 'L ★★ · Leader (double foil)' },
+    { value: 'L ★',   label: 'L ★ · Leader (foil)' },
+    { value: 'L',     label: 'L · Leader' },
+    { value: 'SR ★★', label: 'SR ★★ · Super Rare (double foil)' },
+    { value: 'SR ★',  label: 'SR ★ · Super Rare (foil)' },
+    { value: 'SR',    label: 'SR · Super Rare' },
+    { value: 'R',     label: 'R · Rare' },
+    { value: 'UC',    label: 'UC · Uncommon' },
+    { value: 'C',     label: 'C · Common' },
+    { value: 'G ★',   label: 'G ★ · Gate (foil)' },
+    { value: 'G',     label: 'G · Gate' },
+    { value: 'IKZ ★', label: 'IKZ ★ · Token (foil)' },
+    { value: 'IKZ',   label: 'IKZ · Token' },
+  ],
+  colors: ['Fire', 'Water', 'Earth', 'Lightning', 'Neutral'].map(colorOpt),
+  // Azuki bundles parallel/foil prints as nested variants on a base card
+  // (same as Gundam / One Piece), so the Alt art + Flatten toggles apply.
+  hasVariants: true,
+}
+
 export const COLLECTION_FACETS: Record<Collection, CollectionFacets> = {
   'one-piece': ONE_PIECE,
   pokemon:     POKEMON,
@@ -276,6 +311,7 @@ export const COLLECTION_FACETS: Record<Collection, CollectionFacets> = {
   dbs:         DBS,
   gundam:      GUNDAM,
   lorcana:     LORCANA,
+  azuki:       AZUKI,
 }
 
 /**

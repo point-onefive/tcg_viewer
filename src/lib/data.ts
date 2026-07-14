@@ -35,6 +35,7 @@ const BUNDLES: Record<Collection, CollectionBundle> = {
   'digimon':   loadBundle('digimon'),
   'pokemon':   loadBundle('pokemon'),
   'lorcana':   loadBundle('lorcana'),
+  'azuki':     loadBundle('azuki'),
 }
 
 export function getCards(collection: Collection): Card[] {

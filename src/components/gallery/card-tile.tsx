@@ -45,6 +45,9 @@ const COLOR_MAP: Record<string, string> = {
   Ruby:      '#dc2626',
   Sapphire:  '#2563eb',
   Steel:     '#64748b',
+  // Azuki elements
+  Earth:     '#92400e',
+  Neutral:   '#a8a29e',
 }
 
 interface CardTileProps {

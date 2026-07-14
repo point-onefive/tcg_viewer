@@ -1213,11 +1213,13 @@ export function Header({ sets, artists, characters }: HeaderProps) {
   const isGundam = activeCollection === 'gundam'
   const isPokemon = activeCollection === 'pokemon'
   const isLorcana = activeCollection === 'lorcana'
+  const isAzuki = activeCollection === 'azuki'
+  // Azuki has no pricing pipeline yet, so it stays out of hasPricing.
   const hasPricing = isOnePiece || isGundam || isPokemon || isLorcana
   // Collections that have a meaningful `power` field (HP for Pokémon,
-  // strength for Lorcana, power stat for OP/Gundam). Used to show/hide
-  // the "Power ↓" sort option.
-  const hasPower = isOnePiece || isGundam || isPokemon || isLorcana
+  // strength for Lorcana, power stat for OP/Gundam, attack for Azuki).
+  // Used to show/hide the "Power ↓" sort option.
+  const hasPower = isOnePiece || isGundam || isPokemon || isLorcana || isAzuki
   // Collections that have a meaningful `cost` field. Pokémon cost is always
   // null in the bundle, so cost sort is pointless there.
   const hasCost = !isPokemon

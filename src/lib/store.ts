@@ -16,7 +16,7 @@ type Theme = 'light' | 'dark'
  * Supported TCG collections. New games plug in here + get their own
  * generated JSON files (src/lib/cards-{collection}.json) and R2 prefix.
  */
-export type Collection = 'one-piece' | 'gundam' | 'dbs' | 'digimon' | 'pokemon' | 'lorcana'
+export type Collection = 'one-piece' | 'gundam' | 'dbs' | 'digimon' | 'pokemon' | 'lorcana' | 'azuki'
 
 /**
  * A single pinned art. `collection` is set automatically by the store
@@ -865,4 +865,5 @@ export const COLLECTIONS: { id: Collection; name: string; available: boolean }[]
   { id: 'digimon',   name: 'Digimon',          available: true },
   { id: 'pokemon',   name: 'Pokémon',          available: true },
   { id: 'lorcana',   name: 'Lorcana',          available: true },
+  { id: 'azuki',     name: 'Azuki',            available: true },
 ]

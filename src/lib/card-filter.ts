@@ -706,6 +706,16 @@ const RARITY_ORDER: Record<string, number> = {
   Legendary:                     3,
   'Super Rare':                  4,
   Special:                       33, // promo prints
+  // Azuki - star-foil tiers rank above their base rarity. Base C/UC/R/SR
+  // reuse the shared keys above; these are the Azuki-only strings.
+  'L ★★':                        0,
+  'SR ★★':                       0,
+  'L ★':                         1,
+  'SR ★':                        1,
+  'G ★':                         2,
+  'IKZ ★':                       2,
+  G:                             8,
+  IKZ:                           9,
 }
 const TYPE_ORDER: Record<string, number> = {
   // One Piece
@@ -714,6 +724,8 @@ const TYPE_ORDER: Record<string, number> = {
   'Pokémon': 0, Trainer: 1, Energy: 2,
   // Lorcana
   Character: 0, Action: 1, Item: 2, Location: 3,
+  // Azuki
+  Leader: 0, Entity: 1, Weapon: 2, Spell: 3, Gate: 4, IKZ: 5,
 }
 
 /**

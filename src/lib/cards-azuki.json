@@ -1,0 +1,5119 @@
+[
+  {
+    "id": "AZK01-001",
+    "code": "AZK01-001",
+    "name": "Penny",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 0,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-001.jpg"
+  },
+  {
+    "id": "AZK01-002",
+    "code": "AZK01-002",
+    "name": "Healing Flutter",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "[Main] Heal 2 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-002.jpg"
+  },
+  {
+    "id": "AZK01-003",
+    "code": "AZK01-003",
+    "name": "Black Jade Courier",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Strider"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Black Jade) subtype card other than Black Jade Courier and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-003.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-003.jpg"
+  },
+  {
+    "id": "AZK01-004",
+    "code": "AZK01-004",
+    "name": "Alley Thug",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Alley Dweller",
+      "Dawnling"
+    ],
+    "effect": "[When Attacking] This card gets +1 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-004.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-004.jpg"
+  },
+  {
+    "id": "AZK01-005",
+    "code": "AZK01-005",
+    "name": "Caravan Guard",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Samurai",
+      "Steelborn"
+    ],
+    "effect": "[On Play] Deal up to 1 damage to an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-005.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-005.jpg"
+  },
+  {
+    "id": "AZK01-006",
+    "code": "AZK01-006",
+    "name": "Gus",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Trickster"
+    ],
+    "effect": "[When Attacked] You may return this card to your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-006.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-006.jpg"
+  },
+  {
+    "id": "AZK01-007",
+    "code": "AZK01-007",
+    "name": "Johnny",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Invigorate"
+    ],
+    "effect": "[On Play] Give an entity in your Garden +1 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-007.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-007.jpg"
+  },
+  {
+    "id": "AZK01-008",
+    "code": "AZK01-008",
+    "name": "Rainy Day Assassin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Assassin"
+    ],
+    "effect": "[On Play] You may sacrifice this card: Destroy an entity with a cost of 3 or less in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-008.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-008.jpg"
+  },
+  {
+    "id": "AZK01-009",
+    "code": "AZK01-009",
+    "name": "The Red Bean",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Legendary Bean"
+    ],
+    "effect": "[Main] Give an entity with a cost of 4 or less \"Charge\" (Can attack the same turn it enters the Garden) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-009.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-009.jpg"
+  },
+  {
+    "id": "AZK01-010",
+    "code": "AZK01-010",
+    "name": "JD",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Dawnling",
+      "JD"
+    ],
+    "effect": "If you only have (Neutral) type entities in your Garden, this card has +2 attack.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-010.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-010.jpg"
+  },
+  {
+    "id": "AZK01-011",
+    "code": "AZK01-011",
+    "name": "Rooftop Hunter",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Steelborn"
+    ],
+    "effect": "\"Charge\" (Can attack the same turn it enters the Garden)\n\n[In Garden Only Ability] If this card is untapped at the end of your turn, sacrifice it.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-011.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-011.jpg"
+  },
+  {
+    "id": "AZK01-012",
+    "code": "AZK01-012",
+    "name": "Ed",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-012.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-012.jpg"
+  },
+  {
+    "id": "AZK01-013",
+    "code": "AZK01-013",
+    "name": "Gou the Iron Judge",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Fatedealer"
+    ],
+    "effect": "[On Play] Your opponent chooses 1: Sacrifice an entity in their Garden or discard 2.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-013.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-013.jpg"
+  },
+  {
+    "id": "AZK01-014",
+    "code": "AZK01-014",
+    "name": "Trade Guild Cavalry",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Invigorate",
+      "Samurai"
+    ],
+    "effect": "[When Attacking] Give another entity in your Garden +2 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-014.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-014.jpg"
+  },
+  {
+    "id": "AZK01-015",
+    "code": "AZK01-015",
+    "name": "Mo",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 6,
+    "power": 4,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Dawnling",
+      "Fox Fire"
+    ],
+    "effect": "[On Play] If your leader is:\n- (Water) type, untap 1 IKZ.\n- (Earth) type, heal 2 to your leader.\n- (Lightning) type, gain Charge (Can attack the same turn it enters the Garden) until the end of the turn.\n- (Fire) type, deal 2 damage to a leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-015.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-015.jpg"
+  },
+  {
+    "id": "AZK01-016",
+    "code": "AZK01-016",
+    "name": "Sleight of Hand",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Trickster"
+    ],
+    "effect": "[Main] Draw 2, then discard 2.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-016.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-016.jpg"
+  },
+  {
+    "id": "AZK01-017",
+    "code": "AZK01-017",
+    "name": "Hook Sword Strike",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Steelborn"
+    ],
+    "effect": "[Main] Deal up to 1 damage to an entity in any Garden and up to 1 damage to a leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-017.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-017.jpg"
+  },
+  {
+    "id": "AZK01-018",
+    "code": "AZK01-018",
+    "name": "Monk Staff of Warding",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Staff"
+    ],
+    "effect": "Leaders equipped with this card take 1 less damage from combat.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-018.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-018.jpg"
+  },
+  {
+    "id": "AZK01-019",
+    "code": "AZK01-019",
+    "name": "Jay",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "If you only have (Neutral) type entities in your Garden, this card has +2 health.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-019.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-019.jpg"
+  },
+  {
+    "id": "AZK01-020",
+    "code": "AZK01-020",
+    "name": "Power of Friendship",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "JD"
+    ],
+    "effect": "[Main] Give 2 entities in your Garden each +1 attack until the end of the turn.\n\n[Response] Give 2 entities in your Garden each +1 health until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-020.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-020.jpg"
+  },
+  {
+    "id": "AZK01-021",
+    "code": "AZK01-021",
+    "name": "Mizuto",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Wavecaller"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Driftward) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-021.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-021.jpg"
+  },
+  {
+    "id": "AZK01-022",
+    "code": "AZK01-022",
+    "name": "Mirage Frog",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Frog",
+      "Rippleborn",
+      "Watercrafting"
+    ],
+    "effect": "[On Play] You may discard 1: Return an entity with a cost of 2 or less in any Garden to its owner's hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-022.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-022.jpg"
+  },
+  {
+    "id": "AZK01-023",
+    "code": "AZK01-023",
+    "name": "Maho",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Wavecaller"
+    ],
+    "effect": "[In Garden Only Ability][End of Your Turn] If you have 2 or less cards in your hand, draw 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-023.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-023.jpg"
+  },
+  {
+    "id": "AZK01-024",
+    "code": "AZK01-024",
+    "name": "Fumiko",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Painter",
+      "Watercrafting"
+    ],
+    "effect": "[On Play] You may return an entity in your Garden to your hand: Play an entity with a cost of 2 or less from your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-024.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-024.jpg"
+  },
+  {
+    "id": "AZK01-025",
+    "code": "AZK01-025",
+    "name": "Lighthouse Keeper",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 4,
+    "power": 0,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Driftward",
+      "Elder"
+    ],
+    "effect": "Defender (if this card is in the Garden, you may tap it to redirect an attack to this card)\n\nThis card cannot take damage from card effects.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-025.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-025.jpg"
+  },
+  {
+    "id": "AZK01-026",
+    "code": "AZK01-026",
+    "name": "Moonlit Crane",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 5,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bird",
+      "Driftward",
+      "Rippleborn"
+    ],
+    "effect": "[Response][Once/Turn] You may discard 1: Reduce a leader's or an entity's attack by 1 until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-026.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-026.jpg"
+  },
+  {
+    "id": "AZK01-027",
+    "code": "AZK01-027",
+    "name": "Kaiya Mizumi",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Water"
+    ],
+    "cost": 6,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Wavecaller"
+    ],
+    "effect": "[On Play] You may discard up to 4 cards: Draw cards equal to the number of cards you discarded.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-027.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-027.jpg"
+  },
+  {
+    "id": "AZK01-028",
+    "code": "AZK01-028",
+    "name": "Sōryū no Rin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Water"
+    ],
+    "cost": 8,
+    "power": 7,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Watercrafting",
+      "Wavecaller"
+    ],
+    "effect": "[On Play] You must discard your hand: Return all other entities in each player's Garden to their owner's hands.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-028.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-028.jpg",
+    "variants": [
+      {
+        "id": "AZK01-028A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-028A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-029",
+    "code": "AZK01-029",
+    "name": "Aquatic Veil",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Water"
+    ],
+    "cost": 0,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Aquashield"
+    ],
+    "effect": "[Response] Discard 2: Reduce a leader's or an entity's attack by 3 until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-029.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-029.jpg"
+  },
+  {
+    "id": "AZK01-030",
+    "code": "AZK01-030",
+    "name": "Lotus of Paradise",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lotus",
+      "Watercrafting"
+    ],
+    "effect": "[Response] Untap up to 2 IKZ.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-030.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-030.jpg"
+  },
+  {
+    "id": "AZK01-031",
+    "code": "AZK01-031",
+    "name": "Tidal Insight",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Sirencall"
+    ],
+    "effect": "[Main] Look at the top 3 cards of your deck, reveal up to 1 (Water) card and add it to your hand, then put the rest on the top or bottom of your deck in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-031.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-031.jpg"
+  },
+  {
+    "id": "AZK01-032",
+    "code": "AZK01-032",
+    "name": "Rippling Recall",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Watercrafting"
+    ],
+    "effect": "[Main] Return an entity with a cost of 2 or more in your Garden to your hand: Return up to 1 entity with a cost of 4 or less in your opponent's Garden to its owner's hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-032.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-032.jpg"
+  },
+  {
+    "id": "AZK01-033",
+    "code": "AZK01-033",
+    "name": "Elder Hoshin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Elder",
+      "Monk",
+      "Stormcaller"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Steelborn) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-033.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-033.jpg"
+  },
+  {
+    "id": "AZK01-034",
+    "code": "AZK01-034",
+    "name": "Kira",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Voltguard"
+    ],
+    "effect": "[In Alley Only Ability] Whenever an entity in your Garden is attacked, you may swap that entity and this card, then make this card the new attack target.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-034.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-034.jpg"
+  },
+  {
+    "id": "AZK01-035",
+    "code": "AZK01-035",
+    "name": "Raimaru the Stolen",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 3,
+    "power": 0,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Cat",
+      "Statue",
+      "Voltguard"
+    ],
+    "effect": "Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\nThis card can be played as a [Response].",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-035.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-035.jpg"
+  },
+  {
+    "id": "AZK01-036",
+    "code": "AZK01-036",
+    "name": "Denmu",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [
+      "Shocked"
+    ],
+    "types": [
+      "Bat",
+      "Shockcoil"
+    ],
+    "effect": "[When Attacked] The attacking leader or entity becomes \"Shocked\" (Does not untap during its next untap phase).",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-036.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-036.jpg"
+  },
+  {
+    "id": "AZK01-037",
+    "code": "AZK01-037",
+    "name": "Stormcaller Tenkichi",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 4,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Riftwalk",
+      "Stormcaller"
+    ],
+    "effect": "Charge (Can attack the same turn it enters the Garden)\n\nThis card can attack untapped or tapped entities in your opponent's Alley.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-037.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-037.jpg"
+  },
+  {
+    "id": "AZK01-038",
+    "code": "AZK01-038",
+    "name": "Riven Flashborne",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Riftwalk"
+    ],
+    "effect": "This card can attack untapped or tapped entities in your opponent's Alley.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-038.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-038.jpg"
+  },
+  {
+    "id": "AZK01-039",
+    "code": "AZK01-039",
+    "name": "Piko",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Cat",
+      "Steelborn"
+    ],
+    "effect": "[When Equipped) Gain \"Charge\" (Can attack the same turn it enters the Garden).",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-039.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-039.jpg"
+  },
+  {
+    "id": "AZK01-040",
+    "code": "AZK01-040",
+    "name": "Black Jade Vault Master",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 5,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Black Jade",
+      "Tiger",
+      "Voltguard"
+    ],
+    "effect": "Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\n[When Attacked] Deal up to 1 damage to a leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-040.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-040.jpg"
+  },
+  {
+    "id": "AZK01-041",
+    "code": "AZK01-041",
+    "name": "Wu Cha",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 8,
+    "power": 7,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Fox Fire",
+      "Steelborn"
+    ],
+    "effect": "[In Garden Only Ability][Once/Turn][Main] *Pay 1 IKZ*: Equip up to 2 (Weapon) cards with a cost of 2 or less from your discard pile to this card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-041.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-041.jpg"
+  },
+  {
+    "id": "AZK01-042",
+    "code": "AZK01-042",
+    "name": "Thunderclap",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "SR",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 5,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Stormcaller"
+    ],
+    "effect": "[Main] Deal 3 damage, 2 damage, and 1 damage to 3 different entities in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-042.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-042.jpg",
+    "variants": [
+      {
+        "id": "AZK01-042A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-042A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-043",
+    "code": "AZK01-043",
+    "name": "Stormglass Dagger",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Dagger",
+      "Riftwalk"
+    ],
+    "effect": "When equipped to a leader, the leader can attack untapped or tapped entities in your opponent's Alley.\n\n(Weapon) cards must be equipped to leaders or entities in your Garden and go to the discard pile at the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-043.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-043.jpg"
+  },
+  {
+    "id": "AZK01-044",
+    "code": "AZK01-044",
+    "name": "Lightning Kanabō",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Weapon",
+    "rarity": "R",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [
+      "Shocked"
+    ],
+    "types": [
+      "Shockcoil"
+    ],
+    "effect": "[Once/Turn] Whenever a leader or an entity equipped with this card deals combat damage to an opponent's card, that card becomes <Shocked> (Does not untap during its next untap phase).\n\n(Weapon) cards must be equipped to leaders or entities in your Garden and go to the discard pile at the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-044.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-044.jpg"
+  },
+  {
+    "id": "AZK01-045",
+    "code": "AZK01-045",
+    "name": "Treetop Scout",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Scout"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Obsidian) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-045.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-045.jpg"
+  },
+  {
+    "id": "AZK01-046",
+    "code": "AZK01-046",
+    "name": "Mina the Geomancer",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury"
+    ],
+    "effect": "When this card enters the Garden, tap it. This entity cannot be untapped.\n\n[In Garden Only Ability][Start of Your Turn] Deal up to 1 damage to a leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-046.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-046.jpg"
+  },
+  {
+    "id": "AZK01-047",
+    "code": "AZK01-047",
+    "name": "Shiko the Priestess",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthwarden"
+    ],
+    "effect": "[Once/Turn][When Attacking] Heal 1 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-047.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-047.jpg"
+  },
+  {
+    "id": "AZK01-048",
+    "code": "AZK01-048",
+    "name": "Kale",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Carapace"
+    ],
+    "types": [
+      "Obsidian"
+    ],
+    "effect": "Carapace 1 (Takes 1 less damage from all damage sources)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-048.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-048.jpg"
+  },
+  {
+    "id": "AZK01-049",
+    "code": "AZK01-049",
+    "name": "Lone Journeyman",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Earthwarden"
+    ],
+    "effect": "Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-049.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-049.jpg"
+  },
+  {
+    "id": "AZK01-050",
+    "code": "AZK01-050",
+    "name": "Shroom Tender",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Earthwarden"
+    ],
+    "effect": "[On Play] Heal 2 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-050.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-050.jpg"
+  },
+  {
+    "id": "AZK01-051",
+    "code": "AZK01-051",
+    "name": "Chillax",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 4,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Earthwarden",
+      "Sloth"
+    ],
+    "effect": "Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\n[When Attacked] You may give another entity in your Garden +1 health until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-051.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-051.jpg"
+  },
+  {
+    "id": "AZK01-052",
+    "code": "AZK01-052",
+    "name": "Yojin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 5,
+    "power": 2,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Earthwarden"
+    ],
+    "effect": "If the number of entities in your Garden is less than the number of entities in your opponent's Garden, this card has Defender (If this card is in the Garden, you may tap it to redirect an attack to this card).",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-052.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-052.jpg"
+  },
+  {
+    "id": "AZK01-053",
+    "code": "AZK01-053",
+    "name": "Geodust Smuggler",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 7,
+    "power": 4,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Obsidian"
+    ],
+    "effect": "[In Garden Only Ability] As long as this card is in play, all other entities in your Garden have +1 health.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-053.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-053.jpg"
+  },
+  {
+    "id": "AZK01-054",
+    "code": "AZK01-054",
+    "name": "Teb Fea",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 8,
+    "power": 7,
+    "counter": null,
+    "attributes": [
+      "Godmode"
+    ],
+    "types": [
+      "Obsidian"
+    ],
+    "effect": "Godmode (Cannot leave the field by taking damage or by card effects)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-054.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-054.jpg",
+    "variants": [
+      {
+        "id": "AZK01-054A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-054A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-055",
+    "code": "AZK01-055",
+    "name": "Earth Orb",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury",
+      "Orb"
+    ],
+    "effect": "[Response] Deal up to 1 damage to a leader or an entity in your opponent's Garden and reduce that card's attack by 1 until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-055.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-055.jpg"
+  },
+  {
+    "id": "AZK01-056",
+    "code": "AZK01-056",
+    "name": "Glass Blower, Hokuto",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Artisan",
+      "Firemancer"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Scorchweaver) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-056.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-056.jpg"
+  },
+  {
+    "id": "AZK01-057",
+    "code": "AZK01-057",
+    "name": "Lounge Siren, Saeko",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Scorchweaver"
+    ],
+    "effect": "[In Garden Only Ability][Start of Your Turn] You must deal 1 damage to an entity in your Garden and 1 damage to an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-057.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-057.jpg"
+  },
+  {
+    "id": "AZK01-058",
+    "code": "AZK01-058",
+    "name": "Black Jade Warlord",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 2,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Blazerker",
+      "Invigorate"
+    ],
+    "effect": "[After Attacking] You may sacrifice this card: Give a leader or an entity in your Garden +2 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-058.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-058.jpg"
+  },
+  {
+    "id": "AZK01-059",
+    "code": "AZK01-059",
+    "name": "Spice",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Chef",
+      "Pyreskin",
+      "Red Panda"
+    ],
+    "effect": "[Once/Turn] Whenever this card takes damage, give another entity in your Garden +1 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-059.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-059.jpg"
+  },
+  {
+    "id": "AZK01-060",
+    "code": "AZK01-060",
+    "name": "Scarlett",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Charge",
+      "Infiltrate"
+    ],
+    "types": [
+      "Blazerker"
+    ],
+    "effect": "Charge (Can attack the same turn it enters the Garden)\n\n[When Attacking] You may give this card Infiltrate (Opponents cannot activate Defender when this entity attacks) and +1 attack. If you do, you must sacrifice this card at the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-060.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-060.jpg"
+  },
+  {
+    "id": "AZK01-061",
+    "code": "AZK01-061",
+    "name": "Firebrand Renji",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Pyreskin"
+    ],
+    "effect": "[Once/Turn] Whenever this card takes damage from 3 different damage sources in one turn, deal up to 3 damage to a leader or an entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-061.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-061.jpg"
+  },
+  {
+    "id": "AZK01-062",
+    "code": "AZK01-062",
+    "name": "Pekiro",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Red Panda",
+      "Pyreskin"
+    ],
+    "effect": "[Once/Turn] Whenever this card would take damage from an ability or spell, you may redirect that damage to another entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-062.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-062.jpg"
+  },
+  {
+    "id": "AZK01-063",
+    "code": "AZK01-063",
+    "name": "Enzo",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 6,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Chef",
+      "Scorchweaver"
+    ],
+    "effect": "[On Play] If this card is played in the Garden, deal up to 3 damage to a leader or an entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-063.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-063.jpg"
+  },
+  {
+    "id": "AZK01-064",
+    "code": "AZK01-064",
+    "name": "Zero",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 8,
+    "power": 7,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Scorchweaver"
+    ],
+    "effect": "When this card enters the Garden, deal 2 damage to all entities in each player's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-064.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-064.jpg",
+    "variants": [
+      {
+        "id": "AZK01-064A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-064A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-065",
+    "code": "AZK01-065",
+    "name": "Fire Orb",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Orb",
+      "Scorchweaver"
+    ],
+    "effect": "[Main] Deal 3 damage to your leader: Deal up to 5 damage to a leader or an entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-065.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-065.jpg"
+  },
+  {
+    "id": "AZK01-066",
+    "code": "AZK01-066",
+    "name": "Firestorm",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 5,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Scorchweaver"
+    ],
+    "effect": "[Main] Deal 2 damage to all leaders and entities in each player's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-066.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-066.jpg"
+  },
+  {
+    "id": "AZK01-067",
+    "code": "AZK01-067",
+    "name": "Frida",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Painter"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-067.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-067.jpg"
+  },
+  {
+    "id": "AZK01-068",
+    "code": "AZK01-068",
+    "name": "Pip",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "[On Play] When this card is played in the Alley, draw 1, then discard 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-068.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-068.jpg"
+  },
+  {
+    "id": "AZK01-069",
+    "code": "AZK01-069",
+    "name": "Link",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Beanz) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-069.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-069.jpg"
+  },
+  {
+    "id": "AZK01-070",
+    "code": "AZK01-070",
+    "name": "Mocking Dummy",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 0,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Training Dummy"
+    ],
+    "effect": "[In Garden Only Ability][Response] Tap this card and deal 1 damage to it: Reduce an opponent entity's attack by 1 until the end of your opponent's turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-070.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-070.jpg"
+  },
+  {
+    "id": "AZK01-071",
+    "code": "AZK01-071",
+    "name": "Alley Fetchduck",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bird"
+    ],
+    "effect": "[End of Your Turn] You may bottom deck this card: Draw 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-071.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-071.jpg"
+  },
+  {
+    "id": "AZK01-072",
+    "code": "AZK01-072",
+    "name": "Beanz Mentor",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Elder"
+    ],
+    "effect": "[When Attacking] Give another (Beanz) subtype entity in your Garden +1 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-072.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-072.jpg"
+  },
+  {
+    "id": "AZK01-073",
+    "code": "AZK01-073",
+    "name": "Top Beanz",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "If you only have (Beanz) subtype entities in your Garden, this card has +1 attack and +1 health.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-073.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-073.jpg"
+  },
+  {
+    "id": "AZK01-074",
+    "code": "AZK01-074",
+    "name": "Gurugumi Vanguard",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 0,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gurijutsu"
+    ],
+    "effect": "[Once/Turn][Main] This card's attack becomes the attack of an entity in your opponent's Garden until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-074.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-074.jpg"
+  },
+  {
+    "id": "AZK01-075",
+    "code": "AZK01-075",
+    "name": "Drunken Brewmaster",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Brewmaster",
+      "Elder"
+    ],
+    "effect": "[Once/Turn] You may sacrifice 2 (Beanz) subtype entities in your Garden: This card gets +2 attack and +2 health until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-075.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-075.jpg"
+  },
+  {
+    "id": "AZK01-076",
+    "code": "AZK01-076",
+    "name": "Hōren of Two Paths",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Fatedealer",
+      "Monk"
+    ],
+    "effect": "[On Play] Your opponent chooses 1:\n- This entity gains Charge (Can attack the same turn it enters the Garden) until the end of the turn.\n- Heal 2 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-076.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-076.jpg"
+  },
+  {
+    "id": "AZK01-077",
+    "code": "AZK01-077",
+    "name": "Stalking Assassin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Assassin",
+      "Steelborn"
+    ],
+    "effect": "This card can only attack leaders.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-077.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-077.jpg"
+  },
+  {
+    "id": "AZK01-078",
+    "code": "AZK01-078",
+    "name": "Fermented Beanz",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz"
+    ],
+    "effect": "[When Destroyed] Deal 1 damage to a leader or an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-078.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-078.jpg"
+  },
+  {
+    "id": "AZK01-079",
+    "code": "AZK01-079",
+    "name": "Gin and Tonika",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 6,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Fatedealer"
+    ],
+    "effect": "[On Play] Your opponent chooses 1: You draw 2 or deal 3 damage to their leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-079.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-079.jpg",
+    "variants": [
+      {
+        "id": "AZK01-079A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-079A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-080",
+    "code": "AZK01-080",
+    "name": "Bladebound Ally",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Invigorate",
+      "Samurai"
+    ],
+    "effect": "[On Play] If this card is played in the Garden, give another entity in your Garden +2 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-080.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-080.jpg"
+  },
+  {
+    "id": "AZK01-081",
+    "code": "AZK01-081",
+    "name": "Gurugumi Mentor",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gurijutsu"
+    ],
+    "effect": "When this card is in your deck, it has all subtypes.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-081.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-081.jpg"
+  },
+  {
+    "id": "AZK01-082",
+    "code": "AZK01-082",
+    "name": "Black Jade Brawler",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Black Jade",
+      "Brawler",
+      "Steelborn"
+    ],
+    "effect": "Charge (Can attack the same turn it enters the Garden),",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-082.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-082.jpg"
+  },
+  {
+    "id": "AZK01-083",
+    "code": "AZK01-083",
+    "name": "Gurugumi Imitator",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gurijutsu"
+    ],
+    "effect": "[Once/Turn][Main] This card gets the card text of another (Neutral) card in your Garden until the end of your turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-083.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-083.jpg"
+  },
+  {
+    "id": "AZK01-084",
+    "code": "AZK01-084",
+    "name": "Good Enough Replica",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Trickster"
+    ],
+    "effect": "[Main] Return a (Neutral) entity card with a cost of 6 or less from your discard pile to your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-084.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-084.jpg"
+  },
+  {
+    "id": "AZK01-085",
+    "code": "AZK01-085",
+    "name": "Invigorating Concoction",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Invigorate"
+    ],
+    "effect": "[Main][Response] Give an entity in your Garden +2 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-085.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-085.jpg"
+  },
+  {
+    "id": "AZK01-086",
+    "code": "AZK01-086",
+    "name": "Forging Tricks",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Steelborn",
+      "Trickster"
+    ],
+    "effect": "[Main] You may place up to 5 (Weapon) cards from your discard pile to the bottom of your deck in any order: Until the end of the turn, give your leader +1 attack for each card you bottom decked.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-086.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-086.jpg"
+  },
+  {
+    "id": "AZK01-087",
+    "code": "AZK01-087",
+    "name": "Mizuryuu's Torrent",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "SR",
+    "colors": [
+      "Water"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Mizuryuu"
+    ],
+    "effect": "[Main] Put up to 2 entities with a combined cost of 5 or less in your opponent's Garden to the bottom of their owner's deck in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-087.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-087.jpg",
+    "variants": [
+      {
+        "id": "AZK01-087A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-087A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-088",
+    "code": "AZK01-088",
+    "name": "Pulled Under",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Water"
+    ],
+    "cost": 6,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Watercrafting"
+    ],
+    "effect": "[Main] Put an entity with a 7 cost or less in your opponent's Garden to the bottom of its owner's deck.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-088.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-088.jpg"
+  },
+  {
+    "id": "AZK01-089",
+    "code": "AZK01-089",
+    "name": "Mizuryuu Fist Master",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 7,
+    "power": 5,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Frog",
+      "Mizuryuu",
+      "Watercrafting"
+    ],
+    "effect": "[In Alley Only Ability][Main] You may bottom deck this card: Put up to 2 entity cards with a combined cost of 5 or less in your opponent's Garden to the bottom of their owner's deck in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-089.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-089.jpg"
+  },
+  {
+    "id": "AZK01-090",
+    "code": "AZK01-090",
+    "name": "Priestess of the Mists",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Priestess",
+      "Wavecaller"
+    ],
+    "effect": "[On Play] You may return an entity with a cost of 2 cost or less in your Garden to your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-090.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-090.jpg"
+  },
+  {
+    "id": "AZK01-091",
+    "code": "AZK01-091",
+    "name": "Bubble Adept",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Aquashield",
+      "Driftward"
+    ],
+    "effect": "[In Garden Only Ability][Response] You may sacrifice this card: Reduce an entity's attack by 1 until the end of your opponent's turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-091.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-091.jpg"
+  },
+  {
+    "id": "AZK01-092",
+    "code": "AZK01-092",
+    "name": "Lotus of Reflection",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Lotus",
+      "Wavecaller"
+    ],
+    "effect": "[Main] Look at the top 5 cards of your deck, you may reveal a (Water) type card with a cost of 2 or less and add it to your hand or play it.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-092.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-092.jpg"
+  },
+  {
+    "id": "AZK01-093",
+    "code": "AZK01-093",
+    "name": "Naiyara the Tideweaver",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Water"
+    ],
+    "cost": 7,
+    "power": 4,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Downcurrent",
+      "Mizuryuu"
+    ],
+    "effect": "[On Play] If this card is played in the Garden, put an entity with a cost of 4 or less in your opponent's Garden to the bottom of its owner's deck.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-093.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-093.jpg"
+  },
+  {
+    "id": "AZK01-094",
+    "code": "AZK01-094",
+    "name": "Hidden Dagger",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Dagger",
+      "Shadowfang"
+    ],
+    "effect": "This card can be played as a [Response].",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-094.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-094.jpg"
+  },
+  {
+    "id": "AZK01-095",
+    "code": "AZK01-095",
+    "name": "Stormglass Katana",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 4,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Riftwalk",
+      "Sword"
+    ],
+    "effect": "When equipped to a leader, the leader can attack untapped or tapped entities in your opponent's Alley.\n\n(Weapon) cards can be equipped to entities or leaders in the Garden and go to the discard pile at the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-095.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-095.jpg"
+  },
+  {
+    "id": "AZK01-096",
+    "code": "AZK01-096",
+    "name": "Ninpō: Thunderstep",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Voltguard"
+    ],
+    "effect": "[Response] Swap an entity in your Garden with an entity in your Alley.\n\nIf the Garden entity being swapped out is the target of an attack, the Alley entity being swapped into the Garden becomes the new target.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-096.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-096.jpg"
+  },
+  {
+    "id": "AZK01-097",
+    "code": "AZK01-097",
+    "name": "Black Jade Pawnbroker",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Merchant",
+      "Steelborn"
+    ],
+    "effect": "[On Play] Put 5 cards from the top of your deck into your discard pile. If any of the discarded cards are (Weapon) cards, you may add 1 of them to your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-097.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-097.jpg"
+  },
+  {
+    "id": "AZK01-098",
+    "code": "AZK01-098",
+    "name": "Arms Dealer, Kin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Merchant",
+      "Steelborn"
+    ],
+    "effect": "[On Play] If this card is played in the Alley, you may tap this card: Play a (Weapon) card with a cost of 3 cost or less from your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-098.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-098.jpg"
+  },
+  {
+    "id": "AZK01-099",
+    "code": "AZK01-099",
+    "name": "Raiko's Wrath, Shin",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 7,
+    "power": 4,
+    "counter": null,
+    "attributes": [
+      "Charge",
+      "Shocked"
+    ],
+    "types": [
+      "Shockcoil",
+      "Stormcaller",
+      "Tiger"
+    ],
+    "effect": "[On Play] Choose one:\n- An entity with a cost of 5 or less in your opponent's Garden becomes \"Shocked\" (Does not untap during its next untap phase).\n- This entity gains Charge (Can attack the same turn it enters the Garden) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-099.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-099.jpg",
+    "variants": [
+      {
+        "id": "AZK01-099A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-099A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-100",
+    "code": "AZK01-100",
+    "name": "Raizan's Riposte",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Raizan",
+      "Steelborn"
+    ],
+    "effect": "[Response] Play from your discard pile a (Weapon) card with a cost of 2 or less.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-100.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-100.jpg"
+  },
+  {
+    "id": "AZK01-101",
+    "code": "AZK01-101",
+    "name": "Sand Stands Still",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "SR",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthwarden"
+    ],
+    "effect": "[Main][Response] Give an (Earth) entity in your Garden +3 health until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-101.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-101.jpg"
+  },
+  {
+    "id": "AZK01-102",
+    "code": "AZK01-102",
+    "name": "Oathstone",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Carapace"
+    ],
+    "types": [
+      "Obsidian"
+    ],
+    "effect": "[Response] Give an entity with a cost of 4 or less Carapace 1 (Takes 1 less damage from all damage sources) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-102.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-102.jpg"
+  },
+  {
+    "id": "AZK01-103",
+    "code": "AZK01-103",
+    "name": "Dropline Station",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 5,
+    "power": 0,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury"
+    ],
+    "effect": "[In Garden Only Ability] (TAP) Sacrifice an untapped (Earth) entity in your Garden: Deal damage equal to the sacrificed card's health to a leader, capped at 5 damage. If the sacrificed entity had 3 or more health, draw 1.\n(This ability is not affected by Cooldown)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-103.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-103.jpg"
+  },
+  {
+    "id": "AZK01-104",
+    "code": "AZK01-104",
+    "name": "Sanzu's Envoy",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 6,
+    "power": 4,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Stonemend",
+      "Verdant"
+    ],
+    "effect": "[On Play] If this card is played in the Garden, you may discard 1: Heal 2 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-104.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-104.jpg"
+  },
+  {
+    "id": "AZK01-105",
+    "code": "AZK01-105",
+    "name": "Prickly Tumbleweed",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 4,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury"
+    ],
+    "effect": "[In Garden Only Ability][Main] Sacrifice this card: Deal damage equal to this card's health to a leader or an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-105.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-105.jpg"
+  },
+  {
+    "id": "AZK01-106",
+    "code": "AZK01-106",
+    "name": "Lord of Sands, Ōsunanami",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 10,
+    "power": 6,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Colossal",
+      "Sandstrider"
+    ],
+    "effect": "When this card is in your hand, its cost is reduced by 1 for every entity with Defender in your Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-106.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-106.jpg",
+    "variants": [
+      {
+        "id": "AZK01-106A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-106A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-107",
+    "code": "AZK01-107",
+    "name": "Offering to Stillstone",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 0,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Verdant"
+    ],
+    "effect": "[Main] Discard 1: If you do not have an IKZ token, add 1. The IKZ token expires at the end of your turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-107.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-107.jpg"
+  },
+  {
+    "id": "AZK01-108",
+    "code": "AZK01-108",
+    "name": "Crushing Weight",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 5,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury"
+    ],
+    "effect": "[Main] Deal damage equal to the health of an (Earth) entity in your Garden to a leader or an entity in your opponent's Garden, capped at 5 damage.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-108.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-108.jpg"
+  },
+  {
+    "id": "AZK01-109",
+    "code": "AZK01-109",
+    "name": "Rock Sloth",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 6,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Carapace"
+    ],
+    "types": [
+      "Obsidian",
+      "Sloth"
+    ],
+    "effect": "Carapace 1 (Takes 1 less damage from all damage sources)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-109.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-109.jpg"
+  },
+  {
+    "id": "AZK01-110",
+    "code": "AZK01-110",
+    "name": "Gluttonous Devourer, Kasha",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Loneflame",
+      "Red Panda"
+    ],
+    "effect": "[When Attacking] You may sacrifice all other entities in your Garden: This entity gains +1 attack for each entity sacrificed this way.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-110.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-110.jpg"
+  },
+  {
+    "id": "AZK01-111",
+    "code": "AZK01-111",
+    "name": "Black Jade Decoy",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Ashveil",
+      "Black Jade",
+      "Shikigami"
+    ],
+    "effect": "[In Alley Only Ability][Main] You may sacrifice this card: Deal up to 2 damage to an entity in your opponent's Garden, then you may play an entity with a cost of 2 or less from your hand in the Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-111.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-111.jpg"
+  },
+  {
+    "id": "AZK01-112",
+    "code": "AZK01-112",
+    "name": "Enrai Shakunetsu",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 6,
+    "power": 4,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Blazerker",
+      "Loneflame"
+    ],
+    "effect": "[On Play] You may sacrifice an untapped entity in your Garden: If you control no entities in the Garden, this entity gains Charge (Can attack the same turn it enters the Garden) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-112.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-112.jpg",
+    "variants": [
+      {
+        "id": "AZK01-112A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-112A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-113",
+    "code": "AZK01-113",
+    "name": "Cinderwake Pursuer",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 2,
+    "power": 2,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Blazerker",
+      "Cinderwake"
+    ],
+    "effect": "[On Play] If you played 2 other cards this turn, this entity gains Charge (Can attack the same turn it enters the Garden) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-113.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-113.jpg"
+  },
+  {
+    "id": "AZK01-114",
+    "code": "AZK01-114",
+    "name": "Omen Peddler",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Elder",
+      "Scorchweaver"
+    ],
+    "effect": "[On Play] If this card is played in the Alley, deal 2 damage to an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-114.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-114.jpg"
+  },
+  {
+    "id": "AZK01-115",
+    "code": "AZK01-115",
+    "name": "Crazed Arsonist",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Scorchweaver",
+      "Wildfire"
+    ],
+    "effect": "[When Attacking] You must deal 1 damage to all leaders.\n\n[When Sacrificed] You must deal 1 damage to all leaders.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-115.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-115.jpg"
+  },
+  {
+    "id": "AZK01-116",
+    "code": "AZK01-116",
+    "name": "Tenmoku Daiki",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 4,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Blazerker",
+      "Brawler"
+    ],
+    "effect": "Charge (Can attack the same turn it enters the Garden)\n\n[On Play] You must deal 3 damage to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-116.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-116.jpg"
+  },
+  {
+    "id": "AZK01-117",
+    "code": "AZK01-117",
+    "name": "Ignition Pact",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Blazerker"
+    ],
+    "effect": "[Main] Deal 2 damage to your leader: Give an entity with a cost of 5 or less Charge (Can attack the same turn it enters the Garden) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-117.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-117.jpg"
+  },
+  {
+    "id": "AZK01-118",
+    "code": "AZK01-118",
+    "name": "Bandit Ringleader",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bandit",
+      "Scorchweaver"
+    ],
+    "effect": "[On Play] You may deal 1 damage to an entity in your Garden: If you played 2 other cards this turn, deal up to 2 damage to an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-118.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-118.jpg"
+  },
+  {
+    "id": "AZK01-119",
+    "code": "AZK01-119",
+    "name": "Piko of Thousand Blades",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Cat",
+      "Steelborn"
+    ],
+    "effect": "[Once/Turn][Main] Pay 3 IKZ: Until the end of the turn, an entity in your Garden that is equipped with a (Weapon) card gets +1 attack for each (Weapon) card in your discard pile, capped at +3 attack.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-119.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-119.jpg",
+    "variants": [
+      {
+        "id": "AZK01-119A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-119A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-120",
+    "code": "AZK01-120",
+    "name": "Stormchain Gate",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gate"
+    ],
+    "effect": "(TAP) Portal an untapped entity from the Alley into the Garden: You may re-equip a weapon in your Garden with a cost equal to or less than the (Gate Power) of the portaled entity to a different leader or entity in your Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-120.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-120.jpg"
+  },
+  {
+    "id": "AZK01-121",
+    "code": "AZK01-121",
+    "name": "Kagoro of the Burnt Path",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Loneflame",
+      "Red Panda"
+    ],
+    "effect": "[Once/Turn][Main] Pay 2 IKZ: This card gains +1 attack for each entity you played this turn, capped at +2 attack, until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-121.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-121.jpg",
+    "variants": [
+      {
+        "id": "AZK01-121A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-121A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-122",
+    "code": "AZK01-122",
+    "name": "Rushfire Gate",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Gate"
+    ],
+    "effect": "(TAP) Portal an untapped entity from the Alley into the Garden, then you may play an entity with a cost equal to or less than the (Gate Power) of the portaled entity from your hand and give it Charge (Can attack the same turn it enters the Garden), then you must sacrifice that card at the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-122.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-122.jpg"
+  },
+  {
+    "id": "AZK01-123",
+    "code": "AZK01-123",
+    "name": "Goro Graveloth",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Earth"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Obsidian",
+      "Sloth"
+    ],
+    "effect": "[Once/Turn][Main] Pay 1 IKZ: Give an entity in your garden +1 health until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-123.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-123.jpg",
+    "variants": [
+      {
+        "id": "AZK01-123A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-123A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-124",
+    "code": "AZK01-124",
+    "name": "Gate of Devotion",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Earth"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gate"
+    ],
+    "effect": "(TAP) Portal an untapped entity from the Alley into the Garden, then you may sacrifice another untapped entity in your Garden with a cost equal to or less than the (Gate Power) of the portaled entity; if you do, you may deal damage to an entity in your opponent's Garden equal to the health of the sacrificed entity.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-124.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-124.jpg"
+  },
+  {
+    "id": "AZK01-125",
+    "code": "AZK01-125",
+    "name": "Benzai the Sly",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Frog",
+      "Merchant",
+      "Watercrafting"
+    ],
+    "effect": "[Once/Turn][Main][Response] Pay 1 IKZ: If you discarded a card this turn, the next card you play this turn costs 2 less IKZ.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-125.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-125.jpg",
+    "variants": [
+      {
+        "id": "AZK01-125A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-125A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "AZK01-126",
+    "code": "AZK01-126",
+    "name": "Gate of Echoed Waves",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gate"
+    ],
+    "effect": "(TAP) Portal an untapped entity from the Alley into the Garden: Return a spell card with a cost equal to or less than the (Gate Power) of the portaled entity from your discard pile to your hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-126.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-126.jpg"
+  },
+  {
+    "id": "AZK01-127",
+    "code": "AZK01-127",
+    "name": "Sundering Strike",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Samurai"
+    ],
+    "effect": "[Response] Deal 1 damage to an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-127.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-127.jpg"
+  },
+  {
+    "id": "AZK01-128",
+    "code": "AZK01-128",
+    "name": "Wrong Step",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury",
+      "Obsidian"
+    ],
+    "effect": "[Response] Destroy an attacking entity with a health of 2 or less.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-128.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-128.jpg"
+  },
+  {
+    "id": "AZK01-129",
+    "code": "AZK01-129",
+    "name": "Silk Tongue Velya",
+    "setCode": "AZK01",
+    "setName": "Booster Set 1",
+    "releaseOrder": 101,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 5,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Black Jade",
+      "Pyreskin",
+      "Wildfire"
+    ],
+    "effect": "\"Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\n[Once/Turn] Whenever this entity takes or deals damage, deal 1 damage to all leaders.\"",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-129.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZK01-129.jpg"
+  },
+  {
+    "id": "STT01-001",
+    "code": "STT01-001",
+    "name": "Raizan",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Raizan"
+    ],
+    "effect": "[Once/Turn] *Pay 1 IKZ*: Give an entity equipped with a (Weapon) card \"Charge\" (Can attack the same turn it enters the Garden) until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-001.jpg",
+    "variants": [
+      {
+        "id": "STT01-001AX1",
+        "label": "Alt Art",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-001AX1.jpg",
+        "rarity": "L ★"
+      },
+      {
+        "id": "STT01-001AX2",
+        "label": "Alt Art",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-001AX2.jpg",
+        "rarity": "L ★"
+      },
+      {
+        "id": "STT01-001A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-001A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "STT01-002",
+    "code": "STT01-002",
+    "name": "Surge Gate",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gate"
+    ],
+    "effect": "TAP: Portal an untapped entity from the Alley into the Garden, then you may play from your discard pile a Weapon card with a cost equal to or less than the (Gate Power) of the portaled entity.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-002.jpg",
+    "variants": [
+      {
+        "id": "STT01-002A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-002A.jpg",
+        "rarity": "G ★"
+      }
+    ]
+  },
+  {
+    "id": "STT01-003",
+    "code": "STT01-003",
+    "name": "Crate Rat Kurobo",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Beanz",
+      "Black Jade"
+    ],
+    "effect": "[On Play] Put 3 cards from the top of your deck into your discard pile. If you have no (Weapon) cards in your discard pile when you activate this ability, put 5 cards instead.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-003.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-003.jpg"
+  },
+  {
+    "id": "STT01-004",
+    "code": "STT01-004",
+    "name": "Black Jade Recruit",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Dawnling"
+    ],
+    "effect": "[On Play] You may discard a (Weapon) card: Look at the top 5 cards of your deck, reveal up to 1 (Weapon) card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-004.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-004.jpg"
+  },
+  {
+    "id": "STT01-005",
+    "code": "STT01-005",
+    "name": "Alpine Prowler",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bandit"
+    ],
+    "effect": "[In Alley Only Ability][Main] You may sacrifice this card: Draw 3 and discard 2.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-005.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-005.jpg"
+  },
+  {
+    "id": "STT01-006",
+    "code": "STT01-006",
+    "name": "Silver Current, Haruhi",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Elder",
+      "Monk"
+    ],
+    "effect": "[Once/Turn][When Attacking] Deal up to 1 damage to a leader or an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-006.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-006.jpg"
+  },
+  {
+    "id": "STT01-007",
+    "code": "STT01-007",
+    "name": "Alley Guy",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Alley Dweller",
+      "Dawnling"
+    ],
+    "effect": "[On Play] You may discard 1: Draw 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-007.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-007.jpg"
+  },
+  {
+    "id": "STT01-008",
+    "code": "STT01-008",
+    "name": "Black Jade Crewleader",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Steelborn"
+    ],
+    "effect": "When equipped with a (Weapon) card, this card has +1 attack.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-008.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-008.jpg"
+  },
+  {
+    "id": "STT01-009",
+    "code": "STT01-009",
+    "name": "Mastersmith Yamada",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Steelborn"
+    ],
+    "effect": "If there are 6 or more (Weapon) cards in your discard pile, this card has +2 attack.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-009.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-009.jpg"
+  },
+  {
+    "id": "STT01-010",
+    "code": "STT01-010",
+    "name": "Indra",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Monk",
+      "Steelborn"
+    ],
+    "effect": "\"Charge\" (Can attack the same turn it enters the Garden)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-010.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-010.jpg"
+  },
+  {
+    "id": "STT01-011",
+    "code": "STT01-011",
+    "name": "Raizan",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 6,
+    "power": 4,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Raizan",
+      "Steelborn"
+    ],
+    "effect": "As long as this card is in play, the card (Ikazuchi) has +5 attack instead of +4.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-011.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-011.jpg",
+    "variants": [
+      {
+        "id": "STT01-011A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-011A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "STT01-012",
+    "code": "STT01-012",
+    "name": "Lightning Shuriken",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Shadowfang",
+      "Shuriken"
+    ],
+    "effect": "[When Attacking] Put the top card of your deck into your discard pile.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-012.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-012.jpg"
+  },
+  {
+    "id": "STT01-013",
+    "code": "STT01-013",
+    "name": "Black Jade Dagger",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Dagger"
+    ],
+    "effect": "[On Play] You may deal 1 damage to your leader: This card gives an additional +1 attack.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-013.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-013.jpg"
+  },
+  {
+    "id": "STT01-014",
+    "code": "STT01-014",
+    "name": "Tenshin",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Weapon",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Sword"
+    ],
+    "effect": "[On Play] Deal up to 1 damage to a leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-014.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-014.jpg"
+  },
+  {
+    "id": "STT01-015",
+    "code": "STT01-015",
+    "name": "Tenraku",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Weapon",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Sword"
+    ],
+    "effect": "If you have 15 or more cards in your discard pile, this card gives an additional +1 attack.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-015.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-015.jpg"
+  },
+  {
+    "id": "STT01-016",
+    "code": "STT01-016",
+    "name": "Ikazuchi",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Weapon",
+    "rarity": "SR",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 4,
+    "power": 4,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Raizan",
+      "Sword"
+    ],
+    "effect": "[When Attacking] If equipped to a (Raizan) subtype card, deal 1 damage to all entities in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-016.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-016.jpg",
+    "variants": [
+      {
+        "id": "STT01-016A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-016A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "STT01-017",
+    "code": "STT01-017",
+    "name": "Lightning Orb",
+    "setCode": "STT01",
+    "setName": "Starter Deck 1",
+    "releaseOrder": 201,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Lightning"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Orb",
+      "Stormcaller"
+    ],
+    "effect": "[Response] Deal 1 damage to a leader or an entity in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-017.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT01-017.jpg"
+  },
+  {
+    "id": "STT02-001",
+    "code": "STT02-001",
+    "name": "Shao",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Shao"
+    ],
+    "effect": "[Once/Turn][Response] *Pay 1 IKZ*: Reduce a leader's or an entity's attack by 1 until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-001.jpg",
+    "variants": [
+      {
+        "id": "STT02-001AC",
+        "label": "Special",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-001AC.jpg",
+        "rarity": "L ★★"
+      },
+      {
+        "id": "STT02-001AX",
+        "label": "Alt Art",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-001AX.jpg",
+        "rarity": "L ★"
+      },
+      {
+        "id": "STT02-001A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-001A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "STT02-002",
+    "code": "STT02-002",
+    "name": "Hydromancy Gate",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Water"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gate"
+    ],
+    "effect": "TAP: Portal an untapped entity from the Alley into the Garden, then you may untap IKZ up to the (Gate Power) of the portaled card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-002.jpg",
+    "variants": [
+      {
+        "id": "STT02-002A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-002A.jpg",
+        "rarity": "G ★"
+      }
+    ]
+  },
+  {
+    "id": "STT02-003",
+    "code": "STT02-003",
+    "name": "Hayabusa Itto",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Elder",
+      "Sushi Chef"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Watercrafting) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-003.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-003.jpg"
+  },
+  {
+    "id": "STT02-004",
+    "code": "STT02-004",
+    "name": "Rei",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Dawnling"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-004.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-004.jpg"
+  },
+  {
+    "id": "STT02-005",
+    "code": "STT02-005",
+    "name": "Hayabusa Saburo",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Sushi Chef"
+    ],
+    "effect": "[On Play] If you played 2 other entities this turn, draw 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-005.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-005.jpg"
+  },
+  {
+    "id": "STT02-006",
+    "code": "STT02-006",
+    "name": "Foamback Crab",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": 0,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Crab",
+      "Driftward",
+      "Rippleborn"
+    ],
+    "effect": "\"Defender\" (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\nThis card cannot take damage from card effects.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-006.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-006.jpg"
+  },
+  {
+    "id": "STT02-007",
+    "code": "STT02-007",
+    "name": "Benzai the Merchant",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Frog",
+      "Merchant",
+      "Wavecaller"
+    ],
+    "effect": "[On Play] Draw 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-007.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-007.jpg"
+  },
+  {
+    "id": "STT02-008",
+    "code": "STT02-008",
+    "name": "Serene Fist, Misaki",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Driftward"
+    ],
+    "effect": "This card cannot take damage from card effects.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-008.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-008.jpg"
+  },
+  {
+    "id": "STT02-009",
+    "code": "STT02-009",
+    "name": "Aya",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Painter",
+      "Watercrafting"
+    ],
+    "effect": "[On Play] You may return an entity with a cost of 2 or more in your Garden to your hand: Return up to 1 entity with a cost of 2 or less in your opponent's Garden to its owner's hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-009.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-009.jpg"
+  },
+  {
+    "id": "STT02-010",
+    "code": "STT02-010",
+    "name": "Selis of the Shore",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Water"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Wavecaller"
+    ],
+    "effect": "[In Garden Only Ability] Whenever any entity is returned to its owner's hand, you may TAP this card, then draw 1.\n\n(This ability is not affected by Cooldown)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-010.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-010.jpg"
+  },
+  {
+    "id": "STT02-011",
+    "code": "STT02-011",
+    "name": "Bubblemancer",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Driftward"
+    ],
+    "effect": "[In Garden Only Ability][Main] You may sacrifice this card: Choose an entity in your Garden; it cannot take damage from card effects until the start of your next turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-011.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-011.jpg"
+  },
+  {
+    "id": "STT02-012",
+    "code": "STT02-012",
+    "name": "Young Shao",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Dawnling",
+      "Shao"
+    ],
+    "effect": "If the number of entities in your Garden is 2 or more than the number of entities in your opponent's Garden, this card has +1 attack and +1 health.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-012.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-012.jpg"
+  },
+  {
+    "id": "STT02-013",
+    "code": "STT02-013",
+    "name": "Mizuki",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Water"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Wavecaller"
+    ],
+    "effect": "[On Play] Look at the top 3 cards of your deck, reveal up to 1 (Water) card with a cost of 2 or less and add it to your hand, then bottom deck the rest in any order. You may play the card in the Alley if it is an entity card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-013.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-013.jpg",
+    "variants": [
+      {
+        "id": "STT02-013A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-013A.jpg",
+        "rarity": "SR ★"
+      },
+      {
+        "id": "STT02-013ASN",
+        "label": "Signature",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-013ASN.jpg",
+        "rarity": "SR ★★"
+      }
+    ]
+  },
+  {
+    "id": "STT02-014",
+    "code": "STT02-014",
+    "name": "Chilling Water",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Frozen"
+    ],
+    "types": [
+      "Subzero",
+      "Watercrafting"
+    ],
+    "effect": "[Main] An entity with a cost of 2 or less in your opponent's Garden becomes <Frozen> (It cannot attack or be damaged, and its abilities are disabled) until the start of your next turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-014.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-014.jpg"
+  },
+  {
+    "id": "STT02-015",
+    "code": "STT02-015",
+    "name": "Commune with Water",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Water"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Watercrafting"
+    ],
+    "effect": "[Response] Return an entity with a cost of 3 or less in any Garden to its owner's hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-015.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-015.jpg"
+  },
+  {
+    "id": "STT02-016",
+    "code": "STT02-016",
+    "name": "Water Orb",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Water"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Orb",
+      "Watercrafting"
+    ],
+    "effect": "[Response] Discard 1: Reduce a leader's or an entity's attack by 2 until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-016.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-016.jpg"
+  },
+  {
+    "id": "STT02-017",
+    "code": "STT02-017",
+    "name": "Shao's Perseverance",
+    "setCode": "STT02",
+    "setName": "Starter Deck 2",
+    "releaseOrder": 202,
+    "cardType": "Spell",
+    "rarity": "SR",
+    "colors": [
+      "Water"
+    ],
+    "cost": 6,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Shao",
+      "Watercrafting"
+    ],
+    "effect": "[Main] If your leader is (Shao), return all entities with a cost of 4 or less in your opponent's Garden to their owner's hand.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-017.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-017.jpg",
+    "variants": [
+      {
+        "id": "STT02-017A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT02-017A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "STT03-001",
+    "code": "STT03-001",
+    "name": "Bobu",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Earth"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bobu",
+      "Brewmaster",
+      "Stonemend"
+    ],
+    "effect": "[Once/Turn][Main] *Pay 1 IKZ*: Until the start of your next turn, the first time an (Earth) entity in your Garden or Alley is destroyed or sacrificed, you may heal 1 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-001.jpg",
+    "variants": [
+      {
+        "id": "STT03-001A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-001A.jpg",
+        "rarity": "L ★"
+      }
+    ]
+  },
+  {
+    "id": "STT03-002",
+    "code": "STT03-002",
+    "name": "Stonehaven Gate",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Earth"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Gate"
+    ],
+    "effect": "TAP: Portal an untapped entity from the Alley into the Garden, then you may give an entity in your Garden with base health that's equal to or less than the (Gate Power) of the portaled entity \"Defender\" (If this card is in the Garden, you may tap it to redirect an attack to this card) until the start of your next turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-002.jpg",
+    "variants": [
+      {
+        "id": "STT03-002A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-002A.jpg",
+        "rarity": "G ★"
+      }
+    ]
+  },
+  {
+    "id": "STT03-003",
+    "code": "STT03-003",
+    "name": "Koyama Farm Potter",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Artisan",
+      "Dusttracker"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, you may reveal up to 1 (Verdant) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-003.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-003.jpg"
+  },
+  {
+    "id": "STT03-004",
+    "code": "STT03-004",
+    "name": "Sloth Scarecrow",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 1,
+    "power": 0,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Earthwarden",
+      "Stonemend"
+    ],
+    "effect": "Defender (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\n[Main] You may sacrifice this card: Heal 1 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-004.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-004.jpg"
+  },
+  {
+    "id": "STT03-005",
+    "code": "STT03-005",
+    "name": "Wobbly Cabbage Cart",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 2,
+    "power": 0,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury"
+    ],
+    "effect": "[When Destroyed] You may destroy an entity with 1 health in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-005.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-005.jpg"
+  },
+  {
+    "id": "STT03-006",
+    "code": "STT03-006",
+    "name": "Cactus Farmer",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 2,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthwarden"
+    ],
+    "effect": "[When Destroyed] Draw 1, then discard 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-006.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-006.jpg"
+  },
+  {
+    "id": "STT03-007",
+    "code": "STT03-007",
+    "name": "Koyama Farm Caretaker",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Farmer",
+      "Verdant"
+    ],
+    "effect": "[In Garden Only Ability] Treat this card also as an IKZ card.\n\n(This ability is not affected by Cooldown)",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-007.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-007.jpg"
+  },
+  {
+    "id": "STT03-008",
+    "code": "STT03-008",
+    "name": "Midnight Courier",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Strider"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-008.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-008.jpg"
+  },
+  {
+    "id": "STT03-009",
+    "code": "STT03-009",
+    "name": "Warding Totem",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 4,
+    "power": 0,
+    "counter": null,
+    "attributes": [
+      "Defender"
+    ],
+    "types": [
+      "Earthwarden",
+      "Statue",
+      "Verdant"
+    ],
+    "effect": "\"Defender\" (If this card is in the Garden, you may tap it to redirect an attack to this card)\n\n[On Play] Add 1 IKZ from your IKZ pile to your IKZ area; the IKZ enters the field tapped.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-009.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-009.jpg"
+  },
+  {
+    "id": "STT03-010",
+    "code": "STT03-010",
+    "name": "Shroommancer",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Stonemend"
+    ],
+    "effect": "[Once/Turn] Whenever this card attacks and destroys an entity in your opponent's Garden, you may heal 1 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-010.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-010.jpg"
+  },
+  {
+    "id": "STT03-011",
+    "code": "STT03-011",
+    "name": "Koyama Farm Plowman",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 5,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthwarden",
+      "Farmer",
+      "Obsidian"
+    ],
+    "effect": "[On Play] If this card is played in the Garden, you may destroy an entity with a base health of 2 or less in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-011.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-011.jpg"
+  },
+  {
+    "id": "STT03-012",
+    "code": "STT03-012",
+    "name": "Miharu of the White Bloom",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 6,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Stonemend",
+      "Verdant"
+    ],
+    "effect": "[On Play] You may play an entity with a cost of 2 or less from your hand into your Garden.\n\n[In Garden Only Ability][Once/Turn] On your opponent's turn, whenever another entity in your Garden or this entity is destroyed, you may heal 2 to your leader.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-012.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-012.jpg"
+  },
+  {
+    "id": "STT03-013",
+    "code": "STT03-013",
+    "name": "Stone Masked Ancient",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 7,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Taunt"
+    ],
+    "types": [
+      "Obsidian",
+      "Sandstrider"
+    ],
+    "effect": "[In Garden Only Ability] \"Taunt\" (When tapped, opponents can only attack entities with \"Taunt\")\n\nWhen this card enters the Garden, you may tap it.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-013.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-013.jpg",
+    "variants": [
+      {
+        "id": "STT03-013A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-013A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "STT03-014",
+    "code": "STT03-014",
+    "name": "Sandcoil Python",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 8,
+    "power": 6,
+    "counter": null,
+    "attributes": [
+      "Rooted"
+    ],
+    "types": [
+      "Rootbane",
+      "Sandstrider",
+      "Verdant"
+    ],
+    "effect": "[On Play] All entities in your opponent's Garden with a base attack of 3 or less become \"Rooted\" (cannot attack until the start of your next turn).",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-014.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-014.jpg"
+  },
+  {
+    "id": "STT03-015",
+    "code": "STT03-015",
+    "name": "Jar of Beans",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 4,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Stonemend"
+    ],
+    "effect": "[Main] Heal 3 to your leader. If you have 7 or more IKZ in your IKZ area, heal 5 instead.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-015.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-015.jpg"
+  },
+  {
+    "id": "STT03-016",
+    "code": "STT03-016",
+    "name": "Quicksand",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 5,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Earthfury"
+    ],
+    "effect": "[Main] Destroy all entities with 2 health or less in your opponent's Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-016.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-016.jpg"
+  },
+  {
+    "id": "STT03-017",
+    "code": "STT03-017",
+    "name": "Sprout of Fortune",
+    "setCode": "STT03",
+    "setName": "Starter Deck 3",
+    "releaseOrder": 203,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Earth"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Verdant"
+    ],
+    "effect": "[Main] Choose 1:\nAdd 1 IKZ from your IKZ pile to your IKZ area; the IKZ enters the field tapped. Then, heal up to 1 to your leader. \nor\nDraw 1.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-017.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT03-017.jpg"
+  },
+  {
+    "id": "STT04-001",
+    "code": "STT04-001",
+    "name": "Zero",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Leader",
+    "rarity": "L",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Black Jade",
+      "Scorchweaver"
+    ],
+    "effect": "[Once/Turn][Main] Deal 1 damage to this card: Deal 1 damage to an entity in your Garden or Alley, then give that entity +1 attack until the end of the turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-001.jpg",
+    "variants": [
+      {
+        "id": "STT04-001A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-001A.jpg",
+        "rarity": "L ★"
+      },
+      {
+        "id": "STT04-001AC",
+        "label": "Special",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-001AC.jpg",
+        "rarity": "L ★★"
+      }
+    ]
+  },
+  {
+    "id": "STT04-002",
+    "code": "STT04-002",
+    "name": "Ragefire Gate",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Gate",
+    "rarity": "G",
+    "colors": [
+      "Fire"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Gate"
+    ],
+    "effect": "TAP: Portal an untapped entity from the Alley into the Garden, then you may choose an entity in your Garden that took damage this turn and give that entity <+Attack> equal to the (Gate Power) of the portaled entity until the end of your turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-002.jpg",
+    "variants": [
+      {
+        "id": "STT04-002A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-002A.jpg",
+        "rarity": "G ★"
+      }
+    ]
+  },
+  {
+    "id": "STT04-003",
+    "code": "STT04-003",
+    "name": "Cinderwake Seer",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Blazerker",
+      "Cinderwake"
+    ],
+    "effect": "[Start of Each Turn] You must deal 1 damage to this card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-003.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-003.jpg"
+  },
+  {
+    "id": "STT04-004",
+    "code": "STT04-004",
+    "name": "Fanatic Kindler",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Scorchweaver"
+    ],
+    "effect": "[On Play] You may sacrifice this card: Deal 1 damage to an entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-004.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-004.jpg"
+  },
+  {
+    "id": "STT04-005",
+    "code": "STT04-005",
+    "name": "Ruby",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Ashveil"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck, reveal up to 1 (Pyreskin) subtype card and add it to your hand, then bottom deck the rest in any order.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-005.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-005.jpg"
+  },
+  {
+    "id": "STT04-006",
+    "code": "STT04-006",
+    "name": "Wolf Cub",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Dawnling",
+      "Wolf"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-006.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-006.jpg"
+  },
+  {
+    "id": "STT04-007",
+    "code": "STT04-007",
+    "name": "Enraged Howler",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 2,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Pyreskin",
+      "Wolf"
+    ],
+    "effect": "[Once/Turn] Whenever this entity takes damage, it gets +1 attack until the end of turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-007.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-007.jpg"
+  },
+  {
+    "id": "STT04-008",
+    "code": "STT04-008",
+    "name": "Lady Emberheart",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Crimsondrift"
+    ],
+    "effect": "[Once/Turn] On your turn, after this card attacks an entity, you may untap this card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-008.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-008.jpg"
+  },
+  {
+    "id": "STT04-009",
+    "code": "STT04-009",
+    "name": "Cinderwake Ritualist",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Cinderwake",
+      "Pyreskin"
+    ],
+    "effect": "[In Garden Only Ability][Once/Turn] Whenever this card takes damage from card effects, you may also deal that damage to another leader or entity in any Garden, capped at 2 damage.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-009.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-009.jpg"
+  },
+  {
+    "id": "STT04-010",
+    "code": "STT04-010",
+    "name": "Reckless Tinkerer",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": 1,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Blazerker",
+      "Elder",
+      "Pyreskin"
+    ],
+    "effect": "\"Charge\"\n\n[On Play] You must deal 1 damage to this card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-010.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-010.jpg"
+  },
+  {
+    "id": "STT04-011",
+    "code": "STT04-011",
+    "name": "Scorchland Raven",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "C",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": 4,
+    "power": 2,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bird"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-011.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-011.jpg"
+  },
+  {
+    "id": "STT04-012",
+    "code": "STT04-012",
+    "name": "Spiteful Raider",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 4,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Bandit",
+      "Pyreskin"
+    ],
+    "effect": "[Once/Turn] Whenever this card takes damage, deal 1 damage to a leader or an entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-012.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-012.jpg"
+  },
+  {
+    "id": "STT04-013",
+    "code": "STT04-013",
+    "name": "Kurai the Volcano",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 5,
+    "power": 3,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Crimsondrift",
+      "Elder"
+    ],
+    "effect": "[Once/Turn] Whenever an entity in your opponent's Garden is destroyed, untap this card.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-013.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-013.jpg"
+  },
+  {
+    "id": "STT04-014",
+    "code": "STT04-014",
+    "name": "Scorchveil Shinobi, Suzuka",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Entity",
+    "rarity": "SR",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 6,
+    "power": 3,
+    "counter": null,
+    "attributes": [
+      "Charge"
+    ],
+    "types": [
+      "Blazerker",
+      "Ninja"
+    ],
+    "effect": "\"Charge\"\n\n[On Play] If your leader has the (Scorchweaver) subtype, deal 1 damage to all entities in each player's Garden, then give all other entities in your Garden +1 attack until the end of your turn.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-014.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-014.jpg",
+    "variants": [
+      {
+        "id": "STT04-014A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-014A.jpg",
+        "rarity": "SR ★"
+      }
+    ]
+  },
+  {
+    "id": "STT04-015",
+    "code": "STT04-015",
+    "name": "Detonation Pact",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Spell",
+    "rarity": "C",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 1,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Scorchweaver"
+    ],
+    "effect": "[Main] Deal 1 damage to your leader: Deal 2 damage to a leader or an entity in any Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-015.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-015.jpg"
+  },
+  {
+    "id": "STT04-016",
+    "code": "STT04-016",
+    "name": "Collateral Burst",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Spell",
+    "rarity": "UC",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 2,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Pyreskin",
+      "Scorchweaver"
+    ],
+    "effect": "[Main] Deal up to 1 damage to an entity in your Garden and up to 2 damage to a leader or an entity in your opponent's  Garden.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-016.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-016.jpg"
+  },
+  {
+    "id": "STT04-017",
+    "code": "STT04-017",
+    "name": "Wrath of Sinder",
+    "setCode": "STT04",
+    "setName": "Starter Deck 4",
+    "releaseOrder": 204,
+    "cardType": "Spell",
+    "rarity": "R",
+    "colors": [
+      "Fire"
+    ],
+    "cost": 3,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "Blazerker"
+    ],
+    "effect": "[Main] Sacrifice any number of entities in your Garden: Deal damage to an entity or a leader in any Garden equal to the number of entities sacrificed.",
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-017.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/STT04-017.jpg"
+  },
+  {
+    "id": "AZP-001",
+    "code": "AZP-001",
+    "name": "IKZ Token",
+    "setCode": "AZP",
+    "setName": "Promo",
+    "releaseOrder": 301,
+    "cardType": "IKZ",
+    "rarity": "IKZ",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "IKZ",
+      "Token"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZP-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZP-001.jpg"
+  },
+  {
+    "id": "AZP-002",
+    "code": "AZP-002",
+    "name": "IKZ Token",
+    "setCode": "AZP",
+    "setName": "Promo",
+    "releaseOrder": 301,
+    "cardType": "IKZ",
+    "rarity": "IKZ",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "IKZ",
+      "Token"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZP-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZP-002.jpg"
+  },
+  {
+    "id": "AZP-003",
+    "code": "AZP-003",
+    "name": "IKZ",
+    "setCode": "AZP",
+    "setName": "Promo",
+    "releaseOrder": 301,
+    "cardType": "IKZ",
+    "rarity": "IKZ ★",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "IKZ"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZP-003.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/AZP-003.jpg"
+  },
+  {
+    "id": "IKZ-001",
+    "code": "IKZ-001",
+    "name": "IKZ",
+    "setCode": "IKZ",
+    "setName": "IKZ Tokens",
+    "releaseOrder": 302,
+    "cardType": "IKZ",
+    "rarity": "IKZ",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "IKZ"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/IKZ-001.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/IKZ-001.jpg",
+    "variants": [
+      {
+        "id": "IKZ-001A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/IKZ-001A.jpg",
+        "rarity": "IKZ ★"
+      }
+    ]
+  },
+  {
+    "id": "IKZ-002",
+    "code": "IKZ-002",
+    "name": "IKZ Token",
+    "setCode": "IKZ",
+    "setName": "IKZ Tokens",
+    "releaseOrder": 302,
+    "cardType": "IKZ",
+    "rarity": "IKZ",
+    "colors": [
+      "Neutral"
+    ],
+    "cost": null,
+    "power": null,
+    "counter": null,
+    "attributes": [],
+    "types": [
+      "IKZ",
+      "Token"
+    ],
+    "imageSmall": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/IKZ-002.jpg",
+    "imageLarge": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/IKZ-002.jpg",
+    "variants": [
+      {
+        "id": "IKZ-002A",
+        "label": "Foil",
+        "imageUrl": "https://pub-6d5072ccd26a467db70791436c203abb.r2.dev/cards/azuki/IKZ-002A.jpg",
+        "rarity": "IKZ ★"
+      }
+    ]
+  }
+]
