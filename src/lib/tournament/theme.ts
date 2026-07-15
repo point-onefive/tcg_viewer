@@ -316,10 +316,10 @@ const CARD_TREASURE_THEME: TournamentTheme = {
     // gold/red wash so the white copy + glass step cards stay legible.
     '--bonk-how-scene-dark': `url(${CARDTREASURE_ASSETS}/scenes/scene-aisle.webp)`,
     '--bonk-how-wash-dark':
-      'linear-gradient(108deg, rgba(11,9,6,0.9) 30%, rgba(40,16,8,0.72) 72%, rgba(60,20,10,0.5) 100%)',
+      'linear-gradient(108deg, rgba(11,9,6,0.92) 30%, rgba(11,9,6,0.8) 72%, rgba(11,9,6,0.68) 100%)',
     '--bonk-foot-scene-dark': `url(${CARDTREASURE_ASSETS}/scenes/scene-lounge.webp)`,
     '--bonk-foot-wash-dark':
-      'linear-gradient(100deg, rgba(11,9,6,0.9) 38%, rgba(46,12,14,0.68) 78%, rgba(60,20,10,0.5) 100%)',
+      'linear-gradient(100deg, rgba(11,9,6,0.92) 38%, rgba(11,9,6,0.78) 78%, rgba(11,9,6,0.68) 100%)',
   },
   hero: {
     ariaLabel: 'Card Treasure Adventure',
