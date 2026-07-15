@@ -281,7 +281,7 @@ const CARD_TREASURE_THEME: TournamentTheme = {
     // The store photos behind section cards are crisp and a bit busy, so lift
     // them above the faint 0.16 default to read as clear (if dim) photos
     // rather than grain. Text stays legible over the warm-dark cards.
-    '--bonk-scene-opacity': '0.36',
+    '--bonk-scene-opacity': '0.3',
     // The emblem is a self-contained badge (not a bleed-to-edge mascot), so
     // inset it from the hero's right edge instead of sitting flush.
     '--bonk-mascot-right': 'clamp(16px, 4vw, 64px)',
@@ -310,7 +310,7 @@ const CARD_TREASURE_THEME: TournamentTheme = {
     // Desktop hero shows a clear-but-dim store photo (left-fade masked so the
     // headline keeps contrast). Mobile keeps the clean gradient + faded-logo
     // watermark, so the hero photo is suppressed there.
-    '--bonk-hero-scene-opacity': '0.32',
+    '--bonk-hero-scene-opacity': '0.3',
     '--bonk-hero-scene-opacity-sm': '0',
     // Playbook + footer: real Card Treasure storefront photos under a warm
     // gold/red wash so the white copy + glass step cards stay legible.
