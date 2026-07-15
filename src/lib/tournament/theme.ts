@@ -281,7 +281,7 @@ const CARD_TREASURE_THEME: TournamentTheme = {
     // The store photos behind section cards are crisp and a bit busy, so lift
     // them above the faint 0.16 default to read as clear (if dim) photos
     // rather than grain. Text stays legible over the warm-dark cards.
-    '--bonk-scene-opacity': '0.26',
+    '--bonk-scene-opacity': '0.36',
     // The emblem is a self-contained badge (not a bleed-to-edge mascot), so
     // inset it from the hero's right edge instead of sitting flush.
     '--bonk-mascot-right': 'clamp(16px, 4vw, 64px)',
