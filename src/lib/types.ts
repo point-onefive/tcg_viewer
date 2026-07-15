@@ -213,6 +213,9 @@ export type Card = {
   cost?: number | null
   power?: number | null
   counter?: number | null
+  // Azuki-only: a Gate card's power contribution. Optional; unused by
+  // other collections. Stored for data completeness / future display.
+  gatePower?: number | null
   attributes?: string[]
   types?: string[]
   effect?: string | null

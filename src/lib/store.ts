@@ -82,6 +82,12 @@ interface StoreState {
   activeCharacters: string[]
   toggleCharacter: (name: string) => void
   clearCharacters: () => void
+  // Multi-select archetype/clan filter (Azuki). Holds values from
+  // card.types the user has picked; the wall shows any card matching one
+  // of them (OR). Mirrors the character-picker semantics.
+  activeTypeTags: string[]
+  toggleTypeTag: (tag: string) => void
+  clearTypeTags: () => void
   // When true, only show cards with at least one variant (alt art).
   // In stacked mode: hide cards with zero variants. In flatten mode:
   // hide base prints and show variant tiles only (see buildWallEntries).
@@ -291,6 +297,7 @@ export const useStore = create<StoreState>()(
           activeSubtype: null,
           activeArtist: null,
           activeCharacters: [],
+          activeTypeTags: [],
           onlyAltArt: false,
           onlyErrata: false,
           flattenWall: false,
@@ -319,6 +326,14 @@ export const useStore = create<StoreState>()(
             : [...s.activeCharacters, name],
         })),
       clearCharacters: () => set({ activeCharacters: [] }),
+      activeTypeTags: [],
+      toggleTypeTag: (tag) =>
+        set((s) => ({
+          activeTypeTags: s.activeTypeTags.includes(tag)
+            ? s.activeTypeTags.filter((t) => t !== tag)
+            : [...s.activeTypeTags, tag],
+        })),
+      clearTypeTags: () => set({ activeTypeTags: [] }),
       onlyAltArt: false,
       setOnlyAltArt: (onlyAltArt) => set({ onlyAltArt }),
       onlyErrata: false,
@@ -656,6 +671,7 @@ export const useStore = create<StoreState>()(
         activeSubtype: state.activeSubtype,
         activeArtist: state.activeArtist,
         activeCharacters: state.activeCharacters,
+        activeTypeTags: state.activeTypeTags,
         onlyAltArt: state.onlyAltArt,
         // wallSort is deliberately NOT persisted. A sort picked during one
         // browsing session silently reordering the wall days later reads as
@@ -676,7 +692,7 @@ export const useStore = create<StoreState>()(
         decks: state.decks,
         activeDeckId: state.activeDeckId,
       }),
-      version: 24,
+      version: 25,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -845,6 +861,12 @@ export const useStore = create<StoreState>()(
             ? ((s as { decks?: Deck[] }).decks ?? [])
             : []
           s.activeDeckId = (s as { activeDeckId?: string | null }).activeDeckId ?? null
+        }
+        if (fromVersion < 25) {
+          // v25 adds the multi-select archetype filter (Azuki). Coerce to
+          // an array so a pre-v25 blob (no key) doesn't leave it undefined
+          // when merged against initialState.
+          s.activeTypeTags = Array.isArray(s.activeTypeTags) ? s.activeTypeTags : []
         }
         return s as StoreState
       },

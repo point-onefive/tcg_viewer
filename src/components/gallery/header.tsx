@@ -24,6 +24,10 @@ interface HeaderProps {
   // unless the collection declares `characterTypes`). Feeds the
   // multi-select character picker.
   characters: string[]
+  // Distinct archetype/clan tags (card.types) for the active collection
+  // (empty unless the collection declares `typeTagLabel`). Feeds the
+  // multi-select archetype picker (Azuki).
+  typeTags: string[]
 }
 
 /**
@@ -355,6 +359,8 @@ function CharacterPicker({
   ctrlActive,
   fluid = false,
   menuAlign = 'left',
+  title = 'Characters',
+  noun = 'character',
 }: {
   characters: string[]
   selected: string[]
@@ -364,7 +370,14 @@ function CharacterPicker({
   ctrlActive: React.CSSProperties
   fluid?: boolean
   menuAlign?: 'left' | 'right'
+  // Trigger/aria copy so the same picker serves both the character
+  // filter and the Azuki archetype filter. `title` is the 0-count
+  // trigger label; `noun` is the lowercase singular used in count text
+  // and placeholders (pluralized by appending "s").
+  title?: string
+  noun?: string
 }) {
+  const nouns = `${noun}s`
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeLetter, setActiveLetter] = useState<string | null>(null)
@@ -429,14 +442,14 @@ function CharacterPicker({
 
   const triggerLabel =
     count === 0
-      ? 'Characters'
+      ? title
       : count === 1
         ? selected[0]
-        : `${count} characters`
+        : `${count} ${nouns}`
 
   return (
     <HeaderDropdown
-      ariaLabel={count > 0 ? `Characters (${count} selected)` : 'Filter by character'}
+      ariaLabel={count > 0 ? `${title} (${count} selected)` : `Filter by ${noun}`}
       align={menuAlign}
       minWidth={240}
       open={open}
@@ -491,8 +504,8 @@ function CharacterPicker({
             setQuery(e.target.value)
             if (e.target.value.trim()) setActiveLetter(null)
           }}
-          placeholder="Search characters…"
-          aria-label="Search characters"
+          placeholder={`Search ${nouns}…`}
+          aria-label={`Search ${nouns}`}
           autoComplete="off"
           className="text-xs font-medium outline-none shrink-0"
           style={{
@@ -521,7 +534,7 @@ function CharacterPicker({
           <div
             className={`no-scrollbar flex gap-1 px-1 pt-1 pb-3 shrink-0 ${fluid ? 'flex-nowrap overflow-x-auto' : 'flex-wrap'}`}
             role="tablist"
-            aria-label="Browse characters by letter"
+            aria-label={`Browse ${nouns} by letter`}
           >
             {letters.map((letter) => {
               const picked = activeLetter === letter
@@ -566,7 +579,7 @@ function CharacterPicker({
           )}
           {visible.length === 0 && (query.trim() || activeLetter) && (
             <div className="px-2.5 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-              No characters match.
+              No {nouns} match.
             </div>
           )}
           {visible.map((name) => (
@@ -1178,7 +1191,7 @@ function ZoomControl({
   )
 }
 
-export function Header({ sets, artists, characters }: HeaderProps) {
+export function Header({ sets, artists, characters, typeTags }: HeaderProps) {
   const {
     searchQuery, setSearchQuery,
     activeSet, setActiveSet,
@@ -1188,6 +1201,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
     activeSubtype, setActiveSubtype,
     activeArtist, setActiveArtist,
     activeCharacters, toggleCharacter, clearCharacters,
+    activeTypeTags, toggleTypeTag, clearTypeTags,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -1301,6 +1315,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
     (activeSubtype ? 1 : 0) +
     (activeArtist ? 1 : 0) +
     activeCharacters.length +
+    activeTypeTags.length +
     (onlyAltArt ? 1 : 0) +
     (onlyErrata ? 1 : 0) +
     (flattenWall ? 1 : 0)
@@ -1312,7 +1327,7 @@ export function Header({ sets, artists, characters }: HeaderProps) {
   const clearAllFilters = () => {
     setActiveSet(null); setActiveRarity(null); setActiveColor(null)
     setActiveCardType(null); setActiveSubtype(null); setActiveArtist(null)
-    clearCharacters()
+    clearCharacters(); clearTypeTags()
     setOnlyAltArt(false); setOnlyErrata(false); setFlattenWall(false)
     setWallSort('default')
   }
@@ -1627,11 +1642,11 @@ export function Header({ sets, artists, characters }: HeaderProps) {
             </PanelSection>
 
             {facets.subtypes && (
-              <PanelSection label="Era / subtype">
+              <PanelSection label={facets.subtypeLabel ?? 'Era / subtype'}>
                 <div className="flex">
                   <FacetPopover
-                    placeholder="All subtypes"
-                    ariaLabel="Filter by subtype / era"
+                    placeholder={facets.subtypePlaceholder ?? 'All subtypes'}
+                    ariaLabel={`Filter by ${(facets.subtypeLabel ?? 'subtype').toLowerCase()}`}
                     value={activeSubtype}
                     onChange={setActiveSubtype}
                     options={facets.subtypes}
@@ -1669,6 +1684,24 @@ export function Header({ sets, artists, characters }: HeaderProps) {
                     onClear={clearCharacters}
                     ctrl={ctrl}
                     ctrlActive={ctrlActive}
+                    fluid
+                  />
+                </div>
+              </PanelSection>
+            )}
+
+            {facets.typeTagLabel && typeTags.length > 0 && (
+              <PanelSection label={facets.typeTagLabel}>
+                <div className="flex">
+                  <CharacterPicker
+                    characters={typeTags}
+                    selected={activeTypeTags}
+                    onToggle={toggleTypeTag}
+                    onClear={clearTypeTags}
+                    ctrl={ctrl}
+                    ctrlActive={ctrlActive}
+                    title={facets.typeTagLabel}
+                    noun={facets.typeTagLabel.toLowerCase()}
                     fluid
                   />
                 </div>
@@ -1788,6 +1821,9 @@ export function Header({ sets, artists, characters }: HeaderProps) {
           {activeArtist && <FilterChip label={activeArtist} onClear={() => setActiveArtist(null)} />}
           {activeCharacters.map((name) => (
             <FilterChip key={name} label={name} onClear={() => toggleCharacter(name)} />
+          ))}
+          {activeTypeTags.map((tag) => (
+            <FilterChip key={tag} label={tag} onClear={() => toggleTypeTag(tag)} />
           ))}
           {onlyAltArt && (
             <FilterChip

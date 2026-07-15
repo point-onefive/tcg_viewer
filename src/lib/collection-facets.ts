@@ -41,6 +41,21 @@ export type CollectionFacets = {
    */
   subtypes?: ReadonlyArray<FacetOption>
   /**
+   * Override the "Era / subtype" section heading + "All subtypes"
+   * placeholder for the subtype popover. Azuki repurposes this facet as
+   * a keyword-ability filter, so it reads "Keyword" / "All keywords".
+   */
+  subtypeLabel?: string
+  subtypePlaceholder?: string
+  /**
+   * When set, the header renders a multi-select picker (same UI as the
+   * character picker) that filters on `card.types` - e.g. Azuki clans /
+   * archetypes (Steelborn, Beanz, Wavecaller). The string is the section
+   * heading + trigger label ("Archetype"). Options are derived from the
+   * live bundle in page.tsx, so the list stays in sync as prints land.
+   */
+  typeTagLabel?: string
+  /**
    * Card-type values whose `card.name` is a named character/leader, used
    * to build the multi-select character picker. The picker derives its
    * option list from the live bundle (one entry per distinct name on a
@@ -299,6 +314,24 @@ const AZUKI: CollectionFacets = {
     { value: 'IKZ',   label: 'IKZ · Token' },
   ],
   colors: ['Fire', 'Water', 'Earth', 'Lightning', 'Neutral'].map(colorOpt),
+  // Keyword abilities live on card.attributes, which the subtype facet
+  // already filters. Repurpose that popover as a "Keyword" filter.
+  subtypes: [
+    { value: 'Charge',     label: 'Charge' },
+    { value: 'Defender',   label: 'Defender' },
+    { value: 'Taunt',      label: 'Taunt' },
+    { value: 'Shocked',    label: 'Shocked' },
+    { value: 'Carapace',   label: 'Carapace' },
+    { value: 'Godmode',    label: 'Godmode' },
+    { value: 'Infiltrate', label: 'Infiltrate' },
+    { value: 'Frozen',     label: 'Frozen' },
+    { value: 'Rooted',     label: 'Rooted' },
+  ],
+  subtypeLabel: 'Keyword',
+  subtypePlaceholder: 'All keywords',
+  // Clans / archetypes (Steelborn, Beanz, Wavecaller, ...) live on
+  // card.types. Surfaced as a searchable multi-select picker.
+  typeTagLabel: 'Archetype',
   // Azuki bundles parallel/foil prints as nested variants on a base card
   // (same as Gundam / One Piece), so the Alt art + Flatten toggles apply.
   hasVariants: true,

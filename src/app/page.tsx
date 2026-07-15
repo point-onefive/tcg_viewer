@@ -60,6 +60,18 @@ export default function Home() {
     }
     return [...seen].sort((a, b) => a.localeCompare(b))
   }, [cards, activeCollection])
+  // Sorted unique archetype/clan tags (card.types) for the multi-select
+  // picker. Only collections whose facet config declares `typeTagLabel`
+  // (Azuki today) produce a non-empty list; the Header hides the picker
+  // otherwise. Derived from the live card view so it stays in sync.
+  const typeTags = useMemo(() => {
+    if (!COLLECTION_FACETS[activeCollection].typeTagLabel) return []
+    const seen = new Set<string>()
+    for (const c of cards) {
+      for (const t of c.types ?? []) if (t) seen.add(t)
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b))
+  }, [cards, activeCollection])
   const ready = hasData(activeCollection)
 
   // The old first-visit OnboardingTour was removed in favour of a
@@ -70,7 +82,7 @@ export default function Home() {
   // returning user who forgot how the tier-list maker works.
   return (
     <main className="relative min-h-screen">
-      <Header sets={sets} artists={artists} characters={characters} />
+      <Header sets={sets} artists={artists} characters={characters} typeTags={typeTags} />
       {ready ? (
         <>
           <CardGrid cards={cards} sets={sets} />

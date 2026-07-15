@@ -26,6 +26,10 @@ export interface CardFilterState {
   // selectable names. Empty array = no filter. Ignored by collections
   // that don't surface the picker.
   activeCharacters: string[]
+  // Multi-select archetype/clan filter (Azuki). Each entry is a value
+  // from card.types; matching is OR across the list. Empty = no filter.
+  // Ignored by collections that don't surface the picker.
+  activeTypeTags: string[]
   onlyAltArt: boolean
   // When true, restrict the wall to the curated list of One Piece
   // cards that have received an official errata. List lives in
@@ -424,6 +428,10 @@ export function filterCards(cards: Card[], f: CardFilterState): Card[] {
   if (f.activeCharacters.length > 0) {
     const picked = new Set(f.activeCharacters)
     result = result.filter((c) => picked.has(c.name))
+  }
+  if (f.activeTypeTags.length > 0) {
+    const picked = new Set(f.activeTypeTags)
+    result = result.filter((c) => c.types?.some((t) => picked.has(t)))
   }
   if (f.onlyAltArt) result = result.filter((c) => (c.variants?.length ?? 0) > 0)
   if (f.onlyErrata) result = result.filter((c) => ONE_PIECE_ERRATA_CODES.has(c.code))

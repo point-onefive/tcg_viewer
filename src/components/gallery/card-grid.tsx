@@ -115,6 +115,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
     activeSubtype, setActiveSubtype,
     activeArtist, setActiveArtist,
     activeCharacters,
+    activeTypeTags,
     onlyAltArt, setOnlyAltArt,
     onlyErrata, setOnlyErrata,
     flattenWall, setFlattenWall,
@@ -344,7 +345,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
 
   // True when the chip strip is visible in the fixed header - used to
   // expand the header height constant so the grid's paddingTop stays flush.
-  const hasChips = !!(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || activeCharacters.length > 0 || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim())
+  const hasChips = !!(activeSet || activeRarity || activeColor || activeCardType || activeSubtype || activeArtist || activeCharacters.length > 0 || activeTypeTags.length > 0 || onlyAltArt || onlyErrata || flattenWall || searchQuery.trim())
 
   // Pre-compute the active header height once per render - used for
   // the layout spacer below the fixed header, the virtualizer's
@@ -389,6 +390,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
         activeSubtype,
         activeArtist,
         activeCharacters,
+        activeTypeTags,
         onlyAltArt,
         onlyErrata,
         searchQuery,
@@ -406,7 +408,7 @@ export function CardGrid({ cards, sets }: CardGridProps) {
       }
       return result
     },
-    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, activeArtist, activeCharacters, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
+    [cards, activeSet, activeRarity, activeColor, activeCardType, activeSubtype, activeArtist, activeCharacters, activeTypeTags, onlyAltArt, onlyErrata, searchQuery, flattenWall, language, wallSort, activeCollection],
   )
 
   // Regroup entries into contiguous blocks by *display* set. A tile's

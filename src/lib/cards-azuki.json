@@ -13,7 +13,8 @@
     ],
     "cost": 1,
     "power": 0,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [
       "Defender"
     ],
@@ -39,6 +40,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Beanz"
@@ -61,7 +63,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -85,7 +88,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Alley Dweller",
@@ -109,7 +113,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Samurai",
@@ -133,7 +138,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Beanz",
@@ -157,7 +163,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Beanz",
@@ -181,7 +188,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Assassin"
@@ -205,6 +213,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Charge"
     ],
@@ -229,7 +238,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Dawnling",
@@ -253,7 +263,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [
       "Charge"
     ],
@@ -278,7 +289,8 @@
     ],
     "cost": 4,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Beanz"
@@ -300,7 +312,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Fatedealer"
@@ -323,7 +336,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Invigorate",
@@ -347,7 +361,8 @@
     ],
     "cost": 6,
     "power": 4,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 1,
     "attributes": [
       "Charge"
     ],
@@ -374,6 +389,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Trickster"
@@ -397,6 +413,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Steelborn"
@@ -420,6 +437,7 @@
     "cost": 4,
     "power": 3,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Staff"
@@ -442,7 +460,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Beanz"
@@ -466,6 +485,7 @@
     "cost": 3,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Beanz",
@@ -489,7 +509,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Wavecaller"
@@ -512,7 +533,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Frog",
@@ -537,7 +559,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Wavecaller"
@@ -560,7 +583,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Painter",
@@ -584,7 +608,8 @@
     ],
     "cost": 4,
     "power": 0,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 0,
     "attributes": [
       "Defender"
     ],
@@ -610,7 +635,8 @@
     ],
     "cost": 5,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Bird",
@@ -635,7 +661,8 @@
     ],
     "cost": 6,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Wavecaller"
@@ -658,7 +685,8 @@
     ],
     "cost": 8,
     "power": 7,
-    "counter": null,
+    "counter": 7,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Watercrafting",
@@ -691,6 +719,7 @@
     "cost": 0,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Aquashield"
@@ -714,6 +743,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Lotus",
@@ -738,6 +768,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Sirencall"
@@ -761,6 +792,7 @@
     "cost": 3,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Watercrafting"
@@ -783,7 +815,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Elder",
@@ -808,7 +841,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Voltguard"
@@ -831,7 +865,8 @@
     ],
     "cost": 3,
     "power": 0,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [
       "Defender"
     ],
@@ -858,7 +893,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [
       "Shocked"
     ],
@@ -884,7 +920,8 @@
     ],
     "cost": 4,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [
       "Charge"
     ],
@@ -910,7 +947,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Riftwalk"
@@ -933,7 +971,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 0,
     "attributes": [
       "Charge"
     ],
@@ -959,7 +998,8 @@
     ],
     "cost": 5,
     "power": 1,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [
       "Defender"
     ],
@@ -986,7 +1026,8 @@
     ],
     "cost": 8,
     "power": 7,
-    "counter": null,
+    "counter": 7,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Fox Fire",
@@ -1011,6 +1052,7 @@
     "cost": 5,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Stormcaller"
@@ -1042,6 +1084,7 @@
     "cost": 2,
     "power": 1,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Dagger",
@@ -1066,6 +1109,7 @@
     "cost": 3,
     "power": 2,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Shocked"
     ],
@@ -1090,7 +1134,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Scout"
@@ -1113,7 +1158,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Earthfury"
@@ -1136,7 +1182,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Earthwarden"
@@ -1159,7 +1206,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [
       "Carapace"
     ],
@@ -1184,7 +1232,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [
       "Defender"
     ],
@@ -1209,7 +1258,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Beanz",
@@ -1233,7 +1283,8 @@
     ],
     "cost": 4,
     "power": 1,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [
       "Defender"
     ],
@@ -1259,7 +1310,8 @@
     ],
     "cost": 5,
     "power": 2,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 2,
     "attributes": [
       "Defender"
     ],
@@ -1284,7 +1336,8 @@
     ],
     "cost": 7,
     "power": 4,
-    "counter": null,
+    "counter": 5,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Obsidian"
@@ -1307,7 +1360,8 @@
     ],
     "cost": 8,
     "power": 7,
-    "counter": null,
+    "counter": 7,
+    "gatePower": 2,
     "attributes": [
       "Godmode"
     ],
@@ -1341,6 +1395,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Earthfury",
@@ -1364,7 +1419,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Artisan",
@@ -1388,7 +1444,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Scorchweaver"
@@ -1411,7 +1468,8 @@
     ],
     "cost": 2,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -1436,7 +1494,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Chef",
@@ -1461,7 +1520,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [
       "Charge",
       "Infiltrate"
@@ -1487,7 +1547,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Pyreskin"
@@ -1510,7 +1571,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Red Panda",
@@ -1534,7 +1596,8 @@
     ],
     "cost": 6,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Chef",
@@ -1558,7 +1621,8 @@
     ],
     "cost": 8,
     "power": 7,
-    "counter": null,
+    "counter": 7,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -1591,6 +1655,7 @@
     "cost": 4,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Orb",
@@ -1615,6 +1680,7 @@
     "cost": 5,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Scorchweaver"
@@ -1637,7 +1703,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Beanz",
@@ -1660,7 +1727,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Beanz"
@@ -1683,7 +1751,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Beanz"
@@ -1706,7 +1775,8 @@
     ],
     "cost": 1,
     "power": 0,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Training Dummy"
@@ -1729,7 +1799,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Bird"
@@ -1752,7 +1823,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Beanz",
@@ -1776,7 +1848,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Beanz"
@@ -1799,7 +1872,8 @@
     ],
     "cost": 2,
     "power": 0,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Gurijutsu"
@@ -1822,7 +1896,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Brewmaster",
@@ -1846,7 +1921,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [
       "Charge"
     ],
@@ -1872,7 +1948,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Assassin",
@@ -1896,7 +1973,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Beanz"
@@ -1919,7 +1997,8 @@
     ],
     "cost": 6,
     "power": 3,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Fatedealer"
@@ -1950,7 +2029,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Invigorate",
@@ -1974,7 +2054,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Gurijutsu"
@@ -1997,7 +2078,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [
       "Charge"
     ],
@@ -2024,7 +2106,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Gurijutsu"
@@ -2048,6 +2131,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Trickster"
@@ -2071,6 +2155,7 @@
     "cost": 3,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Beanz",
@@ -2095,6 +2180,7 @@
     "cost": 4,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Steelborn",
@@ -2119,6 +2205,7 @@
     "cost": 4,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Mizuryuu"
@@ -2150,6 +2237,7 @@
     "cost": 6,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Watercrafting"
@@ -2172,7 +2260,8 @@
     ],
     "cost": 7,
     "power": 5,
-    "counter": null,
+    "counter": 5,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Frog",
@@ -2197,7 +2286,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Priestess",
@@ -2221,7 +2311,8 @@
     ],
     "cost": 2,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Aquashield",
@@ -2246,6 +2337,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Lotus",
@@ -2269,7 +2361,8 @@
     ],
     "cost": 7,
     "power": 4,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Downcurrent",
@@ -2294,6 +2387,7 @@
     "cost": 1,
     "power": 1,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Dagger",
@@ -2318,6 +2412,7 @@
     "cost": 4,
     "power": 3,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Riftwalk",
@@ -2342,6 +2437,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Voltguard"
@@ -2364,7 +2460,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -2389,7 +2486,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Merchant",
@@ -2413,7 +2511,8 @@
     ],
     "cost": 7,
     "power": 4,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 3,
     "attributes": [
       "Charge",
       "Shocked"
@@ -2450,6 +2549,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Raizan",
@@ -2474,6 +2574,7 @@
     "cost": 3,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Earthwarden"
@@ -2497,6 +2598,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Carapace"
     ],
@@ -2521,7 +2623,8 @@
     ],
     "cost": 5,
     "power": 0,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Earthfury"
@@ -2544,7 +2647,8 @@
     ],
     "cost": 6,
     "power": 4,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Stonemend",
@@ -2568,7 +2672,8 @@
     ],
     "cost": 4,
     "power": 1,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Earthfury"
@@ -2591,7 +2696,8 @@
     ],
     "cost": 10,
     "power": 6,
-    "counter": null,
+    "counter": 6,
+    "gatePower": 3,
     "attributes": [
       "Defender"
     ],
@@ -2626,6 +2732,7 @@
     "cost": 0,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Verdant"
@@ -2649,6 +2756,7 @@
     "cost": 5,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Earthfury"
@@ -2671,7 +2779,8 @@
     ],
     "cost": 6,
     "power": 3,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 3,
     "attributes": [
       "Carapace"
     ],
@@ -2697,7 +2806,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Loneflame",
@@ -2721,7 +2831,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Ashveil",
@@ -2746,7 +2857,8 @@
     ],
     "cost": 6,
     "power": 4,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 2,
     "attributes": [
       "Charge"
     ],
@@ -2780,7 +2892,8 @@
     ],
     "cost": 2,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [
       "Charge"
     ],
@@ -2806,7 +2919,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Elder",
@@ -2830,7 +2944,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Scorchweaver",
@@ -2854,7 +2969,8 @@
     ],
     "cost": 4,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 3,
     "attributes": [
       "Charge"
     ],
@@ -2881,6 +2997,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Charge"
     ],
@@ -2905,7 +3022,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Bandit",
@@ -2929,7 +3047,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Cat",
@@ -2962,6 +3081,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Gate"
@@ -2984,7 +3104,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Loneflame",
@@ -3017,6 +3138,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Charge"
     ],
@@ -3041,7 +3163,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Obsidian",
@@ -3074,6 +3197,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Gate"
@@ -3096,7 +3220,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Frog",
@@ -3130,6 +3255,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Gate"
@@ -3153,6 +3279,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Samurai"
@@ -3176,6 +3303,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Earthfury",
@@ -3199,7 +3327,8 @@
     ],
     "cost": 5,
     "power": 1,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 1,
     "attributes": [
       "Defender"
     ],
@@ -3226,7 +3355,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [
       "Charge"
     ],
@@ -3272,6 +3402,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Gate"
@@ -3302,7 +3433,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Beanz",
@@ -3326,7 +3458,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -3350,7 +3483,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Bandit"
@@ -3373,7 +3507,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Elder",
@@ -3397,7 +3532,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Alley Dweller",
@@ -3421,7 +3557,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -3445,7 +3582,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Steelborn"
@@ -3468,7 +3606,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 3,
     "attributes": [
       "Charge"
     ],
@@ -3494,7 +3633,8 @@
     ],
     "cost": 6,
     "power": 4,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 4,
     "attributes": [],
     "types": [
       "Raizan",
@@ -3527,6 +3667,7 @@
     "cost": 1,
     "power": 1,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Shadowfang",
@@ -3551,6 +3692,7 @@
     "cost": 1,
     "power": 1,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -3575,6 +3717,7 @@
     "cost": 2,
     "power": 2,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Sword"
@@ -3598,6 +3741,7 @@
     "cost": 3,
     "power": 3,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Sword"
@@ -3621,6 +3765,7 @@
     "cost": 4,
     "power": 4,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Raizan",
@@ -3653,6 +3798,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Orb",
@@ -3676,7 +3822,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Shao"
@@ -3720,6 +3867,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Gate"
@@ -3750,7 +3898,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Elder",
@@ -3774,7 +3923,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Dawnling"
@@ -3796,7 +3946,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Sushi Chef"
@@ -3819,7 +3970,8 @@
     ],
     "cost": 2,
     "power": 0,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [
       "Defender"
     ],
@@ -3846,7 +3998,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Frog",
@@ -3871,7 +4024,8 @@
     ],
     "cost": 2,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Driftward"
@@ -3894,7 +4048,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Painter",
@@ -3918,7 +4073,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Wavecaller"
@@ -3941,7 +4097,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Driftward"
@@ -3964,7 +4121,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Dawnling",
@@ -3988,7 +4146,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 4,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Wavecaller"
@@ -4026,6 +4185,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Frozen"
     ],
@@ -4052,6 +4212,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Watercrafting"
@@ -4075,6 +4236,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Orb",
@@ -4099,6 +4261,7 @@
     "cost": 6,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Shao",
@@ -4130,7 +4293,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Bobu",
@@ -4164,6 +4328,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [
       "Defender"
     ],
@@ -4196,7 +4361,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Artisan",
@@ -4220,7 +4386,8 @@
     ],
     "cost": 1,
     "power": 0,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [
       "Defender"
     ],
@@ -4246,7 +4413,8 @@
     ],
     "cost": 2,
     "power": 0,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Earthfury"
@@ -4269,7 +4437,8 @@
     ],
     "cost": 2,
     "power": 2,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Earthwarden"
@@ -4292,7 +4461,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Farmer",
@@ -4316,7 +4486,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Strider"
@@ -4338,7 +4509,8 @@
     ],
     "cost": 4,
     "power": 0,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [
       "Defender"
     ],
@@ -4365,7 +4537,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Stonemend"
@@ -4388,7 +4561,8 @@
     ],
     "cost": 5,
     "power": 2,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Earthwarden",
@@ -4413,7 +4587,8 @@
     ],
     "cost": 6,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Stonemend",
@@ -4437,7 +4612,8 @@
     ],
     "cost": 7,
     "power": 3,
-    "counter": null,
+    "counter": 6,
+    "gatePower": 3,
     "attributes": [
       "Taunt"
     ],
@@ -4471,7 +4647,8 @@
     ],
     "cost": 8,
     "power": 6,
-    "counter": null,
+    "counter": 6,
+    "gatePower": 4,
     "attributes": [
       "Rooted"
     ],
@@ -4499,6 +4676,7 @@
     "cost": 4,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Stonemend"
@@ -4522,6 +4700,7 @@
     "cost": 5,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Earthfury"
@@ -4545,6 +4724,7 @@
     "cost": 3,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Verdant"
@@ -4567,7 +4747,8 @@
     ],
     "cost": null,
     "power": null,
-    "counter": null,
+    "counter": 20,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Black Jade",
@@ -4606,6 +4787,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Gate"
@@ -4636,7 +4818,8 @@
     ],
     "cost": 1,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Blazerker",
@@ -4660,7 +4843,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Scorchweaver"
@@ -4683,7 +4867,8 @@
     ],
     "cost": 1,
     "power": 1,
-    "counter": null,
+    "counter": 1,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Ashveil"
@@ -4706,7 +4891,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Dawnling",
@@ -4729,7 +4915,8 @@
     ],
     "cost": 2,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Pyreskin",
@@ -4753,7 +4940,8 @@
     ],
     "cost": 3,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 0,
     "attributes": [],
     "types": [
       "Crimsondrift"
@@ -4776,7 +4964,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 2,
     "attributes": [],
     "types": [
       "Cinderwake",
@@ -4800,7 +4989,8 @@
     ],
     "cost": 3,
     "power": 1,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [
       "Charge"
     ],
@@ -4827,7 +5017,8 @@
     ],
     "cost": 4,
     "power": 2,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 3,
     "attributes": [],
     "types": [
       "Bird"
@@ -4849,7 +5040,8 @@
     ],
     "cost": 4,
     "power": 3,
-    "counter": null,
+    "counter": 2,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Bandit",
@@ -4873,7 +5065,8 @@
     ],
     "cost": 5,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 1,
     "attributes": [],
     "types": [
       "Crimsondrift",
@@ -4897,7 +5090,8 @@
     ],
     "cost": 6,
     "power": 3,
-    "counter": null,
+    "counter": 3,
+    "gatePower": 1,
     "attributes": [
       "Charge"
     ],
@@ -4932,6 +5126,7 @@
     "cost": 1,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Scorchweaver"
@@ -4955,6 +5150,7 @@
     "cost": 2,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Pyreskin",
@@ -4979,6 +5175,7 @@
     "cost": 3,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "Blazerker"
@@ -5002,6 +5199,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "IKZ",
@@ -5025,6 +5223,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "IKZ",
@@ -5048,6 +5247,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "IKZ"
@@ -5070,6 +5270,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "IKZ"
@@ -5100,6 +5301,7 @@
     "cost": null,
     "power": null,
     "counter": null,
+    "gatePower": null,
     "attributes": [],
     "types": [
       "IKZ",

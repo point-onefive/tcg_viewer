@@ -122,8 +122,9 @@ for (const [baseId, { primary, variants }] of byBase) {
     rarity: p.rarity || undefined, // C / UC / R / SR / L / G / IKZ (+ star tiers)
     colors: p.element ? [p.element] : [], // Fire / Water / Earth / Lightning / Neutral
     cost: numOrNull(p.ikzCost),
-    power: numOrNull(p.attack),
-    counter: null,
+    power: numOrNull(p.attack), // ATK - the offensive stat, drives the Power sort
+    counter: numOrNull(p.health), // HP lives here (mirrors the Gundam counter=hp convention)
+    gatePower: numOrNull(p.gatePower), // Gate contribution; niche, stored for completeness
     attributes: Array.isArray(p.abilities) ? p.abilities.filter(Boolean) : [],
     types: Array.isArray(p.subtypes) ? p.subtypes.filter(Boolean) : [],
     effect: p.cardText || undefined,
