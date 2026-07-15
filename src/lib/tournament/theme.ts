@@ -310,7 +310,7 @@ const CARD_TREASURE_THEME: TournamentTheme = {
     // Desktop hero shows a clear-but-dim store photo (left-fade masked so the
     // headline keeps contrast). Mobile keeps the clean gradient + faded-logo
     // watermark, so the hero photo is suppressed there.
-    '--bonk-hero-scene-opacity': '0.2',
+    '--bonk-hero-scene-opacity': '0.32',
     '--bonk-hero-scene-opacity-sm': '0',
     // Playbook + footer: real Card Treasure storefront photos under a warm
     // gold/red wash so the white copy + glass step cards stay legible.
