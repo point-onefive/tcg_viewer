@@ -168,8 +168,8 @@ export function TournamentAdmin() {
 
   // Start fresh form - strings so typing "24" doesn't fight number-input quirks
   const [name, setName] = useState('')
-  const [signupHours, setSignupHours] = useState('24')
-  const [roundHours, setRoundHours] = useState('48')
+  const [signupHours, setSignupHours] = useState('30')
+  const [roundHours, setRoundHours] = useState('24')
   const [maxPlayers, setMaxPlayers] = useState('32')
   const [format, setFormat] = useState<'swiss' | 'single-elim'>('swiss')
   // Page theme is chosen up front when starting an event (a tournament keeps
@@ -702,8 +702,8 @@ export function TournamentAdmin() {
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <PositiveIntInput label="Sign-up hours" value={signupHours} onChange={setSignupHours} placeholder="24" />
-                <PositiveIntInput label="Round hours" value={roundHours} onChange={setRoundHours} placeholder="48" />
+                <PositiveIntInput label="Sign-up hours" value={signupHours} onChange={setSignupHours} placeholder="30" />
+                <PositiveIntInput label="Round hours" value={roundHours} onChange={setRoundHours} placeholder="24" />
               </div>
               <PlayerCapPicker value={maxPlayers} onChange={setMaxPlayers} format={format} />
               {formError && (
