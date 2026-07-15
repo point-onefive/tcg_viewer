@@ -2609,13 +2609,33 @@ html.lenis, html.lenis body {
    the frame edge cleanly. */
 .bonk-hero__mascot {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: var(--bonk-mascot-right, 0);
+  bottom: var(--bonk-mascot-bottom, 0);
+  top: var(--bonk-mascot-top, auto);
+  transform: var(--bonk-mascot-transform, none);
   width: clamp(156px, 41vw, 400px);
   height: auto;
   z-index: 1;
   pointer-events: none;
   filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.32));
+}
+/* Small viewports: a wide mascot crowds a long hero title. Self-contained
+   badge emblems (cardtreasure) become a large, faint watermark behind the
+   copy; a bleed-to-edge mascot (BONK) keeps its full presence at the corner.
+   The defaults below reproduce today's values, so any theme that doesn't set
+   these vars (BONK) is byte-for-byte unchanged. summer2026 uses a different
+   class (.bonk-hero__feature-card) and is unaffected either way. */
+@media (max-width: 768px) {
+  .bonk-hero__mascot {
+    width: var(--bonk-mascot-sm-width, clamp(156px, 41vw, 400px));
+    opacity: var(--bonk-mascot-sm-opacity, 1);
+    bottom: var(--bonk-mascot-sm-bottom, 0);
+    top: var(--bonk-mascot-sm-top, auto);
+    right: var(--bonk-mascot-sm-right, var(--bonk-mascot-right, 0));
+    z-index: var(--bonk-mascot-sm-z-index, 1);
+    transform: var(--bonk-mascot-sm-transform, none);
+    filter: var(--bonk-mascot-sm-filter, drop-shadow(0 22px 34px rgba(0, 0, 0, 0.32)));
+  }
 }
 /* Featured card variant of the hero visual (Card Wall self-hosted events show
    the event's promo card instead of a sponsor mascot). Framed, rounded, gently
@@ -2687,7 +2707,7 @@ html.lenis, html.lenis body {
   mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 44%, #000 100%);
 }
 @media (min-width: 1024px) {
-  [data-theme="dark"] .bonk-hero__scene { opacity: 0.22; }
+  [data-theme="dark"] .bonk-hero__scene { opacity: var(--bonk-hero-scene-opacity, 0.22); }
 }
 /* Mobile / tablet: the horizontal left-fade mask above only reveals a thin
    sliver on the right of a narrow viewport, so the scene reads as "missing".
@@ -2695,7 +2715,7 @@ html.lenis, html.lenis body {
    with a soft top fade so the badge + title stay clean. */
 @media (max-width: 1023.98px) {
   [data-theme="dark"] .bonk-hero__scene {
-    opacity: 0.2;
+    opacity: var(--bonk-hero-scene-opacity-sm, 0.2);
     -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, #000 38%, #000 100%);
     mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, #000 38%, #000 100%);
   }
@@ -2705,8 +2725,10 @@ html.lenis, html.lenis body {
    warmer daytime image while dark mode keeps its cosmic/night scene. */
 .bonk-scene-layer { transition: opacity 200ms ease; }
 .bonk-scene-layer--dark { opacity: 0; }
-.bonk-scene-layer--light { opacity: 0.08; }
-[data-theme="dark"] .bonk-scene-layer--dark { opacity: 0.16; }
+.bonk-scene-layer--light { opacity: var(--bonk-scene-opacity-light, 0.08); }
+/* Default 0.16 keeps BONK/summer scenes as a faint texture. Themes with crisp,
+   busier photos can raise --bonk-scene-opacity so the image reads clearly. */
+[data-theme="dark"] .bonk-scene-layer--dark { opacity: var(--bonk-scene-opacity, 0.16); }
 [data-theme="dark"] .bonk-scene-layer--light { opacity: 0; }
 
 /* "How it works" full-bleed panel. Light/day mode shows the warm bonkcoin.com

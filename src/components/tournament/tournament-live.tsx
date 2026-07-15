@@ -1693,7 +1693,7 @@ function PollCard({
         title="Community Poll"
         right={<BonkHeaderMascot src={pollTheme?.mascots.poll ?? null} />}
       />
-      <div className="p-5">
+      <BonkSceneBody scene={pollTheme?.scenes.pollDark ?? null} position="center 42%" className="p-5">
       <h3 className="font-display text-lg font-bold tracking-tight text-center">{question}</h3>
       <div className="mt-2 flex justify-center">
         <span
@@ -1846,7 +1846,7 @@ function PollCard({
       <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--text-muted)' }}>
         {total} total {total === 1 ? 'vote' : 'votes'}
       </p>
-      </div>
+      </BonkSceneBody>
     </div>
   )
 }
@@ -2876,20 +2876,105 @@ function DeckListField({
               ? 'warn'
               : 'fail'
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-        <ListChecks size={13} style={{ color: 'var(--tcw-accent)' }} /> Deck list (required)
-      </label>
-      <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-        In OPTCG Sim, open your deck and hit{' '}
-        <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Copy Deck list to Clipboard</span>,
-        then paste it here.
-      </p>
+    <div className="flex flex-col gap-2.5">
+      {/* Header: title + required tag on the left, live card count on the right. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+          <ListChecks size={14} style={{ color: 'var(--tcw-accent)' }} aria-hidden /> Deck list
+          <span
+            className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+            style={{ background: 'color-mix(in srgb, var(--tcw-accent) 16%, transparent)', color: 'var(--tcw-accent)' }}
+          >
+            Required
+          </span>
+        </span>
+        {count > 0 && (
+          <span className="text-xs font-medium tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+            {count} cards
+          </span>
+        )}
+      </div>
+
+      {/* Optional quick-fill from a locally-saved deck; fills the editable box. */}
+      {savedDecks.length > 0 && (
+        <select
+          id="deck-picker"
+          aria-label="Load a saved deck"
+          value=""
+          disabled={disabled}
+          onChange={(e) => {
+            if (e.target.value) loadDeck(e.target.value)
+          }}
+          className="w-full rounded-lg px-3 py-2 text-xs"
+          style={{
+            background: 'var(--bg)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
+            appearance: 'none',
+          }}
+        >
+          <option value="">Quick-fill from a saved deck…</option>
+          {savedDecks.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name} · {deckTotalCount(d)} cards
+            </option>
+          ))}
+        </select>
+      )}
+
+      {/* The list input. */}
+      <textarea
+        id="deck-list-input"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        maxLength={MAX_DECK_CHARS}
+        rows={6}
+        spellCheck={false}
+        placeholder={'Paste your deck list here\n\n1xOP01-001\n4xOP01-016\n4xST01-006\n…'}
+        className="w-full rounded-lg p-3 text-xs"
+        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)', resize: 'vertical', lineHeight: 1.6 }}
+      />
+
+      {/* A single line under the box: paste instructions when empty, otherwise
+          the live legality check (checking / pass / warn / fail). */}
+      {status === null ? (
+        <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          In OPTCG Sim, open your deck and hit{' '}
+          <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Copy Deck list to Clipboard</span>, then paste it above.
+        </p>
+      ) : status === 'checking' ? (
+        <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 size={12} className="animate-spin" /> Checking your list…
+        </span>
+      ) : status === 'pass' ? (
+        <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#16a34a' }}>
+          <Check size={13} /> Looks legal - 1 leader + 50 cards, every code resolves.
+        </span>
+      ) : status === 'warn' && check ? (
+        <span className="flex items-start gap-1.5 text-xs" style={{ color: '#b45309', lineHeight: 1.5 }}>
+          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>
+            We couldn&rsquo;t recognize {check.unknownIds.join(', ')}. Double-check{' '}
+            {check.unknownIds.length === 1 ? 'this code' : 'these codes'} - if{' '}
+            {check.unknownIds.length === 1 ? 'it\u2019s a brand-new card' : 'they\u2019re brand-new cards'} you can still
+            submit.
+          </span>
+        </span>
+      ) : status === 'fail' && check ? (
+        <span className="flex items-start gap-1.5 text-xs" style={{ color: '#dc2626', lineHeight: 1.5 }}>
+          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>{check.issues.join(' ')}</span>
+        </span>
+      ) : null}
+
+      {/* Final-submission caution, kept compact and placed right before the
+          submit action so it reads as the last check. */}
       <div
-        className="flex items-start gap-1.5 rounded-md px-2.5 py-2 text-xs"
+        className="flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs"
         style={{
-          background: 'color-mix(in srgb, #f59e0b 10%, var(--bg))',
-          border: '1px solid color-mix(in srgb, #f59e0b 32%, transparent)',
+          background: 'color-mix(in srgb, #f59e0b 9%, var(--bg))',
+          border: '1px solid color-mix(in srgb, #f59e0b 28%, transparent)',
           color: 'var(--text-secondary)',
           lineHeight: 1.5,
         }}
@@ -2897,9 +2982,7 @@ function DeckListField({
         <AlertTriangle size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} aria-hidden />
         <span>
           <strong style={{ color: 'var(--text-primary)' }}>Submissions are final.</strong>{' '}
-          You can&rsquo;t edit this list after submitting, so double-check it and keep
-          your own copy. Make sure your deck is legal under the latest ruleset before
-          you submit.{' '}
+          You can&rsquo;t edit after submitting, so double-check your list and make sure it&rsquo;s legal under the latest ruleset.{' '}
           <button
             type="button"
             onClick={() =>
@@ -2914,84 +2997,6 @@ function DeckListField({
           </button>
         </span>
       </div>
-      {savedDecks.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor="deck-picker"
-            className="text-xs font-semibold"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Or load one of your saved decks
-          </label>
-          <select
-            id="deck-picker"
-            value=""
-            disabled={disabled}
-            onChange={(e) => {
-              if (e.target.value) loadDeck(e.target.value)
-            }}
-            className="w-full rounded-md px-2.5 py-2 text-xs"
-            style={{
-              background: 'var(--bg)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-secondary)',
-              appearance: 'none',
-            }}
-          >
-            <option value="">Pick a deck from the deckbuilder…</option>
-            {savedDecks.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} · {deckTotalCount(d)} cards
-              </option>
-            ))}
-          </select>
-          <span className="text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Decks you built on this device in the deckbuilder. Selecting one fills
-            the box below - you can still edit it before submitting.
-          </span>
-        </div>
-      )}
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        maxLength={MAX_DECK_CHARS}
-        rows={6}
-        spellCheck={false}
-        placeholder={'1xOP01-001\n4xOP01-016\n4xST01-006\n…'}
-        className="w-full rounded-md p-2.5 text-xs"
-        style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono, monospace)', resize: 'vertical' }}
-      />
-      <span className="self-end text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
-        {count > 0 ? `${count} cards` : 'Paste your list'}
-      </span>
-      {status === 'checking' && (
-        <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-          <Loader2 size={12} className="animate-spin" /> Checking your list…
-        </span>
-      )}
-      {status === 'pass' && (
-        <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#16a34a' }}>
-          <Check size={13} /> Looks legal - 1 leader + 50 cards, every code resolves.
-        </span>
-      )}
-      {status === 'warn' && check && (
-        <span className="flex items-start gap-1.5 text-xs" style={{ color: '#b45309', lineHeight: 1.5 }}>
-          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span>
-            We couldn&rsquo;t recognize {check.unknownIds.join(', ')}. Double-check{' '}
-            {check.unknownIds.length === 1 ? 'this code' : 'these codes'} - if{' '}
-            {check.unknownIds.length === 1 ? 'it\u2019s a brand-new card' : 'they\u2019re brand-new cards'} you can still
-            submit.
-          </span>
-        </span>
-      )}
-      {status === 'fail' && check && (
-        <span className="flex items-start gap-1.5 text-xs" style={{ color: '#dc2626', lineHeight: 1.5 }}>
-          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span>{check.issues.join(' ')}</span>
-        </span>
-      )}
     </div>
   )
 }
