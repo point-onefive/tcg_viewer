@@ -1720,7 +1720,10 @@ function PollCard({
           {pollOpen ? 'Voting open' : 'Voting closed'}
         </span>
       </div>
-      <p className="mb-4 mt-2 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+      <p
+        className="mb-4 mt-2 text-center text-xs"
+        style={{ color: 'var(--text-primary)', textShadow: '0 1px 3px rgba(0, 0, 0, 0.55)' }}
+      >
         {interactive
           ? 'Cast your vote - one per player.'
           : voted
