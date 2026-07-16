@@ -81,7 +81,6 @@ export function ProfileAwardBadges({
 }
 
 function BadgeChip({ badge, onSelect }: { badge: DisplayBadge; onSelect: () => void }) {
-  const color = tierColor(badge.tier)
   return (
     <button
       type="button"
@@ -93,8 +92,10 @@ function BadgeChip({ badge, onSelect }: { badge: DisplayBadge; onSelect: () => v
         height: 72,
         padding: 7,
         borderRadius: 14,
-        background: `radial-gradient(circle at 50% 32%, color-mix(in srgb, ${color} 16%, var(--bg)) 0%, var(--bg) 78%)`,
-        border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
+        // Neutral frame for every badge so the art is the showcase (not
+        // tier-tinted borders that make the shelf look uneven).
+        background: 'var(--bg)',
+        border: '1px solid var(--border-subtle)',
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
