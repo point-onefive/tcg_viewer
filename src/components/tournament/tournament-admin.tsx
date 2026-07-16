@@ -32,7 +32,7 @@ import {
   type PollOption,
 } from '@/lib/tournament/poll'
 import type { Match, Player, StandingRow, TournamentPrize, TournamentBadgeSlot, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
-import { themeOptions, getLastAdminTheme, setLastAdminTheme } from '@/lib/tournament/theme'
+import { themeOptions, setLastAdminTheme } from '@/lib/tournament/theme'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -173,9 +173,9 @@ export function TournamentAdmin() {
   const [maxPlayers, setMaxPlayers] = useState('32')
   const [format, setFormat] = useState<'swiss' | 'single-elim'>('swiss')
   // Page theme is chosen up front when starting an event (a tournament keeps
-  // its theme for its whole life; there's no mid-event reskin). Defaults to the
-  // last theme used so back-to-back events stay on-brand without re-picking.
-  const [themeId, setThemeId] = useState<string>(() => getLastAdminTheme() ?? themeOptions()[0]?.id ?? 'bonk')
+  // its theme for its whole life; there's no mid-event reskin). Starts empty
+  // so the operator must pick deliberately - no accidental BONK/default.
+  const [themeId, setThemeId] = useState<string>('')
   const [formError, setFormError] = useState<string | null>(null)
   // When a non-complete tournament is already live, "Start new" parks the
   // validated params here and opens a confirm modal instead of firing, so a
@@ -694,6 +694,10 @@ export function TournamentAdmin() {
                   setFormError('Max players must be at least 2.')
                   return
                 }
+                if (!themeId) {
+                  setFormError('Select a page theme before starting.')
+                  return
+                }
                 setLastAdminTheme(themeId)
                 const params = {
                   name: name.trim() || 'Card Wall Tournament',
@@ -752,7 +756,7 @@ export function TournamentAdmin() {
                   style={{
                     width: '100%',
                     background: 'var(--bg)',
-                    color: 'var(--text-primary)',
+                    color: themeId ? 'var(--text-primary)' : 'var(--text-muted)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 6,
                     padding: '9px 12px',
@@ -760,6 +764,9 @@ export function TournamentAdmin() {
                     cursor: 'pointer',
                   }}
                 >
+                  <option value="" disabled>
+                    Select theme
+                  </option>
                   {themeOptions().map((o) => (
                     <option key={o.id} value={o.id}>{o.label}</option>
                   ))}
@@ -1469,17 +1476,19 @@ export function TournamentAdmin() {
                               onClick={() => removeFromWaitlist(w.id, w.xHandle)}
                               disabled={busy}
                               title="Remove from waitlist (they can rejoin later)"
-                              className="footer-btn inline-flex shrink-0 items-center gap-1 px-2.5 py-1 text-xs font-bold"
+                              aria-label={`Remove ${w.xHandle} from waitlist`}
+                              className="footer-btn inline-flex shrink-0 items-center justify-center gap-1 px-2 py-1 text-xs font-bold sm:px-2.5"
                               style={{
                                 background: 'transparent',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--border-subtle)',
+                                color: '#ef4444',
+                                border: '1px solid color-mix(in srgb, #ef4444 40%, var(--border-subtle))',
                                 borderRadius: 6,
                                 opacity: busy ? 0.5 : 1,
                                 cursor: busy ? 'not-allowed' : 'pointer',
                               }}
                             >
-                              <X size={12} /> Remove
+                              <X size={14} />
+                              <span className="hidden sm:inline">Remove</span>
                             </button>
                             <button
                               type="button"
