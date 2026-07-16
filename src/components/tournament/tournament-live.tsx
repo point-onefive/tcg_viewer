@@ -1373,7 +1373,7 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
     },
     {
       lead: <>Play on <LinkOut href="https://optcgsim.com/">OPTCG Sim</LinkOut></>,
-      body: 'Schedule in DMs with your opponent (follow them if needed). Keep the main players chat clear for when you truly cannot reach someone. Always play the current ruleset, and never spoil or share an opponent\'s deck during the event.',
+      body: 'Schedule in DMs with your opponent (follow them if needed). Keep the main players chat clear for when you truly cannot reach someone. Never spoil or share an opponent\'s deck during the event.',
     },
     {
       lead: 'Report results',
@@ -1397,11 +1397,15 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
       lead: 'Play fair',
       body: (
         <>
-          Any foul play or suspected cheating is a permanent ban.{' '}
+          Matches must follow the{' '}
+          <strong style={{ color: '#ff8a8a' }}>most current official global ruleset</strong>
+          {' '}(no regional-only cards or house rules). The deck you submitted is locked for the
+          whole event.{' '}
           <strong style={{ color: '#ff8a8a' }}>
-            If a deck is challenged and the submitted list does not match the deck
-            played, that match is an automatic forfeit.
-          </strong>
+            Altered lists, swapped decks, or any disallowed / illegal cards are an automatic
+            disqualification.
+          </strong>{' '}
+          Any foul play or suspected cheating is a permanent ban.
         </>
       ),
       tone: 'danger',
