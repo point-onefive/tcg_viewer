@@ -273,6 +273,37 @@ export async function convertWaitlistToTournament(
 }
 
 /**
+ * Admin: hard-delete one pending waitlist entry (spam / false sign-ups).
+ * Only touches rows that are still waiting (`converted_at` null). Already
+ * converted entries are left alone (404). Frees the wallet/handle unique
+ * indexes so the same person can rejoin later if the remove was a mistake.
+ */
+export async function removeWaitlistEntry(
+  entryId: string,
+): Promise<{ removed: true; xHandle: string }> {
+  const sb = getServiceClient()
+  const { data: entry, error } = await sb
+    .from('tournament_waitlist')
+    .select('id, x_handle')
+    .eq('id', entryId)
+    .is('converted_at', null)
+    .maybeSingle()
+  if (error) throw new TournamentError(error.message, 500)
+  if (!entry) {
+    throw new TournamentError('That waitlist entry is no longer available.', 404)
+  }
+
+  const { error: delErr } = await sb
+    .from('tournament_waitlist')
+    .delete()
+    .eq('id', entry.id)
+    .is('converted_at', null)
+  if (delErr) throw new TournamentError(delErr.message, 500)
+
+  return { removed: true, xHandle: formatXLabel(entry.x_handle as string) }
+}
+
+/**
  * Promote a single waitlist entry into an existing tournament as a PENDING
  * player. Mirrors convertWaitlistToTournament but for one entry - used by the
  * operator to backfill a slot freed by a reject/drop while the event is still

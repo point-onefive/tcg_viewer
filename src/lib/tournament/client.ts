@@ -179,6 +179,7 @@ export async function adminApi(
   entries?: { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
   promoted?: boolean
   alreadyIn?: boolean
+  removed?: boolean
   xHandle?: string
   recipients?: {
     walletAddress: string

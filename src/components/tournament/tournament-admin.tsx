@@ -600,6 +600,13 @@ export function TournamentAdmin() {
           : `Promoted ${handle} into sign-ups (pending)`,
       )
     })
+  const removeFromWaitlist = (entryId: string, handle: string) => {
+    if (!window.confirm(`Remove ${handle} from the waitlist?`)) return
+    run(async () => {
+      const res = await adminApi(adminKey, { action: 'remove-waitlist', entryId })
+      setMsg(`Removed ${res.xHandle ?? handle} from waitlist`)
+    })
+  }
 
   const setPollOpen = (open: boolean) =>
     run(async () => {
@@ -1457,6 +1464,23 @@ export function TournamentAdmin() {
                             <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
                               {new Date(w.createdAt).toLocaleDateString()}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => removeFromWaitlist(w.id, w.xHandle)}
+                              disabled={busy}
+                              title="Remove from waitlist (they can rejoin later)"
+                              className="footer-btn inline-flex shrink-0 items-center gap-1 px-2.5 py-1 text-xs font-bold"
+                              style={{
+                                background: 'transparent',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--border-subtle)',
+                                borderRadius: 6,
+                                opacity: busy ? 0.5 : 1,
+                                cursor: busy ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              <X size={12} /> Remove
+                            </button>
                             <button
                               type="button"
                               onClick={() => promoteFromWaitlist(w.id)}

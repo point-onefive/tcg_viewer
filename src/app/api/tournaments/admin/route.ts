@@ -35,7 +35,7 @@ import {
   recomputeAllPlacements,
   TournamentError,
 } from '@/lib/tournament/service'
-import { listWaitlist } from '@/lib/tournament/waitlist'
+import { listWaitlist, removeWaitlistEntry } from '@/lib/tournament/waitlist'
 import type { TournamentPrize, TournamentBadgeSlot } from '@/lib/tournament/types'
 
 export const runtime = 'nodejs'
@@ -71,6 +71,7 @@ type Body =
   | { action: 'new-poll'; code: string; question: string; options: { id?: string; label: string; blurb: string }[] }
   | { action: 'list-waitlist' }
   | { action: 'promote-waitlist'; code: string; entryId: string }
+  | { action: 'remove-waitlist'; entryId: string }
   | { action: 'recompute-placements' }
   | { action: 'list-badge-recipients' }
   | { action: 'grant-badge'; walletAddress: string; badge: TournamentBadgeSlot }
@@ -186,6 +187,10 @@ export async function POST(request: Request) {
       }
       case 'promote-waitlist': {
         const res = await adminPromoteFromWaitlist(body.code, body.entryId)
+        return ok({ ok: true, ...res })
+      }
+      case 'remove-waitlist': {
+        const res = await removeWaitlistEntry(body.entryId)
         return ok({ ok: true, ...res })
       }
       case 'recompute-placements': {
