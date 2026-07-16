@@ -1557,9 +1557,15 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
   }
   const standings = computeStandings(players, matches)
   // Leader reveal: resolve each player's Leader card from their (private) deck
-  // list and expose it ALWAYS. The Leader is public during play (it is on the
-  // table and the metagame is tracked by it), so revealing it never leaks the
+  // list. The Leader is public ONCE PLAY BEGINS (it sits face-up on the table
+  // and the metagame is tracked by it), so revealing it then never leaks the
   // hidden 50-card list.
+  //
+  // But WHILE SIGN-UPS ARE OPEN the leader must stay hidden. The snapshot is
+  // served by unauthenticated, cached endpoints, so exposing leaders during
+  // `enrolling` would let a late registrant scout the field and pick a counter-
+  // leader before committing - an unfair information edge. So we only surface
+  // leaders once the tournament is `running` (bracket drawn) or `complete`.
   //
   // Deck contents themselves are private WHILE the event runs (host + the
   // owning player only): the snapshot is public and cached, so stripping the
@@ -1569,8 +1575,10 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
   // public metagame archive. `hasDeckList` signals submitted/missing in any
   // phase.
   const decksPublic = tournament.status === 'complete'
+  const leadersPublic =
+    tournament.status === 'running' || tournament.status === 'complete'
   const withLeader = (p: Player): Player => {
-    const leader = extractLeader(p.deckList)
+    const leader = leadersPublic ? extractLeader(p.deckList) : null
     return {
       ...p,
       leaderCardId: leader?.id ?? null,
