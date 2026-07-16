@@ -1318,13 +1318,14 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
   const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
     {
       lead: 'Join the waitlist',
-      body: 'No event running yet? Connect your wallet to get in line. When the next tournament opens, players are added in the order they joined, up to the roster cap - so the earlier you join, the better your chances of a seat.',
+      body: 'No event running yet? Connect your wallet to get in line. When the next tournament opens, players are added in the order they joined, up to the roster cap - so the earlier you join, the better your chances of a seat. Once Round 1 of a live event starts, you can join the waitlist for the next one.',
     },
     {
       lead: 'Sign up + submit your deck',
       body: (
         <>
-          When sign-ups are open, connect your wallet to enter. A deck list is{' '}
+          When sign-ups are open, connect your wallet to enter and set your region (AMER / EMEA / APAC)
+          on your profile so pairings stay fair. A deck list is{' '}
           <strong style={{ color: '#fff' }}>required up front</strong>: build your deck in OPTCG Sim,
           copy it to your clipboard, and paste it in. The deck you submit is the deck you play for the
           whole event.{' '}
@@ -1368,15 +1369,19 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
     },
     {
       lead: 'Round 1 begins',
-      body: 'As soon as the sign-up timer expires, we go straight into Round 1 - no waiting around.',
+      body: 'When sign-ups close, the host draws the bracket and opens Round 1. Each round has a hard time limit - finish inside the window when you can. Life happens: message the host if you need an exception.',
     },
     {
       lead: <>Play on <LinkOut href="https://optcgsim.com/">OPTCG Sim</LinkOut></>,
-      body: 'Coordinate with your opponent and always play the most recent ruleset. Each round gets a generous timer for completion.',
+      body: 'Schedule in DMs with your opponent (follow them if needed). Keep the main players chat clear for when you truly cannot reach someone. Always play the current ruleset, and never spoil or share an opponent\'s deck during the event.',
     },
     {
       lead: 'Report results',
-      body: 'After your match, both players tap Win or Loss on the "Your match" card. If you agree, it logs instantly and the bracket advances. If you disagree, an admin reviews it. Win or lose, please report - reporting both sides keeps the round moving for everyone.',
+      body: 'Both players should tap Win or Loss on the "Your match" card. Matching reports log instantly and keep the round moving; disagreements go to an admin. If you are done competing, drop from the event so others are not hunting for a ghost opponent.',
+    },
+    {
+      lead: 'Prizes after the event',
+      body: 'Placement and any participation prizes are fulfilled after the tournament concludes. Winners are contacted for details - keep an eye on DMs and the players chat so payouts are not held up.',
     },
     {
       lead: 'Share to win a prize',
@@ -1531,8 +1536,8 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
                 Save your battle logs
               </div>
               <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
-                Screenshot and keep the game log from each match. If a result is ever disputed, having
-                your own record makes it quick and painless for an admin to sort out.
+                Screenshot and keep the game log from each match. If a result or deck is disputed,
+                your own record makes it quick for an admin to sort out.
               </p>
             </div>
           </div>
