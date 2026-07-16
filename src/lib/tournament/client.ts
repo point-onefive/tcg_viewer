@@ -175,6 +175,7 @@ export async function adminApi(
   deckList?: string | null
   check?: { ok: boolean; leaderCount: number; deckCount: number; unknownIds: string[]; issues: string[] } | null
   results?: { playerId: string; hasDeck: boolean; ok: boolean; issues: string[] }[]
+  matches?: { playerId: string; matchedLines: string[] }[]
   entries?: { id: string; xHandle: string; walletAddress: string; region: Region | null; createdAt: string }[]
   promoted?: boolean
   alreadyIn?: boolean

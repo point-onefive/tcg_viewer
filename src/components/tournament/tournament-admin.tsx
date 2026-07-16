@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Award, Check, Clock, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, Clock, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -223,6 +223,18 @@ export function TournamentAdmin() {
   const [waitlistLimit, setWaitlistLimit] = useState(8)
   const [rosterLimit, setRosterLimit] = useState(8)
 
+  // Deck-list content search: find every entrant whose submitted list contains
+  // a given substring (e.g. a card id like "ST31-036"), regardless of approval
+  // status. Deck text never reaches the client - the server returns only the
+  // matching player ids and a few context lines. `deckSearchResults` is null
+  // when no search is active, restoring the normal tabbed roster view.
+  const [deckSearch, setDeckSearch] = useState('')
+  const [deckSearchResults, setDeckSearchResults] = useState<
+    { playerId: string; matchedLines: string[] }[] | null
+  >(null)
+  const [deckSearchBusy, setDeckSearchBusy] = useState(false)
+  const [deckSearchError, setDeckSearchError] = useState<string | null>(null)
+
   const doLogout = useCallback(() => {
     clearAdminKey()
     setUnlocked(false)
@@ -403,6 +415,49 @@ export function TournamentAdmin() {
 
   const nameById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const status = snapshot?.tournament.status
+
+  // Debounced deck-list content search. An empty query clears results and
+  // restores the normal roster; otherwise we ask the server (deck text stays
+  // server-side) and keep the matched player ids + context snippets.
+  useEffect(() => {
+    const q = deckSearch.trim()
+    if (!q || !code || !unlocked || !adminKey) {
+      setDeckSearchResults(null)
+      setDeckSearchError(null)
+      setDeckSearchBusy(false)
+      return
+    }
+    let cancelled = false
+    setDeckSearchBusy(true)
+    const t = setTimeout(async () => {
+      try {
+        const r = await adminApi(adminKey, { action: 'deck-search', code, query: q })
+        if (cancelled) return
+        setDeckSearchResults(r.matches ?? [])
+        setDeckSearchError(null)
+      } catch (err) {
+        if (cancelled) return
+        setDeckSearchResults([])
+        setDeckSearchError(err instanceof Error ? err.message : 'Search failed')
+      } finally {
+        if (!cancelled) setDeckSearchBusy(false)
+      }
+    }, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [deckSearch, code, adminKey, unlocked])
+
+  // Matched players resolved to full player records (in server match order),
+  // each carrying the deck-list lines that matched for at-a-glance context.
+  const deckSearchActive = deckSearch.trim().length > 0
+  const deckSearchRows = useMemo(() => {
+    if (!deckSearchResults) return []
+    return deckSearchResults
+      .map((m) => ({ player: nameById.get(m.playerId), matchedLines: m.matchedLines }))
+      .filter((r): r is { player: Player; matchedLines: string[] } => Boolean(r.player))
+  }, [deckSearchResults, nameById])
 
   // Roster capacity for waitlist promotion. Only sign-ups that actually occupy a
   // slot count toward the cap (matches the server-side check): dropped and
@@ -1134,51 +1189,139 @@ export function TournamentAdmin() {
                     <ParticipantTab label="Rejected" count={rejected.length} active={tab === 'rejected'} onClick={() => { setTab('rejected'); setRosterLimit(8) }} />
                   </div>
 
-                  {/* Region mix of the active field (planning signal). */}
-                  <RegionCounts
-                    regions={active.map((p) => p.region)}
-                    className="mb-4"
-                  />
+                  {/* Deck-list content search - finds entrants whose submitted
+                      list contains a card id / text, across every status. */}
+                  <div className="relative mb-4">
+                    <Search
+                      size={14}
+                      className="pointer-events-none absolute top-1/2 -translate-y-1/2"
+                      style={{ left: 11, color: 'var(--text-muted)' }}
+                    />
+                    <input
+                      type="text"
+                      value={deckSearch}
+                      onChange={(e) => setDeckSearch(e.target.value)}
+                      placeholder="Search deck lists (e.g. ST31-036)"
+                      autoComplete="off"
+                      spellCheck={false}
+                      style={{ ...inputStyle, paddingLeft: 32, paddingRight: deckSearch ? 34 : 11 }}
+                    />
+                    {deckSearchBusy ? (
+                      <Loader2
+                        size={14}
+                        className="absolute top-1/2 -translate-y-1/2 animate-spin"
+                        style={{ right: 11, color: 'var(--text-muted)' }}
+                      />
+                    ) : deckSearch ? (
+                      <button
+                        type="button"
+                        onClick={() => setDeckSearch('')}
+                        title="Clear search"
+                        className="absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center"
+                        style={{ right: 8, color: 'var(--text-muted)' }}
+                      >
+                        <X size={14} />
+                      </button>
+                    ) : null}
+                  </div>
 
-                  {missingDeck.length > 0 && (
-                    <p
-                      className="mb-3 flex items-start gap-1.5 rounded-md px-3 py-2 text-xs font-semibold"
-                      style={{ color: 'var(--text-primary)', background: 'rgba(232,93,42,0.1)', border: '1px solid rgba(232,93,42,0.35)', lineHeight: 1.5 }}
-                    >
-                      <ListChecks size={13} className="mt-0.5 shrink-0" />
-                      {missingDeck.length} approved player{missingDeck.length === 1 ? '' : 's'} still
-                      {missingDeck.length === 1 ? ' owes' : ' owe'} a deck list. The bracket
-                      can&rsquo;t start until every approved player has one.
-                    </p>
+                  {/* Region mix of the active field (planning signal). */}
+                  {!deckSearchActive && (
+                    <RegionCounts
+                      regions={active.map((p) => p.region)}
+                      className="mb-4"
+                    />
                   )}
 
-                  {visiblePlayers.length === 0 ? (
-                    <p className="text-sm py-4 text-center" style={{ color: 'var(--text-muted)' }}>
-                      {active.length === 0 && rejected.length === 0 ? 'No sign-ups yet.' : `No ${tab === 'all' ? '' : tab + ' '}participants.`}
-                    </p>
+                  {deckSearchActive ? (
+                    <>
+                      {deckSearchError ? (
+                        <p className="text-sm py-4 text-center" style={{ color: '#ef4444' }}>
+                          {deckSearchError}
+                        </p>
+                      ) : deckSearchRows.length === 0 ? (
+                        <p className="text-sm py-4 text-center" style={{ color: 'var(--text-muted)' }}>
+                          {deckSearchBusy && deckSearchResults === null
+                            ? 'Searching deck lists…'
+                            : `No deck lists contain "${deckSearch.trim()}".`}
+                        </p>
+                      ) : (
+                        <>
+                          <p className="mb-3 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                            {deckSearchRows.length} deck{deckSearchRows.length === 1 ? '' : 's'} contain{deckSearchRows.length === 1 ? 's' : ''}{' '}
+                            <span style={{ color: 'var(--text-primary)' }}>&ldquo;{deckSearch.trim()}&rdquo;</span>{' '}
+                            <span style={{ opacity: 0.75 }}>(all statuses)</span>
+                          </p>
+                          <ul className="flex flex-col gap-2">
+                            {deckSearchRows.map(({ player, matchedLines }) => (
+                              <li key={player.id} className="flex flex-col gap-1">
+                                <ParticipantRow
+                                  player={player}
+                                  deckCheck={player.hasDeckList ? deckAudit.get(player.id) : undefined}
+                                  disabled={busy}
+                                  running={status === 'running'}
+                                  onApprove={() => approvePlayer(player)}
+                                  onReject={() => rejectPlayer(player)}
+                                  onDrop={() => dropPlayer(player)}
+                                  onViewDeck={() => setDeckPlayer(player)}
+                                />
+                                {matchedLines.length > 0 && (
+                                  <p
+                                    className="px-3 text-xs tabular-nums"
+                                    style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}
+                                  >
+                                    {matchedLines.join(' · ')}
+                                  </p>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </>
                   ) : (
                     <>
-                      <ul className="flex flex-col gap-2">
-                        {visiblePlayers.slice(0, rosterLimit).map((p) => (
-                          <ParticipantRow
-                            key={p.id}
-                            player={p}
-                            deckCheck={p.hasDeckList ? deckAudit.get(p.id) : undefined}
-                            disabled={busy}
-                            running={status === 'running'}
-                            onApprove={() => approvePlayer(p)}
-                            onReject={() => rejectPlayer(p)}
-                            onDrop={() => dropPlayer(p)}
-                            onViewDeck={() => setDeckPlayer(p)}
-                          />
-                        ))}
-                      </ul>
-                      {visiblePlayers.length > rosterLimit && (
-                        <div className="mt-3 flex justify-center">
-                          <AdminBtn onClick={() => setRosterLimit((n) => n + 12)}>
-                            Load more ({visiblePlayers.length - rosterLimit} more)
-                          </AdminBtn>
-                        </div>
+                      {missingDeck.length > 0 && (
+                        <p
+                          className="mb-3 flex items-start gap-1.5 rounded-md px-3 py-2 text-xs font-semibold"
+                          style={{ color: 'var(--text-primary)', background: 'rgba(232,93,42,0.1)', border: '1px solid rgba(232,93,42,0.35)', lineHeight: 1.5 }}
+                        >
+                          <ListChecks size={13} className="mt-0.5 shrink-0" />
+                          {missingDeck.length} approved player{missingDeck.length === 1 ? '' : 's'} still
+                          {missingDeck.length === 1 ? ' owes' : ' owe'} a deck list. The bracket
+                          can&rsquo;t start until every approved player has one.
+                        </p>
+                      )}
+
+                      {visiblePlayers.length === 0 ? (
+                        <p className="text-sm py-4 text-center" style={{ color: 'var(--text-muted)' }}>
+                          {active.length === 0 && rejected.length === 0 ? 'No sign-ups yet.' : `No ${tab === 'all' ? '' : tab + ' '}participants.`}
+                        </p>
+                      ) : (
+                        <>
+                          <ul className="flex flex-col gap-2">
+                            {visiblePlayers.slice(0, rosterLimit).map((p) => (
+                              <ParticipantRow
+                                key={p.id}
+                                player={p}
+                                deckCheck={p.hasDeckList ? deckAudit.get(p.id) : undefined}
+                                disabled={busy}
+                                running={status === 'running'}
+                                onApprove={() => approvePlayer(p)}
+                                onReject={() => rejectPlayer(p)}
+                                onDrop={() => dropPlayer(p)}
+                                onViewDeck={() => setDeckPlayer(p)}
+                              />
+                            ))}
+                          </ul>
+                          {visiblePlayers.length > rosterLimit && (
+                            <div className="mt-3 flex justify-center">
+                              <AdminBtn onClick={() => setRosterLimit((n) => n + 12)}>
+                                Load more ({visiblePlayers.length - rosterLimit} more)
+                              </AdminBtn>
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   )}

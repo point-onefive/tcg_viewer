@@ -14,6 +14,7 @@ import {
   adminSetRoundMinutes,
   adminGetDeck,
   adminAuditDecks,
+  adminSearchDecks,
   adminPromoteFromWaitlist,
   adminResetPoll,
   adminSetPollConfig,
@@ -55,6 +56,7 @@ type Body =
   | { action: 'set-deck'; code: string; playerId: string; deckList: string }
   | { action: 'get-deck'; code: string; playerId: string }
   | { action: 'deck-audit'; code: string }
+  | { action: 'deck-search'; code: string; query: string }
   | { action: 'approve-all'; code: string }
   | { action: 'set-prizes'; code: string; prizes: TournamentPrize[] }
   | { action: 'set-badges'; code: string; badges: TournamentBadgeSlot[] }
@@ -129,6 +131,10 @@ export async function POST(request: Request) {
       case 'deck-audit': {
         const results = await adminAuditDecks(body.code)
         return ok({ ok: true, results })
+      }
+      case 'deck-search': {
+        const matches = await adminSearchDecks(body.code, body.query)
+        return ok({ ok: true, matches })
       }
       case 'approve-all': {
         const count = await adminApproveAllPending(body.code)

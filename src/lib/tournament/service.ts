@@ -2111,6 +2111,42 @@ export async function adminAuditDecks(
     })
 }
 
+/** How many matched deck-list lines to surface per player, so the operator sees
+ * why an entry matched without shipping the whole list to the client. */
+const MAX_DECK_SEARCH_SNIPPETS = 3
+
+/**
+ * Host-gated substring search across every entrant's submitted deck list.
+ * Case-insensitive raw-text match (card ids show up with or without leading
+ * zeros and quantity prefixes like "4xST31-036", so a plain substring is the
+ * right primitive - not exact-id resolution). Deck text stays server-side: only
+ * the matching player ids plus a few context lines cross the wire. Matches
+ * regardless of approval status (pending/approved/rejected all count) since the
+ * operator is hunting for a card across the whole field; dropped entries are
+ * excluded as they're out of the event.
+ */
+export async function adminSearchDecks(
+  code: string,
+  query: string,
+): Promise<{ playerId: string; matchedLines: string[] }[]> {
+  const row = await requireHost(code)
+  const needle = (query ?? '').trim().toLowerCase()
+  if (!needle) return []
+  const players = await fetchPlayers(row.id)
+  const matches: { playerId: string; matchedLines: string[] }[] = []
+  for (const p of players) {
+    if (p.dropped || !p.deckList) continue
+    if (!p.deckList.toLowerCase().includes(needle)) continue
+    const matchedLines = p.deckList
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.toLowerCase().includes(needle))
+      .slice(0, MAX_DECK_SEARCH_SNIPPETS)
+    matches.push({ playerId: p.id, matchedLines })
+  }
+  return matches
+}
+
 /**
  * The signed-in player's own deck list for this tournament, resolved from
  * their wallet (or profile handle). Lets a player pull up the list they
