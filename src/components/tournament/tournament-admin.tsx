@@ -482,6 +482,12 @@ export function TournamentAdmin() {
   const roundCountdown = useCountdown(
     status === 'running' ? activeRound?.endsAt ?? null : null,
   )
+  // Sign-up countdown for the enrolling phase - same header pill slot as the
+  // round timer, so the operator can glance at how long until the window
+  // closes (and extend from the buttons just below).
+  const signupCountdown = useCountdown(
+    status === 'enrolling' ? snapshot?.tournament.enrollClosesAt ?? null : null,
+  )
   const activeMatches = useMemo(
     () =>
       (snapshot?.matches ?? [])
@@ -882,6 +888,25 @@ export function TournamentAdmin() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {status === 'enrolling' && signupCountdown && (
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold tabular-nums"
+                          style={{
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 999,
+                            color: enrollExpired ? '#f5b301' : 'var(--text-secondary)',
+                          }}
+                          title={
+                            enrollExpired
+                              ? 'Sign-up window has closed'
+                              : `Sign-ups close in ${signupCountdown}`
+                          }
+                        >
+                          <Clock size={12} style={{ color: enrollExpired ? '#f5b301' : 'var(--tcw-accent)' }} />
+                          {signupCountdown}
+                        </span>
+                      )}
                       {status === 'running' && activeRound && roundCountdown && (
                         <span
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold tabular-nums"
