@@ -1365,7 +1365,16 @@ function HowItWorks({ theme }: { theme: TournamentTheme }) {
       : []),
     {
       lead: 'Get verified',
-      body: 'A tournament official reviews every sign-up and approves or declines it. Approved players are locked into the bracket.',
+      body: (
+        <>
+          Every sign-up is subject to an X profile review so the field stays legitimate and
+          trustworthy. Approved players are locked into the bracket.{' '}
+          <strong style={{ color: '#fff' }}>
+            Suspicion of gaming the system - multiple entries, fake accounts, or alt accounts -
+            is a permanent ban.
+          </strong>
+        </>
+      ),
     },
     {
       lead: 'Round 1 begins',
