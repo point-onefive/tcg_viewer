@@ -114,7 +114,7 @@ function RegionTag({ region }: { region: Region | null }) {
   if (!region) return null
   return (
     <span
-      className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+      className="inline-flex shrink-0 items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
       style={{ background: 'color-mix(in srgb, #3b82f6 12%, var(--bg))', border: '1px solid color-mix(in srgb, #3b82f6 30%, transparent)', borderRadius: 5, color: '#3b82f6' }}
     >
       {regionShort(region)}
@@ -1455,64 +1455,71 @@ export function TournamentAdmin() {
                         {waitlist.slice(0, waitlistLimit).map((w) => (
                           <li
                             key={w.id}
-                            className="flex items-center gap-2 px-3 py-2 text-sm"
+                            className="flex min-w-0 items-center gap-2 px-3 py-2 text-sm"
                             style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
                           >
-                            <a
-                              href={xProfileUrl(w.xHandle)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-semibold hover:underline"
-                              style={{ color: 'var(--text-primary)' }}
-                            >
-                              {w.xHandle}
-                            </a>
-                            <RegionTag region={w.region} />
-                            <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                              {new Date(w.createdAt).toLocaleDateString()}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => removeFromWaitlist(w.id, w.xHandle)}
-                              disabled={busy}
-                              title="Remove from waitlist (they can rejoin later)"
-                              aria-label={`Remove ${w.xHandle} from waitlist`}
-                              className="footer-btn inline-flex shrink-0 items-center justify-center gap-1 px-2 py-1 text-xs font-bold sm:px-2.5"
-                              style={{
-                                background: 'transparent',
-                                color: '#ef4444',
-                                border: '1px solid color-mix(in srgb, #ef4444 40%, var(--border-subtle))',
-                                borderRadius: 6,
-                                opacity: busy ? 0.5 : 1,
-                                cursor: busy ? 'not-allowed' : 'pointer',
-                              }}
-                            >
-                              <X size={14} />
-                              <span className="hidden sm:inline">Remove</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => promoteFromWaitlist(w.id)}
-                              disabled={busy || !canPromoteWaitlist}
-                              title={
-                                canPromoteWaitlist
-                                  ? 'Promote into the current event as a pending sign-up'
-                                  : status !== 'enrolling'
-                                    ? 'Sign-ups are closed'
-                                    : 'Sign-ups are full - free a slot first'
-                              }
-                              className="footer-btn inline-flex shrink-0 items-center gap-1 px-2.5 py-1 text-xs font-bold"
-                              style={{
-                                background: canPromoteWaitlist ? 'var(--tcw-accent)' : 'var(--bg-surface)',
-                                color: canPromoteWaitlist ? '#fff' : 'var(--text-muted)',
-                                border: canPromoteWaitlist ? 'none' : '1px solid var(--border-subtle)',
-                                borderRadius: 6,
-                                opacity: busy || !canPromoteWaitlist ? 0.5 : 1,
-                                cursor: busy || !canPromoteWaitlist ? 'not-allowed' : 'pointer',
-                              }}
-                            >
-                              <Plus size={12} /> Promote
-                            </button>
+                            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                              <a
+                                href={xProfileUrl(w.xHandle)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={w.xHandle}
+                                className="min-w-0 truncate font-semibold hover:underline"
+                                style={{ color: 'var(--text-primary)' }}
+                              >
+                                {w.xHandle}
+                              </a>
+                              <RegionTag region={w.region} />
+                              <span className="hidden shrink-0 text-xs tabular-nums sm:inline" style={{ color: 'var(--text-muted)' }}>
+                                {new Date(w.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => removeFromWaitlist(w.id, w.xHandle)}
+                                disabled={busy}
+                                title="Remove from waitlist (they can rejoin later)"
+                                aria-label={`Remove ${w.xHandle} from waitlist`}
+                                className="footer-btn inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-bold sm:px-2.5"
+                                style={{
+                                  background: 'transparent',
+                                  color: '#ef4444',
+                                  border: '1px solid color-mix(in srgb, #ef4444 40%, var(--border-subtle))',
+                                  borderRadius: 6,
+                                  opacity: busy ? 0.5 : 1,
+                                  cursor: busy ? 'not-allowed' : 'pointer',
+                                }}
+                              >
+                                <X size={14} />
+                                <span className="hidden sm:inline">Remove</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => promoteFromWaitlist(w.id)}
+                                disabled={busy || !canPromoteWaitlist}
+                                title={
+                                  canPromoteWaitlist
+                                    ? 'Promote into the current event as a pending sign-up'
+                                    : status !== 'enrolling'
+                                      ? 'Sign-ups are closed'
+                                      : 'Sign-ups are full - free a slot first'
+                                }
+                                aria-label={`Promote ${w.xHandle}`}
+                                className="footer-btn inline-flex items-center gap-1 px-2 py-1 text-xs font-bold sm:px-2.5"
+                                style={{
+                                  background: canPromoteWaitlist ? 'var(--tcw-accent)' : 'var(--bg-surface)',
+                                  color: canPromoteWaitlist ? '#fff' : 'var(--text-muted)',
+                                  border: canPromoteWaitlist ? 'none' : '1px solid var(--border-subtle)',
+                                  borderRadius: 6,
+                                  opacity: busy || !canPromoteWaitlist ? 0.5 : 1,
+                                  cursor: busy || !canPromoteWaitlist ? 'not-allowed' : 'pointer',
+                                }}
+                              >
+                                <Plus size={12} />
+                                <span className="hidden sm:inline">Promote</span>
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -3991,17 +3998,25 @@ function ParticipantRow({
   const url = xProfileUrl(player.xHandle)
   const status = STATUS_STYLE[player.approvalStatus]
   const [confirmDrop, setConfirmDrop] = useState(false)
+  const displayName = (player.username && player.username.trim()) || normalizeXHandle(player.xHandle)
   return (
     <li
-      className="flex flex-wrap items-center justify-between gap-2 rounded-md px-3 py-2"
+      className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md px-3 py-2"
       style={{
         background: 'var(--bg)',
         border: '1px solid var(--border-subtle)',
         opacity: player.approvalStatus === 'rejected' ? 0.7 : 1,
       }}
     >
-      <div className="flex items-center gap-2 min-w-0">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
+      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={displayName}
+          className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-sm font-semibold"
+          style={{ color: 'var(--text-primary)' }}
+        >
           <PlayerAvatar
             username={player.username}
             xHandle={player.xHandle}
@@ -4009,10 +4024,8 @@ function ParticipantRow({
             walletAddress={player.walletAddress ?? undefined}
             size={22}
           />
-          <span className="truncate" style={{ minWidth: 0 }}>
-            {(player.username && player.username.trim()) || normalizeXHandle(player.xHandle)}
-          </span>
-          <ExternalLink size={11} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.7 }} />
+          <span className="min-w-0 truncate">{displayName}</span>
+          <ExternalLink size={11} strokeWidth={2} className="hidden sm:block" style={{ flexShrink: 0, opacity: 0.7 }} />
         </a>
         <RegionTag region={player.region} />
         <span
@@ -4052,7 +4065,7 @@ function ParticipantRow({
           </span>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
         <AdminBtn disabled={disabled} onClick={onViewDeck}>
           {player.hasDeckList ? 'Deck' : 'Add deck'}
         </AdminBtn>
