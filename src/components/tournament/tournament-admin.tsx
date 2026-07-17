@@ -901,7 +901,7 @@ export function TournamentAdmin() {
             {snapshot && code && (
               <>
                 <div className="p-5" style={tintedCard('#64748b')}>
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                     <div className="min-w-0">
                       <p className="font-display text-lg font-bold truncate">{snapshot.tournament.name}</p>
                       <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -909,7 +909,7 @@ export function TournamentAdmin() {
                         {pending.length > 0 ? ` · ${pending.length} pending` : ''}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
                       {status === 'enrolling' && signupCountdown && (
                         <span
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold tabular-nums"
@@ -1126,12 +1126,14 @@ export function TournamentAdmin() {
 
                 {activeRound && activeMatches.length > 0 && (
                   <div className="p-5" style={tintedCard('#3b82f6')}>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-2">
-                        <Swords size={16} style={{ color: 'var(--tcw-accent)' }} />
-                        <h3 className="font-display font-bold">Round {activeRound.number} decisions</h3>
+                    <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Swords size={16} className="shrink-0" style={{ color: 'var(--tcw-accent)' }} />
+                        <h3 className="font-display font-bold whitespace-nowrap">
+                          Round {activeRound.number} decisions
+                        </h3>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                         {openPairingLines.length > 0 && (
                           <button
                             type="button"
@@ -1202,33 +1204,32 @@ export function TournamentAdmin() {
                 )}
 
                 <div className="p-5" style={tintedCard('#14b8a6')}>
-                  <div className="mb-3 flex flex-col gap-2">
-                    <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                  <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-sm font-bold uppercase tracking-wider whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                       Current tournament sign-ups
                     </h3>
-                    <div className="flex items-center justify-end">
-                      <button
-                        type="button"
-                        onClick={copyHandles}
-                        disabled={visibleHandles.length === 0}
-                        title="Copy the X handles shown in this tab, one per line"
-                        className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
-                        style={{
-                          background: 'var(--bg)',
-                          color: 'var(--text-primary)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 6,
-                          opacity: visibleHandles.length === 0 ? 0.5 : 1,
-                          cursor: visibleHandles.length === 0 ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        {copiedHandles ? (
-                          <><Check size={13} style={{ color: '#22c55e' }} /> Copied {visibleHandles.length}</>
-                        ) : (
-                          <><Copy size={13} /> Copy handles ({visibleHandles.length})</>
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={copyHandles}
+                      disabled={visibleHandles.length === 0}
+                      title="Copy the X handles shown in this tab, one per line"
+                      className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold sm:ml-auto"
+                      style={{
+                        background: 'var(--bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 6,
+                        opacity: visibleHandles.length === 0 ? 0.5 : 1,
+                        cursor: visibleHandles.length === 0 ? 'not-allowed' : 'pointer',
+                        alignSelf: 'flex-start',
+                      }}
+                    >
+                      {copiedHandles ? (
+                        <><Check size={13} style={{ color: '#22c55e' }} /> Copied {visibleHandles.length}</>
+                      ) : (
+                        <><Copy size={13} /> Copy handles ({visibleHandles.length})</>
+                      )}
+                    </button>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -1390,12 +1391,12 @@ export function TournamentAdmin() {
 
                 {/* Next event waitlist - queued profiles, NOT current sign-ups */}
                 <div className="p-5" style={tintedCard('#f5b301')}>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-2">
                       <Hourglass size={16} className="shrink-0" style={{ color: 'var(--tcw-accent)' }} />
                       <h3 className="font-display font-bold whitespace-nowrap">Next event waitlist</h3>
                     </div>
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                       <span className="inline-flex items-center gap-1.5">
                         <span
                           className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
