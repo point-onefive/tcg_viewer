@@ -4024,101 +4024,99 @@ function ParticipantRow({
         : { label: 'Review deck', fg: '#f59e0b', bg: 'rgba(245,158,11,0.15)', title: deckCheck.issues.join(' · ') }
   return (
     <li
-      className="flex min-w-0 flex-col gap-2 rounded-md px-3 py-2"
+      className="flex min-w-0 flex-col gap-2 rounded-md px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
       style={{
         background: 'var(--bg)',
         border: '1px solid var(--border-subtle)',
         opacity: player.approvalStatus === 'rejected' ? 0.7 : 1,
       }}
     >
-      <div className="flex min-w-0 items-center gap-2">
+      {/* Info line: name + region + status. Actions stay on their own row on mobile. */}
+      <div className="flex min-w-0 w-full items-center gap-1.5 overflow-hidden sm:w-auto sm:flex-1">
+        <PlayerAvatar
+          username={player.username}
+          xHandle={player.xHandle}
+          avatarUrl={player.avatarUrl}
+          walletAddress={player.walletAddress ?? undefined}
+          size={22}
+        />
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
           title={displayName}
-          className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold"
+          className="min-w-0 shrink truncate text-sm font-semibold hover:underline"
           style={{ color: 'var(--text-primary)' }}
         >
-          <PlayerAvatar
-            username={player.username}
-            xHandle={player.xHandle}
-            avatarUrl={player.avatarUrl}
-            walletAddress={player.walletAddress ?? undefined}
-            size={22}
-          />
-          <span className="min-w-0 truncate">{displayName}</span>
-          <ExternalLink size={11} strokeWidth={2} className="hidden sm:block" style={{ flexShrink: 0, opacity: 0.7 }} />
+          {displayName}
         </a>
         <RegionTag region={player.region} />
-      </div>
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <span
           className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
-          style={{ color: status.fg, background: status.bg, padding: '2px 7px', borderRadius: 5 }}
+          style={{ color: status.fg, background: status.bg, padding: '2px 6px', borderRadius: 5 }}
         >
           {status.label}
         </span>
         <span
           title={deckPill.title}
           className="shrink-0 cursor-help text-[10px] font-bold uppercase tracking-wide"
-          style={{ color: deckPill.fg, background: deckPill.bg, padding: '2px 7px', borderRadius: 5 }}
+          style={{ color: deckPill.fg, background: deckPill.bg, padding: '2px 6px', borderRadius: 5 }}
         >
           {deckPill.label}
         </span>
         {player.dropped && (
           <span
             className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
-            style={{ color: '#ef4444', background: 'rgba(239,68,68,0.15)', padding: '2px 7px', borderRadius: 5 }}
+            style={{ color: '#ef4444', background: 'rgba(239,68,68,0.15)', padding: '2px 6px', borderRadius: 5 }}
           >
             Dropped
           </span>
         )}
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <AdminBtn disabled={disabled} onClick={onViewDeck}>
-            {player.hasDeckList ? 'Deck' : 'Add deck'}
+      </div>
+      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
+        <AdminBtn disabled={disabled} onClick={onViewDeck}>
+          {player.hasDeckList ? 'Deck' : 'Add deck'}
+        </AdminBtn>
+        {player.approvalStatus !== 'approved' && (
+          <AdminBtn disabled={disabled} onClick={onApprove}>
+            {player.approvalStatus === 'rejected' ? 'Restore' : 'Approve'}
           </AdminBtn>
-          {player.approvalStatus !== 'approved' && (
-            <AdminBtn disabled={disabled} onClick={onApprove}>
-              {player.approvalStatus === 'rejected' ? 'Restore' : 'Approve'}
-            </AdminBtn>
-          )}
-          {player.approvalStatus !== 'rejected' && !player.dropped && (
-            <AdminBtn disabled={disabled} onClick={onReject}>Reject</AdminBtn>
-          )}
-          {player.approvalStatus === 'approved' &&
-            !player.dropped &&
-            (confirmDrop ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
-                  {running ? 'Drop (forfeits current match)?' : 'Drop?'}
-                </span>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => {
-                    setConfirmDrop(false)
-                    onDrop()
-                  }}
-                  className="text-[11px] font-bold"
-                  style={{ color: '#fff', background: '#ef4444', padding: '3px 9px', borderRadius: 5 }}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => setConfirmDrop(false)}
-                  className="text-[11px] font-semibold"
-                  style={{ color: 'var(--text-secondary)', padding: '3px 7px' }}
-                >
-                  No
-                </button>
+        )}
+        {player.approvalStatus !== 'rejected' && !player.dropped && (
+          <AdminBtn disabled={disabled} onClick={onReject}>Reject</AdminBtn>
+        )}
+        {player.approvalStatus === 'approved' &&
+          !player.dropped &&
+          (confirmDrop ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+                {running ? 'Drop (forfeits current match)?' : 'Drop?'}
               </span>
-            ) : (
-              <AdminBtn disabled={disabled} onClick={() => setConfirmDrop(true)}>Drop</AdminBtn>
-            ))}
-        </div>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setConfirmDrop(false)
+                  onDrop()
+                }}
+                className="text-[11px] font-bold"
+                style={{ color: '#fff', background: '#ef4444', padding: '3px 9px', borderRadius: 5 }}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setConfirmDrop(false)}
+                className="text-[11px] font-semibold"
+                style={{ color: 'var(--text-secondary)', padding: '3px 7px' }}
+              >
+                No
+              </button>
+            </span>
+          ) : (
+            <AdminBtn disabled={disabled} onClick={() => setConfirmDrop(true)}>Drop</AdminBtn>
+          ))}
       </div>
     </li>
   )
