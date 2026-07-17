@@ -1202,31 +1202,33 @@ export function TournamentAdmin() {
                 )}
 
                 <div className="p-5" style={tintedCard('#14b8a6')}>
-                  <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="mb-3 flex flex-col gap-2">
                     <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                       Current tournament sign-ups
                     </h3>
-                    <button
-                      type="button"
-                      onClick={copyHandles}
-                      disabled={visibleHandles.length === 0}
-                      title="Copy the X handles shown in this tab, one per line"
-                      className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
-                      style={{
-                        background: 'var(--bg)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 6,
-                        opacity: visibleHandles.length === 0 ? 0.5 : 1,
-                        cursor: visibleHandles.length === 0 ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      {copiedHandles ? (
-                        <><Check size={13} style={{ color: '#22c55e' }} /> Copied {visibleHandles.length}</>
-                      ) : (
-                        <><Copy size={13} /> Copy handles ({visibleHandles.length})</>
-                      )}
-                    </button>
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={copyHandles}
+                        disabled={visibleHandles.length === 0}
+                        title="Copy the X handles shown in this tab, one per line"
+                        className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
+                        style={{
+                          background: 'var(--bg)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 6,
+                          opacity: visibleHandles.length === 0 ? 0.5 : 1,
+                          cursor: visibleHandles.length === 0 ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        {copiedHandles ? (
+                          <><Check size={13} style={{ color: '#22c55e' }} /> Copied {visibleHandles.length}</>
+                        ) : (
+                          <><Copy size={13} /> Copy handles ({visibleHandles.length})</>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -1388,50 +1390,54 @@ export function TournamentAdmin() {
 
                 {/* Next event waitlist - queued profiles, NOT current sign-ups */}
                 <div className="p-5" style={tintedCard('#f5b301')}>
-                  <div className="flex items-center gap-2">
-                    <Hourglass size={16} style={{ color: 'var(--tcw-accent)' }} />
-                    <h3 className="font-display font-bold">Next event waitlist</h3>
-                    <span className="ml-auto inline-flex items-center gap-1.5">
-                      <span
-                        className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
-                        style={{
-                          minWidth: 22,
-                          height: 22,
-                          padding: '0 6px',
-                          background: 'var(--tcw-accent)',
-                          color: '#fff',
-                          borderRadius: 6,
-                        }}
-                      >
-                        {waitlist.length}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Hourglass size={16} className="shrink-0" style={{ color: 'var(--tcw-accent)' }} />
+                      <h3 className="font-display font-bold whitespace-nowrap">Next event waitlist</h3>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span
+                          className="inline-flex items-center justify-center font-display text-xs font-bold tabular-nums"
+                          style={{
+                            minWidth: 22,
+                            height: 22,
+                            padding: '0 6px',
+                            background: 'var(--tcw-accent)',
+                            color: '#fff',
+                            borderRadius: 6,
+                          }}
+                        >
+                          {waitlist.length}
+                        </span>
+                        <span
+                          className="text-xs font-semibold uppercase tracking-wide"
+                          style={{ color: 'var(--text-muted)' }}
+                        >
+                          waiting
+                        </span>
                       </span>
-                      <span
-                        className="text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        waiting
-                      </span>
-                    </span>
-                    {waitlist.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={copyWaitlistHandles}
-                        title="Copy every waitlist X handle, one per line"
-                        className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
-                        style={{
-                          background: 'var(--bg)',
-                          color: 'var(--text-primary)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 6,
-                        }}
-                      >
-                        {copiedWaitlist ? (
-                          <><Check size={13} style={{ color: '#22c55e' }} /> Copied {waitlistHandles.length}</>
-                        ) : (
-                          <><Copy size={13} /> Copy handles ({waitlistHandles.length})</>
-                        )}
-                      </button>
-                    )}
+                      {waitlist.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={copyWaitlistHandles}
+                          title="Copy every waitlist X handle, one per line"
+                          className="footer-btn inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold"
+                          style={{
+                            background: 'var(--bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 6,
+                          }}
+                        >
+                          {copiedWaitlist ? (
+                            <><Check size={13} style={{ color: '#22c55e' }} /> Copied {waitlistHandles.length}</>
+                          ) : (
+                            <><Copy size={13} /> Copy handles ({waitlistHandles.length})</>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Wallet profiles queued for the <strong>next</strong> tournament (not the current
@@ -4007,22 +4013,30 @@ function ParticipantRow({
   const status = STATUS_STYLE[player.approvalStatus]
   const [confirmDrop, setConfirmDrop] = useState(false)
   const displayName = (player.username && player.username.trim()) || normalizeXHandle(player.xHandle)
+  // Deck pill folds "has a list?" + "does it validate?" into one status.
+  const deckPill = !player.hasDeckList
+    ? { label: 'No deck', fg: '#ef4444', bg: 'rgba(239,68,68,0.15)', title: 'No deck list submitted yet.' }
+    : !deckCheck
+      ? { label: 'Deck ✓', fg: 'var(--text-secondary)', bg: 'var(--border-subtle)', title: 'Deck on file - validating…' }
+      : deckCheck.ok
+        ? { label: 'Deck valid', fg: '#22c55e', bg: 'rgba(34,197,94,0.15)', title: 'Every code resolves - 1 leader + 50 cards.' }
+        : { label: 'Review deck', fg: '#f59e0b', bg: 'rgba(245,158,11,0.15)', title: deckCheck.issues.join(' · ') }
   return (
     <li
-      className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md px-3 py-2"
+      className="flex min-w-0 flex-col gap-2 rounded-md px-3 py-2"
       style={{
         background: 'var(--bg)',
         border: '1px solid var(--border-subtle)',
         opacity: player.approvalStatus === 'rejected' ? 0.7 : 1,
       }}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+      <div className="flex min-w-0 items-center gap-2">
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
           title={displayName}
-          className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-sm font-semibold"
+          className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold"
           style={{ color: 'var(--text-primary)' }}
         >
           <PlayerAvatar
@@ -4036,34 +4050,21 @@ function ParticipantRow({
           <ExternalLink size={11} strokeWidth={2} className="hidden sm:block" style={{ flexShrink: 0, opacity: 0.7 }} />
         </a>
         <RegionTag region={player.region} />
+      </div>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <span
           className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
           style={{ color: status.fg, background: status.bg, padding: '2px 7px', borderRadius: 5 }}
         >
           {status.label}
         </span>
-        {(() => {
-          // One deck pill that folds "has a list?" and "does it validate?" into
-          // a single status: red No deck, green Deck valid, yellow Review deck
-          // (structural problem or unrecognized codes), or a neutral Deck ✓ while
-          // the validation audit is still loading.
-          const pill = !player.hasDeckList
-            ? { label: 'No deck', fg: '#ef4444', bg: 'rgba(239,68,68,0.15)', title: 'No deck list submitted yet.' }
-            : !deckCheck
-              ? { label: 'Deck ✓', fg: 'var(--text-secondary)', bg: 'var(--border-subtle)', title: 'Deck on file - validating…' }
-              : deckCheck.ok
-                ? { label: 'Deck valid', fg: '#22c55e', bg: 'rgba(34,197,94,0.15)', title: 'Every code resolves - 1 leader + 50 cards.' }
-                : { label: 'Review deck', fg: '#f59e0b', bg: 'rgba(245,158,11,0.15)', title: deckCheck.issues.join(' · ') }
-          return (
-            <span
-              title={pill.title}
-              className="shrink-0 text-[10px] font-bold uppercase tracking-wide cursor-help"
-              style={{ color: pill.fg, background: pill.bg, padding: '2px 7px', borderRadius: 5 }}
-            >
-              {pill.label}
-            </span>
-          )
-        })()}
+        <span
+          title={deckPill.title}
+          className="shrink-0 cursor-help text-[10px] font-bold uppercase tracking-wide"
+          style={{ color: deckPill.fg, background: deckPill.bg, padding: '2px 7px', borderRadius: 5 }}
+        >
+          {deckPill.label}
+        </span>
         {player.dropped && (
           <span
             className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
@@ -4072,51 +4073,51 @@ function ParticipantRow({
             Dropped
           </span>
         )}
-      </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <AdminBtn disabled={disabled} onClick={onViewDeck}>
-          {player.hasDeckList ? 'Deck' : 'Add deck'}
-        </AdminBtn>
-        {player.approvalStatus !== 'approved' && (
-          <AdminBtn disabled={disabled} onClick={onApprove}>
-            {player.approvalStatus === 'rejected' ? 'Restore' : 'Approve'}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <AdminBtn disabled={disabled} onClick={onViewDeck}>
+            {player.hasDeckList ? 'Deck' : 'Add deck'}
           </AdminBtn>
-        )}
-        {player.approvalStatus !== 'rejected' && !player.dropped && (
-          <AdminBtn disabled={disabled} onClick={onReject}>Reject</AdminBtn>
-        )}
-        {player.approvalStatus === 'approved' &&
-          !player.dropped &&
-          (confirmDrop ? (
-            <span className="inline-flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
-                {running ? 'Drop (forfeits current match)?' : 'Drop?'}
+          {player.approvalStatus !== 'approved' && (
+            <AdminBtn disabled={disabled} onClick={onApprove}>
+              {player.approvalStatus === 'rejected' ? 'Restore' : 'Approve'}
+            </AdminBtn>
+          )}
+          {player.approvalStatus !== 'rejected' && !player.dropped && (
+            <AdminBtn disabled={disabled} onClick={onReject}>Reject</AdminBtn>
+          )}
+          {player.approvalStatus === 'approved' &&
+            !player.dropped &&
+            (confirmDrop ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+                  {running ? 'Drop (forfeits current match)?' : 'Drop?'}
+                </span>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => {
+                    setConfirmDrop(false)
+                    onDrop()
+                  }}
+                  className="text-[11px] font-bold"
+                  style={{ color: '#fff', background: '#ef4444', padding: '3px 9px', borderRadius: 5 }}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => setConfirmDrop(false)}
+                  className="text-[11px] font-semibold"
+                  style={{ color: 'var(--text-secondary)', padding: '3px 7px' }}
+                >
+                  No
+                </button>
               </span>
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => {
-                  setConfirmDrop(false)
-                  onDrop()
-                }}
-                className="text-[11px] font-bold"
-                style={{ color: '#fff', background: '#ef4444', padding: '3px 9px', borderRadius: 5 }}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => setConfirmDrop(false)}
-                className="text-[11px] font-semibold"
-                style={{ color: 'var(--text-secondary)', padding: '3px 7px' }}
-              >
-                No
-              </button>
-            </span>
-          ) : (
-            <AdminBtn disabled={disabled} onClick={() => setConfirmDrop(true)}>Drop</AdminBtn>
-          ))}
+            ) : (
+              <AdminBtn disabled={disabled} onClick={() => setConfirmDrop(true)}>Drop</AdminBtn>
+            ))}
+        </div>
       </div>
     </li>
   )
