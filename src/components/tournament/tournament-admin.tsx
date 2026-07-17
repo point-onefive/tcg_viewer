@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Award, Check, Clock, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, ChevronDown, Clock, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -749,28 +749,36 @@ export function TournamentAdmin() {
                 <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                   <Palette size={12} style={{ color: 'var(--tcw-accent)' }} /> Page theme
                 </span>
-                <select
-                  aria-label="Page theme"
-                  value={themeId}
-                  onChange={(e) => setThemeId(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg)',
-                    color: themeId ? 'var(--text-primary)' : 'var(--text-muted)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 6,
-                    padding: '9px 12px',
-                    fontSize: 14,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="" disabled>
-                    Select theme
-                  </option>
-                  {themeOptions().map((o) => (
-                    <option key={o.id} value={o.id}>{o.label}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    aria-label="Page theme"
+                    value={themeId}
+                    onChange={(e) => setThemeId(e.target.value)}
+                    className="w-full appearance-none"
+                    style={{
+                      background: 'var(--bg)',
+                      color: themeId ? 'var(--text-primary)' : 'var(--text-muted)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 6,
+                      padding: '9px 36px 9px 12px',
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="" disabled>
+                      Select theme
+                    </option>
+                    {themeOptions().map((o) => (
+                      <option key={o.id} value={o.id}>{o.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    aria-hidden
+                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
+                    style={{ color: 'var(--text-muted)' }}
+                  />
+                </div>
                 <p className="mt-1.5 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
                   Sets the public page look for this event (palette, hero, scenes, lockup). Each event keeps its own theme for its whole life.
                 </p>
