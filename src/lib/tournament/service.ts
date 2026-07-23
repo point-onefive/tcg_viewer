@@ -1648,7 +1648,7 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
   const ids = tournaments.map((t) => t.id as string)
   const { data: pRows } = await sb
     .from('players')
-    .select('tournament_id, x_handle, display_name, wallet_address, final_rank, dropped, approval_status')
+    .select('tournament_id, x_handle, display_name, wallet_address, final_rank, dropped, approval_status, seed')
     .in('tournament_id', ids)
 
   interface ChampRaw {
@@ -1660,12 +1660,13 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
   const champions = new Map<string, ChampRaw>()
   for (const p of pRows ?? []) {
     const tid = p.tournament_id as string
-    // Competitor count = the field that actually played: approved sign-ups who
-    // stayed in. Rejected sign-ups never entered, and dropped players left, so
-    // both are excluded (this matches the detail page's competitor chip).
-    const approved = (p.approval_status ?? 'approved') === 'approved'
-    const dropped = Boolean(p.dropped)
-    if (approved && !dropped) counts.set(tid, (counts.get(tid) ?? 0) + 1)
+    // Competitor count = the field we started with: everyone seeded into the
+    // bracket at Round 1. Players who dropped mid-event still count (they were
+    // part of the starting field); sign-ups that were never seeded (pending) or
+    // rejected are excluded. Matches the detail page's competitor chip.
+    const seeded = (p.seed ?? null) != null
+    const rejected = (p.approval_status ?? 'approved') === 'rejected'
+    if (seeded && !rejected) counts.set(tid, (counts.get(tid) ?? 0) + 1)
     if ((p.final_rank ?? null) === 1 && !champions.has(tid)) {
       champions.set(tid, {
         xHandle: (p.x_handle as string) ?? '',

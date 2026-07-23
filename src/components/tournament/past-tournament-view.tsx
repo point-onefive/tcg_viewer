@@ -89,14 +89,14 @@ export function PastTournamentView({ code }: { code: string }) {
     [snapshot],
   )
 
-  // The competitor count is the actual field, matching the live page: rejected
-  // and dropped sign-ups are out, so it counts only approved players who stayed
-  // in. Using the raw players array over-counts (it includes rejected/dropped
-  // rows that never really competed).
+  // Competitor count = the field we started with: everyone seeded into the
+  // bracket at Round 1. Players who dropped mid-event still count (they were
+  // part of the starting field); sign-ups that were never seeded (pending) or
+  // rejected are excluded. Using the raw players array over-counts those.
   const competitorCount = useMemo(
     () =>
       (snapshot?.players ?? []).filter(
-        (p) => p.approvalStatus === 'approved' && !p.dropped,
+        (p) => p.seed != null && p.approvalStatus !== 'rejected',
       ).length,
     [snapshot?.players],
   )
