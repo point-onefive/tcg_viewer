@@ -6,6 +6,7 @@ import { ChevronLeft, Hash, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import { AwardedPrizesHistory, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
+import { getTournamentTheme } from '@/lib/tournament/theme'
 import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -121,9 +122,12 @@ export function PastTournamentView({ code }: { code: string }) {
   }
 
   const { tournament, awardedPrizes } = snapshot
+  // Retain the event's own theme (palette, fonts, gradients, co-brand lockup)
+  // instead of the generic surface, matching how the live page was themed.
+  const theme = getTournamentTheme(tournament.theme)
 
   return (
-    <TournamentShell>
+    <TournamentShell theme={theme}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
         <div className="mb-4">{backLink}</div>
 
