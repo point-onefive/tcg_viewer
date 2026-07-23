@@ -4,9 +4,22 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
-import { AwardedPrizesHistory, RoundBoard, StandingsTable, XProfileLink } from './tournament-live'
+import {
+  BonkFooter,
+  BonkHero,
+  HowItWorks,
+  MetaChip,
+  PollCard,
+  PrizePool,
+  RoundBoard,
+  StandingsTable,
+  StatusPill,
+  XProfileLink,
+} from './tournament-live'
+import { BonkModuleHeader, BonkSceneBody } from '@/components/tournament/bonk-ui'
 import { apiSnapshotByCode } from '@/lib/tournament/client'
 import { getTournamentTheme } from '@/lib/tournament/theme'
+import { DEFAULT_POLL_QUESTION, POLL_OPTIONS } from '@/lib/tournament/poll'
 import type { Player, TournamentSnapshot } from '@/lib/tournament/types'
 
 const card: React.CSSProperties = {
@@ -26,24 +39,6 @@ function fmtDate(iso: string): string {
   } catch {
     return ''
   }
-}
-
-function MetaChip({ icon: Icon, children }: { icon: typeof Hash; children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 text-xs font-semibold"
-      style={{
-        background: 'var(--bg)',
-        border: '1px solid var(--border-subtle)',
-        color: 'var(--text-secondary)',
-        borderRadius: 5,
-        padding: '4px 8px',
-      }}
-    >
-      <Icon size={13} style={{ color: 'var(--tcw-accent)' }} aria-hidden />
-      {children}
-    </span>
-  )
 }
 
 const backLink = (
@@ -122,56 +117,53 @@ export function PastTournamentView({ code }: { code: string }) {
   }
 
   const { tournament, awardedPrizes } = snapshot
-  // Retain the event's own theme (palette, fonts, gradients, co-brand lockup)
-  // instead of the generic surface, matching how the live page was themed.
+  // Retain the event's own theme (palette, fonts, gradients, hero, co-brand
+  // lockup) and replay the same concluded layout the live page shows: full
+  // hero banner, prize podium with winners, bracket/standings, poll results,
+  // playbook, and footer - so revisiting a past event feels identical to how
+  // it looked the day it wrapped.
   const theme = getTournamentTheme(tournament.theme)
 
   return (
-    <TournamentShell theme={theme}>
+    <TournamentShell theme={theme} hero={<BonkHero theme={theme} />}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
         <div className="mb-4">{backLink}</div>
 
-        {/* Event hero */}
-        <div className="mb-6 overflow-hidden" style={card}>
-          <div
-            style={{
-              height: 3,
-              background: 'linear-gradient(90deg, var(--tcw-accent), color-mix(in srgb, var(--tcw-accent) 35%, transparent))',
-            }}
-          />
-          <div className="p-5 sm:p-6">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="font-display text-2xl font-bold leading-none tracking-tight sm:text-3xl">
-                {tournament.name}
-              </h2>
-              <span
-                style={{
-                  background: 'rgba(120,120,120,0.18)',
-                  color: 'var(--text-secondary)',
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  padding: '3px 9px',
-                  borderRadius: 5,
-                }}
-              >
-                Complete
+        {/* Event hero - themed module card, mirroring the live event header. */}
+        <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
+          <BonkModuleHeader
+            icon={Trophy}
+            title={tournament.name}
+            right={
+              <span className="hidden sm:block">
+                <StatusPill status={tournament.status} />
               </span>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <MetaChip icon={Hash}>{tournament.code}</MetaChip>
-              <MetaChip icon={Swords}>
+            }
+          />
+          <BonkSceneBody
+            scene={theme.scenes.eventDark ?? null}
+            sceneLight={theme.scenes.eventLight ?? null}
+            position="center 28%"
+            className="p-5 sm:p-6"
+          >
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+              <MetaChip icon={Hash} iconColor="var(--bonk-ui-yellow)">{tournament.code}</MetaChip>
+              <MetaChip icon={Swords} iconColor="var(--bonk-ui-orange)">
                 {tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}
               </MetaChip>
-              <MetaChip icon={Users}>{snapshot.players.length} competitors</MetaChip>
-              <MetaChip icon={Trophy}>{fmtDate(tournament.createdAt)}</MetaChip>
+              <MetaChip icon={Users} iconColor="#22c55e">
+                {snapshot.players.length}
+                <span className="hidden sm:inline"> competitors</span>
+              </MetaChip>
+              <MetaChip icon={Trophy} iconColor="var(--bonk-pink)">
+                {fmtDate(tournament.createdAt)}
+              </MetaChip>
             </div>
 
             {champion && (
               <div
                 className="mt-5 flex items-center gap-3 rounded-md p-3.5"
-                style={{ background: 'var(--bg)', border: '1px solid #f5b301' }}
+                style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid #f5b301' }}
               >
                 <Trophy size={20} style={{ color: '#f5b301' }} aria-hidden />
                 <div>
@@ -194,13 +186,32 @@ export function PastTournamentView({ code }: { code: string }) {
                 </div>
               </div>
             )}
-          </div>
+
+            {tournament.rules && (
+              <p
+                className="mt-5 whitespace-pre-wrap rounded-md p-3.5 text-sm"
+                style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', lineHeight: 1.5 }}
+              >
+                {tournament.rules}
+              </p>
+            )}
+          </BonkSceneBody>
         </div>
 
+        {/* Prize pool podium - the branded prize cards with the winners folded
+            in (the same view the live page shows at conclusion). */}
+        {tournament.prizes.length > 0 && (
+          <PrizePool
+            prizes={tournament.prizes}
+            awarded={awardedPrizes}
+            lockup={theme.prizePoolLockup}
+            scene={theme.scenes.prizeDark}
+          />
+        )}
+
         {/* The real bracket / Swiss board + final standings - the identical
-            component the live page uses, rendered read-only from the
-            completed snapshot. Single-elim shows the bracket tree; Swiss shows
-            round-by-round pairings plus the final standings table. */}
+            component the live page uses, rendered read-only from the completed
+            snapshot. */}
         {snapshot.matches.length > 0 && (
           <RoundBoard
             tournament={tournament}
@@ -211,21 +222,27 @@ export function PastTournamentView({ code }: { code: string }) {
           />
         )}
 
-        {/* Final standings with a Deck (Leader) column - the cleanest read on
-            deck performance. Swiss already renders this inside the board above,
-            so only add it for single-elim (the bracket has no standings list). */}
+        {/* Final standings with a Deck (Leader) column for single-elim (Swiss
+            already renders standings inside the board above). */}
         {tournament.format === 'single-elim' && (
           <StandingsTable standings={standings} nameById={playerById} complete />
         )}
 
-        {/* Prizes that were actually handed out (frozen award snapshot, with
-            their images preserved at award time). */}
-        {awardedPrizes.length > 0 && (
-          <div className="mt-6">
-            <AwardedPrizesHistory awarded={awardedPrizes} />
-          </div>
-        )}
+        {/* Community poll - final results, read-only. */}
+        <PollCard
+          code={tournament.code}
+          poll={snapshot.poll}
+          question={tournament.pollQuestion ?? DEFAULT_POLL_QUESTION}
+          options={tournament.pollOptions ?? POLL_OPTIONS}
+          canVote={false}
+          signedUp={false}
+          pollOpen={false}
+          onVoted={() => {}}
+        />
 
+        {/* Playbook + closing co-brand strip, same as the live page. */}
+        <HowItWorks theme={theme} />
+        <BonkFooter theme={theme} />
       </div>
     </TournamentShell>
   )

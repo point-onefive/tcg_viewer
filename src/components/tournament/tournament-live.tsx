@@ -234,7 +234,7 @@ function ProfileLookupModal({ handle, onClose }: { handle: string; onClose: () =
   )
 }
 
-function StatusPill({ status, enrollExpired }: { status: string; enrollExpired?: boolean }) {
+export function StatusPill({ status, enrollExpired }: { status: string; enrollExpired?: boolean }) {
   const map: Record<string, { bg: string; fg: string; label: string; breathe?: boolean }> = {
     enrolling: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Sign-ups open' },
     running: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Round in progress', breathe: true },
@@ -278,7 +278,7 @@ function placeAccent(i: number): { bg: string; fg: string } {
 const HERO_STAT_H = 36
 
 /** Small labeled fact chip used in the event hero meta row. */
-function MetaChip({
+export function MetaChip({
   icon: Icon,
   children,
   hideOnMobile = false,
@@ -384,7 +384,7 @@ function medalColor(i: number): string | null {
 }
 
 /** Public, read-only prize pool. Centered, medal-accented showcase. */
-function PrizePool({ prizes, awarded, lockup, scene }: { prizes: TournamentPrize[]; awarded?: AwardedPrize[]; lockup: PrizePoolLockup; scene?: string | null }) {
+export function PrizePool({ prizes, awarded, lockup, scene }: { prizes: TournamentPrize[]; awarded?: AwardedPrize[]; lockup: PrizePoolLockup; scene?: string | null }) {
   // Once the event is complete, fold the declared winners straight into the
   // branded prize cards (grouped by slot, so a split prize lists everyone).
   const winnersBySlot = useMemo(() => {
@@ -1313,7 +1313,7 @@ function LinkOut({ href, children }: { href: string; children: React.ReactNode }
 }
 
 /** Punchy "how the event runs" explainer so there are no surprises. */
-function HowItWorks({ theme }: { theme: TournamentTheme }) {
+export function HowItWorks({ theme }: { theme: TournamentTheme }) {
   const [deckHelp, setDeckHelp] = useState(false)
   const payout = theme.playbook.payout
   type StepTone = 'default' | 'danger' | 'success'
@@ -1643,7 +1643,7 @@ function DeckHelpModal({ onClose }: { onClose: () => void }) {
  * the live event can cast one vote (deduped server-side per browser). Results
  * are read from the live snapshot, so they refresh on the page's normal poll.
  */
-function PollCard({
+export function PollCard({
   code,
   poll,
   question,
@@ -1886,7 +1886,7 @@ function PollCard({
  * headline, a peeking BONK Dog on the right, warm orange glow + embers. Sits
  * flush under the page header and spans the viewport width.
  */
-function BonkHero({ theme }: { theme: TournamentTheme }) {
+export function BonkHero({ theme }: { theme: TournamentTheme }) {
   const h = theme.hero
   return (
     <section className="bonk-hero" aria-label={h.ariaLabel}>
@@ -1939,7 +1939,7 @@ function BonkHero({ theme }: { theme: TournamentTheme }) {
  * BONK Dog (peace), the brand's own community line, and an attributed
  * "powered by BONK" lockup linking out to bonkcoin.com.
  */
-function BonkFooter({ theme }: { theme: TournamentTheme }) {
+export function BonkFooter({ theme }: { theme: TournamentTheme }) {
   const f = theme.footer
   if (!f) return null
   return (
