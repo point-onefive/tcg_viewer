@@ -466,7 +466,7 @@ function PrizePool({ prizes, awarded, lockup, scene }: { prizes: TournamentPrize
             />
           </button>
         )}
-        <div className="flex flex-col gap-1.5 p-3">
+        <div className="flex flex-1 flex-col gap-1.5 p-3">
           <div className="flex items-center gap-2">
             <span
               className="inline-flex items-center justify-center font-display text-[11px] font-bold"
@@ -484,8 +484,10 @@ function PrizePool({ prizes, awarded, lockup, scene }: { prizes: TournamentPrize
           {(() => {
             const winners = winnersBySlot.get(i) ?? []
             if (winners.length === 0) return null
+            // mt-auto pins the winner block to the bottom of equal-height cards
+            // so shorter prize copy doesn't float the name above the others.
             return (
-              <div className="flex flex-col gap-1.5 pt-2 mt-0.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <div className="mt-auto flex flex-col gap-1.5 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                 <span className="bonk-mono text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: 'var(--tcw-accent)' }}>
                   {winners.length > 1 ? 'Winners' : 'Winner'}
                 </span>
@@ -864,7 +866,7 @@ export function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
                   }}
                 />
               )}
-              <div className="flex flex-col gap-2 p-3">
+              <div className="flex flex-1 flex-col gap-2 p-3">
                 <div className="flex items-center gap-2">
                   <span
                     className="inline-flex items-center justify-center font-display text-[11px] font-bold"
@@ -879,7 +881,7 @@ export function AwardedPrizesHistory({ awarded }: { awarded: AwardedPrize[] }) {
                     {sample.description}
                   </p>
                 )}
-                <div className="flex flex-col gap-1 pt-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                <div className="mt-auto flex flex-col gap-1 pt-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                   <span className="text-[10px] uppercase tracking-wide font-bold" style={{ color: 'var(--text-muted)' }}>
                     {winners.length > 1 ? 'Winners' : 'Winner'}
                   </span>
