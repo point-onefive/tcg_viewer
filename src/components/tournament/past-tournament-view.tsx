@@ -89,6 +89,18 @@ export function PastTournamentView({ code }: { code: string }) {
     [snapshot],
   )
 
+  // The competitor count is the actual field, matching the live page: rejected
+  // and dropped sign-ups are out, so it counts only approved players who stayed
+  // in. Using the raw players array over-counts (it includes rejected/dropped
+  // rows that never really competed).
+  const competitorCount = useMemo(
+    () =>
+      (snapshot?.players ?? []).filter(
+        (p) => p.approvalStatus === 'approved' && !p.dropped,
+      ).length,
+    [snapshot?.players],
+  )
+
   if (error) {
     return (
       <TournamentShell>
@@ -152,7 +164,7 @@ export function PastTournamentView({ code }: { code: string }) {
                 {tournament.format === 'swiss' ? 'Swiss' : 'Single elim'}
               </MetaChip>
               <MetaChip icon={Users} iconColor="#22c55e">
-                {snapshot.players.length}
+                {competitorCount}
                 <span className="hidden sm:inline"> competitors</span>
               </MetaChip>
               <MetaChip icon={Trophy} iconColor="var(--bonk-pink)">

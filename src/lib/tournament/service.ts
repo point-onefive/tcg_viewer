@@ -1660,8 +1660,12 @@ export async function listCompletedTournaments(): Promise<CompletedTournamentSum
   const champions = new Map<string, ChampRaw>()
   for (const p of pRows ?? []) {
     const tid = p.tournament_id as string
-    const rejected = (p.approval_status ?? 'approved') === 'rejected'
-    if (!rejected) counts.set(tid, (counts.get(tid) ?? 0) + 1)
+    // Competitor count = the field that actually played: approved sign-ups who
+    // stayed in. Rejected sign-ups never entered, and dropped players left, so
+    // both are excluded (this matches the detail page's competitor chip).
+    const approved = (p.approval_status ?? 'approved') === 'approved'
+    const dropped = Boolean(p.dropped)
+    if (approved && !dropped) counts.set(tid, (counts.get(tid) ?? 0) + 1)
     if ((p.final_rank ?? null) === 1 && !champions.has(tid)) {
       champions.set(tid, {
         xHandle: (p.x_handle as string) ?? '',
