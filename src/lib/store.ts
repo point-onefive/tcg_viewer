@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LanguagePickerValue } from './types'
 import { defaultTiers, type TierCard, type TierDef } from './tier-list-types'
+import { defaultBoardBackground, type BoardBackground } from './board-background'
 import {
   baseCardId,
   createEmptyDeck,
@@ -181,6 +182,13 @@ interface StoreState {
   setTierBoardCards: (next: TierCard[] | ((prev: TierCard[]) => TierCard[])) => void
   tierBoardTitle: string
   setTierBoardTitle: (next: string) => void
+  /**
+   * Custom background painted behind the exported tier-list board
+   * (solid color or a pasted/uploaded image, with an opacity dial).
+   * Persisted so a themed board survives navigation + reload.
+   */
+  tierBoardBg: BoardBackground
+  setTierBoardBg: (next: BoardBackground) => void
   /**
    * Wipe the board back to a clean slate: default tier rows, no
    * cards, empty title. Does NOT touch the gallery's tier-pool queue
@@ -445,11 +453,14 @@ export const useStore = create<StoreState>()(
         })),
       tierBoardTitle: '',
       setTierBoardTitle: (tierBoardTitle) => set({ tierBoardTitle }),
+      tierBoardBg: defaultBoardBackground(),
+      setTierBoardBg: (tierBoardBg) => set({ tierBoardBg }),
       resetTierBoard: () =>
         set({
           tierBoardTiers: defaultTiers(),
           tierBoardCards: [],
           tierBoardTitle: '',
+          tierBoardBg: defaultBoardBackground(),
         }),
       resetTierChart: () =>
         set((s) => ({
@@ -679,6 +690,7 @@ export const useStore = create<StoreState>()(
         // visits should always open in canonical set order.
         tierBoardTiers: state.tierBoardTiers,
         tierBoardTitle: state.tierBoardTitle,
+        tierBoardBg: state.tierBoardBg,
         // Drop upload-kind cards from the persisted slice: their
         // `blob:` URLs are tied to the current document lifetime, so
         // restoring them after a reload would just render broken
@@ -692,7 +704,7 @@ export const useStore = create<StoreState>()(
         decks: state.decks,
         activeDeckId: state.activeDeckId,
       }),
-      version: 25,
+      version: 26,
       migrate: (persisted: unknown, fromVersion): StoreState => {
         const s = (persisted || {}) as Partial<StoreState> & { pinned?: Array<Partial<Pin>> }
         if (fromVersion < 5 && Array.isArray(s.pinned)) {
@@ -867,6 +879,14 @@ export const useStore = create<StoreState>()(
           // an array so a pre-v25 blob (no key) doesn't leave it undefined
           // when merged against initialState.
           s.activeTypeTags = Array.isArray(s.activeTypeTags) ? s.activeTypeTags : []
+        }
+        if (fromVersion < 26) {
+          // v26 adds the tier-list board background (solid color or
+          // image + opacity). Old blobs have no key; default to "none"
+          // so nothing changes visually until the user sets one.
+          const existing = (s as { tierBoardBg?: BoardBackground }).tierBoardBg
+          s.tierBoardBg =
+            existing && typeof existing === 'object' ? existing : defaultBoardBackground()
         }
         return s as StoreState
       },

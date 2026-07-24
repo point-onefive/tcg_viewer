@@ -11,6 +11,7 @@ import {
   type ChartRow,
   type ChartSeries,
 } from './chart-race-types'
+import { defaultBoardBackground, type BoardBackground } from './board-background'
 
 /**
  * Dedicated persist store for the chart race maker. Deliberately
@@ -24,6 +25,9 @@ import {
  */
 interface ChartRaceStore extends ChartRaceState {
   settings: ChartRaceSettings
+  /** Custom background painted behind the exported chart figure. */
+  background: BoardBackground
+  setBackground: (next: BoardBackground) => void
 
   setTitle: (v: string) => void
   setSubtitle: (v: string) => void
@@ -64,6 +68,9 @@ export const useChartRace = create<ChartRaceStore>()(
     (set) => ({
       ...sampleState(),
       settings: sampleSettings(),
+      background: defaultBoardBackground(),
+
+      setBackground: (background) => set({ background }),
 
       setTitle: (v) => set({ title: v }),
       setSubtitle: (v) => set({ subtitle: v }),
@@ -166,7 +173,7 @@ export const useChartRace = create<ChartRaceStore>()(
     }),
     {
       name: 'tcw-chart-race',
-      version: 9,
+      version: 10,
       // Refresh the starter dataset for anyone on a prior untouched default.
       // Anyone who built or imported their own chart keeps it.
       migrate: (persisted, fromVersion) => {
@@ -198,6 +205,11 @@ export const useChartRace = create<ChartRaceStore>()(
         // v6-v9: replace any prior default sample with current data + settings.
         if (fromVersion < 9 && isDefaultSample()) {
           return { ...s, ...sampleState(), settings: sampleSettings() } as ChartRaceStore
+        }
+        // v10 adds the chart background. Default to "none" when absent so
+        // existing charts look unchanged until the user sets one.
+        if (fromVersion < 10 && !s.background) {
+          s.background = defaultBoardBackground()
         }
         return s as ChartRaceStore
       },

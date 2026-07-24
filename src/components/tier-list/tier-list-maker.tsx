@@ -53,6 +53,11 @@ import {
 } from '@/lib/chart-export'
 import { BrandLockup } from '@/components/gallery/brand-lockup'
 import { SiteNavMenu } from '@/components/gallery/site-nav-menu'
+import {
+  BackgroundControls,
+  BoardBackgroundLayer,
+} from '@/components/shared/board-background-controls'
+import { backgroundIsActive } from '@/lib/board-background'
 
 // `TierDef`, `TierCard`, `TierCardKind`, and `defaultTiers()` now
 // live in `@/lib/tier-list-types` so the Zustand store can reference
@@ -266,64 +271,6 @@ function ZoomScrubber({
         <rect x="1" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
         <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.6" />
       </svg>
-    </div>
-  )
-}
-
-/**
- * Branded footer stamp that lives below the tier rows inside the board
- * container. Uses the same mascot + wordmark as the nav, no pill fill,
- * so it reads as a faded watermark when the board is exported.
- */
-function BoardWatermark() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none mt-6 flex items-center justify-center gap-3 opacity-30"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/site-logo.png"
-        alt=""
-        width={19}
-        height={28}
-        style={{
-          width: 19,
-          height: 28,
-          flexShrink: 0,
-          imageRendering: 'pixelated',
-          display: 'block',
-        }}
-      />
-      <span
-        className="whitespace-nowrap"
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 800,
-          fontSize: 18,
-          lineHeight: 1,
-          letterSpacing: '-0.015em',
-          textTransform: 'uppercase',
-          color: 'var(--text-primary)',
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            fontStyle: 'italic',
-            letterSpacing: '0.02em',
-            textTransform: 'lowercase',
-            opacity: 0.7,
-            marginRight: 6,
-            lineHeight: 1,
-          }}
-        >
-          the
-        </span>
-        <span>Card Wall</span>
-      </span>
     </div>
   )
 }
@@ -1059,6 +1006,8 @@ export function TierListMaker() {
   const setCards = useStore((s) => s.setTierBoardCards)
   const title = useStore((s) => s.tierBoardTitle)
   const setTitle = useStore((s) => s.setTierBoardTitle)
+  const boardBg = useStore((s) => s.tierBoardBg)
+  const setBoardBg = useStore((s) => s.setTierBoardBg)
   const resetBoard = useStore((s) => s.resetTierBoard)
   const resetTierChart = useStore((s) => s.resetTierChart)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -1426,6 +1375,16 @@ export function TierListMaker() {
     () => (tierActiveId ? tiers.find((t) => t.id === tierActiveId) ?? null : null),
     [tierActiveId, tiers],
   )
+
+  // When a custom background is active, let it show through the board:
+  // the tier table + its rows go transparent (a light scrim keeps card
+  // tiles legible) so the image/color reads behind the whole chart.
+  // Off = the original opaque surfaces, byte-for-byte unchanged.
+  const bgActive = backgroundIsActive(boardBg)
+  const boardSurface = bgActive
+    ? 'color-mix(in srgb, var(--bg-surface) 60%, transparent)'
+    : 'var(--bg-surface)'
+  const rowSurface = bgActive ? 'transparent' : 'var(--bg-surface)'
 
   const uploadChip: React.CSSProperties = {
     ...ctrlBase,
@@ -1920,6 +1879,18 @@ export function TierListMaker() {
             })()}
           />
 
+          {/* Background picker: solid color or a pasted/uploaded image
+              painted behind the board, with an opacity dial. */}
+          <section aria-label="Board background" className="mb-4">
+            <SectionLabel icon={ImageIcon} label="Background" />
+            <div
+              className="p-3 sm:p-4"
+              style={{ ...ctrlBase, borderRadius: 8, boxShadow: 'var(--shadow-card)' }}
+            >
+              <BackgroundControls bg={boardBg} onChange={setBoardBg} ctrlBase={ctrlBase} />
+            </div>
+          </section>
+
           <div
             ref={chartFrameRef}
             className="relative overflow-hidden rounded-[12px] p-4 sm:p-5"
@@ -1930,6 +1901,8 @@ export function TierListMaker() {
                 'linear-gradient(180deg, color-mix(in srgb, var(--bg-surface) 97%, var(--bg)) 0%, color-mix(in srgb, var(--bg-surface) 92%, var(--bg)) 100%)',
             }}
           >
+            {/* Custom background layer (behind everything in the frame). */}
+            <BoardBackgroundLayer bg={boardBg} />
             {/* Brand-orange top accent strip. Two-pixel band fading
                 left + right so the chart frame reads as a *board*
                 with a header, not just another panel. Pointer-events
@@ -1946,9 +1919,8 @@ export function TierListMaker() {
               }}
             />
             {/* Editable chart title. Lives inside the chart frame so it
-                pairs with the BoardWatermark footer (title up top,
-                brand stamp down bottom) and will be captured by any
-                future "export as image" feature. We use a real <input>
+                sits above the tier rows and is captured by the PNG
+                export. We use a real <input>
                 rather than contentEditable for accessibility (proper
                 label semantics, form-style focus ring, placeholder)
                 and to dodge the host of selection / paste / IME quirks
@@ -1964,6 +1936,8 @@ export function TierListMaker() {
               aria-label="Tier list title"
               className="tier-list-title mb-3 block w-full bg-transparent text-center font-display font-extrabold tracking-tight outline-none transition-colors sm:mb-4"
               style={{
+                position: 'relative',
+                zIndex: 1,
                 color: 'var(--text-primary)',
                 fontSize: 'clamp(20px, 3.4vw, 28px)',
                 lineHeight: 1.15,
@@ -1989,7 +1963,7 @@ export function TierListMaker() {
               style={{
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 8,
-                background: 'var(--bg-surface)',
+                background: boardSurface,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
               }}
             >
@@ -1999,7 +1973,7 @@ export function TierListMaker() {
                   className="flex"
                   style={{
                     borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
-                    background: 'var(--bg-surface)',
+                    background: rowSurface,
                   }}
                 >
                   <div
@@ -2015,7 +1989,7 @@ export function TierListMaker() {
                   <DropZone
                     id={`tier-${tier.id}`}
                     className="flex flex-1 flex-wrap content-center items-center gap-2 p-2"
-                    style={{ background: 'var(--bg-surface)', minHeight: chartThumbH + 16 }}
+                    style={{ background: rowSurface, minHeight: chartThumbH + 16 }}
                   >
                     {(() => {
                       const rowCards = cards.filter((c) => c.tierId === tier.id)
@@ -2039,7 +2013,6 @@ export function TierListMaker() {
                 </div>
               ))}
             </section>
-            <BoardWatermark />
           </div>
 
           <DragOverlay adjustScale={false} dropAnimation={null}>

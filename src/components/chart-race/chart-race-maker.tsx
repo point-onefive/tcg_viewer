@@ -37,6 +37,11 @@ import {
   copyBlobToClipboard,
   saveOrShareBlob,
 } from '@/lib/chart-export'
+import {
+  BackgroundControls,
+  BoardBackgroundLayer,
+} from '@/components/shared/board-background-controls'
+import { type BoardBackground } from '@/lib/board-background'
 
 /* ──────────────────────────────────────────────────────────────
    Shared control surface tokens, copied verbatim from the
@@ -290,6 +295,7 @@ interface FigureProps {
   settings: ChartRaceSettings
   progress: number
   frameRef: React.RefObject<HTMLDivElement | null>
+  background: BoardBackground
 }
 
 function ChartFigure({
@@ -303,6 +309,7 @@ function ChartFigure({
   settings,
   progress,
   frameRef,
+  background,
 }: FigureProps) {
   const n = rows.length
   const maxIndex = Math.max(0, n - 1)
@@ -429,7 +436,7 @@ function ChartFigure({
   return (
     <div
       ref={frameRef}
-      className="overflow-hidden"
+      className="relative overflow-hidden"
       style={{
         ...ctrlBase,
         borderRadius: 10,
@@ -438,6 +445,9 @@ function ChartFigure({
         background: 'var(--bg-surface)',
       }}
     >
+      {/* Custom background layer (behind the chart, rides into exports). */}
+      <BoardBackgroundLayer bg={background} />
+      <div className="relative" style={{ zIndex: 1 }}>
       {/* Title block, baked into the export. */}
       {(title || subtitle) && (
         <div className="mb-1 text-center">
@@ -488,52 +498,6 @@ function ChartFigure({
           role="img"
           aria-label={title || 'Chart race'}
         >
-          {/* Faint centered brand watermark, stamped behind the
-              gridlines + lines so it reads as a subtle background
-              mark (and rides along into the exported PNG). */}
-          <g
-            aria-hidden
-            opacity={0.05}
-            transform={`translate(${(PAD_L + VB_W - PAD_R) / 2}, ${(PAD_T + VB_H - PAD_B) / 2})`}
-            style={{ pointerEvents: 'none' }}
-          >
-            <image
-              href="/images/site-logo.png"
-              x={-266}
-              y={-44}
-              width={84}
-              height={84}
-              style={{ imageRendering: 'pixelated' }}
-              preserveAspectRatio="xMidYMid meet"
-            />
-            <text
-              x={-170}
-              y={0}
-              dominantBaseline="central"
-              textAnchor="start"
-              style={{
-                fontFamily: 'var(--font-display), system-ui, sans-serif',
-                fontWeight: 800,
-                fontSize: 72,
-                letterSpacing: '-0.02em',
-                textTransform: 'uppercase',
-                fill: 'var(--text-primary)',
-              }}
-            >
-              <tspan
-                style={{
-                  fontSize: 30,
-                  fontWeight: 500,
-                  fontStyle: 'italic',
-                  textTransform: 'lowercase',
-                }}
-              >
-                the
-              </tspan>
-              <tspan dx={14}>Card Wall</tspan>
-            </text>
-          </g>
-
           {/* Horizontal gridlines + y tick labels. */}
           {ticks.map((tv) => {
             const y = yAt(tv)
@@ -760,6 +724,7 @@ function ChartFigure({
           {xAxisLabel}
         </p>
       )}
+      </div>
     </div>
   )
 }
@@ -782,6 +747,8 @@ export function ChartRaceMaker() {
     updateSettings,
     loadSample,
     clearAll,
+    background,
+    setBackground,
   } = useChartRace()
 
   const maxIndex = Math.max(0, rows.length - 1)
@@ -1063,7 +1030,17 @@ export function ChartRaceMaker() {
             settings={settings}
             progress={progress}
             frameRef={frameRef}
+            background={background}
           />
+
+          {/* Background picker: solid color or a pasted/uploaded image
+              painted behind the chart, with an opacity dial. */}
+          <div
+            className="mt-3 p-3 sm:p-4"
+            style={{ ...ctrlBase, borderRadius: 8 }}
+          >
+            <BackgroundControls bg={background} onChange={setBackground} ctrlBase={ctrlBase} accent={BRAND} />
+          </div>
 
           {/* Transport controls. Single compact row on desktop so
               the chart + controls fit above the fold; wraps on
