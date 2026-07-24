@@ -81,6 +81,27 @@ export type { TierDef, TierCard, TierCardKind } from '@/lib/tier-list-types'
 const THUMB_W_DEFAULT = 78
 const THUMB_H_PORTRAIT = Math.round(THUMB_W_DEFAULT * (7 / 5)) // 109
 
+/**
+ * Fit a tier label into the fixed-width label cell (~84-94px). Short
+ * labels (S, A, B, "S+") keep the full display size; longer words step
+ * the font down so an 8-12 char label stops spilling out of the pink
+ * cell. Paired with `overflow-wrap: anywhere` on the label span so a
+ * single very long word still breaks across lines as a last resort.
+ *
+ * The 120 constant is the fit budget for the ~78px inner width of the
+ * narrower (mobile) cell at the display font's ~0.6em glyph advance;
+ * we size against the longest single word so multi-word labels wrap
+ * cleanly instead of shrinking to fit their total length on one line.
+ */
+function tierLabelFontPx(label: string, maxPx: number): number {
+  const longest = label
+    .trim()
+    .split(/\s+/)
+    .reduce((m, w) => Math.max(m, w.length), 1)
+  const fit = Math.floor(120 / longest)
+  return Math.max(11, Math.min(maxPx, fit))
+}
+
 function thumbDimensions(kind: TierCardKind, aspectRatio?: number) {
   if (kind === 'gallery') {
     return { width: THUMB_W_DEFAULT, height: THUMB_H_PORTRAIT, fit: 'contain' as const }
@@ -955,14 +976,24 @@ function RosterSection({
             }}
           >
             <div
-              className="flex w-[84px] shrink-0 items-center justify-center px-1 py-3 font-display text-base font-black leading-none sm:w-[94px] sm:text-lg"
+              className="flex w-[84px] shrink-0 items-center justify-center px-1 py-3 font-display font-black sm:w-[94px]"
               style={{
                 background: tier.color,
                 color: '#111',
                 borderRight: '1px solid var(--border-subtle)',
               }}
             >
-              <span className="break-words text-center">{tier.label}</span>
+              <span
+                className="text-center"
+                style={{
+                  fontSize: tierLabelFontPx(tier.label, 18),
+                  lineHeight: 1.05,
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {tier.label}
+              </span>
             </div>
             <ul
               className="flex flex-1 flex-col gap-1 px-3 py-2.5 text-sm"
@@ -1977,14 +2008,24 @@ export function TierListMaker() {
                   }}
                 >
                   <div
-                    className="flex w-[84px] shrink-0 items-center justify-center border-r px-1 py-3 font-display text-xl font-black leading-none sm:w-[94px] sm:text-2xl"
+                    className="flex w-[84px] shrink-0 items-center justify-center border-r px-1 py-3 font-display font-black sm:w-[94px]"
                     style={{
                       background: tier.color,
                       color: '#111',
                       borderRightColor: 'var(--border-subtle)',
                     }}
                   >
-                    <span className="break-words text-center">{tier.label}</span>
+                    <span
+                      className="text-center"
+                      style={{
+                        fontSize: tierLabelFontPx(tier.label, 24),
+                        lineHeight: 1.05,
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {tier.label}
+                    </span>
                   </div>
                   <DropZone
                     id={`tier-${tier.id}`}
