@@ -20,6 +20,7 @@ import { compressImageToDataUrl, imageFromClipboard } from '@/lib/tournament/pas
 import { normalizeBadgeImageToDataUrl } from '@/lib/tournament/badge-image'
 import { formatXLabel, normalizeXHandle, xProfileUrl } from '@/lib/tournament/x-handle'
 import { REGIONS, regionShort, type Region } from '@/lib/tournament/region'
+import { PAYOUT_PRESET_LABELS, payoutDepth, type PayoutPreset } from '@/lib/tournament/paid'
 import { PlayerAvatar } from '@/components/wallet/player-avatar'
 import {
   DEFAULT_POLL_QUESTION,
@@ -177,6 +178,19 @@ export function TournamentAdmin() {
   // so the operator must pick deliberately - no accidental BONK/default.
   const [themeId, setThemeId] = useState<string>('')
   const [formError, setFormError] = useState<string | null>(null)
+
+  // Create-paid-game form (always-on /tournaments/play surface). Independent of
+  // the featured event, so creating one never touches the live tournament.
+  const [paidName, setPaidName] = useState('')
+  const [paidEntry, setPaidEntry] = useState('10') // dollars
+  const [paidRakePct, setPaidRakePct] = useState('15')
+  const [paidPreset, setPaidPreset] = useState<PayoutPreset>('top3')
+  const [paidCap, setPaidCap] = useState('16')
+  const [paidRoundHours, setPaidRoundHours] = useState('24')
+  const [paidThemeId, setPaidThemeId] = useState<string>('')
+  const [paidFormError, setPaidFormError] = useState<string | null>(null)
+  const [paidBusy, setPaidBusy] = useState(false)
+  const [paidCreatedCode, setPaidCreatedCode] = useState<string | null>(null)
   // When a non-complete tournament is already live, "Start new" parks the
   // validated params here and opens a confirm modal instead of firing, so a
   // stray click can't silently take the running event offline.
@@ -334,6 +348,29 @@ export function TournamentAdmin() {
       setMsg(`Started ${r.code}`)
       setName('')
     })
+  }
+
+  async function createPaidGame(params: {
+    name: string
+    entryFeeUsdc: number
+    rakeBps: number
+    payoutPreset: PayoutPreset
+    maxPlayers: number
+    roundMinutes: number
+    theme?: string
+  }) {
+    setPaidBusy(true)
+    setPaidFormError(null)
+    try {
+      const r = await adminApi(adminKey, { action: 'create-paid-game', ...params })
+      setPaidCreatedCode(r.code ?? null)
+      setMsg(`Paid game created: ${r.code}`)
+      setPaidName('')
+    } catch (e) {
+      setPaidFormError(e instanceof Error ? e.message : 'Could not create paid game.')
+    } finally {
+      setPaidBusy(false)
+    }
   }
 
   async function unlock(e: React.FormEvent) {
@@ -794,6 +831,123 @@ export function TournamentAdmin() {
               )}
               <button type="submit" disabled={busy} className="footer-btn py-2 text-sm font-bold" style={{ background: 'var(--text-primary)', color: 'var(--bg)', borderRadius: 6 }}>
                 {busy ? 'Working…' : `Start new (${format === 'swiss' ? 'Swiss' : 'Single elim'})`}
+              </button>
+            </form>
+
+            {/* Create paid game - always-on /tournaments/play surface. Separate
+                from the featured event: creating one never takes the live event
+                offline, and you can open as many as you want. Swiss only (the
+                hard-deadline autopilot is built for it). */}
+            <form
+              className="p-5 flex flex-col gap-3"
+              style={card}
+              onSubmit={(e) => {
+                e.preventDefault()
+                setPaidFormError(null)
+                const dollars = Number(paidEntry)
+                const rakePct = Number(paidRakePct)
+                const cap = parsePositiveInt(paidCap)
+                const round = parsePositiveInt(paidRoundHours)
+                if (!Number.isFinite(dollars) || dollars <= 0) {
+                  setPaidFormError('Entry fee must be a positive dollar amount.')
+                  return
+                }
+                if (!Number.isFinite(rakePct) || rakePct < 0 || rakePct > 20) {
+                  setPaidFormError('Rake must be between 0 and 20 percent.')
+                  return
+                }
+                const depth = payoutDepth(paidPreset)
+                if (cap == null || cap < depth) {
+                  setPaidFormError(`Player cap must be at least the payout depth (${depth}).`)
+                  return
+                }
+                if (round == null) {
+                  setPaidFormError('Round hours must be a whole number greater than 0.')
+                  return
+                }
+                createPaidGame({
+                  name: paidName.trim() || 'Paid Card Wall Game',
+                  entryFeeUsdc: Math.round(dollars * 1_000_000),
+                  rakeBps: Math.round(rakePct * 100),
+                  payoutPreset: paidPreset,
+                  maxPlayers: cap,
+                  roundMinutes: round * 60,
+                  theme: paidThemeId || undefined,
+                })
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Gift size={16} style={{ color: 'var(--tcw-accent)' }} />
+                <h3 className="font-display font-bold">Create paid game</h3>
+              </div>
+              <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                Opens an always-on entry-fee game on the /tournaments/play lobby. Players
+                register and pay; you approve them, then start it and it runs on autopilot
+                (hard round deadlines, auto-payout). Does not affect the featured event.
+              </p>
+              <input style={inputStyle} value={paidName} onChange={(e) => setPaidName(e.target.value)} placeholder="Game name" />
+
+              <div className="grid grid-cols-2 gap-2">
+                <PositiveIntInput label="Entry ($ USDC)" value={paidEntry} onChange={setPaidEntry} placeholder="10" />
+                <PositiveIntInput label="Rake (%)" value={paidRakePct} onChange={setPaidRakePct} placeholder="15" />
+              </div>
+
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Payout
+                </span>
+                <div className="relative">
+                  <select
+                    aria-label="Payout preset"
+                    value={paidPreset}
+                    onChange={(e) => setPaidPreset(e.target.value as PayoutPreset)}
+                    className="w-full appearance-none"
+                    style={{ background: 'var(--bg)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 14, cursor: 'pointer' }}
+                  >
+                    {(Object.keys(PAYOUT_PRESET_LABELS) as PayoutPreset[]).map((p) => (
+                      <option key={p} value={p}>{PAYOUT_PRESET_LABELS[p]}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <PositiveIntInput label="Player cap" value={paidCap} onChange={setPaidCap} placeholder="16" />
+                <PositiveIntInput label="Round hours" value={paidRoundHours} onChange={setPaidRoundHours} placeholder="24" />
+              </div>
+
+              <div>
+                <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                  <Palette size={12} style={{ color: 'var(--tcw-accent)' }} /> Page theme (optional)
+                </span>
+                <div className="relative">
+                  <select
+                    aria-label="Paid game theme"
+                    value={paidThemeId}
+                    onChange={(e) => setPaidThemeId(e.target.value)}
+                    className="w-full appearance-none"
+                    style={{ background: 'var(--bg)', color: paidThemeId ? 'var(--text-primary)' : 'var(--text-muted)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 14, cursor: 'pointer' }}
+                  >
+                    <option value="">Default theme</option>
+                    {themeOptions().map((o) => (
+                      <option key={o.id} value={o.id}>{o.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                </div>
+              </div>
+
+              {paidCreatedCode && (
+                <p className="text-xs" style={{ color: '#22c55e' }}>
+                  Created <strong>{paidCreatedCode}</strong> - live at /tournaments/play/{paidCreatedCode}
+                </p>
+              )}
+              {paidFormError && (
+                <p className="text-sm" style={{ color: '#ef4444' }} role="alert">{paidFormError}</p>
+              )}
+              <button type="submit" disabled={paidBusy} className="footer-btn py-2 text-sm font-bold" style={{ background: 'var(--tcw-accent)', color: 'var(--bg)', borderRadius: 6 }}>
+                {paidBusy ? 'Working…' : 'Create paid game'}
               </button>
             </form>
 
