@@ -119,18 +119,31 @@ contract change.
 
 ## 5. Two-layer UX
 
-The existing tournament page becomes the downstream half. A new lobby sits in
-front of it.
+> **Locked decision (2026-07-29): paid tournaments are a SEPARATE, always-on
+> surface. The existing `/tournaments` page, operator setup flow, admin panel,
+> and "past events" stay exactly as they are - they remain the home of curated
+> *featured* events (one live event at a time, operator-funded prizes). The paid
+> Web3 flow is a NEW page that copies the visual style but runs independently:
+> many games in parallel, always available, self-sustaining. The two share the
+> underlying tournament *engine* (pairing, matches, reporting, scheduling) but
+> are distinct *pages/UX*.**
 
-- **Lobby** (new, e.g. `/tournaments/play`): lists open paid games. For v1 this
-  is simply "here are the open $10 games". A player can join multiple games in
-  parallel. Each card shows the entry fee, the payout structure, current funded
-  count vs cap, and a Join button.
-- **Game page** (existing `/tournaments/[code]`): once locked, the game runs on
-  the current bracket, reporting, scheduling, and admin flow, unchanged.
+Concretely:
 
-Because a player row is already per-tournament, one player being in several
-paid games at once is free. Each game is a separate on-chain escrow instance.
+- **Featured events** (unchanged): `/tournaments` shows the single `is_live`
+  event and its full existing flow. No paid logic leaks into this page.
+- **Paid lobby** (new, e.g. `/tournaments/play`): always available; lists open
+  paid games. For v1 this is simply "here are the open $10 games". A player can
+  join multiple games in parallel. Each card shows the entry fee, the payout
+  structure, current funded count vs cap, and a Join button.
+- **Paid game page** (new route under the paid surface, reusing the bracket /
+  reporting / scheduling components): once locked, the game runs on the same
+  engine as featured events.
+
+A paid game is just a tournament row with `escrow_id` set and `is_live = false`,
+so it is invisible to the featured-event page by construction. Because a player
+row is already per-tournament, one player being in several paid games at once is
+free. Each game is a separate on-chain escrow instance.
 
 ---
 
