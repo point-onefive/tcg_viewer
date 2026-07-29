@@ -49,6 +49,13 @@ export const ERC20_ABI = [
 export const ESCROW_DEPOSIT_ABI = [
   {
     type: 'function',
+    name: 'usdc',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'address' }],
+  },
+  {
+    type: 'function',
     name: 'deposit',
     stateMutability: 'nonpayable',
     inputs: [{ name: 'id', type: 'bytes32' }],

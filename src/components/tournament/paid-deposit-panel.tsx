@@ -42,7 +42,36 @@ export function PaidDepositPanel({
   const escrow = tournament.contractAddress
   const escrowId = tournament.escrowId
   const fee = tournament.entryFeeUsdc
-  const usdc = usdcAddressForChain(chainId)
+
+  // Resolve the settlement token straight from the escrow's usdc() view so
+  // testnet (mintable mock) and mainnet (canonical Circle USDC) both work
+  // without a hardcoded map. Falls back to the known per-chain address.
+  const [usdc, setUsdc] = useState<Hex | null>(() => usdcAddressForChain(chainId))
+  useEffect(() => {
+    let cancelled = false
+    const fallback = usdcAddressForChain(chainId)
+    if (!escrow || !chainId) {
+      setUsdc(fallback)
+      return
+    }
+    ;(async () => {
+      try {
+        const token = (await readContract(wagmiConfig, {
+          address: escrow as Hex,
+          abi: ESCROW_DEPOSIT_ABI,
+          functionName: 'usdc',
+          chainId: chainId as 8453 | 84532,
+        })) as Hex
+        if (!cancelled) setUsdc(token)
+      } catch {
+        if (!cancelled) setUsdc(fallback)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [escrow, chainId])
+
   const onchainReady = Boolean(escrow && escrowId && chainId && usdc && fee)
 
   const me = useMemo(() => {

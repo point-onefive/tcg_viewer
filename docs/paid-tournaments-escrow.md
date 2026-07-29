@@ -8,17 +8,36 @@
 > Implementation progress (build plan, section 13):
 >
 > - **Phase 1 (done)** - the escrow contract + tests live in `contracts/`
->   (`TournamentEscrow.sol`, 54 Foundry tests, ~96% line coverage, proxy Deploy
->   + Upgrade scripts). Not yet deployed; deploy to Base Sepolia first.
+>   (`TournamentEscrow.sol`, 61 Foundry tests + fuzz stress, proxy Deploy +
+>   Upgrade scripts). Deployed to Base Sepolia (see "Testnet deployment" below).
 > - **Phase 2 (done)** - DB migration `supabase/migrations/020_paid_tournaments.sql`
 >   (note: the section 8.1 filename `009_...` predated the real numbering), the
 >   on-chain reader `src/lib/tournament/escrow.ts` (env-gated, read-only), the
->   deposit-verify route `POST /api/tournaments/:code/deposit-verify`, and the
->   read-only reconcile pass folded into the hourly cron sweep.
-> - **Phase 3 (todo)** - the `/tournaments/play` lobby, the deposit step UX, and
->   wiring the admin Create/Lock/Settle buttons to wallet-signed txs (add Base
->   to the wagmi config, which is mainnet-only today).
+>   operator signer `src/lib/tournament/escrow-write.ts`, the deposit-verify
+>   route `POST /api/tournaments/:code/deposit-verify`, and the reconcile +
+>   deadline-enforcement passes folded into the hourly cron sweep.
+> - **Phase 3 (done)** - the `/tournaments/play` lobby, the `PaidDepositPanel`
+>   deposit/claim UX (reads the settlement token from the escrow's `usdc()`
+>   view), admin "Create paid game" wired to the operator signer, and Base +
+>   Base Sepolia added to the wagmi config.
 > - **Phase 4/5 (todo)** - mainnet pilot, then audit + Safe multisig.
+>
+> ### Testnet deployment (Base Sepolia, chain 84532)
+>
+> | Role | Address |
+> | --- | --- |
+> | Escrow proxy (UUPS) | `0xe485456ddbD1Ab468BE1D7dfd7045882092bC7f5` |
+> | Escrow implementation | `0xb2e9f36B27d1f6050214a23E212c8e262DBDCE56` |
+> | Owner (cold: upgrade/pause) | `0xC63EEA51b602368f0604b6Ce4F1300DE4C7401fe` |
+> | Operator (hot: create/lock/settle) | `0x2f5F98d29BF067Fa4795363C603fFC2d8Cab6398` |
+> | Platform (rake recipient) | `0x1e1e91660adD97169e983F9f1DCd8f36E46b9Dd9` |
+> | Settlement token (mintable MockUSDC) | `0x25176D598e038c5c0c4811C2D34570a13D32CA3a` |
+>
+> A full create -> deposit -> lock -> settle -> claim lifecycle was exercised
+> live on this deploy and conservation held (escrow balance == obligations at
+> every step). Testnet uses a mintable MockUSDC so testers can be funded
+> freely; mainnet will point at canonical Circle USDC
+> (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`). App env lives in `.env.local`.
 
 Related reading:
 
