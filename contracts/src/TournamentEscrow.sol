@@ -81,6 +81,16 @@ contract TournamentEscrow is
     /// @notice Address that receives the platform rake (claims it like a winner).
     address public platform;
 
+    /// @notice Least-privilege automation key that runs the game lifecycle
+    ///         (createGame / lock / settle / cancelGame / refundPlayer) so the
+    ///         backend can drive autopilot WITHOUT the owner key. It can never
+    ///         upgrade, pause, change the platform, or rescue funds. Crucially,
+    ///         `settle` only pays addresses that actually funded the game and
+    ///         refunds only ever return money to the depositor, so a compromised
+    ///         operator can reorder winners but cannot drain funds to itself.
+    ///         `owner` always retains every operator power too.
+    address public operator;
+
     /// @notice Total USDC this contract owes to games (pots) and recipients
     ///         (credits). Anything above this is a stray token and is the only
     ///         thing `rescueStrayTokens` may remove for USDC.
@@ -99,7 +109,7 @@ contract TournamentEscrow is
 
     /// @dev Storage gap for future upgrades (UUPS). Do not remove; shrink when
     ///      adding new storage vars so the layout stays compatible.
-    uint256[44] private __gap;
+    uint256[43] private __gap;
 
     // ── Events ─────────────────────────────────────────────────────────────
 
@@ -116,6 +126,7 @@ contract TournamentEscrow is
     event Withdrawn(bytes32 indexed id, address indexed player, uint256 amount);
     event Claimed(bytes32 indexed id, address indexed recipient, uint256 amount);
     event PlatformUpdated(address indexed previous, address indexed next);
+    event OperatorUpdated(address indexed previous, address indexed next);
     event StrayTokensRescued(address indexed token, address indexed to, uint256 amount);
 
     // ── Errors ─────────────────────────────────────────────────────────────
@@ -140,6 +151,15 @@ contract TournamentEscrow is
     error NothingToClaim();
     error InsufficientPermitValue();
     error ProtectedFunds();
+    error NotOperator();
+
+    // ── Modifiers ────────────────────────────────────────────────────────────
+
+    /// @dev Owner OR the automation operator. Owner keeps every operator power.
+    modifier onlyOperator() {
+        if (msg.sender != operator && msg.sender != owner()) revert NotOperator();
+        _;
+    }
 
     // ── Init ───────────────────────────────────────────────────────────────
 
@@ -161,6 +181,19 @@ contract TournamentEscrow is
         __ReentrancyGuard_init();
         usdc = IERC20(usdc_);
         platform = platform_;
+        // Operator defaults to the owner; the owner points it at the hot backend
+        // key post-deploy via setOperator. This keeps deploy + tests simple and
+        // means the contract is never left with a null operator.
+        operator = owner_;
+        emit OperatorUpdated(address(0), owner_);
+    }
+
+    /// @notice Point the autopilot operator at a new key (e.g. the backend hot
+    ///         wallet, or back to the owner to disable automation). Owner only.
+    function setOperator(address next) external onlyOwner {
+        if (next == address(0)) revert ZeroAddress();
+        emit OperatorUpdated(operator, next);
+        operator = next;
     }
 
     // ── Operator: game lifecycle ─────────────────────────────────────────────
@@ -177,7 +210,7 @@ contract TournamentEscrow is
         uint32 cap,
         uint16 rakeBps,
         uint16[] calldata payoutBps_
-    ) external onlyOwner {
+    ) external onlyOperator {
         Game storage g = _games[id];
         if (g.state != GameState.None) revert GameAlreadyExists();
         if (entryFee == 0) revert InvalidEntryFee();
@@ -197,7 +230,7 @@ contract TournamentEscrow is
     /// @notice Freeze the roster and payout structure and start play. Rejects
     ///         if the funded field is smaller than the payout depth (cannot run
     ///         a top-8 payout on 6 players). Starts the dead-man clock.
-    function lock(bytes32 id) external onlyOwner {
+    function lock(bytes32 id) external onlyOperator {
         Game storage g = _games[id];
         if (g.state != GameState.Funding) revert WrongState();
         if (g.fundedCount < g.payoutBps.length) revert PayoutDepthExceedsField();
@@ -215,7 +248,7 @@ contract TournamentEscrow is
     ///         funded (non-refunded) depositor. Rounding dust folds into 1st.
     function settle(bytes32 id, address[] calldata orderedWinners)
         external
-        onlyOwner
+        onlyOperator
         whenNotPaused
         nonReentrant
     {
@@ -260,7 +293,7 @@ contract TournamentEscrow is
     }
 
     /// @notice Make a game refundable before settlement (never filled, aborted).
-    function cancelGame(bytes32 id) external onlyOwner {
+    function cancelGame(bytes32 id) external onlyOperator {
         Game storage g = _games[id];
         if (g.state != GameState.Funding && g.state != GameState.Locked) revert WrongState();
         g.state = GameState.Cancelled;
@@ -270,7 +303,7 @@ contract TournamentEscrow is
     /// @notice Pre-lock kick + full refund of a single player (caught a cheater
     ///         or a bad entry after they paid but before start). Pushes the
     ///         refund; if the target is USDC-blacklisted, cancel the game instead.
-    function refundPlayer(bytes32 id, address player) external onlyOwner nonReentrant {
+    function refundPlayer(bytes32 id, address player) external onlyOperator nonReentrant {
         Game storage g = _games[id];
         if (g.state != GameState.Funding) revert WrongState();
         if (refunded[id][player]) revert AlreadyRefunded();

@@ -122,9 +122,7 @@ contract TournamentEscrowTest is Test {
 
     function test_createGame_onlyOwner() public {
         vm.prank(stranger);
-        vm.expectRevert(
-            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger)
-        );
+        vm.expectRevert(TournamentEscrow.NotOperator.selector);
         escrow.createGame(GAME, FEE, 16, 1500, _top8());
     }
 
@@ -300,9 +298,7 @@ contract TournamentEscrowTest is Test {
         _createTop8(GAME, 16);
         _depositN(GAME, 8);
         vm.prank(stranger);
-        vm.expectRevert(
-            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger)
-        );
+        vm.expectRevert(TournamentEscrow.NotOperator.selector);
         escrow.lock(GAME);
     }
 
@@ -435,9 +431,7 @@ contract TournamentEscrowTest is Test {
     function test_settle_onlyOwner() public {
         address[] memory winners = _lockedWith(16);
         vm.prank(stranger);
-        vm.expectRevert(
-            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger)
-        );
+        vm.expectRevert(TournamentEscrow.NotOperator.selector);
         escrow.settle(GAME, winners);
     }
 
@@ -592,10 +586,106 @@ contract TournamentEscrowTest is Test {
         _createTop8(GAME, 16);
         _depositN(GAME, 3);
         vm.prank(stranger);
+        vm.expectRevert(TournamentEscrow.NotOperator.selector);
+        escrow.refundPlayer(GAME, players[0]);
+    }
+
+    // ── operator role (autopilot key) ─────────────────────────────────────────
+
+    function test_operator_defaultsToOwner() public view {
+        assertEq(escrow.operator(), owner);
+    }
+
+    function test_setOperator_onlyOwner() public {
+        address op = makeAddr("operator");
+        vm.prank(stranger);
         vm.expectRevert(
             abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger)
         );
-        escrow.refundPlayer(GAME, players[0]);
+        escrow.setOperator(op);
+    }
+
+    function test_setOperator_rejectsZero() public {
+        vm.prank(owner);
+        vm.expectRevert(TournamentEscrow.ZeroAddress.selector);
+        escrow.setOperator(address(0));
+    }
+
+    /// The whole point: the backend hot key can run create -> lock -> settle
+    /// end to end, and winners get paid, without ever holding the owner key.
+    function test_operator_runsFullLifecycle() public {
+        address op = makeAddr("operator");
+        vm.prank(owner);
+        escrow.setOperator(op);
+
+        // Operator creates + funds fill in + locks + settles.
+        vm.prank(op);
+        escrow.createGame(GAME, FEE, 16, 1500, _top8());
+        _depositN(GAME, 16);
+        vm.prank(op);
+        escrow.lock(GAME);
+
+        address[] memory winners = new address[](8);
+        for (uint256 i = 0; i < 8; i++) {
+            winners[i] = players[i];
+        }
+        vm.prank(op);
+        escrow.settle(GAME, winners);
+
+        // Winner + platform can pull, proving the operator moved real money
+        // to the right recipients.
+        uint256 before = usdc.balanceOf(players[0]);
+        vm.prank(players[0]);
+        escrow.claim(GAME);
+        assertGt(usdc.balanceOf(players[0]), before);
+
+        uint256 rakeBefore = usdc.balanceOf(platform);
+        vm.prank(platform);
+        escrow.claim(GAME);
+        assertGt(usdc.balanceOf(platform), rakeBefore);
+    }
+
+    /// Owner never loses operator powers even after handing them to a hot key.
+    function test_owner_retainsOperatorPowers() public {
+        address op = makeAddr("operator");
+        vm.prank(owner);
+        escrow.setOperator(op);
+        vm.prank(owner);
+        escrow.createGame(GAME, FEE, 16, 1500, _top8());
+        (TournamentEscrow.GameState state,,,,,,,) = escrow.getGame(GAME);
+        assertEq(uint256(state), uint256(TournamentEscrow.GameState.Funding));
+    }
+
+    /// A rotated-away former operator loses its powers.
+    function test_operator_rotationRevokesOldKey() public {
+        address op1 = makeAddr("operator1");
+        address op2 = makeAddr("operator2");
+        vm.prank(owner);
+        escrow.setOperator(op1);
+        vm.prank(owner);
+        escrow.setOperator(op2);
+        vm.prank(op1);
+        vm.expectRevert(TournamentEscrow.NotOperator.selector);
+        escrow.createGame(GAME, FEE, 16, 1500, _top8());
+    }
+
+    /// Least privilege: the operator key cannot upgrade, pause, change the
+    /// platform, or rescue funds - only the owner can.
+    function test_operator_cannotTouchOwnerPowers() public {
+        address op = makeAddr("operator");
+        vm.prank(owner);
+        escrow.setOperator(op);
+
+        vm.startPrank(op);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, op));
+        escrow.pause();
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, op));
+        escrow.setPlatform(op);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, op));
+        escrow.setOperator(op);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, op));
+        escrow.rescueStrayTokens(address(usdc), op, 1);
+        vm.stopPrank();
     }
 
     // ── per-game isolation (highest priority) ────────────────────────────────

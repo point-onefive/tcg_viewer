@@ -23,13 +23,37 @@ lobby, admin wiring) is Phases 2 to 3 and lives in the main Next.js app.
 
 See the design doc for the trust model, invariants, and rationale.
 
+## Wallets / custody (important)
+
+There is **no per-tournament wallet and no personal wallet holding player
+money**. This one contract IS the escrow for every game at once; funds are kept
+apart per game by the `bytes32` id (each game has its own `pot`, `funded` set,
+and payout split). Spinning up a wallet per tournament would be strictly worse:
+more keys to secure, more gas, and manual fund shuffling. You only manage three
+roles (all just addresses - the money never leaves the contract until a winner
+or the platform pulls it):
+
+| Role | What it can do | Where the key lives |
+| --- | --- | --- |
+| `owner` | upgrade, pause, `setPlatform`, `setOperator`, rescue strays | **cold** - a Safe multisig you control; used rarely |
+| `operator` | `createGame`, `lock`, `settle`, `cancelGame`, `refundPlayer` | **hot** - the backend signer that runs autopilot |
+| `platform` | receives the 15% rake (pulls it with `claim`) | any wallet you own (can be a Safe) |
+
+Why splitting `operator` out is safe for a hot key: it can never upgrade, pause,
+change the platform, or rescue funds, and `settle` can only pay addresses that
+**actually funded that game** while refunds only ever return money to the
+original depositor. So even a fully compromised operator key cannot drain funds
+to an outside address - the worst it can do is reorder winners within a game.
+`owner` retains all operator powers, so automation is optional.
+
 ## Layout
 
 ```
-src/TournamentEscrow.sol      the escrow (UUPS, Ownable, Pausable, ReentrancyGuard)
-test/TournamentEscrow.t.sol   54 tests: isolation, refunds, dead-man, pause, settle math, permit, upgrade
+src/TournamentEscrow.sol      the escrow (UUPS, Ownable, Pausable, ReentrancyGuard, operator role)
+test/TournamentEscrow.t.sol   61 tests: isolation, refunds, dead-man, pause, settle math, permit, operator role, upgrade
+test/Stress.t.sol             conservation-of-funds stress + 256-run fuzz across many concurrent games
 test/mocks/MockUSDC.sol       6-decimal ERC20 + EIP-2612 permit test double
-script/Deploy.s.sol           deploys the impl behind an ERC1967 proxy and initializes
+script/Deploy.s.sol           deploys the impl behind an ERC1967 proxy, initializes, sets operator
 ```
 
 ## Setup
@@ -87,6 +111,7 @@ function and pass its calldata to `upgradeToAndCall`.
 | Dead-man timeout | 14 days from `lock` |
 | Payouts | pull-based `claim` |
 | Upgradeability | UUPS, `owner`-gated |
+| Automation | least-privilege `operator` role (create/lock/settle) |
 
 ## Not audited
 
