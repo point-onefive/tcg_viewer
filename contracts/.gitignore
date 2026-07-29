@@ -1,0 +1,11 @@
+# Foundry build + cache artifacts
+out/
+cache/
+broadcast/
+
+# Vendored dependencies. Reinstall with `make setup` (see README).
+lib/
+
+# Local env with RPC URLs / keys / private keys. NEVER commit.
+.env
+.env.local
