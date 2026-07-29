@@ -492,6 +492,33 @@ Implementation: `MatchStatus` gains `double_forfeit`; `tallyMatches` counts it
 as a mutual loss; `roundFullyResolved` treats it as resolved;
 `enforceRoundDeadlines` runs in `sweep()` and is a no-op for featured events.
 
+**On-chain autopilot (money side).** The backend drives the whole money
+lifecycle with a least-privilege `operator` key (see the contract's operator
+role), so no human signs anything after starting a game:
+
+- `adminCreatePaidGame` -> `createGame` on-chain (operator-signed) before the DB
+  row is written, so the mirror and contract never diverge.
+- Bracket start (`generateFirstRound`, paid only) -> `lock` on-chain, freezing
+  the funded roster + payout and starting the 14-day dead-man clock.
+- Completion (`finalizeTournament`, paid only) -> `settle` on-chain: the top
+  `payoutBps.length` finishers by final standings are mapped to their funded
+  wallet addresses and submitted; the contract computes amounts, credits winners
+  + the 15% rake, and everyone pulls with `claim`. `reconcilePaidSettlements` in
+  the sweep retries any complete-but-unsettled game (idempotent - it only acts
+  when the on-chain state is still `Locked`).
+
+Custody: there is ONE contract escrowing every game at once (per-game `bytes32`
+isolation) - no per-tournament wallets. Three roles: `owner` (cold multisig:
+upgrade/pause/rescue), `operator` (hot backend key: create/lock/settle),
+`platform` (rake recipient). A leaked operator key cannot drain funds to an
+outside address because `settle` only pays real entrants and refunds only return
+to depositors. This whole path is gated on `TOURNAMENT_ESCROW_OPERATOR_KEY`;
+unset -> on-chain writes are skipped (DB-only QC mode) and settle is manual.
+
+Everything is verified locally: `contracts/test/Stress.t.sol` runs many
+concurrent games through the operator key and asserts contract balance always
+equals `usdcObligations` and fully drains to zero (256-run fuzz).
+
 ## 14b. Multiple simultaneous games + creation
 
 Paid games are created with `adminCreatePaidGame` (admin action

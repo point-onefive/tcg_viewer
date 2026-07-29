@@ -6,10 +6,10 @@ import { base, baseSepolia } from 'viem/chains'
 // Server-only on-chain reader for the paid-tournament escrow (Base USDC).
 //
 // The chain is the source of truth for money. This module NEVER signs or moves
-// funds: the operator settle tx is signed by their own wallet in the browser,
-// and refunds/claims are pulled by users. Here we only READ - to confirm a
-// deposit and to reconcile the Supabase `funded`/`refunded` mirror against the
-// contract (chain wins on any disagreement).
+// funds - it only READS (confirm a deposit, reconcile the Supabase
+// `funded`/`refunded` mirror; chain wins on any disagreement). The signing side
+// (createGame / lock / settle by the backend operator key) lives in
+// escrow-write.ts, and refunds/claims are pulled by users themselves.
 //
 // Everything is gated on env so the feature degrades gracefully: if the escrow
 // is not configured, `isEscrowConfigured()` is false and callers skip the

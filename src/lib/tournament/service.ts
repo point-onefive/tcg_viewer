@@ -20,8 +20,17 @@ import {
   escrowAddress,
   escrowChainId,
   getFundingStatus,
+  getOnchainGame,
+  EscrowGameState,
   verifyDeposit as verifyEscrowDeposit,
 } from './escrow'
+import {
+  isOperatorConfigured,
+  createGameOnchain,
+  lockOnchain,
+  settleOnchain,
+} from './escrow-write'
+import type { Address } from 'viem'
 import {
   PAYOUT_PRESETS,
   isPayoutPreset,
@@ -613,6 +622,35 @@ async function reconcilePaidFunding(): Promise<number> {
   return updated
 }
 
+/**
+ * Autopilot payout retry: find COMPLETE paid games that are still `Locked`
+ * on-chain (settle at completion failed, or a wallet got linked afterward) and
+ * try to settle them again. Idempotent - `autoSettlePaid` re-checks on-chain
+ * state and only acts when appropriate. No-op without the operator key.
+ * Returns how many games were settled this pass.
+ */
+async function reconcilePaidSettlements(): Promise<number> {
+  if (!isOperatorConfigured()) return 0
+  const sb = getServiceClient()
+  const { data: tRows } = await sb
+    .from('tournaments')
+    .select('id')
+    .eq('status', 'complete')
+    .not('escrow_id', 'is', null)
+  let settled = 0
+  for (const t of tRows ?? []) {
+    const id = (t as { id: string }).id
+    try {
+      const [players, matches] = await Promise.all([fetchPlayers(id), fetchMatches(id)])
+      // autoSettlePaid short-circuits unless the on-chain game is still Locked.
+      if (await autoSettlePaid(id, players, matches)) settled++
+    } catch {
+      /* transient (RPC / not-ready); next sweep retries */
+    }
+  }
+  return settled
+}
+
 // ── Bracket generation ───────────────────────────────────────────────────--
 
 async function insertRoundWithMatches(
@@ -727,6 +765,14 @@ async function generateFirstRound(row: {
     row.format === 'swiss'
       ? pairSwiss(seededPlayers, [])
       : pairSingleElimFirstRound(seededPlayers)
+
+  // Paid game: freeze the roster + payout on-chain before play starts. This
+  // reverts (blocking the start) if the on-chain funded field is smaller than
+  // the payout depth, keeping the contract and bracket in lockstep. No-op when
+  // the operator key isn't configured.
+  if (tournament.isPaid && isOperatorConfigured() && tournament.escrowId) {
+    await lockOnchain(tournament.escrowId as `0x${string}`)
+  }
 
   await sb
     .from('tournaments')
@@ -1177,6 +1223,72 @@ async function finalizeTournament(
   } catch {
     // Never block completion on a participation-badge write.
   }
+  try {
+    await autoSettlePaid(tournamentId, players, allMatches)
+  } catch {
+    // Never block completion on an on-chain settle; the sweep retries it.
+  }
+}
+
+/**
+ * Resolve the ordered on-chain winner addresses for a paid game: the top
+ * `depth` finishers by final Swiss standings, mapped to their funded wallet
+ * addresses. Returns null if we can't build a clean, distinct list of exactly
+ * `depth` wallets (e.g. a finalist never linked a wallet) so we never submit a
+ * settle that would revert - the operator can settle manually in that case.
+ */
+function paidWinnerAddresses(
+  tournament: Tournament,
+  players: Player[],
+  allMatches: Match[],
+): Address[] | null {
+  const depth = tournament.payoutBps?.length ?? 0
+  if (depth === 0) return null
+  const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
+  const standings = computeStandings(inBracket, allMatches)
+  if (standings.length < depth) return null
+  const byId = new Map(players.map((p) => [p.id, p]))
+  const seen = new Set<string>()
+  const winners: Address[] = []
+  for (let i = 0; i < depth; i++) {
+    const p = byId.get(standings[i].playerId)
+    const w = p?.walletAddress
+    if (!w) return null
+    const key = w.toLowerCase()
+    if (seen.has(key)) return null
+    seen.add(key)
+    winners.push(w as Address)
+  }
+  return winners
+}
+
+/**
+ * Autopilot payout: once a paid game is complete, submit the final placement
+ * on-chain so the contract pays winners + rake. Idempotent + safe to retry:
+ * only settles when the on-chain game is still `Locked` (never re-settles a
+ * `Paid` game), and no-ops entirely when the operator key isn't configured.
+ */
+async function autoSettlePaid(
+  tournamentId: string,
+  players: Player[],
+  allMatches: Match[],
+): Promise<boolean> {
+  if (!isOperatorConfigured()) return false
+  const sb = getServiceClient()
+  const { data: tRow } = await sb.from('tournaments').select('*').eq('id', tournamentId).maybeSingle()
+  if (!tRow) return false
+  const tournament = rowToTournament(tRow)
+  if (!tournament.isPaid || !tournament.escrowId) return false
+
+  const escrowId = tournament.escrowId as `0x${string}`
+  const onchain = await getOnchainGame(escrowId)
+  if (onchain.state !== EscrowGameState.Locked) return false // not ready, or already paid
+
+  const winners = paidWinnerAddresses(tournament, players, allMatches)
+  if (!winners) return false // can't build a clean winner list; leave for manual settle
+
+  await settleOnchain(escrowId, winners)
+  return true
 }
 
 // ── Awarded prizes (frozen at completion) ──────────────────────────────────
@@ -2159,6 +2271,20 @@ export async function adminCreatePaidGame(input: {
   const contractAddress = isEscrowConfigured() ? escrowAddress() : null
   const chainId = isEscrowConfigured() ? escrowChainId() : null
 
+  // Open the game on-chain first (operator-signed). If this reverts we never
+  // write the DB row, so the mirror and the contract stay consistent. When the
+  // operator key isn't configured this is a no-op and the game is DB-only
+  // (QC / pre-deploy mode).
+  if (isOperatorConfigured()) {
+    await createGameOnchain({
+      escrowId: escrowId as `0x${string}`,
+      entryFee: BigInt(entryFeeUsdc),
+      cap,
+      rakeBps,
+      payoutBps: PAYOUT_PRESETS[preset],
+    })
+  }
+
   const hostToken = generateToken()
   let lastErr: unknown = null
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -2839,6 +2965,7 @@ export async function sweep(): Promise<{
   tournamentsAdvanced: number
   fundingReconciled: number
   deadlinesEnforced: number
+  settlementsReconciled: number
 }> {
   const sb = getServiceClient()
   let reportsConfirmed = 0
@@ -2913,12 +3040,21 @@ export async function sweep(): Promise<{
     /* chain unreachable; next sweep retries */
   }
 
+  // Autopilot payout retry: settle any complete paid game still Locked on-chain.
+  let settlementsReconciled = 0
+  try {
+    settlementsReconciled = await reconcilePaidSettlements()
+  } catch {
+    /* chain unreachable; next sweep retries */
+  }
+
   return {
     enrollmentsClosed: 0,
     reportsConfirmed,
     tournamentsAdvanced: advanced.size,
     fundingReconciled,
     deadlinesEnforced,
+    settlementsReconciled,
   }
 }
 
