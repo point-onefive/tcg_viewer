@@ -43,6 +43,7 @@ import type {
   TournamentBadgeSlot,
   TournamentSnapshot,
   AwardedPrize,
+  PaidGameSummary,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { type Region, sanitizeRegion } from './region'
@@ -420,6 +421,57 @@ export async function confirmDeposit(
     .single()
   if (error || !data) throw new TournamentError('Could not record the deposit.', 500)
   return rowToPlayer(data)
+}
+
+/**
+ * List open paid games for the always-on lobby (/tournaments/play). These are
+ * escrow-linked tournaments that are NOT the featured live event: paid games
+ * carry `escrow_id` and `is_live = false`, so this never surfaces (or depends
+ * on) the single featured event at /tournaments. Newest first, with a live
+ * funded-deposit count per game.
+ */
+export async function listOpenPaidGames(): Promise<PaidGameSummary[]> {
+  const sb = getServiceClient()
+  const { data: tRows, error } = await sb
+    .from('tournaments')
+    .select('*')
+    .not('escrow_id', 'is', null)
+    .in('status', ['enrolling', 'running'])
+    .order('created_at', { ascending: false })
+  if (error) throw new TournamentError(error.message, 500)
+
+  const tournaments = (tRows ?? []).map(rowToTournament)
+  if (tournaments.length === 0) return []
+
+  // One query for funded counts across all listed games, then tally.
+  const ids = tournaments.map((t) => t.id)
+  const fundedByTournament = new Map<string, number>()
+  const { data: fundedRows } = await sb
+    .from('players')
+    .select('tournament_id')
+    .in('tournament_id', ids)
+    .eq('funded', true)
+    .eq('refunded', false)
+  for (const r of fundedRows ?? []) {
+    const tid = (r as { tournament_id: string }).tournament_id
+    fundedByTournament.set(tid, (fundedByTournament.get(tid) ?? 0) + 1)
+  }
+
+  return tournaments.map((t) => ({
+    code: t.code,
+    name: t.name,
+    game: t.game,
+    theme: t.theme,
+    status: t.status,
+    entryFeeUsdc: t.entryFeeUsdc,
+    rakeBps: t.rakeBps,
+    payoutPreset: t.payoutPreset,
+    payoutBps: t.payoutBps,
+    cap: t.maxPlayers,
+    fundedCount: fundedByTournament.get(t.id) ?? 0,
+    chainId: t.chainId,
+    contractAddress: t.contractAddress,
+  }))
 }
 
 /**

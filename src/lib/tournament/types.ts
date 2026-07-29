@@ -388,6 +388,34 @@ export interface TournamentSnapshot {
 }
 
 /**
+ * Compact card shown in the always-on paid tournaments lobby (/tournaments/play).
+ * One row per open paid game (escrow-linked, not the featured live event).
+ */
+export interface PaidGameSummary {
+  code: string
+  name: string
+  game: TournamentGame
+  /** Visual theme id, so lobby cards can echo the event's look. */
+  theme: string | null
+  status: TournamentStatus
+  /** Per-player entry fee (6-decimal USDC units). */
+  entryFeeUsdc: number | null
+  /** Platform rake in basis points. */
+  rakeBps: number | null
+  /** Payout preset id ('wta' | 'top3' | 'top6' | 'top8'). */
+  payoutPreset: string | null
+  /** Locked post-rake split (basis points). */
+  payoutBps: number[] | null
+  /** Player cap for the game; null = unlimited up to the guard. */
+  cap: number | null
+  /** Confirmed (funded) deposit count so far. */
+  fundedCount: number
+  /** EVM chain id + escrow address so the client can wire the deposit tx. */
+  chainId: number | null
+  contractAddress: string | null
+}
+
+/**
  * Compact card shown in the public "Past events" archive. One row per
  * completed tournament, newest first. Contents only - no tokens.
  */

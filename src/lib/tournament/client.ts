@@ -1,6 +1,6 @@
 'use client'
 
-import type { CompletedTournamentSummary, TournamentSnapshot } from './types'
+import type { CompletedTournamentSummary, PaidGameSummary, Player, TournamentSnapshot } from './types'
 import type { PollResults } from './poll'
 import type { Region } from './region'
 
@@ -55,6 +55,47 @@ export async function apiSnapshotByCode(code: string): Promise<TournamentSnapsho
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Not found')
   return data as TournamentSnapshot
+}
+
+/**
+ * Always-on paid tournaments lobby feed. Never throws; returns configuration
+ * flags plus the open games so the lobby can render a "coming soon" empty state
+ * when the backend/escrow isn't set up yet.
+ */
+export async function apiPaidGames(): Promise<{
+  configured: boolean
+  escrowConfigured: boolean
+  games: PaidGameSummary[]
+}> {
+  try {
+    const res = await fetch('/api/tournaments/play', { cache: 'no-store' })
+    if (!res.ok) return { configured: false, escrowConfigured: false, games: [] }
+    const data = (await res.json()) as {
+      configured?: boolean
+      escrowConfigured?: boolean
+      games?: PaidGameSummary[]
+    }
+    return {
+      configured: data.configured ?? false,
+      escrowConfigured: data.escrowConfigured ?? false,
+      games: data.games ?? [],
+    }
+  } catch {
+    return { configured: false, escrowConfigured: false, games: [] }
+  }
+}
+
+/**
+ * Confirm your on-chain USDC deposit for a paid game. Wallet-backed: the server
+ * uses your signed-in wallet, so only the tx hash is sent. Returns the updated
+ * player row (funded=true) once the deposit is verified on-chain.
+ */
+export async function apiVerifyDeposit(code: string, txHash: string): Promise<Player> {
+  const data = await post<{ player: Player }>(
+    `/api/tournaments/${encodeURIComponent(code)}/deposit-verify`,
+    { txHash },
+  )
+  return data.player
 }
 
 /** Public archive of completed events, newest first. Never throws. */
