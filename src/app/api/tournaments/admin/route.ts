@@ -30,6 +30,7 @@ import {
   adminSetResult,
   adminStartBracket,
   adminStartFresh,
+  adminCreatePaidGame,
   adminEndTournament,
   enroll,
   recomputeAllPlacements,
@@ -44,6 +45,7 @@ export const dynamic = 'force-dynamic'
 type Body =
   | { action: 'ping' }
   | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string; theme?: string }
+  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string }
   | { action: 'add-player'; code: string; xHandle: string; deckList?: string }
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
@@ -88,6 +90,10 @@ export async function POST(request: Request) {
         return ok({ ok: true })
       case 'start-fresh': {
         const result = await adminStartFresh(body)
+        return ok(result, 201)
+      }
+      case 'create-paid-game': {
+        const result = await adminCreatePaidGame(body)
         return ok(result, 201)
       }
       case 'add-player': {

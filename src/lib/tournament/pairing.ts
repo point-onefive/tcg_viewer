@@ -97,6 +97,27 @@ function tallyMatches(players: Player[], matches: Match[]): MatchTally {
       inc(t.byes, match.player1Id)
       continue
     }
+    // Double forfeit (hard-deadline no-show by both players): a loss for BOTH,
+    // counted as a played game with zero game-wins so it correctly drags each
+    // player's match-win-rate. Never a draw - that would reward stalling.
+    if (match.status === 'double_forfeit') {
+      const a = match.player1Id
+      const b = match.player2Id
+      if (!b) {
+        inc(t.losses, a)
+        inc(t.games, a)
+        continue
+      }
+      t.opponents.get(a)?.push(b)
+      t.opponents.get(b)?.push(a)
+      inc(t.games, a)
+      inc(t.games, b)
+      inc(t.losses, a)
+      inc(t.losses, b)
+      rec(a, b, 'loss')
+      rec(b, a, 'loss')
+      continue
+    }
     if (match.status !== 'confirmed') continue
     const p1 = match.player1Id
     const p2 = match.player2Id

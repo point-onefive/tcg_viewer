@@ -17,9 +17,20 @@ import {
 import type { Hex } from 'viem'
 import {
   isEscrowConfigured,
+  escrowAddress,
+  escrowChainId,
   getFundingStatus,
   verifyDeposit as verifyEscrowDeposit,
 } from './escrow'
+import {
+  PAYOUT_PRESETS,
+  isPayoutPreset,
+  payoutDepth,
+  MAX_RAKE_BPS,
+  DEFAULT_ENTRY_FEE_USDC,
+  DEFAULT_RAKE_BPS,
+  type PayoutPreset,
+} from './paid'
 import {
   computeStandings,
   pairSingleElimFirstRound,
@@ -39,6 +50,7 @@ import type {
   Round,
   Tournament,
   TournamentFormat,
+  TournamentGame,
   TournamentPrize,
   TournamentBadgeSlot,
   TournamentSnapshot,
@@ -87,6 +99,13 @@ function nowIso(): string {
 
 function addMinutes(iso: string, minutes: number): string {
   return new Date(new Date(iso).getTime() + minutes * 60_000).toISOString()
+}
+
+/** A random 0x-prefixed 32-byte hex string, used as a paid game's escrow id. */
+function randomBytes32Hex(): string {
+  const arr = new Uint8Array(32)
+  crypto.getRandomValues(arr)
+  return '0x' + Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -424,6 +443,80 @@ export async function confirmDeposit(
 }
 
 /**
+ * Autopilot for paid games: at the HARD round deadline (no extensions), force-
+ * resolve every unfinished match in the current round, then advance. This is
+ * what makes a started paid tournament run itself end-to-end.
+ *
+ * Resolution policy (see docs/paid-tournaments-escrow.md), designed so stalling
+ * can never help:
+ *  - single-sided report -> the reporter's result stands (opponent ghosted).
+ *  - neither reported     -> DOUBLE FORFEIT (both take a loss, no coin flip).
+ *  - disputed (both reported, conflicting) -> left for the admin. This is the
+ *    only thing that pauses autopilot; the round won't advance until resolved.
+ *
+ * Scoped to paid (escrow-linked) tournaments only, so the featured-events flow
+ * keeps its softer, extendable behavior. Returns the number of matches resolved.
+ */
+async function enforceRoundDeadlines(): Promise<number> {
+  const sb = getServiceClient()
+  const { data: tRows } = await sb
+    .from('tournaments')
+    .select('*')
+    .eq('status', 'running')
+    .not('escrow_id', 'is', null)
+  const nowMs = Date.now()
+  const affected = new Set<string>()
+  let resolved = 0
+
+  for (const tr of tRows ?? []) {
+    const tournament = rowToTournament(tr)
+    const rounds = await fetchRounds(tournament.id)
+    if (rounds.length === 0) continue
+    const current = rounds[rounds.length - 1]
+    if (current.status === 'complete') continue
+    // Hard deadline: only act once the round's clock has fully elapsed.
+    if (!current.endsAt || new Date(current.endsAt).getTime() > nowMs) continue
+
+    const matches = (await fetchMatches(tournament.id)).filter((m) => m.roundId === current.id)
+    for (const m of matches) {
+      if (
+        m.status === 'confirmed' ||
+        m.status === 'bye' ||
+        m.status === 'double_forfeit' ||
+        m.status === 'disputed' // admin must settle; do not auto-resolve
+      ) {
+        continue
+      }
+      if (m.status === 'reported') {
+        // Reporter showed up; the provisional winner_id was set at report time.
+        await sb
+          .from('matches')
+          .update({ status: 'confirmed', resolved_at: nowIso() })
+          .eq('id', m.id)
+        resolved++
+      } else {
+        // 'pending' - neither side reported: double forfeit (both lose).
+        await sb
+          .from('matches')
+          .update({ status: 'double_forfeit', winner_id: null, resolved_at: nowIso() })
+          .eq('id', m.id)
+        resolved++
+      }
+    }
+    affected.add(tournament.id)
+  }
+
+  for (const id of affected) {
+    try {
+      await maybeAdvance(id)
+    } catch {
+      /* a lingering disputed match blocks advance; next sweep retries */
+    }
+  }
+  return resolved
+}
+
+/**
  * List open paid games for the always-on lobby (/tournaments/play). These are
  * escrow-linked tournaments that are NOT the featured live event: paid games
  * carry `escrow_id` and `is_live = false`, so this never surfaces (or depends
@@ -591,10 +684,18 @@ async function generateFirstRound(row: {
   if (row.status !== 'enrolling') {
     throw new TournamentError('This tournament has already started.')
   }
+  const tournament = rowToTournament(await fetchTournamentRowByCode(row.code))
   const players = await fetchPlayers(row.id)
-  const active = players.filter(
-    (p) => !p.dropped && p.approvalStatus === 'approved',
-  )
+  let active = players.filter((p) => !p.dropped && p.approvalStatus === 'approved')
+  // Paid games only seat players who have actually funded the escrow. Enforced
+  // only when the escrow is configured, so a paid game can still be QC'd end to
+  // end before the contract is deployed (no chain -> no funded gate).
+  if (tournament.isPaid && isEscrowConfigured()) {
+    active = active.filter((p) => p.funded)
+    if (active.length < MIN_PLAYERS_TO_START) {
+      throw new TournamentError('Need at least 2 funded players to start this paid game.')
+    }
+  }
   if (active.length < MIN_PLAYERS_TO_START) {
     throw new TournamentError('Need at least 2 approved players to start.')
   }
@@ -622,7 +723,6 @@ async function generateFirstRound(row: {
       ? row.swiss_rounds ?? recommendedSwissRounds(active.length)
       : null
 
-  const tournament = rowToTournament(await fetchTournamentRowByCode(row.code))
   const pairings =
     row.format === 'swiss'
       ? pairSwiss(seededPlayers, [])
@@ -1011,7 +1111,12 @@ export async function adminDropPlayer(code: string, playerId: string): Promise<v
 
 /** True when every match in the round is resolved (confirmed or bye). */
 function roundFullyResolved(matches: Match[]): boolean {
-  return matches.length > 0 && matches.every((m) => m.status === 'confirmed' || m.status === 'bye')
+  return (
+    matches.length > 0 &&
+    matches.every(
+      (m) => m.status === 'confirmed' || m.status === 'bye' || m.status === 'double_forfeit',
+    )
+  )
 }
 
 /**
@@ -2004,6 +2109,97 @@ export async function adminStartFresh(input: {
   )
 }
 
+/**
+ * Spin up a new PAID game for the always-on /tournaments/play lobby. Unlike the
+ * featured event this never sets is_live and never touches any live event, so
+ * many paid games can run in parallel. Forced to Swiss (the format the
+ * hard-deadline / double-forfeit autopilot is designed for). Enrollment stays
+ * open until the operator starts the bracket (manual start; no signup timer).
+ *
+ * The `escrow_id` is generated here so the row is "paid" (isPaid) immediately;
+ * the on-chain createGame tx (operator-signed) uses this same id. contract
+ * address + chain id are stamped from env when the escrow is configured.
+ */
+export async function adminCreatePaidGame(input: {
+  name: string
+  entryFeeUsdc?: number
+  rakeBps?: number
+  payoutPreset: string
+  maxPlayers: number
+  roundMinutes: number
+  game?: TournamentGame
+  theme?: string | null
+  rules?: string | null
+  contactUrl?: string | null
+}): Promise<{ code: string }> {
+  const sb = getServiceClient()
+  const name = input.name?.trim()
+  if (!name) throw new TournamentError('Game name is required.')
+  if (!isPayoutPreset(input.payoutPreset)) throw new TournamentError('Pick a valid payout preset.')
+  const preset: PayoutPreset = input.payoutPreset
+  const entryFeeUsdc = Math.floor(input.entryFeeUsdc ?? DEFAULT_ENTRY_FEE_USDC)
+  if (!Number.isInteger(entryFeeUsdc) || entryFeeUsdc <= 0) {
+    throw new TournamentError('Entry fee must be a positive USDC amount.')
+  }
+  const rakeBps = Math.floor(input.rakeBps ?? DEFAULT_RAKE_BPS)
+  if (rakeBps < 0 || rakeBps > MAX_RAKE_BPS) {
+    throw new TournamentError(`Rake must be between 0 and ${MAX_RAKE_BPS} bps.`)
+  }
+  const cap = Math.floor(input.maxPlayers)
+  const depth = payoutDepth(preset)
+  if (!Number.isInteger(cap) || cap < depth) {
+    throw new TournamentError(`Player cap must be at least the payout depth (${depth}).`)
+  }
+  const roundMinutes = Math.max(15, input.roundMinutes || 1440)
+  const game: TournamentGame = input.game ?? 'one-piece'
+  const theme =
+    typeof input.theme === 'string' && TOURNAMENT_THEMES[input.theme] ? input.theme : null
+
+  const escrowId = randomBytes32Hex()
+  const contractAddress = isEscrowConfigured() ? escrowAddress() : null
+  const chainId = isEscrowConfigured() ? escrowChainId() : null
+
+  const hostToken = generateToken()
+  let lastErr: unknown = null
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = generateCode('PG')
+    const { data, error } = await sb
+      .from('tournaments')
+      .insert({
+        code,
+        name,
+        game,
+        format: 'swiss',
+        status: 'enrolling',
+        swiss_rounds: null,
+        round_minutes: roundMinutes,
+        enroll_closes_at: null, // manual start; no signup timer
+        rules: input.rules?.trim() || null,
+        contact_url: input.contactUrl?.trim() || null,
+        host_token_hash: hashToken(hostToken),
+        is_live: false, // never the featured event
+        max_players: cap,
+        theme,
+        escrow_id: escrowId,
+        entry_fee_usdc: entryFeeUsdc,
+        rake_bps: rakeBps,
+        payout_preset: preset,
+        payout_bps: PAYOUT_PRESETS[preset],
+        contract_address: contractAddress,
+        chain_id: chainId,
+      })
+      .select('*')
+      .single()
+    if (!error && data) return { code: data.code }
+    lastErr = error
+    if (error && (error as { code?: string }).code !== '23505') break
+  }
+  throw new TournamentError(
+    `Could not create paid game: ${(lastErr as Error)?.message ?? 'unknown'}`,
+    500,
+  )
+}
+
 export async function adminExtendSignup(code: string, extraMinutes: number): Promise<void> {
   const sb = getServiceClient()
   const row = await requireHost(code)
@@ -2642,6 +2838,7 @@ export async function sweep(): Promise<{
   reportsConfirmed: number
   tournamentsAdvanced: number
   fundingReconciled: number
+  deadlinesEnforced: number
 }> {
   const sb = getServiceClient()
   let reportsConfirmed = 0
@@ -2698,6 +2895,15 @@ export async function sweep(): Promise<{
     }
   }
 
+  // Autopilot: enforce hard round deadlines on running paid games (resolve
+  // no-shows, advance). Featured events are untouched.
+  let deadlinesEnforced = 0
+  try {
+    deadlinesEnforced = await enforceRoundDeadlines()
+  } catch {
+    /* transient; next sweep retries */
+  }
+
   // Read-only reconcile of paid-tournament funding against the chain. No-op
   // (and cheap) when the escrow isn't configured.
   let fundingReconciled = 0
@@ -2712,6 +2918,7 @@ export async function sweep(): Promise<{
     reportsConfirmed,
     tournamentsAdvanced: advanced.size,
     fundingReconciled,
+    deadlinesEnforced,
   }
 }
 

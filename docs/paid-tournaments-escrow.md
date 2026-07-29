@@ -455,6 +455,57 @@ dead-man window.
 
 ---
 
+## 14a. Autopilot + hard-deadline match resolution
+
+Paid games run themselves once the operator starts the bracket. The only manual
+steps are: spin up the game, approve/reject applicants, start the bracket, and
+settle discrepancies. Everything else is automated by the hourly cron sweep
+(`enforceRoundDeadlines` in `service.ts`), scoped to paid (escrow-linked)
+tournaments so featured events keep their softer, extendable behavior.
+
+**Hard round deadline (no extensions).** Each round has a fixed `ends_at`
+(`round_minutes` from `lock`/start). When it elapses, the sweep force-resolves
+every unfinished match in that round and advances. There is no "add time" for
+paid games.
+
+**Resolution policy - designed so stalling never helps** (the anti-gaming core):
+
+- **One player reported, the other ghosted** -> the reporter's result stands
+  (the single-sided report already stored a provisional winner). So if your
+  opponent won't schedule or goes quiet, you report your result and it sticks.
+- **Neither reported by the deadline** -> **double forfeit**: both take a loss
+  (0 points), counted as a played game that drags each player's tiebreakers.
+  Because a no-show is a guaranteed loss for *both*, a player can never improve
+  their odds by dragging a match out to force a random result. There is no coin
+  flip and no "better record advances" (both were gameable).
+- **Both reported but disagree** -> **disputed**: the one case that pauses
+  autopilot. The round will not advance until the operator settles it
+  (`set-result`).
+
+This is why paid games are **Swiss only**: no elimination, a double loss is a
+clean, non-advancing outcome, and the champion falls out of the final Swiss
+standings + existing tiebreakers (points, OMW, head-to-head, OOMW). The
+`double_forfeit` match status is tallied as a loss for both players in
+`pairing.ts` (never a draw).
+
+Implementation: `MatchStatus` gains `double_forfeit`; `tallyMatches` counts it
+as a mutual loss; `roundFullyResolved` treats it as resolved;
+`enforceRoundDeadlines` runs in `sweep()` and is a no-op for featured events.
+
+## 14b. Multiple simultaneous games + creation
+
+Paid games are created with `adminCreatePaidGame` (admin action
+`create-paid-game`). They set `escrow_id` + `is_live = false`, so:
+
+- Many can run at once (the operator opens new lobbies anytime); the always-on
+  `/tournaments/play` lobby lists all open ones.
+- They never appear on / interfere with the single featured event at
+  `/tournaments`.
+
+Enrollment has no signup timer - it stays open until the operator starts the
+bracket, mirroring "manual start". Approve-then-pay and the funded gate still
+apply once the escrow is deployed and configured.
+
 ## 14. Glossary
 
 - **Rake** - the platform fee (15%), taken off the pot before the prize split.

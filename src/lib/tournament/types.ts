@@ -46,6 +46,9 @@ export type RoundStatus = 'active' | 'complete'
  *  - confirmed: both sides agree (or one-sided report stood after window)
  *  - disputed:  both sides claim the win - surfaced to the host
  *  - bye:       a player advanced unopposed (no opponent this round)
+ *  - double_forfeit: neither side reported by a HARD round deadline (autopilot
+ *      paid games only). Counts as a loss for BOTH players so stalling can
+ *      never force a coin-flip; see docs/paid-tournaments-escrow.md.
  */
 export type MatchStatus =
   | 'pending'
@@ -53,6 +56,7 @@ export type MatchStatus =
   | 'confirmed'
   | 'disputed'
   | 'bye'
+  | 'double_forfeit'
 
 /** A player's self-reported outcome for their own match. */
 export type ReportedResult = 'win' | 'loss' | 'draw'
