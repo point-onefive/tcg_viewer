@@ -28,7 +28,8 @@ import { XLogo } from '@/components/gallery/x-logo'
 import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose, PrizePoolPoweredBy } from '@/components/tournament/bonk-ui'
 import type { PrizePoolLockup } from '@/lib/tournament/theme'
-import { getTournamentTheme, type TournamentTheme } from '@/lib/tournament/theme'
+import { getTournamentTheme, HOUSE_THEME_ID, type TournamentTheme } from '@/lib/tournament/theme'
+import { formatUsdc, isPayoutPreset, PAYOUT_PRESET_LABELS } from '@/lib/tournament/paid'
 import { useTournamentTheme } from '@/components/tournament/theme-context'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
@@ -1888,8 +1889,21 @@ export function PollCard({
  * headline, a peeking BONK Dog on the right, warm orange glow + embers. Sits
  * flush under the page header and spans the viewport width.
  */
-export function BonkHero({ theme }: { theme: TournamentTheme }) {
+export function BonkHero({
+  theme,
+  title,
+  subhead,
+}: {
+  theme: TournamentTheme
+  /** Per-game headline override (paid games show their own name, not the
+   *  neutral theme placeholder). When set, titleLine2/bang are suppressed. */
+  title?: string
+  subhead?: string
+}) {
   const h = theme.hero
+  const heroTitle = title ?? h.titleLine1
+  const heroSubhead = subhead ?? h.subhead
+  const useOverride = Boolean(title)
   return (
     <section className="bonk-hero" aria-label={h.ariaLabel}>
       {/* Desktop-only faded scene to fill the wide real estate. Masked toward
@@ -1904,11 +1918,12 @@ export function BonkHero({ theme }: { theme: TournamentTheme }) {
       {h.embers && <div aria-hidden className="bonk-hero__embers" />}
       <div aria-hidden className="bonk-hero__glow" />
       {/* The hero visual: a sponsor mascot (flush bottom-right) or a featured
-          promo card (framed, centered right). */}
-      {h.feature.kind === 'character' ? (
+          promo card (framed, centered right). null = blank slot (neutral theme). */}
+      {h.feature?.kind === 'character' && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={h.feature.src} alt={h.feature.alt ?? ''} className="bonk-hero__mascot select-none" />
-      ) : (
+      )}
+      {h.feature?.kind === 'card' && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={h.feature.src} alt={h.feature.alt ?? ''} className="bonk-hero__feature-card select-none" />
       )}
@@ -1923,12 +1938,12 @@ export function BonkHero({ theme }: { theme: TournamentTheme }) {
               </span>
             )}
             <h1 className="bonk-hero__title bonk-display">
-              {h.titleLine1}
-              {h.titleLine2 && <br className="hidden sm:block" />}
-              {h.titleLine2 ? ` ${h.titleLine2}` : ''}
-              {h.bang && <span className="bonk-hero__bang">!!!</span>}
+              {heroTitle}
+              {!useOverride && h.titleLine2 && <br className="hidden sm:block" />}
+              {!useOverride && h.titleLine2 ? ` ${h.titleLine2}` : ''}
+              {!useOverride && h.bang && <span className="bonk-hero__bang">!!!</span>}
             </h1>
-            <p className="bonk-hero__sub">{h.subhead}</p>
+            <p className="bonk-hero__sub">{heroSubhead}</p>
           </div>
         </div>
       </div>
@@ -2150,10 +2165,12 @@ export function TournamentLive({ code }: { code?: string } = {}) {
     [visiblePlayers],
   )
 
+  // Paid games start manually (no signup countdown), so sign-ups are open for
+  // the whole 'enrolling' phase. Free/featured events gate on the timer.
   const signupOpen = Boolean(
     tournament?.status === 'enrolling' &&
-      tournament.enrollClosesAt &&
-      new Date(tournament.enrollClosesAt) > new Date(),
+      (tournament.isPaid ||
+        (tournament.enrollClosesAt && new Date(tournament.enrollClosesAt) > new Date())),
   )
 
   // Status is still 'enrolling' but the sign-up timer has run out (the bracket
@@ -2455,14 +2472,26 @@ export function TournamentLive({ code }: { code?: string } = {}) {
     )
   }
 
-  // Resolve the theme now that the row (and its theme id) is loaded. Unset
-  // events fall back to BONK so existing events look unchanged; the loading and
-  // error states above render an unbranded shell so a themed event never
-  // flashes BONK before its own theme is known.
-  const theme = getTournamentTheme(tournament.theme)
+  // Resolve the theme now that the row (and its theme id) is loaded. Free
+  // events with no explicit theme fall back to BONK (unchanged); PAID games
+  // fall back to the neutral "house" blank canvas instead of the BONK sponsor
+  // skin. An explicit admin-picked theme always wins for either kind.
+  const theme = getTournamentTheme(
+    tournament.theme ?? (tournament.isPaid ? HOUSE_THEME_ID : null),
+  )
+
+  // Paid games share one neutral theme, so drive the big hero headline from the
+  // game's own name + a concise entry/payout summary instead of a static skin.
+  const paidHeroTitle = tournament.isPaid ? tournament.name : undefined
+  const paidHeroSubhead =
+    tournament.isPaid && tournament.entryFeeUsdc
+      ? `${formatUsdc(tournament.entryFeeUsdc)} entry · ${
+          isPayoutPreset(tournament.payoutPreset) ? PAYOUT_PRESET_LABELS[tournament.payoutPreset] : 'prize pool'
+        } · settled on-chain`
+      : undefined
 
   return (
-    <TournamentShell hero={<BonkHero theme={theme} />} theme={theme}>
+    <TournamentShell hero={<BonkHero theme={theme} title={paidHeroTitle} subhead={paidHeroSubhead} />} theme={theme}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
       {/* Global leaderboard across all tournaments. The archive of finished
           events (Past events) now lives in the leaderboard's footer row, so it
@@ -2511,7 +2540,9 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                 </MetaChip>
               </div>
             </div>
-            {signupOpen && <CountdownStat label="Sign-ups close in" value={signupCountdown} />}
+            {signupOpen && !tournament.isPaid && (
+              <CountdownStat label="Sign-ups close in" value={signupCountdown} />
+            )}
             {tournament.status === 'running' && activeRound && (
               <CountdownStat label={`Round ${activeRound.number} ends in`} value={roundCountdown} />
             )}

@@ -929,10 +929,12 @@ export function TournamentAdmin() {
                     className="w-full appearance-none"
                     style={{ background: 'var(--bg)', color: paidThemeId ? 'var(--text-primary)' : 'var(--text-muted)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 14, cursor: 'pointer' }}
                   >
-                    <option value="">Default theme</option>
-                    {themeOptions().map((o) => (
-                      <option key={o.id} value={o.id}>{o.label}</option>
-                    ))}
+                    <option value="">Blank house theme (default)</option>
+                    {themeOptions()
+                      .filter((o) => o.id !== 'house')
+                      .map((o) => (
+                        <option key={o.id} value={o.id}>{o.label}</option>
+                      ))}
                   </select>
                   <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
                 </div>

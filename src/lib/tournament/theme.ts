@@ -57,7 +57,9 @@ export interface TournamentTheme {
     /** Red "!!!" energy tail after the title (BONK signature). */
     bang: boolean
     subhead: string
-    feature: HeroFeature
+    /** Hero visual (mascot or featured card). null = blank slot (no image),
+     *  used by neutral/blank themes that a host decorates later. */
+    feature: HeroFeature | null
     /** Background photo behind the hero copy (desktop, dark). null = gradient only. */
     scene: { src: string; position?: string } | null
     /** Floating orange embers - only fits the BONK cosmic hero. */
@@ -366,15 +368,104 @@ const CARD_TREASURE_THEME: TournamentTheme = {
   },
 }
 
+// ─── House - neutral blank canvas (paid tournaments default) ──────────────
+// The always-on paid bracket surface must NOT wear a sponsor skin (BONK) or an
+// event-specific specialty theme. This is a deliberately neutral, unbranded
+// dark palette that keeps the EXACT same layout + every image slot, just left
+// empty so a host can decorate a real theme later. All decorative art slots are
+// null (blank), scene photos are suppressed to none, and the hero title/subhead
+// are overridden per-game with the tournament's own name in TournamentLive.
+const HOUSE_THEME: TournamentTheme = {
+  id: 'house',
+  label: 'House - blank (paid)',
+  colorMode: 'dark-only',
+  cssVars: {
+    // Neutral steel accent ramp (no sponsor color).
+    '--bonk-ui-orange': '#8aa0bd',
+    '--bonk-ui-yellow': '#c2d2e8',
+    '--bonk-orange': '#8aa0bd',
+    '--bonk-yellow': '#c2d2e8',
+    '--bonk-red': '#c26b6b',
+    '--bonk-purple': '#4b5568',
+    '--bonk-midnight': '#0b0d12',
+    '--tcw-accent': '#9fb4d1',
+    '--tcw-accent-2': '#c2d2e8',
+    // Cool neutral gradients.
+    '--bonk-grad-sun': 'linear-gradient(135deg, #c2d2e8 0%, #7f97b6 100%)',
+    '--bonk-grad-ui': 'linear-gradient(135deg, #94a9c6 0%, #5f748f 100%)',
+    '--bonk-grad-fire': 'radial-gradient(125% 150% at 50% 0%, #a9bcd6 0%, #5f748f 100%)',
+    '--bonk-grad-night': 'linear-gradient(160deg, #141821 0%, #0a0c10 100%)',
+    '--bonk-band-icon': '#c2d2e8',
+    '--bonk-band-kicker': '#c2d2e8',
+    // Hero: neutral graphite vault with soft steel glows. No embers/scene.
+    '--bonk-hero-bg-dark':
+      'radial-gradient(115% 130% at 92% 6%, rgba(138,160,189,0.16) 0%, transparent 52%), radial-gradient(95% 120% at 3% 100%, rgba(75,85,104,0.42) 0%, transparent 60%), linear-gradient(157deg, #141821 0%, #0b0d12 52%, #10141c 100%)',
+    '--bonk-hero-glow-dark': 'radial-gradient(46% 46% at 64% 50%, rgba(138,160,189,0.26) 0%, transparent 72%)',
+    // Blank canvas: suppress every stock BONK scene photo so nothing branded
+    // bleeds through. Section cards + playbook + footer render as clean darks.
+    '--bonk-hero-scene-opacity': '0',
+    '--bonk-hero-scene-opacity-sm': '0',
+    '--bonk-scene-opacity': '0',
+    '--bonk-how-scene-dark': 'none',
+    '--bonk-how-wash-dark':
+      'linear-gradient(108deg, rgba(11,13,18,0.95) 30%, rgba(16,20,28,0.84) 72%, rgba(20,26,36,0.72) 100%)',
+    '--bonk-foot-scene-dark': 'none',
+    '--bonk-foot-wash-dark':
+      'linear-gradient(100deg, rgba(11,13,18,0.95) 38%, rgba(16,20,28,0.82) 78%, rgba(20,26,36,0.7) 100%)',
+  },
+  hero: {
+    ariaLabel: 'Paid tournament',
+    partnerPill: null,
+    titleLine1: 'Paid Tournament',
+    bang: false,
+    subhead: 'Pay to enter, play for the pot.',
+    feature: null,
+    scene: null,
+    embers: false,
+  },
+  navLockup: null,
+  prizePoolLockup: { kind: 'cardwall' },
+  playbook: {
+    mascot: null,
+    payout: null,
+  },
+  mascots: {
+    leaderboard: null,
+    signup: null,
+    roster: null,
+    poll: null,
+  },
+  scenes: {
+    eventDark: null,
+    eventLight: null,
+    roundDark: null,
+    roundLight: null,
+    prizeDark: null,
+  },
+  errorMascot: null,
+  footer: {
+    character: null,
+    headline: 'Play for the pot',
+    bang: false,
+    body: 'An always-on paid bracket hosted by The Card Wall. Pay to enter, then win your share of the pot - settled on-chain.',
+    cta: { label: 'thecardwall.com', href: 'https://thecardwall.com', logo: null },
+  },
+}
+
 export const TOURNAMENT_THEMES: Record<string, TournamentTheme> = {
   [BONK_THEME.id]: BONK_THEME,
   [SUMMER_2026_THEME.id]: SUMMER_2026_THEME,
   [CARD_TREASURE_THEME.id]: CARD_TREASURE_THEME,
+  [HOUSE_THEME.id]: HOUSE_THEME,
 }
 
 /** The theme used when a tournament has no explicit theme set (backward compat:
  * existing/legacy events keep the BONK look until a theme is chosen in admin). */
 export const DEFAULT_THEME_ID = 'bonk'
+
+/** Neutral blank-canvas theme id used as the default for PAID tournaments so
+ * they never inherit the BONK sponsor skin. */
+export const HOUSE_THEME_ID = 'house'
 
 const ADMIN_LAST_THEME_KEY = 'tcw-tournament-admin-theme'
 
