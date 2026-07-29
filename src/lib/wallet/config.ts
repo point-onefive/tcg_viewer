@@ -15,7 +15,7 @@
 import { createConfig, injected } from 'wagmi'
 import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
 import { http } from 'viem'
-import { mainnet } from 'viem/chains'
+import { mainnet, base, baseSepolia } from 'viem/chains'
 
 // Canonical production origin, used as the SSR fallback for WalletConnect
 // metadata. On the client we always prefer the live origin (handles preview
@@ -52,10 +52,15 @@ const connectors = [
     : []),
 ]
 
+// Base (+ Base Sepolia) are included so paid-tournament USDC deposits can be
+// signed in-app. SIWE identity still uses mainnet; these are only for the
+// escrow deposit / claim transactions on the game page.
 export const wagmiConfig = createConfig({
-  chains: [mainnet],
+  chains: [mainnet, base, baseSepolia],
   transports: {
     [mainnet.id]: http(),
+    [base.id]: http(),
+    [baseSepolia.id]: http(),
   },
   connectors,
   ssr: true,

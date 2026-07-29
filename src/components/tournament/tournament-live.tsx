@@ -7,6 +7,7 @@ import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronLeft, 
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
+  apiSnapshotByCode,
   apiCastVote,
   apiDeckCheck,
   apiEnroll,
@@ -33,6 +34,7 @@ import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
+import { PaidDepositPanel } from '@/components/tournament/paid-deposit-panel'
 import { RegionPicker } from '@/components/tournament/region-picker'
 import { type Region } from '@/lib/tournament/region'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
@@ -2003,7 +2005,7 @@ export function BonkFooter({ theme }: { theme: TournamentTheme }) {
   )
 }
 
-export function TournamentLive() {
+export function TournamentLive({ code }: { code?: string } = {}) {
   const { status: walletStatus, profile } = useWalletAuth()
   const [snapshot, setSnapshot] = useState<TournamentSnapshot | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -2064,14 +2066,16 @@ export function TournamentLive() {
 
   const refresh = useCallback(async () => {
     try {
-      const snap = await apiActiveSnapshot()
+      // Featured page (no code) tracks the single active event; the always-on
+      // paid lobby passes a specific code to run this exact same UI for one game.
+      const snap = code ? await apiSnapshotByCode(code) : await apiActiveSnapshot()
       setSnapshot(snap)
       setLoadError(null)
     } catch (err) {
       setSnapshot(null)
       setLoadError(err instanceof Error ? err.message : 'Could not load tournament')
     }
-  }, [])
+  }, [code])
 
   // A finished or cancelled tournament's snapshot is immutable, so once we've
   // seen the final state there's nothing left to poll for.
@@ -2467,8 +2471,9 @@ export function TournamentLive() {
 
       {/* Next-event waitlist. Shown when the current event is not actively
           enrolling, OR when it is enrolling but already full - either way new
-          arrivals can still queue for the next one. */}
-      {canJoinWaitlist && (
+          arrivals can still queue for the next one. Paid games are always-on and
+          independent, so they never use the featured-event waitlist. */}
+      {canJoinWaitlist && !tournament.isPaid && (
         <WaitlistCard
           note={
             signupOpen && isFull
@@ -2477,6 +2482,9 @@ export function TournamentLive() {
           }
         />
       )}
+
+      {/* Paid game: entry-fee deposit + winnings claim. No-op for free events. */}
+      {tournament.isPaid && <PaidDepositPanel snapshot={snapshot} onFunded={refresh} />}
 
       {/* Event hero */}
       <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
