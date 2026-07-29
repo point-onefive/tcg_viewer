@@ -135,6 +135,26 @@ export interface Tournament {
    * null means unbranded until an explicit theme is set in admin.
    */
   theme: string | null
+  /**
+   * Paid-tournament escrow link (see docs/paid-tournaments-escrow.md). All null
+   * for a free event; a tournament is "paid" iff `escrowId` is set. The chain is
+   * the source of truth for money; these are a reconciled mirror.
+   */
+  escrowId: string | null
+  /** Per-player entry fee in 6-decimal USDC units (e.g. 10_000000 = $10). */
+  entryFeeUsdc: number | null
+  /** Platform rake in basis points (e.g. 1500 = 15%). */
+  rakeBps: number | null
+  /** Payout preset id ('wta' | 'top3' | 'top6' | 'top8'). */
+  payoutPreset: string | null
+  /** Locked post-rake split in basis points (sums to 10000). */
+  payoutBps: number[] | null
+  /** Deployed escrow proxy address. */
+  contractAddress: string | null
+  /** EVM chain id (8453 base | 84532 base-sepolia). */
+  chainId: number | null
+  /** Convenience flag: true when this is a paid (escrowed) tournament. */
+  isPaid: boolean
   createdAt: string
 }
 
@@ -174,6 +194,16 @@ export interface Player {
   country?: string | null
   /** True once the player drops; pairing skips them, no auto-wins. */
   dropped: boolean
+  /**
+   * Paid tournaments only: true once this player's on-chain deposit is
+   * confirmed (>= min confirmations). The bracket only ever seats funded
+   * players. Always false for free events.
+   */
+  funded: boolean
+  /** Paid tournaments only: true once the entry was refunded on-chain. */
+  refunded: boolean
+  /** Confirmed deposit transaction hash; null until funded. */
+  depositTx: string | null
   /**
    * The deck the player committed to for the event (OPTCG Sim text format).
    * Required at sign-up and locked once set; null only for in-flight rows

@@ -100,6 +100,17 @@ export function rowToTournament(r: any): Tournament {
     pollQuestion: typeof r.poll_question === 'string' && r.poll_question.trim() ? r.poll_question : null,
     pollOptions: rowToPollOptions(r.poll_options),
     theme: typeof r.theme === 'string' && r.theme.trim() ? r.theme : null,
+    escrowId: typeof r.escrow_id === 'string' && r.escrow_id ? r.escrow_id : null,
+    entryFeeUsdc: r.entry_fee_usdc != null ? Number(r.entry_fee_usdc) : null,
+    rakeBps: r.rake_bps != null ? Number(r.rake_bps) : null,
+    payoutPreset: typeof r.payout_preset === 'string' && r.payout_preset ? r.payout_preset : null,
+    payoutBps: Array.isArray(r.payout_bps)
+      ? r.payout_bps.filter((n: unknown) => typeof n === 'number')
+      : null,
+    contractAddress:
+      typeof r.contract_address === 'string' && r.contract_address ? r.contract_address : null,
+    chainId: r.chain_id != null ? Number(r.chain_id) : null,
+    isPaid: Boolean(typeof r.escrow_id === 'string' && r.escrow_id),
     createdAt: r.created_at,
   }
 }
@@ -117,6 +128,9 @@ export function rowToPlayer(r: any): Player {
     seed: r.seed ?? null,
     region: sanitizeRegion(r.region),
     dropped: Boolean(r.dropped),
+    funded: Boolean(r.funded),
+    refunded: Boolean(r.refunded),
+    depositTx: r.deposit_tx ?? null,
     deckList: r.deck_list ?? null,
     hasDeckList: Boolean(r.deck_list),
     // Leader is derived from the deck list in the snapshot layer (it needs the

@@ -14,6 +14,12 @@ import {
   rowToRound,
   rowToTournament,
 } from './mappers'
+import type { Hex } from 'viem'
+import {
+  isEscrowConfigured,
+  getFundingStatus,
+  verifyDeposit as verifyEscrowDeposit,
+} from './escrow'
 import {
   computeStandings,
   pairSingleElimFirstRound,
@@ -349,6 +355,117 @@ export async function enroll(
     throw new TournamentError(`Could not sign up: ${error?.message ?? 'unknown'}`, 500)
   }
   return { player: rowToPlayer(data), playerToken }
+}
+
+// ── Paid tournaments: deposit confirmation ─────────────────────────────────
+
+/**
+ * Confirm a player's on-chain USDC deposit for a paid tournament and flip their
+ * `funded` flag so the bracket can seat them. Approve-then-pay: the entry must
+ * already be approved. Idempotent - a repeat call on an already-funded player
+ * returns the current row. The chain is the source of truth; we only READ it
+ * here (see lib/tournament/escrow).
+ */
+export async function confirmDeposit(
+  code: string,
+  walletAddress: string,
+  txHash: string,
+): Promise<Player> {
+  if (!isEscrowConfigured()) {
+    throw new TournamentError('Paid tournaments are not enabled on this deployment.', 503)
+  }
+  const wallet = (walletAddress || '').trim().toLowerCase()
+  if (!/^0x[0-9a-f]{40}$/.test(wallet)) throw new TournamentError('Connect a valid wallet.', 400)
+  const tx = (txHash || '').trim().toLowerCase()
+  if (!/^0x[0-9a-f]{64}$/.test(tx)) {
+    throw new TournamentError('Provide a valid transaction hash.', 400)
+  }
+
+  const row = await fetchTournamentRowByCode(code)
+  const tournament = rowToTournament(row)
+  if (!tournament.isPaid || !tournament.escrowId) {
+    throw new TournamentError('This tournament does not require a deposit.', 400)
+  }
+
+  const player = await fetchPlayerByWalletOrHandle(tournament.id, wallet, null)
+  if (!player) throw new TournamentError('Sign up for this tournament before depositing.', 404)
+  if (player.approvalStatus !== 'approved') {
+    throw new TournamentError('Your entry must be approved before you can deposit.', 409)
+  }
+  if (player.funded) return player // idempotent
+
+  const verification = await verifyEscrowDeposit({
+    escrowId: tournament.escrowId as Hex,
+    wallet: wallet as Hex,
+    txHash: tx as Hex,
+  })
+  if (!verification.ok) {
+    throw new TournamentError(verification.reason ?? 'Deposit not confirmed yet.', 409)
+  }
+  if (tournament.entryFeeUsdc != null && verification.amount !== BigInt(tournament.entryFeeUsdc)) {
+    throw new TournamentError('Deposit amount does not match the entry fee.', 409)
+  }
+
+  const sb = getServiceClient()
+  const { data, error } = await sb
+    .from('players')
+    .update({
+      funded: true,
+      funded_at: nowIso(),
+      deposit_tx: tx,
+      deposit_block: Number(verification.blockNumber),
+    })
+    .eq('id', player.id)
+    .select('*')
+    .single()
+  if (error || !data) throw new TournamentError('Could not record the deposit.', 500)
+  return rowToPlayer(data)
+}
+
+/**
+ * Read-only reconcile pass (run in the cron sweep): re-read each funded/refunded
+ * flag from the contract for active paid tournaments and repair the Supabase
+ * mirror. Idempotent, chain-wins, never signs or moves money. Best-effort per
+ * tournament so one bad RPC read can't stall the rest of the sweep.
+ */
+async function reconcilePaidFunding(): Promise<number> {
+  if (!isEscrowConfigured()) return 0
+  const sb = getServiceClient()
+  const { data: tRows } = await sb
+    .from('tournaments')
+    .select('id, escrow_id, status')
+    .not('escrow_id', 'is', null)
+    .neq('status', 'complete')
+    .neq('status', 'cancelled')
+  let updated = 0
+  for (const t of tRows ?? []) {
+    const escrowId = (t as { escrow_id?: string }).escrow_id
+    if (!escrowId) continue
+    try {
+      const { data: pRows } = await sb
+        .from('players')
+        .select('id, wallet_address, funded, refunded')
+        .eq('tournament_id', (t as { id: string }).id)
+        .not('wallet_address', 'is', null)
+      for (const p of pRows ?? []) {
+        const pr = p as { id: string; wallet_address: string; funded?: boolean; refunded?: boolean }
+        const status = await getFundingStatus(escrowId as Hex, pr.wallet_address as Hex)
+        const patch: Record<string, unknown> = {}
+        if (status.funded !== Boolean(pr.funded)) {
+          patch.funded = status.funded
+          if (status.funded) patch.funded_at = nowIso()
+        }
+        if (status.refunded !== Boolean(pr.refunded)) patch.refunded = status.refunded
+        if (Object.keys(patch).length > 0) {
+          await sb.from('players').update(patch).eq('id', pr.id)
+          updated++
+        }
+      }
+    } catch {
+      /* chain read failed; next sweep retries */
+    }
+  }
+  return updated
 }
 
 // ── Bracket generation ───────────────────────────────────────────────────--
@@ -2472,6 +2589,7 @@ export async function sweep(): Promise<{
   enrollmentsClosed: number
   reportsConfirmed: number
   tournamentsAdvanced: number
+  fundingReconciled: number
 }> {
   const sb = getServiceClient()
   let reportsConfirmed = 0
@@ -2528,10 +2646,20 @@ export async function sweep(): Promise<{
     }
   }
 
+  // Read-only reconcile of paid-tournament funding against the chain. No-op
+  // (and cheap) when the escrow isn't configured.
+  let fundingReconciled = 0
+  try {
+    fundingReconciled = await reconcilePaidFunding()
+  } catch {
+    /* chain unreachable; next sweep retries */
+  }
+
   return {
     enrollmentsClosed: 0,
     reportsConfirmed,
     tournamentsAdvanced: advanced.size,
+    fundingReconciled,
   }
 }
 

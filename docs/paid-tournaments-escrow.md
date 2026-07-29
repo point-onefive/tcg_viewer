@@ -1,10 +1,24 @@
 # Paid Tournaments (Base USDC escrow)
 
-> Status: DESIGN, not built yet. This is the full architecture for adding
-> paid-entry tournaments to The Card Wall, with a smart contract acting as the
-> trustless custodian for entry fees, prize payouts, and the platform rake.
-> Everything here is agreed and locked unless a section says otherwise.
-> Pick this up, build on Base Sepolia first, then ship.
+> Status: IN PROGRESS. This is the full architecture for adding paid-entry
+> tournaments to The Card Wall, with a smart contract acting as the trustless
+> custodian for entry fees, prize payouts, and the platform rake. Everything
+> here is agreed and locked unless a section says otherwise.
+>
+> Implementation progress (build plan, section 13):
+>
+> - **Phase 1 (done)** - the escrow contract + tests live in `contracts/`
+>   (`TournamentEscrow.sol`, 54 Foundry tests, ~96% line coverage, proxy Deploy
+>   + Upgrade scripts). Not yet deployed; deploy to Base Sepolia first.
+> - **Phase 2 (done)** - DB migration `supabase/migrations/020_paid_tournaments.sql`
+>   (note: the section 8.1 filename `009_...` predated the real numbering), the
+>   on-chain reader `src/lib/tournament/escrow.ts` (env-gated, read-only), the
+>   deposit-verify route `POST /api/tournaments/:code/deposit-verify`, and the
+>   read-only reconcile pass folded into the hourly cron sweep.
+> - **Phase 3 (todo)** - the `/tournaments/play` lobby, the deposit step UX, and
+>   wiring the admin Create/Lock/Settle buttons to wallet-signed txs (add Base
+>   to the wagmi config, which is mainnet-only today).
+> - **Phase 4/5 (todo)** - mainnet pilot, then audit + Safe multisig.
 
 Related reading:
 
