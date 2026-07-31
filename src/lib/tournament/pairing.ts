@@ -235,6 +235,23 @@ export function computeStandings(players: Player[], matches: Match[]): StandingR
     return opps.length ? opps.reduce((s, o) => s + Math.max(omw.get(o) ?? 1 / 3, 1 / 3), 0) / opps.length : 0
   }
 
+  // Fully deterministic final tiebreak for players who are dead-even on every
+  // MERIT tiebreak: order by seed (ascending; unseeded last), then by wallet
+  // address (ascending, case-insensitive). This is arbitrary-but-stable, NOT a
+  // merit signal, so it only fixes the DISPLAY order - the `tied` flag below
+  // still marks these players so a paid game never auto-awards a differing
+  // prize across a real tie (paidWinnerAddresses defers those to manual settle).
+  const finalTiebreak = (aId: string, bId: string): number => {
+    const pa = byId.get(aId)
+    const pb = byId.get(bId)
+    const sa = pa?.seed ?? Number.MAX_SAFE_INTEGER
+    const sb = pb?.seed ?? Number.MAX_SAFE_INTEGER
+    if (sa !== sb) return sa - sb
+    const wa = (pa?.walletAddress ?? '').toLowerCase()
+    const wb = (pb?.walletAddress ?? '').toLowerCase()
+    return wa < wb ? -1 : wa > wb ? 1 : 0
+  }
+
   // Head-to-head wins counted only within a given set of players (a tie group),
   // so it stays transitive when sorting (we rank by the count, not by pairwise
   // results that could cycle).
@@ -292,7 +309,8 @@ export function computeStandings(players: Player[], matches: Match[]): StandingR
         (a, b) =>
           (h2h.get(b.playerId) ?? 0) - (h2h.get(a.playerId) ?? 0) ||
           b.oppOppWinPct - a.oppOppWinPct ||
-          b.wins - a.wins,
+          b.wins - a.wins ||
+          finalTiebreak(a.playerId, b.playerId),
       )
       for (let k = 0; k < cluster.length; k++) rows[i + k] = cluster[k]
       // Flag runs that remain exactly equal on every merit tiebreaker.

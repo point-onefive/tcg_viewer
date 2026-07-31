@@ -1,6 +1,12 @@
 'use client'
 
-import type { CompletedTournamentSummary, PaidGameSummary, Player, TournamentSnapshot } from './types'
+import type {
+  CompletedTournamentSummary,
+  PaidGameSummary,
+  PaidNeedsAttention,
+  Player,
+  TournamentSnapshot,
+} from './types'
 import type { PollResults } from './poll'
 import type { Region } from './region'
 
@@ -82,6 +88,24 @@ export async function apiPaidGames(): Promise<{
     }
   } catch {
     return { configured: false, escrowConfigured: false, games: [] }
+  }
+}
+
+/**
+ * Wallet-scoped "needs your action" feed for the paid lobby: paid games where
+ * the connected wallet has a funded, un-refunded seat that is now refundable
+ * (the game was cancelled). The server resolves the wallet from the session, so
+ * there is no payload. Never throws; returns an empty list on any error or when
+ * no wallet is connected.
+ */
+export async function apiRefundableStakes(): Promise<{ code: string; name: string }[]> {
+  try {
+    const res = await fetch('/api/tournaments/play/mine', { cache: 'no-store' })
+    if (!res.ok) return []
+    const data = (await res.json()) as { stakes?: { code: string; name: string }[] }
+    return data.stakes ?? []
+  } catch {
+    return []
   }
 }
 
@@ -230,6 +254,10 @@ export async function adminApi(
   }[]
   award?: ManualBadgeAward
   awards?: ManualBadgeAward[]
+  /** Tx hash from an escrow write (cancel / refund / settle / pause). */
+  txHash?: string | null
+  /** Paid-mode "needs attention" payload. */
+  attention?: PaidNeedsAttention
 }> {
   return post('/api/tournaments/admin', body, adminKey)
 }

@@ -31,6 +31,12 @@ import {
   adminStartBracket,
   adminStartFresh,
   adminCreatePaidGame,
+  adminCancelPaidGame,
+  adminRefundPlayer,
+  adminManualSettlePaid,
+  adminPauseEscrow,
+  adminUnpauseEscrow,
+  adminPaidNeedsAttention,
   adminEndTournament,
   enroll,
   recomputeAllPlacements,
@@ -45,7 +51,13 @@ export const dynamic = 'force-dynamic'
 type Body =
   | { action: 'ping' }
   | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string; theme?: string }
-  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string }
+  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string; lobbyRegion?: import('@/lib/tournament/region').Region | null }
+  | { action: 'cancel-paid-game'; code: string }
+  | { action: 'refund-player'; code: string; playerId: string }
+  | { action: 'manual-settle'; code: string; orderedPlayerIds: string[] }
+  | { action: 'pause-escrow' }
+  | { action: 'unpause-escrow' }
+  | { action: 'paid-attention' }
   | { action: 'add-player'; code: string; xHandle: string; deckList?: string }
   | { action: 'extend-signup'; code: string; extraMinutes: number }
   | { action: 'close-signup'; code: string }
@@ -95,6 +107,30 @@ export async function POST(request: Request) {
       case 'create-paid-game': {
         const result = await adminCreatePaidGame(body)
         return ok(result, 201)
+      }
+      case 'cancel-paid-game': {
+        const result = await adminCancelPaidGame(body.code)
+        return ok({ ok: true, ...result })
+      }
+      case 'refund-player': {
+        const result = await adminRefundPlayer(body.code, body.playerId)
+        return ok({ ok: true, ...result })
+      }
+      case 'manual-settle': {
+        const result = await adminManualSettlePaid(body.code, body.orderedPlayerIds)
+        return ok({ ok: true, ...result })
+      }
+      case 'pause-escrow': {
+        const result = await adminPauseEscrow()
+        return ok({ ok: true, ...result })
+      }
+      case 'unpause-escrow': {
+        const result = await adminUnpauseEscrow()
+        return ok({ ok: true, ...result })
+      }
+      case 'paid-attention': {
+        const attention = await adminPaidNeedsAttention()
+        return ok({ ok: true, attention })
       }
       case 'add-player': {
         // Operator path for seeding / walk-in entries (the public

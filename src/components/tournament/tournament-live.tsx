@@ -36,8 +36,9 @@ import { Leaderboard } from '@/components/wallet/leaderboard'
 import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
 import { PaidDepositPanel } from '@/components/tournament/paid-deposit-panel'
+import { PaidProgressBar } from '@/components/tournament/paid-progress-bar'
 import { RegionPicker } from '@/components/tournament/region-picker'
-import { type Region } from '@/lib/tournament/region'
+import { type Region, regionShort } from '@/lib/tournament/region'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
 import { PlayerProfileModal } from '@/components/wallet/player-profile-modal'
 import { PlayerProfileView } from '@/components/wallet/player-profile-view'
@@ -242,6 +243,9 @@ export function StatusPill({ status, enrollExpired }: { status: string; enrollEx
     enrolling: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Sign-ups open' },
     running: { bg: 'rgba(34,197,94,0.15)', fg: '#22c55e', label: 'Round in progress', breathe: true },
     complete: { bg: 'rgba(120,120,120,0.18)', fg: 'var(--text-secondary)', label: 'Complete' },
+    // Distinct from 'complete': a cancelled game paid out nothing and entries are
+    // refundable. Muted red so it never reads as a normal finish.
+    cancelled: { bg: 'rgba(239,68,68,0.15)', fg: '#ef4444', label: 'Cancelled' },
   }
   // Sign-up timer elapsed but the bracket hasn't been started yet: the window
   // is closed even though the tournament is technically still 'enrolling'.
@@ -346,11 +350,13 @@ function ScheduleNote({
   swissRounds,
   maxPlayers,
   format,
+  isPaid,
 }: {
   roundMinutes: number
   swissRounds: number | null
   maxPlayers: number | null
   format: Tournament['format']
+  isPaid?: boolean
 }) {
   // Swiss round count is fixed once the bracket is drawn; before that we show an
   // estimate from the cap so sign-ups still get a concrete number to plan around.
@@ -374,6 +380,16 @@ function ScheduleNote({
       <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         Generous round limits to fit a global schedule.
       </span>
+      {isPaid && (
+        <span
+          className="inline-flex items-start gap-1.5 text-xs sm:ml-auto"
+          style={{ color: '#f59e0b', lineHeight: 1.5 }}
+        >
+          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
+          Rounds have a hard deadline. Miss your match and you&apos;re dropped (counts as a
+          no-show and can lower your reliability).
+        </span>
+      )}
     </div>
   )
 }
@@ -2164,6 +2180,19 @@ export function TournamentLive({ code }: { code?: string } = {}) {
     () => visiblePlayers.filter((p) => p.approvalStatus === 'pending').length,
     [visiblePlayers],
   )
+  // Approved entrants who have actually funded the escrow.
+  const fundedCount = useMemo(
+    () => visiblePlayers.filter((p) => p.approvalStatus === 'approved' && p.funded).length,
+    [visiblePlayers],
+  )
+  // Paid-game status bar phase. While the field is still being recruited /
+  // approved we show the "applied" bar (toward the cap). Once the organizer has
+  // cleared the queue (everyone decided, at least one approved) or anyone has
+  // already paid, it converts to the "funded" bar (toward the approved roster).
+  const fundingPhase =
+    (tournament?.status !== 'enrolling') ||
+    fundedCount > 0 ||
+    (approvedCount > 0 && queuedCount === 0)
 
   // Paid games start manually (no signup countdown), so sign-ups are open for
   // the whole 'enrolling' phase. Free/featured events gate on the timer.
@@ -2512,6 +2541,26 @@ export function TournamentLive({ code }: { code?: string } = {}) {
         />
       )}
 
+      {/* Cancelled paid game: make the state unmistakable and point the player at
+          the refund controls in the deposit/withdraw panel right below. */}
+      {tournament.isPaid && tournament.status === 'cancelled' && (
+        <div
+          className="mb-6 flex items-start gap-3 rounded-2xl p-4 sm:p-5"
+          style={{
+            background: 'color-mix(in srgb, #ef4444 8%, var(--bg-surface))',
+            border: '1px solid color-mix(in srgb, #ef4444 45%, var(--border-subtle))',
+          }}
+        >
+          <AlertTriangle size={18} style={{ color: '#ef4444', marginTop: 2 }} aria-hidden />
+          <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+              This game was cancelled.
+            </span>{' '}
+            Your entry is refundable below.
+          </p>
+        </div>
+      )}
+
       {/* Paid game: entry-fee deposit + winnings claim. No-op for free events. */}
       {tournament.isPaid && <PaidDepositPanel snapshot={snapshot} onFunded={refresh} />}
 
@@ -2538,6 +2587,11 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                 <MetaChip icon={Hourglass} iconColor="var(--bonk-pink)">
                   {queuedCount} in queue
                 </MetaChip>
+                {tournament.isPaid && tournament.lobbyRegion && (
+                  <MetaChip icon={Users} iconColor="#f59e0b">
+                    {regionShort(tournament.lobbyRegion)}-only lobby
+                  </MetaChip>
+                )}
               </div>
             </div>
             {signupOpen && !tournament.isPaid && (
@@ -2547,12 +2601,24 @@ export function TournamentLive({ code }: { code?: string } = {}) {
               <CountdownStat label={`Round ${activeRound.number} ends in`} value={roundCountdown} />
             )}
           </div>
+          {/* Paid field tracker, tucked into the hero next to the counts.
+              Recruiting shows "applied" toward the cap; once the field is
+              approved it flips to "funded" toward the approved roster. */}
+          {tournament.isPaid && tournament.status === 'enrolling' && (
+            <PaidProgressBar
+              phase={fundingPhase ? 'funded' : 'applied'}
+              filled={fundingPhase ? fundedCount : visiblePlayers.length}
+              total={fundingPhase ? approvedCount : tournament.maxPlayers ?? visiblePlayers.length}
+              inline
+            />
+          )}
           {tournament.status !== 'complete' && (
             <ScheduleNote
               roundMinutes={tournament.roundMinutes}
               swissRounds={tournament.swissRounds}
               maxPlayers={tournament.maxPlayers}
               format={tournament.format}
+              isPaid={tournament.isPaid}
             />
           )}
           {tournament.rules && (
@@ -2591,6 +2657,23 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                   {profile?.xHandle ? ` as @${profile.xHandle}` : ''}. Your handle
                   will be verified before the bracket is posted.
                 </p>
+                {tournament.isPaid && !myPlayer?.funded && (
+                  <p
+                    className="rounded-md p-3 text-sm"
+                    style={{
+                      background: 'color-mix(in srgb, var(--bonk-ui-yellow) 12%, var(--bg))',
+                      border: '1px solid color-mix(in srgb, var(--bonk-ui-yellow) 30%, transparent)',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    This is a paid game. Once an organizer approves you, you&rsquo;ll pay the{' '}
+                    <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                      {formatUsdc(tournament.entryFeeUsdc)} USDC
+                    </span>{' '}
+                    entry here to lock your seat.
+                  </p>
+                )}
                 {owesDeckList ? (
                   <div className="flex flex-col gap-2 rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid rgba(232,93,42,0.4)' }}>
                     <p className="text-xs font-bold" style={{ color: 'var(--tcw-accent)' }}>
@@ -2701,21 +2784,42 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                   value={regionDraft}
                   onChange={setRegionDraft}
                   disabled={busy}
-                  hint="Helps us plan events around your time zone."
+                  hint={
+                    tournament.isPaid && tournament.lobbyRegion
+                      ? `This is an ${regionShort(tournament.lobbyRegion)}-only lobby. Your region is an eligibility requirement to join, not just for scheduling.`
+                      : 'Helps us plan events around your time zone.'
+                  }
                 />
+                {tournament.isPaid &&
+                  tournament.lobbyRegion &&
+                  regionDraft &&
+                  regionDraft !== tournament.lobbyRegion && (
+                    <p className="text-sm" style={{ color: '#f59e0b', lineHeight: 1.5 }}>
+                      This lobby only admits {regionShort(tournament.lobbyRegion)} players. Choose{' '}
+                      {regionShort(tournament.lobbyRegion)} above to join.
+                    </p>
+                  )}
                 {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                 <button
                   onClick={() => void doEnroll()}
-                  disabled={busy || !regionDraft}
+                  disabled={
+                    busy ||
+                    !regionDraft ||
+                    Boolean(
+                      tournament.isPaid &&
+                        tournament.lobbyRegion &&
+                        regionDraft !== tournament.lobbyRegion,
+                    )
+                  }
                   className="footer-btn bonk-cta py-2.5 text-sm font-bold"
-                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy || !regionDraft ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  style={{ background: 'var(--tcw-accent)', color: '#fff', borderRadius: 6, opacity: busy || !regionDraft || Boolean(tournament.isPaid && tournament.lobbyRegion && regionDraft !== tournament.lobbyRegion) ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {busy ? (
                     <>
                       <Loader2 size={14} className="animate-spin" /> Submitting…
                     </>
                   ) : (
-                    `Join tournament as @${profile.xHandle}`
+                    'Join tournament'
                   )}
                 </button>
               </div>

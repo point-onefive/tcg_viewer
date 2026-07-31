@@ -26,9 +26,15 @@ import {
 } from './escrow'
 import {
   isOperatorConfigured,
+  isOwnerKeyConfigured,
   createGameOnchain,
   lockOnchain,
   settleOnchain,
+  cancelGameOnchain,
+  refundPlayerOnchain,
+  pauseOnchain,
+  unpauseOnchain,
+  readLowGasSigners,
 } from './escrow-write'
 import type { Address } from 'viem'
 import {
@@ -38,8 +44,10 @@ import {
   MAX_RAKE_BPS,
   DEFAULT_ENTRY_FEE_USDC,
   DEFAULT_RAKE_BPS,
+  isReliabilityBlocked,
   type PayoutPreset,
 } from './paid'
+import { bumpReliability, getReliability, getReliabilityMany } from './reliability'
 import {
   computeStandings,
   pairSingleElimFirstRound,
@@ -65,9 +73,10 @@ import type {
   TournamentSnapshot,
   AwardedPrize,
   PaidGameSummary,
+  PaidNeedsAttention,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
-import { type Region, sanitizeRegion } from './region'
+import { type Region, sanitizeRegion, regionShort } from './region'
 import { validateDeckList } from './deck-list'
 import { checkDeckList, type DeckCheck } from './deck-check'
 import { extractLeader } from './leader'
@@ -363,6 +372,39 @@ export async function enroll(
     resolvedRegion = await regionFromProfileByHandle(xHandle)
   }
 
+  // PAID-only fairness gates (Decisions 2 + 4). Free/featured events are never
+  // affected: both branches short-circuit unless this is an escrow-linked game.
+  const isPaid = Boolean(row.escrow_id)
+  if (isPaid) {
+    // Per-lobby region lock: an open lobby (lobby_region null) admits everyone;
+    // a region-locked lobby only admits its region. Eligibility only, never a
+    // win-determinant. sanitizeRegion(undefined) === null, so pre-migration
+    // (no column) reads as open and this block is a no-op.
+    const lobbyRegion = sanitizeRegion(row.lobby_region)
+    if (lobbyRegion) {
+      // One clear, consistent message for both the missing-region and
+      // wrong-region cases, pointing at the on-screen picker (the enroll route
+      // accepts the picker value directly).
+      if (!resolvedRegion || resolvedRegion !== lobbyRegion) {
+        throw new TournamentError(
+          `This lobby is ${regionShort(lobbyRegion)}-only. Choose ${regionShort(lobbyRegion)} above (or set your profile region) to join.`,
+        )
+      }
+    }
+
+    // Soft reliability floor: block a clearly-serial no-show wallet from paid
+    // lobbies. Best-effort - unknown / absent reliability NEVER blocks.
+    if (walletAddress) {
+      const reliability = await getReliability(walletAddress)
+      if (isReliabilityBlocked(reliability)) {
+        throw new TournamentError(
+          'Your no-show record is too low to join paid lobbies right now.',
+          403,
+        )
+      }
+    }
+  }
+
   const playerToken = generateToken()
   const label = formatXLabel(xHandle)
   const { data, error } = await sb
@@ -452,27 +494,75 @@ export async function confirmDeposit(
 }
 
 /**
+ * Auto-drop a player flagged as a no-show at a hard deadline: set `dropped` so
+ * pairing skips them in every future round (this is what stops a ghost from
+ * being a recurring free win), and mark `no_show = true` to distinguish it from
+ * a clean/voluntary drop. BEST-EFFORT on the no_show marker: if that column is
+ * absent (migration 021 not applied yet) the essential `dropped` write still
+ * lands, so the auto-drop behavior degrades gracefully. Idempotent - setting an
+ * already-dropped player's flags again is harmless.
+ */
+async function autoDropNoShow(
+  sb: ReturnType<typeof getServiceClient>,
+  tournamentId: string,
+  playerId: string,
+): Promise<void> {
+  const { error } = await sb
+    .from('players')
+    .update({ dropped: true, no_show: true })
+    .eq('id', playerId)
+    .eq('tournament_id', tournamentId)
+  if (error) {
+    // Pre-migration fallback: no_show column missing. Still perform the drop,
+    // which is the load-bearing half (pairing already skips dropped players).
+    await sb
+      .from('players')
+      .update({ dropped: true })
+      .eq('id', playerId)
+      .eq('tournament_id', tournamentId)
+  }
+}
+
+/**
  * Autopilot for paid games: at the HARD round deadline (no extensions), force-
- * resolve every unfinished match in the current round, then advance. This is
- * what makes a started paid tournament run itself end-to-end.
+ * resolve every unfinished match in the current round, drop the no-shows, bump
+ * wallet reliability, then advance. This is what makes a started paid tournament
+ * run itself end-to-end and is the core of the P1 fairness system.
  *
- * Resolution policy (see docs/paid-tournaments-escrow.md), designed so stalling
- * can never help:
- *  - single-sided report -> the reporter's result stands (opponent ghosted).
+ * Resolution policy (see docs/future-build.md), designed so stalling never helps:
+ *  - single-sided report -> the reporter's result stands (opponent ghosted). The
+ *    non-reporting side is a NO-SHOW: auto-dropped, reliability no_show++.
  *  - neither reported     -> DOUBLE FORFEIT (both take a loss, no coin flip).
+ *    BOTH sides are soft no-shows: auto-dropped, reliability double_forfeit++.
  *  - disputed (both reported, conflicting) -> left for the admin. This is the
  *    only thing that pauses autopilot; the round won't advance until resolved.
+ *  - bye / confirmed -> never flagged.
+ *
+ * IDEMPOTENCY / CONCURRENCY (cron + multiple concurrent lazy-on-read page loads
+ * can race): each match-resolution UPDATE is conditional on the match's PRIOR
+ * status (`.eq('status', <prior>)`) and returns the affected row. Only the run
+ * that actually performs the unresolved -> resolved transition (non-empty
+ * result) drops the no-show and bumps reliability, so a match is resolved once,
+ * counters are incremented exactly once, and the round advance / on-chain
+ * settlement stay guarded downstream (maybeAdvance re-checks round completion;
+ * settlement is guarded by the on-chain Locked -> Paid check). A wallet plays at
+ * most one match per round and only the current round is enforced, so no wallet
+ * is double-bumped.
  *
  * Scoped to paid (escrow-linked) tournaments only, so the featured-events flow
- * keeps its softer, extendable behavior. Returns the number of matches resolved.
+ * keeps its softer, extendable behavior. Pass `targetTournamentId` to enforce a
+ * SINGLE tournament (lazy on-read); omit it for the full cron scan. Returns the
+ * number of matches resolved.
  */
-async function enforceRoundDeadlines(): Promise<number> {
+async function enforceRoundDeadlines(targetTournamentId?: string): Promise<number> {
   const sb = getServiceClient()
-  const { data: tRows } = await sb
+  let query = sb
     .from('tournaments')
     .select('*')
     .eq('status', 'running')
     .not('escrow_id', 'is', null)
+  if (targetTournamentId) query = query.eq('id', targetTournamentId)
+  const { data: tRows } = await query
   const nowMs = Date.now()
   const affected = new Set<string>()
   let resolved = 0
@@ -486,6 +576,8 @@ async function enforceRoundDeadlines(): Promise<number> {
     // Hard deadline: only act once the round's clock has fully elapsed.
     if (!current.endsAt || new Date(current.endsAt).getTime() > nowMs) continue
 
+    const players = await fetchPlayers(tournament.id)
+    const walletById = new Map(players.map((p) => [p.id, p.walletAddress]))
     const matches = (await fetchMatches(tournament.id)).filter((m) => m.roundId === current.id)
     for (const m of matches) {
       if (
@@ -498,18 +590,82 @@ async function enforceRoundDeadlines(): Promise<number> {
       }
       if (m.status === 'reported') {
         // Reporter showed up; the provisional winner_id was set at report time.
-        await sb
+        // Conditional on status = 'reported' so only one racing run resolves it.
+        const { data: upd } = await sb
           .from('matches')
           .update({ status: 'confirmed', resolved_at: nowIso() })
           .eq('id', m.id)
+          .eq('status', 'reported')
+          .select('id')
+        if (!upd || upd.length === 0) continue // another run won the transition
         resolved++
+        // Exactly one side reported. player1_report/player2_report presence
+        // identifies the reporter. Only a claimed WIN by the reporter implies the
+        // opponent ghosted: in that case the non-reporter is a genuine no-show and
+        // is dropped + reliability-penalized. A lone 'loss' (a concession) or
+        // 'draw' does NOT mean the non-reporter ghosted - the provisional
+        // winner_id set at report time already made the non-reporter the winner,
+        // so we must never drop or brand them. This mirrors the free-flow sweep,
+        // which only auto-confirms a lone 'win'.
+        const reporterIsP1 = m.player1Report != null
+        const reporterId = reporterIsP1 ? m.player1Id : m.player2Id
+        const otherId = reporterIsP1 ? m.player2Id : m.player1Id
+        const reporterReport = reporterIsP1 ? m.player1Report : m.player2Report
+        if (reporterReport === 'win') {
+          // Reporter claims victory; opponent ghosted -> opponent is the no-show.
+          if (otherId) await autoDropNoShow(sb, tournament.id, otherId)
+          if (reporterId) {
+            await bumpReliability(walletById.get(reporterId) ?? null, {
+              matchesPlayed: 1,
+              matchesOnTime: 1,
+            })
+          }
+          if (otherId) {
+            await bumpReliability(walletById.get(otherId) ?? null, {
+              matchesPlayed: 1,
+              noShows: 1,
+            })
+          }
+        } else {
+          // Concession ('loss') or 'draw': the non-reporter is NOT a no-show and
+          // may in fact be the winner. Do not drop or penalize them. Reporter is
+          // on-time; non-reporter is neutral (played, no on-time credit, no
+          // no-show, no drop). Never penalize the winner.
+          if (reporterId) {
+            await bumpReliability(walletById.get(reporterId) ?? null, {
+              matchesPlayed: 1,
+              matchesOnTime: 1,
+            })
+          }
+          if (otherId) {
+            await bumpReliability(walletById.get(otherId) ?? null, {
+              matchesPlayed: 1,
+            })
+          }
+        }
       } else {
-        // 'pending' - neither side reported: double forfeit (both lose).
-        await sb
+        // 'pending' - neither side reported: double forfeit (both lose, both are
+        // soft no-shows). Conditional on status = 'pending' for the same reason.
+        const { data: upd } = await sb
           .from('matches')
           .update({ status: 'double_forfeit', winner_id: null, resolved_at: nowIso() })
           .eq('id', m.id)
+          .eq('status', 'pending')
+          .select('id')
+        if (!upd || upd.length === 0) continue
         resolved++
+        if (m.player2Id) {
+          await autoDropNoShow(sb, tournament.id, m.player1Id)
+          await autoDropNoShow(sb, tournament.id, m.player2Id)
+          await bumpReliability(walletById.get(m.player1Id) ?? null, {
+            matchesPlayed: 1,
+            doubleForfeits: 1,
+          })
+          await bumpReliability(walletById.get(m.player2Id) ?? null, {
+            matchesPlayed: 1,
+            doubleForfeits: 1,
+          })
+        }
       }
     }
     affected.add(tournament.id)
@@ -545,18 +701,34 @@ export async function listOpenPaidGames(): Promise<PaidGameSummary[]> {
   const tournaments = (tRows ?? []).map(rowToTournament)
   if (tournaments.length === 0) return []
 
-  // One query for funded counts across all listed games, then tally.
+  // One query pulls every roster row for the listed games, then we tally the
+  // three counts the lobby cards need in a single pass: applicants (the applied
+  // phase), approved entrants (the funded-phase denominator), and funded
+  // deposits (the funded-phase numerator).
   const ids = tournaments.map((t) => t.id)
-  const fundedByTournament = new Map<string, number>()
-  const { data: fundedRows } = await sb
+  const applied = new Map<string, number>()
+  const approved = new Map<string, number>()
+  const funded = new Map<string, number>()
+  const { data: pRows } = await sb
     .from('players')
-    .select('tournament_id')
+    .select('tournament_id, approval_status, dropped, funded, refunded')
     .in('tournament_id', ids)
-    .eq('funded', true)
-    .eq('refunded', false)
-  for (const r of fundedRows ?? []) {
-    const tid = (r as { tournament_id: string }).tournament_id
-    fundedByTournament.set(tid, (fundedByTournament.get(tid) ?? 0) + 1)
+  for (const r of pRows ?? []) {
+    const row = r as {
+      tournament_id: string
+      approval_status: string
+      dropped: boolean
+      funded: boolean
+      refunded: boolean
+    }
+    if (row.dropped || row.approval_status === 'rejected') continue
+    applied.set(row.tournament_id, (applied.get(row.tournament_id) ?? 0) + 1)
+    if (row.approval_status === 'approved') {
+      approved.set(row.tournament_id, (approved.get(row.tournament_id) ?? 0) + 1)
+    }
+    if (row.funded && !row.refunded) {
+      funded.set(row.tournament_id, (funded.get(row.tournament_id) ?? 0) + 1)
+    }
   }
 
   return tournaments.map((t) => ({
@@ -570,10 +742,55 @@ export async function listOpenPaidGames(): Promise<PaidGameSummary[]> {
     payoutPreset: t.payoutPreset,
     payoutBps: t.payoutBps,
     cap: t.maxPlayers,
-    fundedCount: fundedByTournament.get(t.id) ?? 0,
+    lobbyRegion: t.lobbyRegion,
+    appliedCount: applied.get(t.id) ?? 0,
+    approvedCount: approved.get(t.id) ?? 0,
+    fundedCount: funded.get(t.id) ?? 0,
     chainId: t.chainId,
     contractAddress: t.contractAddress,
   }))
+}
+
+/**
+ * Wallet-scoped "needs your action" feed: paid games this wallet has a funded,
+ * un-refunded seat in that have been CANCELLED (so the entry is refundable). It
+ * powers the lobby's prompt that walks a player back to the withdraw button on
+ * the game page after a cancel. Best-effort by design: any error (missing
+ * columns pre-migration, flaky read) returns an empty list rather than throwing,
+ * and the wallet is matched case-insensitively.
+ */
+export async function listRefundableStakesForWallet(
+  wallet: string,
+): Promise<{ code: string; name: string }[]> {
+  const w = (wallet ?? '').trim().toLowerCase()
+  if (!w) return []
+  try {
+    const sb = getServiceClient()
+    const { data: tRows } = await sb
+      .from('tournaments')
+      .select('id, code, name')
+      .not('escrow_id', 'is', null)
+      .eq('status', 'cancelled')
+    const cancelled = (tRows ?? []) as { id: string; code: string; name: string }[]
+    if (cancelled.length === 0) return []
+    const ids = cancelled.map((t) => t.id)
+    const { data: pRows } = await sb
+      .from('players')
+      .select('tournament_id, wallet_address, funded, refunded')
+      .in('tournament_id', ids)
+      .eq('funded', true)
+      .eq('refunded', false)
+    const refundableIds = new Set<string>()
+    for (const p of pRows ?? []) {
+      const pr = p as { tournament_id: string; wallet_address: string | null }
+      if ((pr.wallet_address ?? '').toLowerCase() === w) refundableIds.add(pr.tournament_id)
+    }
+    return cancelled
+      .filter((t) => refundableIds.has(t.id))
+      .map((t) => ({ code: t.code, name: t.name }))
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -1082,7 +1299,17 @@ export async function acceptSchedule(
  */
 async function applyDrop(row: { id: string; status: string }, playerId: string): Promise<void> {
   const sb = getServiceClient()
-  await sb.from('players').update({ dropped: true }).eq('id', playerId).eq('tournament_id', row.id)
+  // A clean/voluntary (or admin) drop is explicitly NOT a no-show, so we set
+  // no_show = false so it never counts against reliability. Best-effort on that
+  // column: if it's absent (pre-migration 021) fall back to the plain drop.
+  const { error } = await sb
+    .from('players')
+    .update({ dropped: true, no_show: false })
+    .eq('id', playerId)
+    .eq('tournament_id', row.id)
+  if (error) {
+    await sb.from('players').update({ dropped: true }).eq('id', playerId).eq('tournament_id', row.id)
+  }
 
   if (row.status !== 'running') return
 
@@ -1242,11 +1469,30 @@ function paidWinnerAddresses(
   players: Player[],
   allMatches: Match[],
 ): Address[] | null {
-  const depth = tournament.payoutBps?.length ?? 0
+  const payout = tournament.payoutBps ?? []
+  const depth = payout.length
   if (depth === 0) return null
   const inBracket = players.filter((p) => p.seed != null && p.approvalStatus !== 'rejected')
   const standings = computeStandings(inBracket, allMatches)
   if (standings.length < depth) return null
+
+  // Deterministic-tiebreak safety valve. computeStandings orders dead-even
+  // players by seed then wallet (stable, never random), which is fine when the
+  // amounts are equal. But it must NEVER decide real money across a genuine
+  // tie: if two players share a merit tieGroup yet sit on opposite sides of a
+  // payout boundary (their forced ordering would pay them different amounts,
+  // treating positions past `depth` as 0), we refuse to guess and hand it to a
+  // manual settle. Adjacent-pair check suffices because tie groups are
+  // contiguous in the standings.
+  const payAt = (i: number) => (i < depth ? payout[i] : 0)
+  for (let i = 0; i < depth; i++) {
+    const cur = standings[i]
+    const next = standings[i + 1]
+    if (next && cur.tieGroup != null && cur.tieGroup === next.tieGroup && payAt(i) !== payAt(i + 1)) {
+      return null
+    }
+  }
+
   const byId = new Map(players.map((p) => [p.id, p]))
   const seen = new Set<string>()
   const winners: Address[] = []
@@ -1287,8 +1533,287 @@ async function autoSettlePaid(
   const winners = paidWinnerAddresses(tournament, players, allMatches)
   if (!winners) return false // can't build a clean winner list; leave for manual settle
 
-  await settleOnchain(escrowId, winners)
+  // Concurrency guard: two racing finalize/sweep runs can both observe `Locked`
+  // above and both try to submit the settle tx. GUARANTEE: at most one settle tx
+  // per escrow game is attempted per process. In-process single-flight skips the
+  // duplicate attempt entirely; if a settle sneaks through on another process
+  // (or the node has already advanced Locked -> Paid), settleGuarded swallows the
+  // benign "already settled" revert so it is treated as success, not a noisy
+  // throw. On-chain state remains the source of truth for correctness.
+  if (settleInFlight.has(escrowId)) return false
+  settleInFlight.add(escrowId)
+  try {
+    await settleGuarded(escrowId, winners)
+  } finally {
+    settleInFlight.delete(escrowId)
+  }
   return true
+}
+
+// In-process single-flight set of escrow ids with a settle tx in progress.
+const settleInFlight = new Set<string>()
+
+/**
+ * Wrap settleOnchain so a concurrent/duplicate settle that reverts because the
+ * game already moved Locked -> Paid is treated as success (idempotent), while
+ * any other error still surfaces. The on-chain Locked check is the real guard;
+ * this just keeps a lost race from throwing a spurious error.
+ */
+async function settleGuarded(escrowId: `0x${string}`, winners: Address[]): Promise<void> {
+  try {
+    await settleOnchain(escrowId, winners)
+  } catch (err) {
+    const msg = (err instanceof Error ? err.message : String(err)).toLowerCase()
+    const alreadySettled =
+      msg.includes('already') ||
+      msg.includes('not locked') ||
+      msg.includes('locked') ||
+      msg.includes('paid') ||
+      msg.includes('invalidstate') ||
+      msg.includes('invalid state') ||
+      msg.includes('state')
+    if (alreadySettled) return // benign: another run settled it first
+    throw err
+  }
+}
+
+// ── Paid-game admin escrow controls ─────────────────────────────────────────
+//
+// Human-driven levers for the person running the paid lobbies, all gated to
+// paid (escrow-linked) games. The on-chain call always runs BEFORE the DB
+// mirror flips so we never advertise a state the chain won't back. Each no-ops
+// or errors cleanly when the operator key isn't configured.
+
+/** Load a paid tournament by code, or throw a clear error if it isn't paid. */
+async function requirePaidTournament(code: string): Promise<Tournament> {
+  const row = await fetchTournamentRowByCode(code)
+  const tournament = rowToTournament(row)
+  if (!tournament.isPaid || !tournament.escrowId) {
+    throw new TournamentError('This control is only for paid tournaments.', 400)
+  }
+  return tournament
+}
+
+/**
+ * Stop-the-world for one paid game: cancel it on-chain (operator; valid while
+ * Funding OR Locked) so every funded player can pull their entry back, then
+ * flip the DB row to `cancelled` (drops it from the lobby + halts the
+ * autopilot). Idempotent - if the chain game is already Cancelled/None we skip
+ * the tx and still fix the mirror; a settled (Paid) game can't be cancelled.
+ */
+export async function adminCancelPaidGame(code: string): Promise<{ txHash: string | null }> {
+  const tournament = await requirePaidTournament(code)
+  const sb = getServiceClient()
+  const escrowId = tournament.escrowId as Hex
+  let txHash: string | null = null
+  if (isOperatorConfigured()) {
+    const onchain = await getOnchainGame(escrowId)
+    if (onchain.state === EscrowGameState.Paid) {
+      throw new TournamentError('Game is already settled on-chain; nothing to cancel.', 409)
+    }
+    if (onchain.state === EscrowGameState.Funding || onchain.state === EscrowGameState.Locked) {
+      txHash = (await cancelGameOnchain(escrowId)) ?? null
+    }
+    // None (never created) or already Cancelled: no tx needed, just fix mirror.
+  }
+  await sb.from('tournaments').update({ status: 'cancelled' }).eq('id', tournament.id)
+  return { txHash }
+}
+
+/**
+ * Kick + refund one funded player before lock (operator). Credits their entry
+ * back on-chain (they pull it with withdraw), then mirrors it: funded=false,
+ * refunded=true, dropped=true so they leave the field. Only valid while the
+ * game is still Funding on-chain; once locked, cancel the whole game instead.
+ */
+export async function adminRefundPlayer(
+  code: string,
+  playerId: string,
+): Promise<{ txHash: string | null }> {
+  const tournament = await requirePaidTournament(code)
+  const sb = getServiceClient()
+  const { data: pRow } = await sb
+    .from('players')
+    .select('*')
+    .eq('id', playerId)
+    .eq('tournament_id', tournament.id)
+    .maybeSingle()
+  if (!pRow) throw new TournamentError('Player not found in this game.', 404)
+  const player = rowToPlayer(pRow)
+  if (!player.walletAddress) {
+    throw new TournamentError('Player has no linked wallet to refund.', 400)
+  }
+  const escrowId = tournament.escrowId as Hex
+  let txHash: string | null = null
+  if (isOperatorConfigured()) {
+    const onchain = await getOnchainGame(escrowId)
+    if (onchain.state !== EscrowGameState.Funding) {
+      throw new TournamentError(
+        'Can only refund a single player before the game locks. Cancel the game to refund everyone.',
+        409,
+      )
+    }
+    // Only spend gas if the chain still shows them funded and not yet refunded.
+    const status = await getFundingStatus(escrowId, player.walletAddress as Hex)
+    if (status.funded && !status.refunded) {
+      txHash = (await refundPlayerOnchain(escrowId, player.walletAddress as Address)) ?? null
+    }
+  }
+  await sb
+    .from('players')
+    .update({ funded: false, refunded: true, dropped: true })
+    .eq('id', playerId)
+  return { txHash }
+}
+
+/**
+ * Manual settle escape hatch (operator): the admin reviews computed standings
+ * and submits the final ordered winners (player ids, length == payout depth).
+ * We map them to funded wallet addresses and settle on-chain, paying winners +
+ * rake. Used when autoSettlePaid deferred (a genuine tie across a pay line) or
+ * a winner linked a wallet late. The contract is the final gate: it reverts on
+ * a non-funded / duplicate / wrong-count / not-Locked settle.
+ */
+export async function adminManualSettlePaid(
+  code: string,
+  orderedPlayerIds: string[],
+): Promise<{ txHash: string }> {
+  if (!isOperatorConfigured()) {
+    throw new TournamentError('On-chain settle is not configured (missing operator key).', 503)
+  }
+  const tournament = await requirePaidTournament(code)
+  const depth = tournament.payoutBps?.length ?? 0
+  if (depth === 0) throw new TournamentError('This game has no on-chain payout to settle.', 400)
+  if (!Array.isArray(orderedPlayerIds) || orderedPlayerIds.length !== depth) {
+    throw new TournamentError(`Provide exactly ${depth} winners in placement order.`, 400)
+  }
+  const escrowId = tournament.escrowId as Hex
+  const onchain = await getOnchainGame(escrowId)
+  if (onchain.state !== EscrowGameState.Locked) {
+    throw new TournamentError(
+      onchain.state === EscrowGameState.Paid
+        ? 'Game is already settled on-chain.'
+        : 'Game must be locked (running) before it can be settled.',
+      409,
+    )
+  }
+  const players = await fetchPlayers(tournament.id)
+  const byId = new Map(players.map((p) => [p.id, p]))
+  const winners: Address[] = []
+  const seen = new Set<string>()
+  for (const pid of orderedPlayerIds) {
+    const p = byId.get(pid)
+    if (!p) throw new TournamentError('A selected winner is not in this game.', 400)
+    if (!p.walletAddress) throw new TournamentError(`${p.displayName} has no linked wallet.`, 400)
+    const key = p.walletAddress.toLowerCase()
+    if (seen.has(key)) throw new TournamentError('Each winner must be a distinct wallet.', 400)
+    seen.add(key)
+    winners.push(p.walletAddress as Address)
+  }
+  const txHash = await settleOnchain(escrowId, winners)
+  if (!txHash) throw new TournamentError('On-chain settle did not return a transaction.', 500)
+  return { txHash }
+}
+
+/**
+ * OPTIONAL global halt. pause()/unpause() are onlyOwner on the contract, so
+ * this only works when the cold-ish TOURNAMENT_ESCROW_OWNER_KEY is configured.
+ * Without it these throw 503 and the admin UI hides the control - per-game
+ * cancel remains the primary stop lever.
+ */
+export async function adminPauseEscrow(): Promise<{ txHash: string }> {
+  const txHash = await pauseOnchain()
+  if (!txHash) {
+    throw new TournamentError('Global pause is unavailable (no owner key configured).', 503)
+  }
+  return { txHash }
+}
+
+export async function adminUnpauseEscrow(): Promise<{ txHash: string }> {
+  const txHash = await unpauseOnchain()
+  if (!txHash) {
+    throw new TournamentError('Global unpause is unavailable (no owner key configured).', 503)
+  }
+  return { txHash }
+}
+
+// ── Paid-game "needs attention" surface ─────────────────────────────────────
+
+/**
+ * Read-only signal for the paid admin console: what needs a human. Surfaces
+ * disputed matches, complete-but-unsettled (still Locked) games, and
+ * cancelled/refundable games. Best-effort on the on-chain reads so a flaky RPC
+ * never breaks the panel.
+ */
+export async function adminPaidNeedsAttention(): Promise<PaidNeedsAttention> {
+  const sb = getServiceClient()
+  const result: PaidNeedsAttention = {
+    ownerKeyConfigured: isOwnerKeyConfigured(),
+    operatorConfigured: isOperatorConfigured(),
+    disputes: [],
+    settleStuck: [],
+    cancelled: [],
+    lowGas: [],
+  }
+
+  // Low-gas signal for the configured signer wallets. Best-effort: a failed
+  // read just leaves lowGas empty and never breaks the panel.
+  try {
+    result.lowGas = await readLowGasSigners()
+  } catch {
+    /* balance read failed; omit the signal */
+  }
+  const { data: tRows } = await sb
+    .from('tournaments')
+    .select('*')
+    .not('escrow_id', 'is', null)
+    .in('status', ['running', 'complete', 'cancelled'])
+  const tournaments = (tRows ?? []).map(rowToTournament)
+  if (tournaments.length === 0) return result
+
+  // Disputed matches across running paid games (single query).
+  const runningIds = tournaments.filter((t) => t.status === 'running').map((t) => t.id)
+  if (runningIds.length) {
+    const { data: dRows } = await sb
+      .from('matches')
+      .select('tournament_id')
+      .in('tournament_id', runningIds)
+      .eq('status', 'disputed')
+    const counts = new Map<string, number>()
+    for (const m of dRows ?? []) {
+      const id = (m as { tournament_id: string }).tournament_id
+      counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
+    for (const t of tournaments) {
+      const c = counts.get(t.id) ?? 0
+      if (c > 0) result.disputes.push({ code: t.code, name: t.name, count: c })
+    }
+  }
+
+  // Cancelled / refundable games.
+  for (const t of tournaments) {
+    if (t.status === 'cancelled') {
+      result.cancelled.push({ code: t.code, name: t.name, status: t.status })
+    }
+  }
+
+  // Settle-stuck: complete off-chain but still Locked on-chain. Bounded on-chain
+  // read per complete paid game; skipped when the escrow isn't configured.
+  if (isEscrowConfigured()) {
+    for (const t of tournaments) {
+      if (t.status !== 'complete' || !t.escrowId) continue
+      try {
+        const onchain = await getOnchainGame(t.escrowId as Hex)
+        if (onchain.state === EscrowGameState.Locked) {
+          result.settleStuck.push({ code: t.code, name: t.name, status: t.status })
+        }
+      } catch {
+        /* chain read failed; skip - the sweep also retries settles */
+      }
+    }
+  }
+
+  return result
 }
 
 // ── Awarded prizes (frozen at completion) ──────────────────────────────────
@@ -1645,8 +2170,21 @@ export async function maybeAdvance(tournamentId: string): Promise<void> {
   const roundMatches = allMatches.filter((m) => m.roundId === current.id)
   if (!roundFullyResolved(roundMatches)) return
 
-  // Mark the round complete.
-  await sb.from('rounds').update({ status: 'complete' }).eq('id', current.id)
+  // Claim the round-advance as a single-flight. applyReport (the reporting
+  // player), the deadline sweep, and lazy on-read enforcement can all call
+  // maybeAdvance for the same finished round at once. The complete flip is
+  // conditional on the round still being 'active' and returns the affected row,
+  // so only ONE run proceeds to pair the next round. The losers exit here rather
+  // than racing to insert a duplicate round N+1 (which would surface as a
+  // spurious 500 to whichever player just reported). This only swallows the
+  // benign already-advanced case; any real error still throws below.
+  const { data: claimed } = await sb
+    .from('rounds')
+    .update({ status: 'complete' })
+    .eq('id', current.id)
+    .eq('status', 'active')
+    .select('id')
+  if (!claimed || claimed.length === 0) return // another run already advanced this round
 
   const players = await fetchPlayers(tournamentId)
 
@@ -1920,9 +2458,62 @@ async function attachProfileIdentity(
   }
 }
 
+/**
+ * Attach cross-tournament wallet reliability (score + lifetime no-show count) to
+ * each player, looked up by wallet in one batched query. PAID snapshots only -
+ * skipped entirely for free events to avoid the extra round-trip. Best-effort:
+ * a missing table / failed lookup just leaves the fields undefined (neutral).
+ */
+async function attachReliability(players: Player[]): Promise<Player[]> {
+  const rel = await getReliabilityMany(players.map((p) => p.walletAddress))
+  if (rel.size === 0) return players
+  return players.map((p) => {
+    const r = p.walletAddress ? rel.get(p.walletAddress.toLowerCase()) : undefined
+    return r ? { ...p, reliabilityScore: r.score, noShowCount: r.noShows } : p
+  })
+}
+
+// Last lazy-enforcement epoch ms per tournament id (in-process throttle). Keeps
+// a burst of concurrent page loads from each running a full deadline sweep.
+const lastLazyEnforce = new Map<string, number>()
+const LAZY_ENFORCE_WINDOW_MS = 5000
+
 export async function getSnapshotByCode(code: string): Promise<TournamentSnapshot> {
   const row = await fetchTournamentRowByCode(code)
   const tournament = rowToTournament(row)
+
+  // Lazy on-read enforcement (live paid events): players are actively loading
+  // the page, so if this is a running PAID tournament whose current round is
+  // past its hard deadline, opportunistically resolve it BEFORE we read the
+  // bracket - that advances an active event near-instantly regardless of cron.
+  // Wrapped so a failure never breaks the snapshot read; the single-tournament
+  // enforcement is idempotent + concurrency-safe (see enforceRoundDeadlines).
+  if (tournament.isPaid && tournament.status === 'running') {
+    try {
+      // Single-flight throttle: many concurrent page loads for a live event would
+      // otherwise each await a full enforceRoundDeadlines pass. Skip re-running
+      // within a small window per tournament; cron and later reads still cover
+      // any gap. Best-effort only - never blocks or breaks the read.
+      const lastRun = lastLazyEnforce.get(tournament.id) ?? 0
+      if (Date.now() - lastRun >= LAZY_ENFORCE_WINDOW_MS) {
+        const preRounds = await fetchRounds(tournament.id)
+        const current = preRounds[preRounds.length - 1]
+        const due =
+          current &&
+          current.status !== 'complete' &&
+          current.endsAt != null &&
+          new Date(current.endsAt).getTime() <= Date.now()
+        if (due) {
+          lastLazyEnforce.set(tournament.id, Date.now())
+          await enforceRoundDeadlines(tournament.id)
+        }
+      }
+    } catch {
+      /* enforcement hiccup must never block a public read; cron will catch up */
+    }
+  }
+
+  // Fetch AFTER any enforcement so the returned snapshot reflects the advance.
   const [players, rounds, matches, poll, awardedPrizes] = await Promise.all([
     fetchPlayers(tournament.id),
     fetchRounds(tournament.id),
@@ -1978,9 +2569,14 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
     return enriched.deckList == null ? enriched : { ...enriched, deckList: null }
   })
   const playersWithIdentity = await attachProfileIdentity(sb, publicPlayers)
+  // Reliability is a PAID-only enrichment (surfaced in the paid admin approval
+  // queue). Free events skip the lookup entirely.
+  const playersFinal = tournament.isPaid
+    ? await attachReliability(playersWithIdentity)
+    : playersWithIdentity
   return {
     tournament,
-    players: playersWithIdentity,
+    players: playersFinal,
     rounds,
     matches,
     proposals,
@@ -2243,6 +2839,8 @@ export async function adminCreatePaidGame(input: {
   theme?: string | null
   rules?: string | null
   contactUrl?: string | null
+  /** Optional per-lobby region lock. null/undefined = open lobby (default). */
+  lobbyRegion?: Region | null
 }): Promise<{ code: string }> {
   const sb = getServiceClient()
   const name = input.name?.trim()
@@ -2266,6 +2864,8 @@ export async function adminCreatePaidGame(input: {
   const game: TournamentGame = input.game ?? 'one-piece'
   const theme =
     typeof input.theme === 'string' && TOURNAMENT_THEMES[input.theme] ? input.theme : null
+  // Open lobby by default; sanitize anything else to a valid region or null.
+  const lobbyRegion = sanitizeRegion(input.lobbyRegion)
 
   const escrowId = randomBytes32Hex()
   const contractAddress = isEscrowConfigured() ? escrowAddress() : null
@@ -2289,33 +2889,35 @@ export async function adminCreatePaidGame(input: {
   let lastErr: unknown = null
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = generateCode('PG')
-    const { data, error } = await sb
-      .from('tournaments')
-      .insert({
-        code,
-        name,
-        game,
-        format: 'swiss',
-        status: 'enrolling',
-        swiss_rounds: null,
-        round_minutes: roundMinutes,
-        enroll_closes_at: null, // manual start; no signup timer
-        rules: input.rules?.trim() || null,
-        contact_url: input.contactUrl?.trim() || null,
-        host_token_hash: hashToken(hostToken),
-        is_live: false, // never the featured event
-        max_players: cap,
-        theme,
-        escrow_id: escrowId,
-        entry_fee_usdc: entryFeeUsdc,
-        rake_bps: rakeBps,
-        payout_preset: preset,
-        payout_bps: PAYOUT_PRESETS[preset],
-        contract_address: contractAddress,
-        chain_id: chainId,
-      })
-      .select('*')
-      .single()
+    const insertRow: Record<string, unknown> = {
+      code,
+      name,
+      game,
+      format: 'swiss',
+      status: 'enrolling',
+      swiss_rounds: null,
+      round_minutes: roundMinutes,
+      enroll_closes_at: null, // manual start; no signup timer
+      rules: input.rules?.trim() || null,
+      contact_url: input.contactUrl?.trim() || null,
+      host_token_hash: hashToken(hostToken),
+      is_live: false, // never the featured event
+      max_players: cap,
+      theme,
+      escrow_id: escrowId,
+      entry_fee_usdc: entryFeeUsdc,
+      rake_bps: rakeBps,
+      payout_preset: preset,
+      payout_bps: PAYOUT_PRESETS[preset],
+      contract_address: contractAddress,
+      chain_id: chainId,
+    }
+    // Only write lobby_region when a region lock was actually requested, so an
+    // OPEN lobby (the default) never references the new column and still creates
+    // cleanly before migration 021 is applied. A region-locked lobby created
+    // pre-migration will surface a clear DB error (that feature needs the column).
+    if (lobbyRegion) insertRow.lobby_region = lobbyRegion
+    const { data, error } = await sb.from('tournaments').insert(insertRow).select('*').single()
     if (!error && data) return { code: data.code }
     lastErr = error
     if (error && (error as { code?: string }).code !== '23505') break

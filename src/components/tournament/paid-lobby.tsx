@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Coins, Trophy, Users, ArrowRight } from 'lucide-react'
+import { useAccount } from 'wagmi'
+import { Coins, Trophy, Users, ArrowRight, AlertTriangle } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import { BonkModuleHeader } from './bonk-ui'
-import { apiPaidGames } from '@/lib/tournament/client'
+import { SegmentBar } from './paid-progress-bar'
+import { apiPaidGames, apiRefundableStakes } from '@/lib/tournament/client'
 import { getTournamentTheme, HOUSE_THEME_ID } from '@/lib/tournament/theme'
+import { regionLabel, regionShort } from '@/lib/tournament/region'
 import type { PaidGameSummary } from '@/lib/tournament/types'
 
 // Always-on paid tournaments lobby (/tournaments/play). A SEPARATE surface from
@@ -58,6 +61,15 @@ const chip: React.CSSProperties = {
 function GameCard({ g }: { g: PaidGameSummary }) {
   const cap = g.cap ?? null
   const open = g.status !== 'running'
+  // Mirror the detail page's two-phase counter: while recruiting we show the
+  // "applied" count toward the cap; once the field is approved it flips to the
+  // "funded" count toward the approved roster.
+  const queued = Math.max(g.appliedCount - g.approvedCount, 0)
+  const fundingPhase =
+    g.status !== 'enrolling' || g.fundedCount > 0 || (g.approvedCount > 0 && queued === 0)
+  const countValue = fundingPhase ? g.fundedCount : g.appliedCount
+  const countTotal = fundingPhase ? g.approvedCount : cap
+  const countLabel = fundingPhase ? 'funded' : 'applied'
   return (
     <Link
       href={`/tournaments/play/${encodeURIComponent(g.code)}`}
@@ -106,15 +118,30 @@ function GameCard({ g }: { g: PaidGameSummary }) {
 
         <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
           <span style={chip}>{payoutLabel(g)}</span>
-          {g.rakeBps != null && <span style={chip}>{g.rakeBps / 100}% platform fee</span>}
+          {g.lobbyRegion && (
+            <span
+              style={chip}
+              title={`${regionLabel(g.lobbyRegion)}-only lobby`}
+            >
+              {regionShort(g.lobbyRegion)} only
+            </span>
+          )}
         </div>
 
-        <div className="mt-4 flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--border-subtle)' }}>
+        {/* Field progress: segmented bar that fills as the tile progresses,
+            phase-aware (applied toward the cap → funded toward the roster). */}
+        {countTotal != null && (
+          <div className="mt-4">
+            <SegmentBar filled={countValue} total={countTotal} size="sm" />
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--border-subtle)' }}>
           <span className="inline-flex items-center gap-1.5 text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
             <Users size={14} style={{ color: 'var(--tcw-accent)' }} aria-hidden />
-            {g.fundedCount}
-            {cap != null ? ` / ${cap}` : ''}{' '}
-            <span className="font-medium" style={{ color: 'var(--text-muted)' }}>funded</span>
+            {countValue}
+            {countTotal != null ? ` / ${countTotal}` : ''}{' '}
+            <span className="font-medium" style={{ color: 'var(--text-muted)' }}>{countLabel}</span>
           </span>
           <span className="inline-flex items-center gap-1 text-sm font-bold group-hover:underline" style={{ color: 'var(--bonk-ui-yellow)' }}>
             View <ArrowRight size={14} aria-hidden />
@@ -170,10 +197,73 @@ function LobbyHero() {
   )
 }
 
+/**
+ * Wallet-scoped "needs your action" surface: when the connected wallet has a
+ * funded entry in a cancelled paid game, its stake is refundable but the
+ * withdraw button lives on that game's page. This card walks the player back
+ * there so a refund is never stranded. Renders nothing when there is nothing
+ * to act on. House-theme styling to match the rest of the lobby.
+ */
+function NeedsActionCard({ stakes }: { stakes: { code: string; name: string }[] }) {
+  if (stakes.length === 0) return null
+  return (
+    <div
+      className="mb-5 overflow-hidden"
+      style={{
+        background: 'color-mix(in srgb, #ef4444 8%, var(--bg-surface))',
+        border: '1px solid color-mix(in srgb, #ef4444 45%, var(--border-subtle))',
+        borderRadius: 16,
+      }}
+    >
+      <div aria-hidden style={{ height: 3, background: '#ef4444' }} />
+      <div className="px-4 py-3.5 sm:px-6">
+        <div className="mb-2.5 flex items-center gap-2">
+          <AlertTriangle size={16} style={{ color: '#ef4444' }} aria-hidden />
+          <h3
+            className="text-sm font-extrabold uppercase tracking-[0.1em]"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Needs your action
+          </h3>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {stakes.map((s) => (
+            <li key={s.code}>
+              <Link
+                href={`/tournaments/play/${encodeURIComponent(s.code)}`}
+                className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: 'color-mix(in srgb, var(--bg) 70%, transparent)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <span className="min-w-0 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  <span className="truncate">{s.name}</span>
+                  <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    {': '}your entry is refundable
+                  </span>
+                </span>
+                <span
+                  className="inline-flex shrink-0 items-center gap-1 text-sm font-bold group-hover:underline"
+                  style={{ color: '#ef4444' }}
+                >
+                  Withdraw <ArrowRight size={14} aria-hidden />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 export function PaidLobby() {
   const [loading, setLoading] = useState(true)
   const [escrowConfigured, setEscrowConfigured] = useState(false)
   const [games, setGames] = useState<PaidGameSummary[]>([])
+  const [refundable, setRefundable] = useState<{ code: string; name: string }[]>([])
+  const { isConnected } = useAccount()
   const theme = getTournamentTheme(HOUSE_THEME_ID)
 
   useEffect(() => {
@@ -190,6 +280,22 @@ export function PaidLobby() {
     }
   }, [])
 
+  // Only probe for refundable stakes once a wallet is connected. The server
+  // scopes the result to the session wallet; clear it when the wallet drops.
+  useEffect(() => {
+    if (!isConnected) {
+      setRefundable([])
+      return
+    }
+    let alive = true
+    apiRefundableStakes().then((stakes) => {
+      if (alive) setRefundable(stakes)
+    })
+    return () => {
+      alive = false
+    }
+  }, [isConnected])
+
   const openCount = games.filter((g) => g.status !== 'running').length
 
   return (
@@ -197,6 +303,7 @@ export function PaidLobby() {
       {/* Centered column so a handful of lobbies read as a deliberate, tidy
           block instead of stranded top-left. Mobile-first: one centered card. */}
       <div className="mx-auto" style={{ maxWidth: 1040 }}>
+        <NeedsActionCard stakes={refundable} />
         <div className="overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
           <BonkModuleHeader
             icon={Trophy}

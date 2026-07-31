@@ -78,4 +78,46 @@ export const ESCROW_DEPOSIT_ABI = [
     ],
     outputs: [{ name: '', type: 'uint256' }],
   },
+  // Refund path: pull your entry back when the game is refundable (cancelled,
+  // globally paused, or the dead-man window elapsed on a stuck locked game).
+  {
+    type: 'function',
+    name: 'withdraw',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'id', type: 'bytes32' }],
+    outputs: [],
+  },
+  // Reads used to decide whether the refund button should show. `getGame` state
+  // == 4 (Cancelled); `paused` is the global halt; `deadmanElapsed` covers a
+  // locked-but-never-settled game past its dead-man window.
+  {
+    type: 'function',
+    name: 'getGame',
+    stateMutability: 'view',
+    inputs: [{ name: 'id', type: 'bytes32' }],
+    outputs: [
+      { name: 'state', type: 'uint8' },
+      { name: 'entryFee', type: 'uint256' },
+      { name: 'cap', type: 'uint32' },
+      { name: 'fundedCount', type: 'uint32' },
+      { name: 'rakeBps', type: 'uint16' },
+      { name: 'pot', type: 'uint256' },
+      { name: 'lockedAt', type: 'uint64' },
+      { name: 'payoutBps', type: 'uint16[]' },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'paused',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+  {
+    type: 'function',
+    name: 'deadmanElapsed',
+    stateMutability: 'view',
+    inputs: [{ name: 'id', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'bool' }],
+  },
 ] as const

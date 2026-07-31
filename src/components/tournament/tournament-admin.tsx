@@ -1,12 +1,15 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Award, Check, ChevronDown, Clock, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, ChevronDown, Clock, Coins, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
   adminApi,
   apiActiveSnapshot,
+  apiPaidGames,
+  apiSnapshotByCode,
   clearAdminKey,
   loadAdminKey,
   saveAdminKey,
@@ -32,8 +35,9 @@ import {
   POLL_QUESTION_MAX,
   type PollOption,
 } from '@/lib/tournament/poll'
-import type { Match, Player, StandingRow, TournamentPrize, TournamentBadgeSlot, TournamentSnapshot, AwardedPrize } from '@/lib/tournament/types'
+import type { Match, Player, StandingRow, TournamentPrize, TournamentBadgeSlot, TournamentSnapshot, AwardedPrize, PaidGameSummary, PaidNeedsAttention } from '@/lib/tournament/types'
 import { themeOptions, setLastAdminTheme } from '@/lib/tournament/theme'
+import { PaidEscrowControls, PaidNeedsAttentionCard } from './paid-escrow-controls'
 
 const card: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -157,10 +161,42 @@ function parsePositiveInt(raw: string): number | null {
   return n
 }
 
-export function TournamentAdmin() {
+/** Quick round-length presets for the create-paid-game form (value + unit). */
+const ROUND_PRESETS: { label: string; value: number; unit: 'min' | 'hour' }[] = [
+  { label: '30m', value: 30, unit: 'min' },
+  { label: '45m', value: 45, unit: 'min' },
+  { label: '1h', value: 1, unit: 'hour' },
+  { label: '12h', value: 12, unit: 'hour' },
+  { label: '24h', value: 24, unit: 'hour' },
+  { label: '48h', value: 48, unit: 'hour' },
+]
+
+/**
+ * Two-mode admin console, one component, two routes:
+ *  - `featured` (/tournaments/admin): the sponsored/featured event. Start-fresh
+ *    form + featured-event management + the next-event waitlist.
+ *  - `paid` (/tournaments/play/admin): the always-on paid lobbies. Create-paid
+ *    form + a switcher over open paid games + management of the selected one.
+ * The two surfaces are deliberately separate so the sponsored flow and the
+ * paid flow never get mixed up. All the shared management chrome (approvals,
+ * rounds, results, overrides) is identical and just retargets whichever
+ * tournament is loaded.
+ */
+export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'paid' }) {
+  const isPaidMode = mode === 'paid'
   const [adminKey, setAdminKey] = useState('')
   const [unlocked, setUnlocked] = useState(false)
   const [snapshot, setSnapshot] = useState<TournamentSnapshot | null>(null)
+  // Which tournament the panel is managing. In featured mode this stays null
+  // and the panel loads the featured live event. In paid mode it holds the
+  // code of the selected paid lobby, routing every control below at it
+  // (approvals/start/results/overrides). `paidGames` powers the switcher
+  // (enrolling + running).
+  const [manageCode, setManageCode] = useState<string | null>(null)
+  const [paidGames, setPaidGames] = useState<PaidGameSummary[]>([])
+  // Paid-mode "needs attention" signal (disputes, stuck settles, refundable
+  // games) + key-availability flags. Refreshed alongside the switcher.
+  const [paidAttention, setPaidAttention] = useState<PaidNeedsAttention | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -186,7 +222,12 @@ export function TournamentAdmin() {
   const [paidRakePct, setPaidRakePct] = useState('15')
   const [paidPreset, setPaidPreset] = useState<PayoutPreset>('top3')
   const [paidCap, setPaidCap] = useState('16')
-  const [paidRoundHours, setPaidRoundHours] = useState('24')
+  // Flexible round length: a value + a unit toggle (minutes / hours), seeded by
+  // quick presets. Short rounds = live event; long rounds = async/international.
+  const [paidRoundValue, setPaidRoundValue] = useState('24')
+  const [paidRoundUnit, setPaidRoundUnit] = useState<'min' | 'hour'>('hour')
+  // Optional per-lobby region lock. '' = Open (no requirement).
+  const [paidLobbyRegion, setPaidLobbyRegion] = useState<'' | Region>('')
   const [paidThemeId, setPaidThemeId] = useState<string>('')
   const [paidFormError, setPaidFormError] = useState<string | null>(null)
   const [paidBusy, setPaidBusy] = useState(false)
@@ -276,14 +317,48 @@ export function TournamentAdmin() {
 
   const refresh = useCallback(async (key: string) => {
     let activeCode: string | undefined
+    // Paid mode never touches the featured event: it loads the selected paid
+    // game (or nothing until one is picked/created). Featured mode always loads
+    // the featured live event.
     try {
-      const snap = await apiActiveSnapshot()
-      setSnapshot(snap)
-      activeCode = snap.tournament.code
+      if (isPaidMode) {
+        if (manageCode) {
+          const snap = await apiSnapshotByCode(manageCode)
+          setSnapshot(snap)
+          activeCode = snap.tournament.code
+        } else {
+          setSnapshot(null)
+        }
+      } else {
+        const snap = await apiActiveSnapshot()
+        setSnapshot(snap)
+        activeCode = snap.tournament.code
+      }
       setError(null)
     } catch (err) {
       setSnapshot(null)
       setError(err instanceof Error ? err.message : 'Load failed')
+    }
+    // Refresh the paid-lobby switcher list (enrolling + running games). Best
+    // effort: a missing table or unconfigured escrow just leaves it empty.
+    // In paid mode, auto-select the newest open game when none is chosen yet.
+    try {
+      const pg = await apiPaidGames()
+      setPaidGames(pg.games)
+      if (isPaidMode && !manageCode && pg.games.length > 0) {
+        setManageCode(pg.games[0].code)
+      }
+    } catch {
+      /* leave the current list in place */
+    }
+    // Paid-mode "needs attention" signal. Best-effort, paid console only.
+    if (isPaidMode) {
+      try {
+        const r = await adminApi(key, { action: 'paid-attention' })
+        setPaidAttention(r.attention ?? null)
+      } catch {
+        /* leave the current signal in place */
+      }
     }
     // Pull the next-event waitlist too. Best-effort: a missing table (migration
     // not yet applied) just leaves the list empty, never blocks the panel.
@@ -307,7 +382,7 @@ export function TournamentAdmin() {
         setDeckAudit(new Map())
       }
     }
-  }, [])
+  }, [manageCode, isPaidMode])
 
   useEffect(() => {
     if (!unlocked || !adminKey) return
@@ -358,6 +433,7 @@ export function TournamentAdmin() {
     maxPlayers: number
     roundMinutes: number
     theme?: string
+    lobbyRegion?: Region | null
   }) {
     setPaidBusy(true)
     setPaidFormError(null)
@@ -657,8 +733,14 @@ export function TournamentAdmin() {
       <div className="mx-auto max-w-2xl flex flex-col gap-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Crown size={20} style={{ color: 'var(--tcw-accent)' }} />
-            <h2 className="font-display text-xl font-bold">Tournament admin</h2>
+            {isPaidMode ? (
+              <Coins size={20} style={{ color: 'var(--tcw-accent)' }} />
+            ) : (
+              <Crown size={20} style={{ color: 'var(--tcw-accent)' }} />
+            )}
+            <h2 className="font-display text-xl font-bold">
+              {isPaidMode ? 'Paid tournament admin' : 'Featured tournament admin'}
+            </h2>
           </div>
           {unlocked && (
             <button
@@ -671,6 +753,24 @@ export function TournamentAdmin() {
             </button>
           )}
         </div>
+
+        {/* Cross-link to the other admin surface, so the sponsored and paid
+            consoles stay clearly separate but one hop apart. */}
+        <Link
+          href={isPaidMode ? '/tournaments/admin' : '/tournaments/play/admin'}
+          className="inline-flex items-center gap-1.5 self-start text-xs font-bold"
+          style={{ color: 'var(--tcw-accent)' }}
+        >
+          {isPaidMode ? (
+            <>
+              <Crown size={13} /> Go to featured tournament admin
+            </>
+          ) : (
+            <>
+              <Coins size={13} /> Go to paid tournament admin
+            </>
+          )}
+        </Link>
 
         {unlockBusy && !unlocked ? (
           <div className="flex justify-center py-8 gap-2" style={{ color: 'var(--text-muted)' }}>
@@ -705,11 +805,70 @@ export function TournamentAdmin() {
           </form>
         ) : (
           <>
+            {/* Paid-mode switcher: pick which open lobby the controls below
+                (approve, start, results, round overrides) target. Only the
+                paid console shows this; the featured console always manages
+                the featured event. */}
+            {isPaidMode && (
+              <div className="p-4 flex flex-col gap-2" style={card}>
+                <span
+                  className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <ListChecks size={12} style={{ color: 'var(--tcw-accent)' }} /> Managing lobby
+                </span>
+                {paidGames.length === 0 ? (
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                    No paid lobbies open yet. Create one below and it&rsquo;ll appear here to manage.
+                  </p>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <select
+                        aria-label="Paid lobby to manage"
+                        value={manageCode ?? ''}
+                        onChange={(e) => setManageCode(e.target.value || null)}
+                        className="w-full appearance-none"
+                        style={{ background: 'var(--bg)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 14, cursor: 'pointer' }}
+                      >
+                        {paidGames.map((g) => (
+                          <option key={g.code} value={g.code}>
+                            {g.code} · {g.name} ({g.status})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                    {manageCode && (
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                        Approvals, start, results, and round controls below all apply to{' '}
+                        <strong>{manageCode}</strong>. Pick another lobby to switch.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Needs-attention signal - paid console only. Read-only heads-up
+                for disputes, stuck settles, and refundable games, plus the
+                OPTIONAL global pause/unpause (owner key). */}
+            {isPaidMode && paidAttention && (
+              <PaidNeedsAttentionCard
+                attention={paidAttention}
+                adminKey={adminKey}
+                busy={busy}
+                onSelect={(c) => setManageCode(c)}
+                onDone={() => refresh(adminKey)}
+              />
+            )}
+
             {error && !snapshot && (
               <div className="p-4 text-sm" style={{ ...card, color: '#ef4444' }}>{error}</div>
             )}
 
-            {/* Start fresh */}
+            {/* Start fresh - featured console only. */}
+            {!isPaidMode && (
             <form
               className="p-5 flex flex-col gap-3"
               style={card}
@@ -744,9 +903,14 @@ export function TournamentAdmin() {
                   maxPlayers: max,
                   theme: themeId,
                 }
-                // Guard against fat-fingering: if a tournament is still live
-                // (enrolling or running), confirm before taking it offline.
-                const ongoing = Boolean(snapshot && snapshot.tournament.status !== 'complete')
+                // Guard against fat-fingering: if the featured event is still
+                // live (enrolling or running), confirm before taking it offline.
+                // When managing a paid lobby the loaded snapshot is that game,
+                // not the featured event, so it never triggers this warning
+                // (start-fresh only ever replaces the featured event).
+                const ongoing = Boolean(
+                  !manageCode && snapshot && snapshot.tournament.status !== 'complete',
+                )
                 if (ongoing) {
                   setConfirmStart(params)
                   return
@@ -833,11 +997,13 @@ export function TournamentAdmin() {
                 {busy ? 'Working…' : `Start new (${format === 'swiss' ? 'Swiss' : 'Single elim'})`}
               </button>
             </form>
+            )}
 
-            {/* Create paid game - always-on /tournaments/play surface. Separate
-                from the featured event: creating one never takes the live event
-                offline, and you can open as many as you want. Swiss only (the
-                hard-deadline autopilot is built for it). */}
+            {/* Create paid game - paid console only. Always-on /tournaments/play
+                surface, separate from the featured event: creating one never
+                takes the live event offline, and you can open as many as you
+                want. Swiss only (the hard-deadline autopilot is built for it). */}
+            {isPaidMode && (
             <form
               className="p-5 flex flex-col gap-3"
               style={card}
@@ -847,7 +1013,7 @@ export function TournamentAdmin() {
                 const dollars = Number(paidEntry)
                 const rakePct = Number(paidRakePct)
                 const cap = parsePositiveInt(paidCap)
-                const round = parsePositiveInt(paidRoundHours)
+                const roundVal = parsePositiveInt(paidRoundValue)
                 if (!Number.isFinite(dollars) || dollars <= 0) {
                   setPaidFormError('Entry fee must be a positive dollar amount.')
                   return
@@ -861,8 +1027,13 @@ export function TournamentAdmin() {
                   setPaidFormError(`Player cap must be at least the payout depth (${depth}).`)
                   return
                 }
-                if (round == null) {
-                  setPaidFormError('Round hours must be a whole number greater than 0.')
+                if (roundVal == null) {
+                  setPaidFormError('Round length must be a whole number greater than 0.')
+                  return
+                }
+                const roundMinutes = paidRoundUnit === 'hour' ? roundVal * 60 : roundVal
+                if (roundMinutes < 15) {
+                  setPaidFormError('Round length must be at least 15 minutes.')
                   return
                 }
                 createPaidGame({
@@ -871,8 +1042,9 @@ export function TournamentAdmin() {
                   rakeBps: Math.round(rakePct * 100),
                   payoutPreset: paidPreset,
                   maxPlayers: cap,
-                  roundMinutes: round * 60,
+                  roundMinutes,
                   theme: paidThemeId || undefined,
+                  lobbyRegion: paidLobbyRegion || null,
                 })
               }}
             >
@@ -912,9 +1084,85 @@ export function TournamentAdmin() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <PositiveIntInput label="Player cap" value={paidCap} onChange={setPaidCap} placeholder="16" />
-                <PositiveIntInput label="Round hours" value={paidRoundHours} onChange={setPaidRoundHours} placeholder="24" />
+              <PositiveIntInput label="Player cap" value={paidCap} onChange={setPaidCap} placeholder="16" />
+
+              {/* Flexible round length: quick presets + a custom value with a
+                  minutes / hours unit toggle. Short = live, long = async. */}
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Round length
+                </span>
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {ROUND_PRESETS.map((p) => {
+                    const activePreset =
+                      parsePositiveInt(paidRoundValue) === p.value && paidRoundUnit === p.unit
+                    return (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={() => {
+                          setPaidRoundValue(String(p.value))
+                          setPaidRoundUnit(p.unit)
+                        }}
+                        className="rounded-md px-2.5 py-1 text-xs font-bold"
+                        style={{
+                          background: activePreset ? 'var(--tcw-accent)' : 'var(--bg)',
+                          color: activePreset ? 'var(--bg)' : 'var(--text-secondary)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <PositiveIntInput label="Custom value" value={paidRoundValue} onChange={setPaidRoundValue} placeholder="24" />
+                  <label className="text-xs">
+                    <span style={{ color: 'var(--text-muted)' }}>Unit</span>
+                    <div className="relative">
+                      <select
+                        aria-label="Round length unit"
+                        value={paidRoundUnit}
+                        onChange={(e) => setPaidRoundUnit(e.target.value as 'min' | 'hour')}
+                        className="w-full appearance-none"
+                        style={{ background: 'var(--bg)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 14, cursor: 'pointer' }}
+                      >
+                        <option value="min">Minutes</option>
+                        <option value="hour">Hours</option>
+                      </select>
+                      <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                  </label>
+                </div>
+                <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                  Short rounds mean a live event where players stay active for the whole
+                  tournament. Long rounds mean an async / international event where players
+                  schedule within a wide window. Minimum 15 minutes.
+                </p>
+              </div>
+
+              {/* Optional per-lobby region lock. Open admits everyone; a region
+                  only admits that area (eligibility only, never a win-determinant). */}
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Region requirement
+                </span>
+                <div className="relative">
+                  <select
+                    aria-label="Lobby region requirement"
+                    value={paidLobbyRegion}
+                    onChange={(e) => setPaidLobbyRegion(e.target.value as '' | Region)}
+                    className="w-full appearance-none"
+                    style={{ background: 'var(--bg)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 14, cursor: 'pointer' }}
+                  >
+                    <option value="">Open (no requirement)</option>
+                    {REGIONS.map((r) => (
+                      <option key={r.id} value={r.id}>{r.label} ({r.short})</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                </div>
               </div>
 
               <div>
@@ -952,6 +1200,7 @@ export function TournamentAdmin() {
                 {paidBusy ? 'Working…' : 'Create paid game'}
               </button>
             </form>
+            )}
 
             {confirmStart && snapshot && (
               <div
@@ -1056,6 +1305,18 @@ export function TournamentAdmin() {
 
             {snapshot && code && (
               <>
+                {/* Escrow controls - paid console only, targeting the selected
+                    lobby: stop-the-world cancel (opens refunds), refund/kick a
+                    funded player pre-lock, and the manual-settle escape hatch. */}
+                {isPaidMode && snapshot.tournament.isPaid && (
+                  <PaidEscrowControls
+                    snapshot={snapshot}
+                    adminKey={adminKey}
+                    busy={busy}
+                    onDone={() => refresh(adminKey)}
+                    operatorConfigured={paidAttention?.operatorConfigured ?? true}
+                  />
+                )}
                 <div className="p-5" style={tintedCard('#64748b')}>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                     <div className="min-w-0">
@@ -1466,6 +1727,7 @@ export function TournamentAdmin() {
                                   deckCheck={player.hasDeckList ? deckAudit.get(player.id) : undefined}
                                   disabled={busy}
                                   running={status === 'running'}
+                                  showReliability={isPaidMode}
                                   onApprove={() => approvePlayer(player)}
                                   onReject={() => rejectPlayer(player)}
                                   onDrop={() => dropPlayer(player)}
@@ -1513,6 +1775,7 @@ export function TournamentAdmin() {
                                 deckCheck={p.hasDeckList ? deckAudit.get(p.id) : undefined}
                                 disabled={busy}
                                 running={status === 'running'}
+                                showReliability={isPaidMode}
                                 onApprove={() => approvePlayer(p)}
                                 onReject={() => rejectPlayer(p)}
                                 onDrop={() => dropPlayer(p)}
@@ -1545,7 +1808,8 @@ export function TournamentAdmin() {
                   />
                 )}
 
-                {/* Next event waitlist - queued profiles, NOT current sign-ups */}
+                {/* Next event waitlist - featured console only; queued profiles, NOT current sign-ups */}
+                {!isPaidMode && (
                 <div className="p-5" style={tintedCard('#f5b301')}>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-center gap-2">
@@ -1704,6 +1968,7 @@ export function TournamentAdmin() {
                     </>
                   )}
                 </div>
+                )}
 
                 <PrizeEditor
                   key={code}
@@ -4147,11 +4412,44 @@ const STATUS_STYLE: Record<Player['approvalStatus'], { label: string; fg: string
  * restyles its status badge and swaps to the actions that still make
  * sense (approve a rejected/pending player, reject an approved one).
  */
+/**
+ * Reliability chip for the paid approval queue. Renders a wallet's cross-event
+ * attendance score + lifetime no-show count so the operator approves with
+ * context (Decision 2). A neutral/new wallet (score null, no history) shows
+ * nothing - only surfaces when there is a real signal. Colors flag risk.
+ */
+function ReliabilityChip({
+  score,
+  noShows,
+}: {
+  score?: number | null
+  noShows?: number
+}) {
+  const hasSignal = (score != null) || (noShows != null && noShows > 0)
+  if (!hasSignal) return null
+  const bad = (score != null && score < 30) || (noShows != null && noShows >= 3)
+  const warn = !bad && ((score != null && score < 60) || (noShows != null && noShows > 0))
+  const fg = bad ? '#ef4444' : warn ? '#f59e0b' : '#22c55e'
+  const bg = bad ? 'rgba(239,68,68,0.15)' : warn ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.15)'
+  const scoreLabel = score != null ? `Rel ${score}` : 'Rel -'
+  const noShowLabel = noShows != null && noShows > 0 ? ` · ${noShows} no-show${noShows === 1 ? '' : 's'}` : ''
+  return (
+    <span
+      title="Cross-tournament wallet reliability (attendance). Higher is better; no-shows are ghosted rounds."
+      className="shrink-0 cursor-help text-[10px] font-bold uppercase tracking-wide"
+      style={{ color: fg, background: bg, padding: '2px 6px', borderRadius: 5 }}
+    >
+      {scoreLabel}{noShowLabel}
+    </span>
+  )
+}
+
 function ParticipantRow({
   player,
   deckCheck,
   disabled,
   running,
+  showReliability,
   onApprove,
   onReject,
   onDrop,
@@ -4161,6 +4459,7 @@ function ParticipantRow({
   deckCheck?: { ok: boolean; hasDeck: boolean; issues: string[] }
   disabled: boolean
   running: boolean
+  showReliability?: boolean
   onApprove: () => void
   onReject: () => void
   onDrop: () => void
@@ -4207,6 +4506,9 @@ function ParticipantRow({
           {displayName}
         </a>
         <RegionTag region={player.region} />
+        {showReliability && (
+          <ReliabilityChip score={player.reliabilityScore} noShows={player.noShowCount} />
+        )}
         <span
           className="shrink-0 text-[10px] font-bold uppercase tracking-wide"
           style={{ color: status.fg, background: status.bg, padding: '2px 6px', borderRadius: 5 }}

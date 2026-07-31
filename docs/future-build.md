@@ -150,3 +150,164 @@ Incremental, not big-bang. Stand up `next-intl` + a language switcher, then do
 the highest-value surfaces first (home/gallery, then the public tournament page
 since it's the sponsor-facing, most-shared screen). Leave the admin panel for
 last or English-only (only the operator sees it).
+
+---
+
+## Paid-tournament autopilot: no-show handling, reliability score, region lobbies
+
+Status: SCOPED, decisions locked (captured 2026-07-30). This is the P1 build for
+paid tournaments, to land right after the P0 launch-blocker work (cancel /
+refund / manual-settle / withdraw / needs-attention). Goal: make a paid
+tournament run end-to-end with the operator only ever touching (1) applicant
+approval, (2) genuine disputes, (3) a rare unbreakable pay-line tie. Everything
+else is automated.
+
+### Problem
+
+A player who goes AFK and never reports can distort a Swiss bracket. The ripple
+is narrower than it first seems, but the real distortion is worth killing.
+
+What today's policy already handles (baseline, do not regress):
+
+- One-sided report auto-confirms at the hard round deadline (present player taps
+  "Win", it stands). See `enforceRoundDeadlines()` in
+  `src/lib/tournament/service.ts`.
+- Both players silent = `double_forfeit` (both lose). Anti-stalling backstop.
+- Conflicting reports = `disputed`, freezes for operator.
+- `double_forfeit` already counts as a played loss for both in standings
+  (`tallyMatches` in `src/lib/tournament/pairing.ts`).
+
+The remaining distortion: a persistent ghost who stays in the bracket becomes a
+**random free win** for whoever draws them each round. That is luck, not skill.
+
+### Decision 1: no-show handling = auto-drop + cross-tournament reliability score
+
+Locked: drop_plus_score.
+
+- When a player is flagged as a no-show for a round, **auto-drop them from that
+  tournament** (set `dropped`) so they never poison a future pairing. Swiss then
+  pairs the remaining field (bye on odd parity) as normal. This converts "ghost
+  taints N future rounds" into "ghost cost exactly one opponent a one-tap
+  self-report in round K, then they're gone".
+- No-show definition at hard deadline (we only have report data, not presence):
+  - opponent reports win + player silent -> player = no-show (drop).
+  - both silent -> `double_forfeit`, both flagged as soft no-show.
+  - player concedes (reports own loss) -> NOT a no-show (they acted).
+  - conflicting -> dispute, neither flagged.
+- Track a **profile-level reliability score** keyed by wallet (persists across
+  events, like `wallet_standings`). Counters: `matches_played`,
+  `matches_reported_on_time`, `no_shows`, `double_forfeits`, `clean_drops`,
+  `disputes_lost`, plus a derived 0-100 score (fresh account starts neutral,
+  recovers over time). Weight it so a strong-attendance player barely feels a
+  single "both silent" double forfeit while a serial offender's score craters.
+
+### Decision 2: repeat offenders gated to manual approval
+
+Locked: manual gate (not auto-cooldown, not warn-only).
+
+- First offense already costs the match + the entry money; the escalation hits
+  the offender's **ability to keep entering**, never the opponent (the opponent
+  already got the win).
+- Below a reliability threshold, a paid-tournament application is forced into the
+  manual-approval queue (operator decides), regardless of any future auto-approve
+  path. Surface the applicant's reliability score + no-show count in the approval
+  UI so the decision is informed.
+
+### Decision 3: voluntary drop != no-show
+
+- A clean self-serve "Drop" is a **minor** score event; ghosting is the penalized
+  one. This nudges frustrated players (e.g. "lost round 1, can't top-cut") toward
+  the exit button instead of vanishing and poisoning others.
+- Pair with participation incentives already in the system (participation badge /
+  consolation) to keep the bottom half engaged.
+
+### Decision 4: region-locked lobbies (timezone), OPTIONAL per lobby
+
+Locked: locked_lobbies. Refined 2026-07-30: region gating must be a per-lobby
+toggle, not a global rule.
+
+- At creation the organizer picks one of: **Open (no region requirement)** or a
+  specific region (reuse the existing AMER / EMEA / APAC `region` on players +
+  `wallet_profiles`). Region-locked lobbies only admit that region; open lobbies
+  admit everyone. This is the "jurisdiction or not" flexibility the operator
+  asked for: a fast live lobby can require a region, a 24h international lobby can
+  stay open.
+- Region is a matchmaking / eligibility input only. Explicitly NOT a
+  win-determinant: never auto-award a match based on declared timezone (region is
+  self-declared, trivially gamed, unfair to travelers/night owls).
+- Optional later: bias same-region pairings within an open lobby (groundwork
+  exists in `scripts/tournament/region-pairing-sim.ts`).
+
+### Decision 5: fully flexible round timing + live vs async modes
+
+Refined 2026-07-30. The operator wants to set the round limit to anything and
+have the format read correctly, from a live-paced jurisdictional event to a
+multi-day international one.
+
+- **Round length must accept any duration, minutes through hours/days**, not just
+  whole hours. Today `adminCreatePaidGame` takes `paidRoundHours` (hours only).
+  Widen this to a minutes-capable value (store round length in minutes, or a
+  seconds field) so the operator can pick e.g. 30 or 45 min for a live event, or
+  12/24/48 h for an async one. The hard-deadline autopilot
+  (`enforceRoundDeadlines`) already keys off `rounds.endsAt`, so it works at any
+  granularity; the only real constraint is the sweep cadence (see below).
+- **Two implied modes, driven purely by round length (no separate flag needed,
+  but label it in the UI so expectations are clear):**
+  - **Live / synchronous** (short rounds, e.g. 30-45 min): participants are
+    expected to be present for the whole event. Pair with a region requirement
+    (Decision 4) so everyone is awake in the same window, and lean on the
+    no-show auto-drop (Decision 1) hard, since a missed 30-min round is a real
+    no-show, not a timezone problem.
+  - **Async / international** (long rounds, e.g. 24h): open region, players
+    schedule within the window. No-show weighting should be gentler here because
+    a long window forgives timezone spread.
+- **Both short (30-40 min) and long (N-hour) rounds are required for beta from
+  day one** (operator decision 2026-07-30: early beta testing will lean on
+  frequent short-round events with small groups). So the sweep-cadence fix below
+  is a BETA BLOCKER, not a fast-follow.
+- **Sweep cadence is the binding constraint for short rounds.** Autopilot is an
+  hourly Vercel cron today (`vercel.json`: `"schedule": "0 * * * *"`), so a 30-min
+  "hard" deadline could be enforced up to ~59 min late. Fix, two layers:
+  1. **Tighten the cron** to about every minute or two (Vercel Pro allows
+     sub-hourly, e.g. `"* * * * *"`). This is the primary mechanism and makes
+     short deadlines honest within a minute or so.
+  2. **Lazy on-read enforcement (recommended addition).** In a live 30-min-round
+     event players are actively loading the page, so also run
+     `enforceRoundDeadlines` opportunistically on paid-tournament snapshot reads
+     when the current round's `endsAt` has passed. That advances an active event
+     near-instantly regardless of cron. Requires idempotency / a short lock so
+     concurrent reads can't double-advance (the on-chain `Locked -> Paid` guard
+     already prevents double-settle; add equivalent guards for round advance and
+     the double-forfeit writes).
+  Net: cron guarantees eventual progress even for idle/async events; lazy on-read
+  gives crisp advancement for active live events. With both, we do not need to
+  cap the shortest selectable round length.
+- **Setup-form surface (create-paid-game):** round length (value + unit
+  min/hour), region requirement (Open or a region), plus the existing entry fee,
+  rake, payout preset, cap, and format. Make the live-vs-async implication
+  visible (e.g. a note like "short rounds = live event, players must stay
+  active").
+
+### Build sketch (whenever we start)
+
+- Migration: reliability counters + score on `wallet_profiles` (or a small
+  `wallet_reliability` table keyed by wallet); a `region` (or `lobby_region`)
+  column on `tournaments` for locked lobbies; a `no_show` / drop-reason marker on
+  `players` to distinguish auto-drop from clean drop.
+- `service.ts`: extend `enforceRoundDeadlines()` to set `dropped` + record the
+  no-show, and to bump the wallet's reliability counters. Add reliability read +
+  the manual-approval gate in the enroll/approve path.
+- Admin: region selector on the create-paid-game form; reliability + no-show
+  columns in the approval queue.
+- Profile UI: show the reliability score / "shows up" reputation stat.
+
+### Edge cases to cover in the build
+
+- No-show sitting in a pay position: auto-drop removes them from standings before
+  settlement, so a ghost can't hold a paid slot (payouts are pull-based anyway).
+- Odd-parity byes shift when a ghost is dropped mid-event: standard Swiss, fine.
+- Collusion (one entrant ghosts to feed an ally a win): disincentivized because
+  the ghost forfeits their own paid entry + tanks their reliability. Economic
+  stake does the heavy lifting in paid events.
+- Scheduling tie-in: ignoring all of an opponent's proposed times (schedule
+  proposals) should count toward the no-show signal, against the non-responder.

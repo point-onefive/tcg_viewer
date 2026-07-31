@@ -84,10 +84,16 @@ contract TournamentEscrow is
     /// @notice Least-privilege automation key that runs the game lifecycle
     ///         (createGame / lock / settle / cancelGame / refundPlayer) so the
     ///         backend can drive autopilot WITHOUT the owner key. It can never
-    ///         upgrade, pause, change the platform, or rescue funds. Crucially,
-    ///         `settle` only pays addresses that actually funded the game and
-    ///         refunds only ever return money to the depositor, so a compromised
-    ///         operator can reorder winners but cannot drain funds to itself.
+    ///         upgrade, pause, change the platform, or rescue funds. `settle`
+    ///         only pays addresses that actually funded the game, and never more
+    ///         than a game's pot, so a compromised operator cannot drain to an
+    ///         arbitrary external address or exceed a single pot. It is NOT fully
+    ///         non-custodial, though: because deposits are permissionless and
+    ///         settle accepts ANY funded wallet as a winner, a compromised
+    ///         operator that itself deposits into a game could settle its own
+    ///         wallet as a winner and take a share of that game's pot. The
+    ///         pre-mainnet mitigation (an on-chain approval allowlist plus a
+    ///         winners-must-be-approved check) is tracked in the docs.
     ///         `owner` always retains every operator power too.
     address public operator;
 

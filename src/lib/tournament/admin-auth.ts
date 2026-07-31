@@ -1,4 +1,5 @@
 import 'server-only'
+import { timingSafeEqual } from 'crypto'
 
 export class AdminAuthError extends Error {
   status = 401
@@ -16,7 +17,20 @@ export function assertAdmin(request: Request): void {
   if (!secret) throw new AdminAuthError()
   const auth = request.headers.get('authorization') ?? ''
   const token = auth.replace(/^Bearer\s+/i, '').trim()
-  if (token !== secret) throw new AdminAuthError()
+  if (!constantTimeEqual(token, secret)) throw new AdminAuthError()
+}
+
+/**
+ * Length-guarded constant-time string comparison. Guarding the length first
+ * keeps timingSafeEqual from throwing on mismatched buffer sizes; the compare
+ * itself doesn't leak how many leading characters matched. Behavior is
+ * unchanged for correct/incorrect secrets (still exact-match).
+ */
+function constantTimeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
 }
 
 export function isAdminConfigured(): boolean {

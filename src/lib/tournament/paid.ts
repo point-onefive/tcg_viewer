@@ -45,3 +45,74 @@ export function formatUsdc(units: number | null | undefined): string {
   const dollars = units / 1_000_000
   return `$${Number.isInteger(dollars) ? dollars.toFixed(0) : dollars.toFixed(2)}`
 }
+
+// ── Wallet reliability (P1 autopilot / fairness) ───────────────────────────
+// A cross-tournament, wallet-keyed attendance reputation. Counters accumulate
+// across every paid event the wallet plays; the score is a derived 0..100 value.
+// See supabase/migrations/021_paid_autopilot.sql for the backing table. Pure /
+// framework-free so both the server (service.ts, reliability.ts) and the client
+// (admin approval queue) can import the shape + formula.
+
+/** Raw counters mirrored from the wallet_reliability row. */
+export interface ReliabilityCounters {
+  matchesPlayed: number
+  matchesOnTime: number
+  noShows: number
+  doubleForfeits: number
+  cleanDrops: number
+  disputesLost: number
+}
+
+/** A wallet's reliability: counters + the derived score (null = neutral). */
+export interface WalletReliability extends ReliabilityCounters {
+  walletAddress: string
+  /** 0..100, or null when there is nothing to score yet (0 matches played). */
+  score: number | null
+}
+
+export const EMPTY_RELIABILITY_COUNTERS: ReliabilityCounters = {
+  matchesPlayed: 0,
+  matchesOnTime: 0,
+  noShows: 0,
+  doubleForfeits: 0,
+  cleanDrops: 0,
+  disputesLost: 0,
+}
+
+/** Points knocked off the score per recorded no-show (serial ghosting craters). */
+export const RELIABILITY_NO_SHOW_PENALTY = 15
+
+/**
+ * Deterministic reliability score in [0, 100], or null for a wallet that has
+ * played nothing yet (fresh accounts start neutral, never penalized).
+ *
+ * Formula (documented so it stays stable across cron + lazy-on-read runs):
+ *   score = clamp( round(100 * matchesOnTime / matchesPlayed)
+ *                    - RELIABILITY_NO_SHOW_PENALTY * noShows,
+ *                  0, 100 )
+ *
+ * A strong-attendance player barely feels one lapse; a serial no-show craters.
+ * A double_forfeit counts as a played-not-on-time match for both sides (it drags
+ * the on-time ratio) but carries no extra per-no-show penalty on its own, so a
+ * single "both silent" round is gentle - matching the locked design.
+ */
+export function computeReliabilityScore(c: ReliabilityCounters): number | null {
+  if (!c || c.matchesPlayed <= 0) return null
+  const onTimeRatio = Math.max(0, Math.min(1, c.matchesOnTime / c.matchesPlayed))
+  const raw = Math.round(100 * onTimeRatio) - RELIABILITY_NO_SHOW_PENALTY * Math.max(0, c.noShows)
+  return Math.max(0, Math.min(100, raw))
+}
+
+// Soft floor for the paid-enroll gate (Decision 2: repeat offenders go to a
+// manual approval the operator already runs). A wallet is blocked from paid
+// lobbies ONLY when it is clearly a serial offender: at least this many no-shows
+// AND a score below this floor. Unknown / absent reliability never blocks.
+export const RELIABILITY_GATE_MAX_NO_SHOWS = 3
+export const RELIABILITY_GATE_MIN_SCORE = 30
+
+/** True when a wallet's reliability is bad enough to block a paid enroll. */
+export function isReliabilityBlocked(r: WalletReliability | null | undefined): boolean {
+  if (!r) return false
+  if (r.score == null) return false
+  return r.noShows >= RELIABILITY_GATE_MAX_NO_SHOWS && r.score < RELIABILITY_GATE_MIN_SCORE
+}

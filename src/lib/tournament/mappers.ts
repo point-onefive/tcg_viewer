@@ -111,6 +111,9 @@ export function rowToTournament(r: any): Tournament {
       typeof r.contract_address === 'string' && r.contract_address ? r.contract_address : null,
     chainId: r.chain_id != null ? Number(r.chain_id) : null,
     isPaid: Boolean(typeof r.escrow_id === 'string' && r.escrow_id),
+    // sanitizeRegion(undefined) === null, so pre-migration rows (no column) and
+    // open lobbies (null) both resolve to null.
+    lobbyRegion: sanitizeRegion(r.lobby_region),
     createdAt: r.created_at,
   }
 }

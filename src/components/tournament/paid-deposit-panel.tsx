@@ -37,6 +37,10 @@ export function PaidDepositPanel({
   const [note, setNote] = useState<string | null>(null)
   const [pendingHash, setPendingHash] = useState<Hex | null>(null)
   const [claimable, setClaimable] = useState<bigint | null>(null)
+  // Refund path: true when the on-chain game is refundable (Cancelled, globally
+  // paused, or a locked-but-never-settled game past its dead-man window).
+  const [refundable, setRefundable] = useState(false)
+  const [withdrawn, setWithdrawn] = useState(false)
 
   const chainId = tournament.chainId
   const escrow = tournament.contractAddress
@@ -105,6 +109,51 @@ export function PaidDepositPanel({
       cancelled = true
     }
   }, [onchainReady, address, tournament.status, escrow, escrowId, chainId])
+
+  // Detect a refundable game, but only when THIS wallet is funded and hasn't
+  // already pulled its refund (keeps the extra RPC reads off everyone else).
+  useEffect(() => {
+    let cancelled = false
+    const shouldCheck = onchainReady && Boolean(me?.funded) && !me?.refunded && !withdrawn
+    if (!shouldCheck) {
+      setRefundable(false)
+      return
+    }
+    ;(async () => {
+      try {
+        const [game, paused, dead] = await Promise.all([
+          readContract(wagmiConfig, {
+            address: escrow as Hex,
+            abi: ESCROW_DEPOSIT_ABI,
+            functionName: 'getGame',
+            args: [escrowId as Hex],
+            chainId: chainId as 8453 | 84532,
+          }),
+          readContract(wagmiConfig, {
+            address: escrow as Hex,
+            abi: ESCROW_DEPOSIT_ABI,
+            functionName: 'paused',
+            chainId: chainId as 8453 | 84532,
+          }),
+          readContract(wagmiConfig, {
+            address: escrow as Hex,
+            abi: ESCROW_DEPOSIT_ABI,
+            functionName: 'deadmanElapsed',
+            args: [escrowId as Hex],
+            chainId: chainId as 8453 | 84532,
+          }),
+        ])
+        // getGame state == 4 is Cancelled (see EscrowGameState).
+        const state = Number((game as readonly unknown[])[0])
+        if (!cancelled) setRefundable(state === 4 || Boolean(paused) || Boolean(dead))
+      } catch {
+        if (!cancelled) setRefundable(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [onchainReady, me?.funded, me?.refunded, withdrawn, escrow, escrowId, chainId, tournament.status])
 
   const ensureChain = useCallback(async () => {
     if (connectedChainId !== chainId) {
@@ -198,6 +247,33 @@ export function PaidDepositPanel({
     }
   }, [onchainReady, address, escrow, escrowId, chainId, ensureChain])
 
+  const doWithdraw = useCallback(async () => {
+    if (!onchainReady || !address) return
+    setBusy(true)
+    setError(null)
+    setNote(null)
+    try {
+      await ensureChain()
+      const hash = await writeContract(wagmiConfig, {
+        address: escrow as Hex,
+        abi: ESCROW_DEPOSIT_ABI,
+        functionName: 'withdraw',
+        args: [escrowId as Hex],
+        chainId: chainId as 8453 | 84532,
+      })
+      await waitForTransactionReceipt(wagmiConfig, { hash, chainId: chainId as 8453 | 84532 })
+      setWithdrawn(true)
+      setRefundable(false)
+      setNote('Refund withdrawn to your wallet.')
+      // Let the sweep reconcile the funded/refunded mirror; refresh the view.
+      onFunded()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Withdraw failed.')
+    } finally {
+      setBusy(false)
+    }
+  }, [onchainReady, address, escrow, escrowId, chainId, ensureChain, onFunded])
+
   if (!tournament.isPaid) return null
 
   const box: React.CSSProperties = {
@@ -220,12 +296,40 @@ export function PaidDepositPanel({
   const feeLabel = formatUsdc(fee)
 
   // ── content by state ──
-  let body: React.ReactNode
+  // The panel only appears when there's an actual step to take for THIS wallet:
+  // pay your approved entry, or claim your winnings. Every non-actionable state
+  // (not registered, awaiting approval, not connected, settled-with-nothing,
+  // payments-not-wired) renders nothing - the sign-up form + the hero's field
+  // tracker already communicate those, so this stays a pure call-to-action.
+  let body: React.ReactNode = null
   if (!onchainReady) {
+    body = null
+  } else if (refundable && me?.funded && !me?.refunded && !withdrawn) {
+    // Refundable game (cancelled / paused / dead-man elapsed) - offer the
+    // player their entry back. Takes priority over "you're in" and claim.
     body = (
-      <p style={{ opacity: 0.8, margin: 0 }}>
-        On-chain entry ({feeLabel}) isn&apos;t enabled for this game yet. The organizer will turn on
-        payments before it starts.
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p style={{ margin: 0 }}>
+          This game is refundable. Withdraw your <strong>{feeLabel}</strong> entry back to your wallet.
+        </p>
+        <button style={btn} onClick={doWithdraw} disabled={busy}>
+          {busy ? 'Processing…' : 'Withdraw refund'}
+        </button>
+      </div>
+    )
+  } else if (
+    tournament.status === 'cancelled' &&
+    me?.funded &&
+    !me?.refunded &&
+    !withdrawn
+  ) {
+    // Cancelled off-chain but the on-chain refundable read isn't true yet: the
+    // cancel tx can lag the DB flip. Never leave a funded player staring at a
+    // "Cancelled" label with no explanation - tell them the refund is being
+    // enabled and to check back, rather than rendering nothing.
+    body = (
+      <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+        Refund is being enabled on-chain. Check back shortly.
       </p>
     )
   } else if (tournament.status === 'complete') {
@@ -240,28 +344,14 @@ export function PaidDepositPanel({
           </button>
         </div>
       )
-    } else {
-      body = <p style={{ opacity: 0.8, margin: 0 }}>This game is settled. No winnings to claim for this wallet.</p>
     }
   } else if (!isConnected) {
-    body = <p style={{ opacity: 0.85, margin: 0 }}>Connect your wallet to pay the {feeLabel} entry.</p>
+    body = null
   } else if (me?.funded) {
     body = <p style={{ margin: 0, color: '#22c55e' }}>Entry paid. You are in. ✓</p>
-  } else if (!me) {
-    body = (
-      <p style={{ opacity: 0.85, margin: 0 }}>
-        Register above with this wallet first, then pay your {feeLabel} entry here.
-      </p>
-    )
-  } else if (me.approvalStatus === 'rejected') {
-    body = <p style={{ opacity: 0.85, margin: 0 }}>Your entry was declined, so no payment is needed.</p>
-  } else if (me.approvalStatus !== 'approved') {
-    body = (
-      <p style={{ opacity: 0.85, margin: 0 }}>
-        You&apos;re registered. Once the organizer approves you, pay your {feeLabel} entry here to lock
-        your seat.
-      </p>
-    )
+  } else if (!me || me.approvalStatus !== 'approved') {
+    // Not registered, awaiting approval, or declined - nothing to pay yet.
+    body = null
   } else {
     // approved + not funded
     body = (
@@ -286,6 +376,9 @@ export function PaidDepositPanel({
       </div>
     )
   }
+
+  // Nothing actionable for this wallet: render nothing at all.
+  if (body === null && !note && !error) return null
 
   return (
     <div style={box}>

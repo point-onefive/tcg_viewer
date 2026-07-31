@@ -20,6 +20,30 @@
 >   deposit/claim UX (reads the settlement token from the escrow's `usdc()`
 >   view), admin "Create paid game" wired to the operator signer, and Base +
 >   Base Sepolia added to the wagmi config.
+> - **Phase 3.5 / P0 launch blockers (done)** - admin escrow controls in the
+>   paid-mode admin panel (per selected lobby): Cancel game (operator
+>   `cancelGame`, flips the Supabase tournament to `cancelled`), Refund/kick a
+>   funded player pre-lock (operator `refundPlayer`), and a Manual settle
+>   override (operator `settle` with an admin-ordered placement). A read-only
+>   "needs attention" surface flags disputed matches, settle-stuck games
+>   (bracket complete but still `Locked` on-chain), and cancelled/refundable
+>   games. Standings tiebreaks are fully deterministic (match points, opp
+>   match-win %, game-win %, opp game-win %, then seed then wallet address);
+>   a perfect tie at a pay line defers to manual settle rather than guessing.
+>   The `PaidDepositPanel` shows a "Withdraw refund" button when the game is
+>   refundable (`Cancelled`, paused, or dead-man elapsed) and the connected
+>   wallet is funded and not yet refunded. All three money paths (cancel ->
+>   withdraw, lock -> manual settle -> claim, refundPlayer pre-lock) were
+>   exercised live on the Base Sepolia deploy.
+>
+>   Owner-only nuance: `pause()` / `unpause()` are `onlyOwner`, and the backend
+>   normally holds only the operator key, so per-game Cancel is the primary stop
+>   lever. Global pause/unpause is exposed in the admin panel ONLY when the
+>   OPTIONAL `TOURNAMENT_ESCROW_OWNER_KEY` is set; otherwise those controls hide
+>   and degrade gracefully. A full on-chain allowlist (blocking direct deposits
+>   by unapproved wallets) is deferred past P0; the remediation is the admin
+>   `refundPlayer` tool, and `confirmDeposit` already refuses to seat an
+>   unapproved wallet in the DB mirror.
 > - **Phase 4/5 (todo)** - mainnet pilot, then audit + Safe multisig.
 >
 > ### Testnet deployment (Base Sepolia, chain 84532)
@@ -511,6 +535,47 @@ Implementation: `MatchStatus` gains `double_forfeit`; `tallyMatches` counts it
 as a mutual loss; `roundFullyResolved` treats it as resolved;
 `enforceRoundDeadlines` runs in `sweep()` and is a no-op for featured events.
 
+### P1 update (autopilot + fairness): cadence, no-show auto-drop, reliability, region
+
+Migration `021_paid_autopilot.sql` (additive, idempotent, safe to run any time
+after 020) backs this layer: `tournaments.lobby_region`, `players.no_show`, and
+a wallet-keyed `wallet_reliability` table. Every read/write of these is
+best-effort in code, so the app runs unchanged before 021 is applied.
+
+**Sweep cadence (short-round support).** The Vercel cron is now minutely
+(`vercel.json`: `"* * * * *"`) instead of hourly so a 30 to 45 minute "hard"
+deadline is honest within about a minute. Note: minutely cron requires a Vercel
+plan that allows sub-hourly crons. On a plan that does not, Vercel silently
+clamps the schedule to the finest cadence the plan permits (e.g. hourly/daily),
+which just makes short-round deadlines coarser. It does not break anything, and
+the lazy on-read path below still advances active events crisply regardless.
+
+**Lazy on-read enforcement.** `getSnapshotByCode` runs a single-tournament
+`enforceRoundDeadlines(tournamentId)` before computing standings whenever a
+running PAID tournament's current round is past its `ends_at`. Because players in
+a live short-round event are actively loading the page, this advances the event
+near-instantly independent of cron. It is wrapped in try/catch so it can never
+break a public read, and re-fetches rounds/matches afterward so the returned
+snapshot reflects the advance.
+
+**Idempotency / concurrency.** Cron and multiple concurrent page loads can race.
+Each match-resolution UPDATE is conditional on the match's prior status
+(`.eq('status', <prior>)`) and returns the affected row; only the run that
+actually performs the unresolved -> resolved transition drops the no-show and
+bumps reliability. So a match resolves once, reliability counters increment
+exactly once, round advance re-checks completion in `maybeAdvance`, and
+settlement stays guarded by the on-chain `Locked -> Paid` check.
+
+**No-show auto-drop.** At the hard deadline, the ghost is auto-dropped
+(`dropped = true`, `no_show = true`) so pairing skips them in every future round.
+A one-sided report flags the non-reporter; a double forfeit flags both sides
+(soft). A clean self-drop / admin drop sets `no_show = false` and is never
+counted as a no-show. Region-locked lobbies (`lobby_region`) only admit their
+region at enroll (eligibility only, never a win-determinant). A serial-offender
+wallet (>= 3 no-shows and score < 30) is blocked from paid enroll; unknown /
+neutral reliability never blocks. Score formula lives in
+`computeReliabilityScore` (`src/lib/tournament/paid.ts`).
+
 **On-chain autopilot (money side).** The backend drives the whole money
 lifecycle with a least-privilege `operator` key (see the contract's operator
 role), so no human signs anything after starting a game:
@@ -530,8 +595,13 @@ Custody: there is ONE contract escrowing every game at once (per-game `bytes32`
 isolation) - no per-tournament wallets. Three roles: `owner` (cold multisig:
 upgrade/pause/rescue), `operator` (hot backend key: create/lock/settle),
 `platform` (rake recipient). A leaked operator key cannot drain funds to an
-outside address because `settle` only pays real entrants and refunds only return
-to depositors. This whole path is gated on `TOURNAMENT_ESCROW_OPERATOR_KEY`;
+arbitrary external address or beyond a single game's pot, because `settle` only
+pays real entrants and refunds only return to depositors. It is not fully
+non-custodial though: since deposits are permissionless and settle accepts any
+funded wallet as a winner, a compromised operator that itself deposits could
+settle its own wallet for a share of that pot. See the pre-mainnet hardening
+checklist (allowlist + winners-must-be-approved). This whole path is gated on
+`TOURNAMENT_ESCROW_OPERATOR_KEY`;
 unset -> on-chain writes are skipped (DB-only QC mode) and settle is manual.
 
 Everything is verified locally: `contracts/test/Stress.t.sol` runs many
@@ -566,3 +636,31 @@ apply once the escrow is deployed and configured.
   it, instead of the contract pushing funds.
 - **UUPS** - an upgradeable-proxy pattern where upgrade logic lives in the
   implementation contract.
+
+## 15. Pre-mainnet hardening checklist
+
+Items surfaced by the 5-way audit that need a contract redeploy or a broader
+design change, so they are deliberately deferred to before mainnet. They are NOT
+implemented yet. Each line is the item plus its one-line audit rationale.
+
+- **On-chain deposit allowlist + winners-must-be-approved.** Deposits are
+  permissionless and `settle` accepts any funded wallet as a winner, so a
+  compromised operator that deposits into a game could settle its own wallet and
+  take a pot share. An on-chain approval allowlist (only approved wallets can be
+  named winners) removes the operator's ability to pay itself. This is the
+  mitigation referenced by the operator comments in `TournamentEscrow.sol` and
+  `src/lib/tournament/escrow-write.ts`.
+- **`!refunded` re-deposit guard in the contract.** A player who was refunded
+  can currently re-deposit in edge flows; a contract-level guard should block a
+  refunded seat from being re-funded without an explicit re-approval.
+- **Higher confirmation depth for deposit verification.** Deposit confirmation
+  reads the chain at a shallow depth; raise the required confirmations before
+  flipping `funded` to reduce reorg risk on mainnet.
+- **Operator results-oracle / multisig owner.** Move the owner to a Safe/hardware
+  multisig and separate the results-submission authority from the hot operator
+  key so no single hot key can both run and settle games.
+- **Enroll rate-limiting.** The enroll route has no per-wallet / per-IP rate
+  limit; add one to blunt spam and griefing of open lobbies.
+- **Do not count pending applicants toward the cap.** The enroll cap currently
+  counts pending (unapproved) applicants, which can let pending sign-ups block
+  real entrants; count only approved/funded seats toward the cap for paid games.

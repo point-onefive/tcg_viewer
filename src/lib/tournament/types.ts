@@ -159,6 +159,13 @@ export interface Tournament {
   chainId: number | null
   /** Convenience flag: true when this is a paid (escrowed) tournament. */
   isPaid: boolean
+  /**
+   * Optional per-lobby region lock (paid tournaments only). null = open lobby
+   * (admits everyone); a region ('amer' | 'emea' | 'apac') restricts paid
+   * enrollment to that region. Eligibility input only, never a win-determinant.
+   * Always null for free events. null when the column is absent (pre-migration).
+   */
+  lobbyRegion: Region | null
   createdAt: string
 }
 
@@ -196,6 +203,16 @@ export interface Player {
   /** Self-declared country (ISO 3166-1 alpha-2) from the linked profile, for the
    * flag shown next to the name. Attached only in the public snapshot. */
   country?: string | null
+  /**
+   * Cross-tournament wallet reliability, looked up by wallet and attached ONLY
+   * when building a PAID tournament snapshot (like username/avatarUrl - not
+   * stored on the player row, undefined for free events / outside the snapshot).
+   * `reliabilityScore` is 0..100 or null (neutral: fresh wallet, nothing scored).
+   * `noShowCount` is the wallet's lifetime no-show tally. Surfaced to the paid
+   * admin approval queue so the operator approves/rejects with context.
+   */
+  reliabilityScore?: number | null
+  noShowCount?: number
   /** True once the player drops; pairing skips them, no auto-wins. */
   dropped: boolean
   /**
@@ -412,11 +429,47 @@ export interface PaidGameSummary {
   payoutBps: number[] | null
   /** Player cap for the game; null = unlimited up to the guard. */
   cap: number | null
+  /**
+   * Optional per-lobby region lock. null = open lobby; a region restricts who
+   * can enroll. Shown as a small chip on the lobby card. null pre-migration.
+   */
+  lobbyRegion: Region | null
+  /** Applicants so far (non-rejected, non-dropped). Drives the "applied" phase. */
+  appliedCount: number
+  /** Approved entrants (non-dropped). The funded phase counts toward this. */
+  approvedCount: number
   /** Confirmed (funded) deposit count so far. */
   fundedCount: number
   /** EVM chain id + escrow address so the client can wire the deposit tx. */
   chainId: number | null
   contractAddress: string | null
+}
+
+/** One paid game flagged in the admin "needs attention" surface. */
+export interface PaidAttentionItem {
+  code: string
+  name: string
+  status: TournamentStatus
+}
+
+/**
+ * Read-only "what needs a human" signal for the paid admin console: disputed
+ * matches, complete-but-unsettled (still Locked on-chain) games, and
+ * cancelled/refundable games. Also carries the key-availability flags that
+ * decide which escrow controls the panel can offer.
+ */
+export interface PaidNeedsAttention {
+  ownerKeyConfigured: boolean
+  operatorConfigured: boolean
+  disputes: { code: string; name: string; count: number }[]
+  settleStuck: PaidAttentionItem[]
+  cancelled: PaidAttentionItem[]
+  /**
+   * Signer wallets (operator, and owner when its key is set) whose native gas
+   * balance is under the low-gas floor. Best-effort: empty when balances are
+   * healthy or the read failed. Drives a "top up gas" warning in the panel.
+   */
+  lowGas: { role: 'operator' | 'owner'; address: string; balanceWei: string }[]
 }
 
 /**
