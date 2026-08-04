@@ -406,3 +406,90 @@ the strongest honest guarantee.
 - Verify surface: extend `/tools/deck-check` to also check the revealed decklist
   against the on-chain hash, so the existing "provably fair" link becomes literally
   provable.
+
+---
+
+## Paid-play rewards + progression (XP / invites) without farmability
+
+Status: IDEA (captured 2026-08-04). Do not build yet.
+
+Goal: reward people for playing PAID tournaments so we (a) incentivize paid
+entries, which is the revenue engine, and (b) build a progression ladder whose
+marquee perk is an **invitation to sponsored events** (bigger prizes, giveaways,
+curated fields). Rewards can also include XP/points, tiers, badges, and a
+leaderboard. The hard constraint: it must NOT be farmable. Naive "participation
+XP" is trivially gamed. One person spins up 10 wallets, self-plays a cheap
+bracket, and mints XP / an invite for free. Bot farming is the failure mode to
+design against from day one.
+
+### The core insight: let the rake be the anti-farm sink
+
+Paid entries already cost real USDC and pay a 15% platform rake. That rake is a
+built-in economic sink that makes farming EXPENSIVE in a way free-tournament XP
+never could be. Lean on this hard:
+
+- **Only paid entries earn progression toward the sponsored-invite perk.** Every
+  attempt to farm burns rake. If the invite threshold is set so the cumulative
+  rake a farmer must pay exceeds what a sponsored seat is worth to them, farming
+  is economically irrational. The stake does the heavy lifting (same principle
+  we already rely on for collusion in the autopilot doc).
+- Corollary: **never let a reward be worth more than the rake it costs to earn.**
+  No reward, giveaway, or refund should create an arbitrage where playing a
+  self-vs-self bracket nets positive value. That would be a money printer.
+
+### Reward for verifiable skill/outcomes, not for showing up
+
+- Weight progression toward **wins, placement, and distinct real opponents
+  beaten**, not raw participation. Beating many different funded opponents is
+  hard to fake; showing up is not.
+- **Discount repeated matchups.** XP/credit from beating the same wallet (or the
+  same small cluster) repeatedly decays fast, and cap credit per opponent-pair
+  per period. A 10-wallet farm mostly plays itself, so this guts its yield.
+- Diminishing returns per event and per day so grinding a bracket over and over
+  stops paying.
+
+### Sybil / collusion resistance (reuse what we already have)
+
+- **Wallet reliability score** (already built) as a gate and a multiplier: low
+  reliability or a fresh wallet earns reduced/withheld progression until it has a
+  real track record.
+- **SIWE + one-entry-per-handle** already make wallets non-anonymous; extend to
+  one-progression-identity-per-handle.
+- **Cluster detection (flag, don't auto-punish):** same wallets repeatedly facing
+  each other, shared deposit funding source (deposits originating from one
+  wallet), circular fund flow, near-identical signup IP/geo/device fingerprint
+  (see the "sign-up anti-gaming" section above for the signal set), synchronized
+  timing. Surface clusters to the operator, don't hard-ban automatically (avoid
+  punishing legit friend groups / shared networks).
+
+### The big perk (sponsored invites) stays human-gated
+
+Because a sponsored seat is the highest-value reward, do NOT let a raw XP number
+auto-grant it. Progression makes a player **eligible**; a light curation/approval
+step (operator, or reliability + anti-cluster checks) issues the actual invite.
+This keeps a farmed number from ever directly cashing out into the marquee perk.
+
+### Ties into other backlog items
+
+- **On-chain data (deck/result hash commitments):** once settle results are
+  committed on-chain, XP can be computed from verifiable on-chain outcomes rather
+  than trusted DB rows, making the progression itself auditable.
+- **Sign-up anti-gaming:** the IP/geo/device/fingerprint signal set and the
+  capture-and-flag approach are the same primitives this feature needs for
+  cluster detection.
+- **Reliability score:** already the natural sybil gate and multiplier.
+
+### What NOT to do
+
+- No flat per-event participation XP (farmable).
+- No reward that exceeds the rake cost to earn it (money printer).
+- No fully-automatic sponsored-invite issuance from an XP threshold alone.
+
+### Rough build shape (whenever we start)
+
+- A points/XP ledger keyed by wallet (or extend `wallet_reliability` /
+  `wallet_standings`), earned from paid results with the decay + opponent-pair
+  caps above.
+- Cluster-detection job over enroll signals + on-chain funding sources.
+- An "eligible for sponsored invite" flag + operator review queue in admin.
+- Player-facing progression/leaderboard UI (later).
