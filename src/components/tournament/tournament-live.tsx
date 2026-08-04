@@ -30,7 +30,7 @@ import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose, PrizePoolPoweredBy } from '@/components/tournament/bonk-ui'
 import type { PrizePoolLockup } from '@/lib/tournament/theme'
 import { getTournamentTheme, HOUSE_THEME_ID, type TournamentTheme } from '@/lib/tournament/theme'
-import { DEFAULT_RAKE_BPS, formatUsdc, isPayoutPreset, PAYOUT_PRESET_LABELS } from '@/lib/tournament/paid'
+import { BPS_DENOMINATOR, DEFAULT_RAKE_BPS, formatUsdc, isPayoutPreset, PAYOUT_PRESETS, PAYOUT_PRESET_LABELS } from '@/lib/tournament/paid'
 import { useTournamentTheme } from '@/components/tournament/theme-context'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
@@ -2816,6 +2816,38 @@ export function TournamentLive({ code }: { code?: string } = {}) {
     ? tournament.heroImage || '/tournaments/paid-hero.webp'
     : undefined
 
+  // Paid prize math, all in micro-USDC then formatUsdc(...) for display. The
+  // headline uses the projected full-field pot so it never reads "$0" while
+  // enrolling; the "now" figures reflect what is actually locked in escrow
+  // (driven by fundedCount, reused from the meta chips above).
+  const paidPrize = (() => {
+    if (
+      !tournament.isPaid ||
+      !tournament.entryFeeUsdc ||
+      !tournament.maxPlayers ||
+      !isPayoutPreset(tournament.payoutPreset)
+    ) {
+      return null
+    }
+    const preset = tournament.payoutPreset
+    const bps = PAYOUT_PRESETS[preset]
+    const entryFee = tournament.entryFeeUsdc
+    const netBps = BPS_DENOMINATOR - (tournament.rakeBps ?? 0)
+    const distributableFor = (players: number) =>
+      Math.round((players * entryFee * netBps) / BPS_DENOMINATOR)
+    const distributableAtCap = distributableFor(tournament.maxPlayers)
+    const distributableNow = distributableFor(fundedCount)
+    return {
+      preset,
+      isWta: preset === 'wta',
+      distributableAtCap,
+      topPrizeAtCap: Math.round((distributableAtCap * bps[0]) / BPS_DENOMINATOR),
+      distributableNow,
+      topPrizeNow: Math.round((distributableNow * bps[0]) / BPS_DENOMINATOR),
+      hasNow: fundedCount > 0,
+    }
+  })()
+
   return (
     <TournamentShell hero={<BonkHero theme={theme} title={paidHeroTitle} subhead={paidHeroSubhead} sceneImage={paidHeroImage} />} theme={theme}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
@@ -2898,6 +2930,45 @@ export function TournamentLive({ code }: { code?: string } = {}) {
               <CountdownStat label={`Round ${activeRound.number} ends in`} value={roundCountdown} />
             )}
           </div>
+          {/* Prize on the line. Prominent, projected-at-full-field headline so
+              it never reads "$0" while enrolling, plus the amount already
+              locked in escrow once anyone has paid in. */}
+          {paidPrize && (
+            <div
+              className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg px-3.5 py-3"
+              style={{
+                background: 'color-mix(in srgb, var(--bonk-ui-yellow) 12%, var(--bg))',
+                border: '1px solid color-mix(in srgb, var(--bonk-ui-yellow) 34%, var(--border-subtle))',
+              }}
+            >
+              <Trophy size={18} style={{ color: 'var(--bonk-ui-yellow)' }} aria-hidden />
+              <span
+                className="bonk-mono text-base font-extrabold tabular-nums sm:text-lg"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {paidPrize.isWta
+                  ? `Winner takes up to ${formatUsdc(paidPrize.topPrizeAtCap)}`
+                  : `Prize pool up to ${formatUsdc(paidPrize.distributableAtCap)}`}
+              </span>
+              {!paidPrize.isWta && (
+                <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                  {PAYOUT_PRESET_LABELS[paidPrize.preset]}
+                </span>
+              )}
+              {paidPrize.hasNow && (
+                <span
+                  className="bonk-mono shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums"
+                  style={{
+                    background: 'color-mix(in srgb, #22c55e 15%, var(--bg))',
+                    border: '1px solid color-mix(in srgb, #22c55e 35%, transparent)',
+                    color: '#22c55e',
+                  }}
+                >
+                  {formatUsdc(paidPrize.distributableNow)} in the pool now
+                </span>
+              )}
+            </div>
+          )}
           {/* Paid field tracker, tucked into the hero next to the counts.
               Recruiting shows "applied" toward the cap; once the field is
               approved it flips to "funded" toward the approved roster. */}
@@ -2908,6 +2979,14 @@ export function TournamentLive({ code }: { code?: string } = {}) {
               total={fundingPhase ? approvedCount : tournament.maxPlayers ?? visiblePlayers.length}
               inline
             />
+          )}
+          {/* "When do I get paid?" - always visible for a live paid game so
+              players never wonder about payout timing or who releases funds. */}
+          {tournament.isPaid && tournament.status !== 'complete' && tournament.status !== 'cancelled' && (
+            <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Winners are paid automatically on-chain the moment the event finalizes. Your USDC
+              becomes claimable right here on this page, no waiting on an organizer.
+            </p>
           )}
           {tournament.status !== 'complete' && (
             <ScheduleNote

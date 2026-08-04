@@ -74,7 +74,10 @@ export function PaidProgressBar({
   const clamped = Math.min(Math.max(Math.floor(filled) || 0, 0), Math.max(safeTotal, 1))
   const Icon = isApplied ? Users : Coins
   const label = isApplied ? 'Applications' : 'Entries funded'
-  const unit = isApplied ? 'applied' : 'funded'
+  // Spell out what the count means so a first-time viewer instantly reads it:
+  // "3 of 8 seats claimed" (players who grabbed a spot toward the cap) vs
+  // "3 of 8 paid in" (approved entrants who funded their entry).
+  const unit = isApplied ? 'seats claimed' : 'paid in'
 
   const header = (
     <div className="mb-2 flex items-center justify-between gap-3">
@@ -91,7 +94,7 @@ export function PaidProgressBar({
         className="bonk-mono shrink-0 text-sm font-bold tabular-nums"
         style={{ color: 'var(--text-secondary)' }}
       >
-        {clamped} / {safeTotal}{' '}
+        {clamped} of {safeTotal}{' '}
         <span className="font-medium" style={{ color: 'var(--text-muted)' }}>
           {unit}
         </span>
@@ -129,8 +132,8 @@ export function PaidProgressBar({
         <SegmentBar filled={clamped} total={safeTotal} />
         <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
           {isApplied
-            ? 'Join with your wallet to claim a spot. Once the field is set and approved, entrants fund the prize pool.'
-            : 'Approved entrants are funding the prize pool. The bracket starts once everyone has paid.'}
+            ? 'Join with your wallet to claim a seat toward the cap. Once the field is set and approved, entrants pay their entry to fund the prize pool.'
+            : 'Approved entrants are paying their entry into the prize pool. The bracket starts once everyone has paid in.'}
         </p>
       </div>
     </div>
