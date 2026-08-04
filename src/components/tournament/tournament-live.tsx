@@ -373,15 +373,22 @@ function ScheduleNote({
       className="mt-5 flex flex-col gap-3 rounded-md p-3.5"
       style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
-        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
           <Clock size={15} style={{ color: 'var(--bonk-purple)', flexShrink: 0 }} aria-hidden />
-          {formatDuration(roundMinutes)} per round
-          {roundsLabel && (
-            <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
-          )}
+          <span>
+            {formatDuration(roundMinutes)} per round
+            {roundsLabel && (
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
+            )}
+          </span>
         </span>
-        <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+        <span
+          aria-hidden
+          className="hidden sm:block shrink-0"
+          style={{ width: 1, height: 12, background: 'var(--border-subtle)' }}
+        />
+        <span className="text-xs leading-snug" style={{ color: 'var(--text-secondary)' }}>
           Generous round limits to fit a global schedule.
         </span>
       </div>
