@@ -3058,6 +3058,12 @@ export async function adminCreatePaidGame(input: {
    * empty/whitespace/undefined => null = open lobby (no code).
    */
   joinPassword?: string | null
+  /**
+   * Optional hero background image for the game page. Either a compressed WebP
+   * data URL (uploaded/pasted image) or a plain image URL (pasted link).
+   * Trimmed; empty/whitespace/undefined => null (use the default arena image).
+   */
+  heroImage?: string | null
 }): Promise<{ code: string }> {
   const sb = getServiceClient()
   const name = input.name?.trim()
@@ -3088,6 +3094,9 @@ export async function adminCreatePaidGame(input: {
     typeof input.joinPassword === 'string' && input.joinPassword.trim()
       ? input.joinPassword.trim()
       : null
+  // Optional hero image. Trim; empty/whitespace => null (default arena image).
+  const heroImage =
+    typeof input.heroImage === 'string' && input.heroImage.trim() ? input.heroImage.trim() : null
 
   const escrowId = randomBytes32Hex()
   const contractAddress = isEscrowConfigured() ? escrowAddress() : null
@@ -3143,6 +3152,10 @@ export async function adminCreatePaidGame(input: {
     // never references the new column and still creates cleanly before
     // migration 024 is applied (mirrors the lobby_region handling above).
     if (joinPassword) insertRow.join_password = joinPassword
+    // Only write hero_image when one was supplied, so a game created without an
+    // image never references the new column and still creates cleanly before
+    // migration 025 is applied (mirrors the lobby_region / join_password handling).
+    if (heroImage) insertRow.hero_image = heroImage
     const { data, error } = await sb.from('tournaments').insert(insertRow).select('*').single()
     if (!error && data) return { code: data.code }
     lastErr = error

@@ -53,7 +53,7 @@ export const dynamic = 'force-dynamic'
 type Body =
   | { action: 'ping' }
   | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string; theme?: string }
-  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string; lobbyRegion?: import('@/lib/tournament/region').Region | null; joinPassword?: string | null }
+  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string; lobbyRegion?: import('@/lib/tournament/region').Region | null; joinPassword?: string | null; heroImage?: string | null }
   | { action: 'set-join-password'; code: string; password: string | null }
   | { action: 'get-join-password'; code: string }
   | { action: 'cancel-paid-game'; code: string }

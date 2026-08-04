@@ -173,6 +173,14 @@ export interface Tournament {
    * response - only this derived boolean. false = open lobby (default / legacy).
    */
   joinProtected: boolean
+  /**
+   * Optional hero background image for a PAID game's page. Either a compressed
+   * WebP data URL (uploaded/pasted image) or a plain image URL (pasted link);
+   * both are usable directly in CSS url(...). null = use the default arena
+   * background (/tournaments/paid-hero.webp). null when the column is absent
+   * (pre-migration 025) or unset.
+   */
+  heroImage: string | null
   createdAt: string
 }
 

@@ -230,6 +230,14 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
   const [paidLobbyRegion, setPaidLobbyRegion] = useState<'' | Region>('')
   // Optional shared join code (room passcode). '' = open lobby (no code).
   const [paidJoinCode, setPaidJoinCode] = useState('')
+  // Optional hero background image for the game page. A pasted URL lives in
+  // paidHeroUrl (used as-is); an uploaded/pasted image is compressed to a data
+  // URL in paidHeroData. Blank => the page falls back to the default arena image.
+  const [paidHeroUrl, setPaidHeroUrl] = useState('')
+  const [paidHeroData, setPaidHeroData] = useState<string | null>(null)
+  const [paidHeroBusy, setPaidHeroBusy] = useState(false)
+  const [paidHeroError, setPaidHeroError] = useState<string | null>(null)
+  const paidHeroFileRef = useRef<HTMLInputElement>(null)
   const [paidThemeId, setPaidThemeId] = useState<string>('')
   const [paidFormError, setPaidFormError] = useState<string | null>(null)
   const [paidBusy, setPaidBusy] = useState(false)
@@ -437,6 +445,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
     theme?: string
     lobbyRegion?: Region | null
     joinPassword?: string | null
+    heroImage?: string | null
   }) {
     setPaidBusy(true)
     setPaidFormError(null)
@@ -446,11 +455,35 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
       setMsg(`Paid game created: ${r.code}`)
       setPaidName('')
       setPaidJoinCode('')
+      setPaidHeroUrl('')
+      setPaidHeroData(null)
     } catch (e) {
       setPaidFormError(e instanceof Error ? e.message : 'Could not create paid game.')
     } finally {
       setPaidBusy(false)
     }
+  }
+
+  // Compress an uploaded/pasted hero image to a compact data URL. A slightly
+  // larger maxDim than the default keeps a full-bleed hero crisp while light.
+  async function handlePaidHeroBlob(blob: Blob) {
+    setPaidHeroError(null)
+    setPaidHeroBusy(true)
+    try {
+      const dataUrl = await compressImageToDataUrl(blob, 1280)
+      setPaidHeroData(dataUrl)
+      setPaidHeroUrl('')
+    } catch {
+      setPaidHeroError('Could not read that image - try a PNG/JPG.')
+    } finally {
+      setPaidHeroBusy(false)
+    }
+  }
+
+  function clearPaidHero() {
+    setPaidHeroData(null)
+    setPaidHeroUrl('')
+    setPaidHeroError(null)
   }
 
   async function unlock(e: React.FormEvent) {
@@ -1055,6 +1088,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                   theme: paidThemeId || undefined,
                   lobbyRegion: paidLobbyRegion || null,
                   joinPassword: paidJoinCode.trim() || null,
+                  heroImage: paidHeroData ?? (paidHeroUrl.trim() || null),
                 })
               }}
             >
@@ -1215,6 +1249,93 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                   </select>
                   <ChevronDown size={16} aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
                 </div>
+              </div>
+
+              {/* Optional hero background image for the game page. Paste a URL,
+                  upload a file, or paste an image from the clipboard. Blank =>
+                  the page uses the default arena background. */}
+              <div>
+                <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                  <ImagePlus size={12} style={{ color: 'var(--tcw-accent)' }} /> Hero image (optional)
+                </span>
+                {(() => {
+                  const heroPreview = paidHeroData ?? (paidHeroUrl.trim() || null)
+                  return heroPreview ? (
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={heroPreview}
+                        alt="Hero background preview"
+                        style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block', borderRadius: 6, border: '1px solid var(--border-subtle)' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={clearPaidHero}
+                        aria-label="Remove hero image"
+                        className="absolute inline-flex items-center justify-center"
+                        style={{ top: 6, right: 6, width: 22, height: 22, borderRadius: 5, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer' }}
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        style={inputStyle}
+                        value={paidHeroUrl}
+                        onChange={(e) => {
+                          setPaidHeroUrl(e.target.value)
+                          setPaidHeroError(null)
+                        }}
+                        placeholder="Paste an image URL (https://…)"
+                        autoComplete="off"
+                        inputMode="url"
+                      />
+                      <div
+                        tabIndex={0}
+                        aria-label="Click here then paste an image for the hero background"
+                        onPaste={(e) => {
+                          const blob = imageFromClipboard(e)
+                          if (blob) {
+                            e.preventDefault()
+                            handlePaidHeroBlob(blob)
+                          }
+                        }}
+                        className="flex flex-col items-center justify-center gap-1 text-center cursor-text"
+                        style={{ height: 64, borderRadius: 6, border: '1px dashed color-mix(in srgb, var(--text-primary) 28%, transparent)', color: 'var(--text-muted)', padding: 6 }}
+                      >
+                        <ImagePlus size={16} />
+                        <span className="text-[10px] leading-tight">{paidHeroBusy ? 'Processing…' : 'Click, then paste an image (⌘V)'}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => paidHeroFileRef.current?.click()}
+                        disabled={paidHeroBusy}
+                        className="footer-btn inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-bold"
+                        style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, opacity: paidHeroBusy ? 0.5 : 1 }}
+                      >
+                        <Upload size={12} /> Upload image
+                      </button>
+                      <input
+                        ref={paidHeroFileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (f) handlePaidHeroBlob(f)
+                          e.target.value = ''
+                        }}
+                      />
+                    </div>
+                  )
+                })()}
+                {paidHeroError && (
+                  <p className="mt-1.5 text-[11px]" style={{ color: '#ef4444' }}>{paidHeroError}</p>
+                )}
+                <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                  Leave blank to use the default arena background.
+                </p>
               </div>
 
               {paidCreatedCode && (

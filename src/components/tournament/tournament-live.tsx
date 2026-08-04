@@ -2173,12 +2173,21 @@ export function BonkHero({
   theme,
   title,
   subhead,
+  sceneImage,
 }: {
   theme: TournamentTheme
   /** Per-game headline override (paid games show their own name, not the
    *  neutral theme placeholder). When set, titleLine2/bang are suppressed. */
   title?: string
   subhead?: string
+  /**
+   * Optional blurred hero background (paid game pages). Rendered with the same
+   * `.tcw-hero-scene` layer the paid LOBBY hero uses, so the game page matches
+   * the lobby look. Either an image URL or a compressed data URL. When set it
+   * takes the place of the theme's own `h.scene` (paid games use the neutral
+   * house theme, which has no scene of its own).
+   */
+  sceneImage?: string
 }) {
   const h = theme.hero
   const heroTitle = title ?? h.titleLine1
@@ -2186,6 +2195,15 @@ export function BonkHero({
   const useOverride = Boolean(title)
   return (
     <section className="bonk-hero" aria-label={h.ariaLabel}>
+      {/* Paid game hero background: same blurred, left-masked layer as the paid
+          lobby hero. Only used when a sceneImage is passed (paid pages). */}
+      {sceneImage && (
+        <div
+          aria-hidden
+          className="tcw-hero-scene"
+          style={{ backgroundImage: `url(${sceneImage})` }}
+        />
+      )}
       {/* Desktop-only faded scene to fill the wide real estate. Masked toward
           the left so the headline keeps full contrast. Themes can drop it. */}
       {h.scene && (
@@ -2791,8 +2809,15 @@ export function TournamentLive({ code }: { code?: string } = {}) {
         } · settled on-chain`
       : undefined
 
+  // Paid game pages get a hero background: the operator's chosen image (URL or
+  // compressed data URL) or the default arena image. Featured events keep their
+  // theme-driven hero (no sceneImage) exactly as-is.
+  const paidHeroImage = tournament.isPaid
+    ? tournament.heroImage || '/tournaments/paid-hero.webp'
+    : undefined
+
   return (
-    <TournamentShell hero={<BonkHero theme={theme} title={paidHeroTitle} subhead={paidHeroSubhead} />} theme={theme}>
+    <TournamentShell hero={<BonkHero theme={theme} title={paidHeroTitle} subhead={paidHeroSubhead} sceneImage={paidHeroImage} />} theme={theme}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
       {/* Global leaderboard across all tournaments. The archive of finished
           events (Past events) now lives in the leaderboard's footer row, so it

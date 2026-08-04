@@ -117,6 +117,9 @@ export function rowToTournament(r: any): Tournament {
     // Only expose a derived boolean; the raw join_password is server-side only
     // and must never be copied into the public domain object / API responses.
     joinProtected: r.join_password != null && String(r.join_password).trim() !== '',
+    // Tolerate the column being absent (pre-migration 025): null falls back to
+    // the default arena background at the render site.
+    heroImage: typeof r.hero_image === 'string' && r.hero_image.trim() ? r.hero_image : null,
     createdAt: r.created_at,
   }
 }
