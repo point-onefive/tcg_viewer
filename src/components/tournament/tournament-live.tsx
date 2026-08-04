@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, ExternalLink, Gift, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, ExternalLink, Gift, Globe, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
 import {
   apiActiveSnapshot,
@@ -369,28 +369,37 @@ function ScheduleNote({
   }
   return (
     <div
-      className="mt-5 flex flex-col gap-1.5 rounded-md p-3.5 sm:flex-row sm:items-center sm:gap-3"
+      className="mt-5 flex flex-col gap-3 rounded-md p-3.5"
       style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)' }}
     >
-      <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-        <Clock size={15} style={{ color: 'var(--bonk-purple)', flexShrink: 0 }} aria-hidden />
-        {formatDuration(roundMinutes)} per round
-        {roundsLabel && (
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
-        )}
-      </span>
-      <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-        Generous round limits to fit a global schedule.
-      </span>
-      {isPaid && (
-        <span
-          className="inline-flex items-start gap-1.5 text-xs sm:ml-auto"
-          style={{ color: '#f59e0b', lineHeight: 1.5 }}
-        >
-          <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
-          Rounds have a hard deadline. Miss your match and you&apos;re dropped (counts as a
-          no-show and can lower your reliability).
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+          <Clock size={15} style={{ color: 'var(--bonk-purple)', flexShrink: 0 }} aria-hidden />
+          {formatDuration(roundMinutes)} per round
+          {roundsLabel && (
+            <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
+          )}
         </span>
+        <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          Generous round limits to fit a global schedule.
+        </span>
+      </div>
+      {isPaid && (
+        <div
+          className="flex items-start gap-2 rounded-md px-3 py-2.5 text-xs"
+          style={{
+            color: '#f59e0b',
+            lineHeight: 1.5,
+            background: 'color-mix(in srgb, #f59e0b 8%, transparent)',
+            border: '1px solid color-mix(in srgb, #f59e0b 22%, transparent)',
+          }}
+        >
+          <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
+          <span>
+            Rounds have a hard deadline. Miss your match and you&apos;re dropped (counts as a
+            no-show and can lower your reliability).
+          </span>
+        </div>
       )}
     </div>
   )
@@ -3043,16 +3052,35 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                   checking={deckChecking}
                   game={tournament.game}
                 />
-                <RegionPicker
-                  value={regionDraft}
-                  onChange={setRegionDraft}
-                  disabled={busy}
-                  hint={
-                    tournament.isPaid && tournament.lobbyRegion
-                      ? `This is an ${regionShort(tournament.lobbyRegion)}-only lobby. Your region is an eligibility requirement to join, not just for scheduling.`
-                      : 'Helps us plan events around your time zone.'
-                  }
-                />
+                {/* The region picker is a first-time aid: only prompt when the
+                    profile has no region yet. A returning player who already
+                    declared one isn't re-asked - we show a small FYI line and
+                    submit that region silently. Region-locked lobbies keep the
+                    interactive picker since region is an eligibility gate there,
+                    not just a scheduling hint. */}
+                {(!profile.region || (tournament.isPaid && tournament.lobbyRegion)) ? (
+                  <RegionPicker
+                    value={regionDraft}
+                    onChange={setRegionDraft}
+                    disabled={busy}
+                    hint={
+                      tournament.isPaid && tournament.lobbyRegion
+                        ? `This is an ${regionShort(tournament.lobbyRegion)}-only lobby. Your region is an eligibility requirement to join, not just for scheduling.`
+                        : 'Helps us plan events around your time zone.'
+                    }
+                  />
+                ) : (
+                  <div className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+                    <Globe size={13} style={{ flexShrink: 0 }} aria-hidden />
+                    <span className="text-xs">
+                      Region:{' '}
+                      <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
+                        {regionShort(profile.region)}
+                      </span>{' '}
+                      (from your profile)
+                    </span>
+                  </div>
+                )}
                 {tournament.isPaid &&
                   tournament.lobbyRegion &&
                   regionDraft &&
