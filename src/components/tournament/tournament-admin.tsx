@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, Award, Check, ChevronDown, Clock, Coins, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, KeyRound, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
+import { TournamentBreadcrumb } from './tournament-breadcrumb'
 import {
   adminApi,
   apiActiveSnapshot,
@@ -773,6 +774,21 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
   return (
     <TournamentShell>
       <div className="mx-auto max-w-2xl flex flex-col gap-6">
+        <TournamentBreadcrumb
+          items={
+            isPaidMode
+              ? [
+                  { label: 'Tournaments', href: '/tournaments' },
+                  { label: 'Paid', href: '/tournaments/paid' },
+                  { label: 'Admin' },
+                ]
+              : [
+                  { label: 'Tournaments', href: '/tournaments' },
+                  { label: 'Sponsored', href: '/tournaments/sponsored' },
+                  { label: 'Admin' },
+                ]
+          }
+        />
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {isPaidMode ? (

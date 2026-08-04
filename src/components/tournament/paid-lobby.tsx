@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Coins, Trophy, Users, ArrowRight, AlertTriangle } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
+import { TournamentBreadcrumb } from './tournament-breadcrumb'
 import { BonkModuleHeader } from './bonk-ui'
 import { SegmentBar } from './paid-progress-bar'
 import { apiPaidGames, apiRefundableStakes } from '@/lib/tournament/client'
@@ -308,6 +309,9 @@ export function PaidLobby() {
       {/* Centered column so a handful of lobbies read as a deliberate, tidy
           block instead of stranded top-left. Mobile-first: one centered card. */}
       <div className="mx-auto" style={{ maxWidth: 1040 }}>
+        <TournamentBreadcrumb
+          items={[{ label: 'Tournaments', href: '/tournaments' }, { label: 'Paid' }]}
+        />
         <NeedsActionCard stakes={refundable} />
         <div className="overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
           <BonkModuleHeader

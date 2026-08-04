@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Lock, ScrollText, ShieldCheck } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
+import { TournamentBreadcrumb } from './tournament-breadcrumb'
 import { BonkModuleHeader } from '@/components/tournament/bonk-ui'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { PlayerAvatar } from '@/components/wallet/player-avatar'
@@ -78,6 +79,14 @@ export function PaidDeckAudit({ code }: { code: string }) {
   return (
     <TournamentShell theme={theme}>
       <div className="mx-auto max-w-3xl">
+        <TournamentBreadcrumb
+          items={[
+            { label: 'Tournaments', href: '/tournaments' },
+            { label: 'Paid', href: '/tournaments/paid' },
+            { label: audit.name || 'Game', href: `/tournaments/paid/${encodeURIComponent(code)}` },
+            { label: 'Deck check' },
+          ]}
+        />
         <Link
           href={`/tournaments/paid/${encodeURIComponent(code)}`}
           className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold"

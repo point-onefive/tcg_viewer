@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { AlertTriangle, CalendarClock, Camera, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, ExternalLink, Gift, Globe, Hash, Hourglass, ListChecks, Loader2, LogOut, PieChart, Swords, Trophy, UserPlus, Users, X } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
+import { TournamentBreadcrumb } from './tournament-breadcrumb'
 import {
   apiActiveSnapshot,
   apiSnapshotByCode,
@@ -2851,6 +2852,17 @@ export function TournamentLive({ code }: { code?: string } = {}) {
   return (
     <TournamentShell hero={<BonkHero theme={theme} title={paidHeroTitle} subhead={paidHeroSubhead} sceneImage={paidHeroImage} />} theme={theme}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
+      <TournamentBreadcrumb
+        items={
+          tournament.isPaid
+            ? [
+                { label: 'Tournaments', href: '/tournaments' },
+                { label: 'Paid', href: '/tournaments/paid' },
+                { label: tournament.name },
+              ]
+            : [{ label: 'Tournaments', href: '/tournaments' }, { label: 'Sponsored' }]
+        }
+      />
       {/* Global leaderboard across all tournaments. The archive of finished
           events (Past events) now lives in the leaderboard's footer row, so it
           reads as a deliberate companion action instead of floating loose. */}

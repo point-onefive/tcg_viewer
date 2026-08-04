@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Hash, Loader2, Swords, Trophy, Users } from 'lucide-react'
 import { TournamentShell } from './tournament-shell'
+import { TournamentBreadcrumb } from './tournament-breadcrumb'
 import {
   BonkFooter,
   BonkHero,
@@ -139,6 +140,13 @@ export function PastTournamentView({ code }: { code: string }) {
   return (
     <TournamentShell theme={theme} hero={<BonkHero theme={theme} />}>
       <div className="mx-auto" style={{ maxWidth: 1080 }}>
+        <TournamentBreadcrumb
+          items={[
+            { label: 'Tournaments', href: '/tournaments' },
+            { label: 'History', href: '/tournaments/history' },
+            { label: tournament.name || 'Results' },
+          ]}
+        />
         <div className="mb-4">{backLink}</div>
 
         {/* Event hero - themed module card, mirroring the live event header. */}
