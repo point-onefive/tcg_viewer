@@ -181,10 +181,15 @@ function LobbyHero() {
   return (
     <section className="bonk-hero" aria-label="Paid tournaments">
       <div aria-hidden className="bonk-hero__glow" />
+      <div
+        aria-hidden
+        className="tcw-hero-scene"
+        style={{ backgroundImage: 'url(/tournaments/paid-hero.webp)' }}
+      />
       <div className="bonk-hero__wrap">
         <div className="bonk-hero__inner">
           <div className="bonk-hero__copy">
-            <span className="bonk-hero__badge bonk-mono">Always open · USDC on Base</span>
+            <span className="bonk-hero__badge bonk-mono">Open on demand · USDC on Base</span>
             <h1 className="bonk-hero__title bonk-display">Paid Tournaments</h1>
             <p className="bonk-hero__sub">
               Fund your entry in USDC, compete, and the smart-contract escrow pays the winners

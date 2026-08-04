@@ -311,3 +311,98 @@ multi-day international one.
   stake does the heavy lifting in paid events.
 - Scheduling tie-in: ignoring all of an opponent's proposed times (schedule
   proposals) should count toward the no-show signal, against the non-responder.
+
+---
+
+## Community-voted "open the next table"
+
+Status: IDEA (captured 2026-08-04).
+
+Goal: paid tables open on demand by the operator (the default, deliberate model,
+each table is a manual, optionally password-gated spin-up). But let players
+signal demand so popular stake/format combos spin up without the operator
+guessing. Motivating case: 16 players already in a $10 lobby also want a second
+$10 table opened; they vote, and it either auto-spins or pings the operator to
+one-tap open it.
+
+### Two flavors (pick per rollout)
+
+- Advisory (recommended first): votes surface demand in the admin panel; the
+  operator one-taps "open a table like this". Keeps a human in the loop, matches
+  the manual-open model, and removes any incentive to game an auto-spawner into
+  flooding escrow games.
+- Auto-spin: crossing a threshold (N distinct wallets) auto-creates a lobby from
+  a preset. Only consider after the advisory flow is proven, and only counting
+  distinct approved/funded wallets so it can't be brigaded.
+
+### Design notes
+
+- Reuse the existing poll primitive. We already have per-tournament polls
+  (`PollCard`, poll votes with per-browser dedupe). A "next table" poll type, or
+  a small `table_requests` / `table_votes` table keyed by (template, wallet),
+  slots in cleanly.
+- Vote over operator-defined table TEMPLATES, not free-form config. A template
+  bundles stake, format (Swiss / single-elim), payout preset, round length, and
+  region. Bounding the choices bounds both the UX and the anti-gaming surface.
+- Anti-gaming: votes must be wallet-gated (SIWE), one per wallet; any auto-spin
+  threshold counts distinct wallets (ideally with a funded/approved history),
+  never raw taps; rate-limit table creation regardless.
+- Ties into existing features: a voted table can inherit a region requirement
+  (Decision 4 above) and an optional join code, so "APAC $10 Swiss" is one tap.
+
+---
+
+## Maximize useful on-chain data (decklists, match history, results)
+
+Status: IDEA (captured 2026-08-04).
+
+Goal: get as much useful, verifiable tournament data on-chain as makes sense
+(decklist commitments, pairings, per-match results, final standings) so outcomes
+are provably fair and independently auditable, not just trusted DB rows.
+
+### The enabling fact
+
+The escrow is UUPS-upgradeable, so we can ADD on-chain data surfaces later
+without redeploying or migrating funds. Today the contract intentionally holds
+only money-critical state (games, deposits, approved winners); everything else
+(decklists, matches, standings) lives off-chain in Supabase. Nothing about the
+current design blocks going more on-chain later.
+
+### Core pattern: commit hashes on-chain, keep payloads off-chain
+
+On-chain storage/calldata is expensive, so do NOT put bulky data on-chain. Store
+a COMMITMENT (keccak256 hash) on-chain and keep the payload off-chain (Supabase,
+or cheap DA like IPFS / Arweave / an EIP-4844 blob). Anyone can re-hash the
+revealed payload and check it matches the chain. Cheap, gas-bounded, and provable.
+
+- Decklists: hash-commit at approval/lock. We already lock decklists immutably at
+  approval (`deck_locked_at`) and reveal plaintext only when the event is
+  `complete` (the public deck-audit view). An on-chain `commitDeck(gameId,
+  player, keccak256(decklist))` makes "the deck revealed after the event is
+  exactly the one locked before it" cryptographically verifiable, killing the
+  deck-swap vector without paying to store ~50 card ids per player.
+- Match history / results: emit events for pairings and reported results (events
+  are the cheapest durable on-chain record and are trivially indexed by a
+  subgraph), and/or write a single results-root hash at settle
+  (`commitResults(gameId, keccak256(canonical standings JSON))`).
+
+### The honest limit (important)
+
+On-chain can only attest to what WE submit; it cannot independently verify the
+off-chain game. OPTCG Sim has no signed match API today (see the combat-log ask
+in the paid-tournaments doc). So "fully on-chain results" realistically means an
+on-chain commitment to our operator/approver-signed reported results, plus
+verifiable deck commitments, not independent match provenance. If OPTCG Sim ever
+exposes a server-signed match hash, we could commit THAT on-chain too and get
+true end-to-end provenance. Until then, deck-commitment + signed-result-commit is
+the strongest honest guarantee.
+
+### Build sketch (whenever we start)
+
+- A UUPS upgrade adding `commitDeck` / `commitResults` (+ events); no storage
+  layout risk if appended after `__gap`.
+- `escrow-write.ts`: commit deck hashes at lock, results root at settle (operator
+  key, same autopilot path).
+- Verify surface: extend `/tools/deck-check` to also check the revealed decklist
+  against the on-chain hash, so the existing "provably fair" link becomes literally
+  provable.

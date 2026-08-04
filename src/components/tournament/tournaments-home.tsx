@@ -338,7 +338,7 @@ export function TournamentsHome() {
       className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] tabular-nums"
       style={{ background: 'rgba(34,197,94,0.16)', color: '#22c55e' }}
     >
-      {openCount > 0 ? `${openCount} open` : 'Always open'}
+      {openCount > 0 ? `${openCount} open` : 'Open on demand'}
     </span>
   )
 
