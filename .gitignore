@@ -39,3 +39,11 @@ tsconfig.tsbuildinfo
 
 # Preview role-play bot tokens (throwaway, preview-only)
 .preview-bot-tokens.json
+
+# Demo harness state (throwaway bot wallet keys, so --cleanup can sweep gas)
+scripts/tournament/.demo-state.json
+
+# Rehearsal runner state (throwaway bot wallet keys, so --cleanup can sweep)
+scripts/tournament/.rehearsal-state.json
+
+.mainnet-rehearsal-wallets.json

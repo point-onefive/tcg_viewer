@@ -640,27 +640,66 @@ apply once the escrow is deployed and configured.
 ## 15. Pre-mainnet hardening checklist
 
 Items surfaced by the 5-way audit that need a contract redeploy or a broader
-design change, so they are deliberately deferred to before mainnet. They are NOT
-implemented yet. Each line is the item plus its one-line audit rationale.
+design change. Status is tracked inline. Most are now IMPLEMENTED (contract +
+app); the remaining item is deploy-time governance config, not code.
 
-- **On-chain deposit allowlist + winners-must-be-approved.** Deposits are
-  permissionless and `settle` accepts any funded wallet as a winner, so a
-  compromised operator that deposits into a game could settle its own wallet and
-  take a pot share. An on-chain approval allowlist (only approved wallets can be
-  named winners) removes the operator's ability to pay itself. This is the
-  mitigation referenced by the operator comments in `TournamentEscrow.sol` and
-  `src/lib/tournament/escrow-write.ts`.
-- **`!refunded` re-deposit guard in the contract.** A player who was refunded
-  can currently re-deposit in edge flows; a contract-level guard should block a
-  refunded seat from being re-funded without an explicit re-approval.
-- **Higher confirmation depth for deposit verification.** Deposit confirmation
-  reads the chain at a shallow depth; raise the required confirmations before
-  flipping `funded` to reduce reorg risk on mainnet.
-- **Operator results-oracle / multisig owner.** Move the owner to a Safe/hardware
-  multisig and separate the results-submission authority from the hot operator
-  key so no single hot key can both run and settle games.
-- **Enroll rate-limiting.** The enroll route has no per-wallet / per-IP rate
-  limit; add one to blunt spam and griefing of open lobbies.
-- **Do not count pending applicants toward the cap.** The enroll cap currently
-  counts pending (unapproved) applicants, which can let pending sign-ups block
-  real entrants; count only approved/funded seats toward the cap for paid games.
+- **[DONE] On-chain winner allowlist + winners-must-be-approved.** `settle` now
+  reverts unless every named winner is on the per-game approved-winner set
+  (`approvedWinner[gameId][wallet]`), and only a SEPARATE `approver` role can add
+  to that set (`setApproved` / `setApprovedMany`, gated by the `onlyApprover`
+  modifier on `_effectiveApprover()`). The `approver` is set by the owner via
+  `setApprover`; when unset it falls back to `owner()`, so an upgraded proxy is
+  safe by default. Because approving is NOT an operator power, a compromised
+  operator that deposited into a game cannot settle its own wallet (it cannot
+  approve itself). App side: `adminApprovePlayer` / `adminApproveAllPending`
+  mirror the approval on-chain via `approveWinnerOnchain` / `approveWinnersOnchain`
+  in `escrow-write.ts`, signed with the separate `TOURNAMENT_ESCROW_APPROVER_KEY`.
+- **[DONE] `!refunded` re-deposit guard in the contract.** `deposit` /
+  `depositWithPermit` now revert `AlreadyRefunded()` if the wallet was already
+  refunded for that game. `refundPlayer` and `withdraw` also clear the wallet's
+  winner approval. The documented bypass: the approver can call
+  `setApproved(id, wallet, true)`, which clears the refund flag to deliberately
+  re-admit a wallet.
+- **[DONE] Higher confirmation depth for deposit verification.**
+  `minConfirmations()` in `escrow.ts` is now chain-aware: default 12 on Base
+  mainnet, 5 on Base Sepolia, and mainnet is FLOORED at 10 regardless of the
+  `TOURNAMENT_ESCROW_MIN_CONFIRMATIONS` env value (a too-shallow depth could seat
+  an unpaid player after a reorg). `verifyDeposit` / `confirmDeposit` honor it.
+- **[DONE] Enroll rate-limiting.** `POST /api/tournaments/:code/enroll` now runs
+  a DB-backed per-wallet + per-IP sliding-window limiter
+  (`src/lib/tournament/rate-limit.ts`, ledger table `enroll_attempts` from
+  migration `023_enroll_rate_limit.sql`) and returns a 429 on bursts. Best-effort:
+  a missing table or query error allows the enroll, so it never blocks a legit
+  single sign-up.
+- **[DONE] Do not count pending applicants toward the cap.** For PAID games the
+  enroll cap now counts only approved seats (funded implies approved), so pending
+  / unapproved applicants can no longer block real entrants. Free / featured
+  events are unchanged (pending still occupies a slot there).
+- **[REMAINING - deploy-time, not code] Multisig owner / governance.** Move the
+  owner (upgrade + pause + rescue + setApprover authority) to a Safe / hardware
+  multisig before real volume. The results-submission authority is already
+  separated in code (operator vs the new approver role); this remaining step is
+  purely deploy-time key management and needs no contract change.
+
+### 15.1 Roles and keys after the hardening upgrade
+
+There are now FOUR on-chain roles, deliberately separable onto distinct keys:
+
+| Role | Powers | App env |
+| --- | --- | --- |
+| `owner` (cold) | upgrade, pause/unpause, rescue, setPlatform, setOperator, setApprover | `TOURNAMENT_ESCROW_OWNER_KEY` (optional; only enables admin pause/unpause) |
+| `operator` (hot) | createGame, lock, settle, cancelGame, refundPlayer | `TOURNAMENT_ESCROW_OPERATOR_KEY` |
+| `approver` (hot, SEPARATE) | setApproved / setApprovedMany (winner allowlist) | `TOURNAMENT_ESCROW_APPROVER_KEY` |
+| `platform` | receives + claims the rake | (address only) |
+
+The mitigation only holds if `TOURNAMENT_ESCROW_APPROVER_KEY` is a DIFFERENT key
+than `TOURNAMENT_ESCROW_OPERATOR_KEY`. `isApproverSameAsOperator()` in
+`escrow-write.ts` can be used to warn if they collide.
+
+Operational note: after upgrading the proxy, paid autopilot settle now REQUIRES
+that winners are on the on-chain allowlist. With the approver key configured this
+happens automatically at admin-approve time (well before settle). If the approver
+key is unset, the off-chain approval still succeeds but nothing is mirrored
+on-chain, so `settle` would revert until a wallet that is the effective approver
+(the owner, until `setApprover` is called) approves the winners. Configure the
+approver key as part of enabling paid games post-upgrade.

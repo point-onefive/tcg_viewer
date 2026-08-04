@@ -1,11 +1,6 @@
-import type { Metadata } from 'next'
-import { TournamentAdmin } from '@/components/tournament/tournament-admin'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
-  title: 'Tournament admin · The Card Wall',
-  robots: { index: false, follow: false },
-}
-
-export default function TournamentAdminPage() {
-  return <TournamentAdmin />
+// Moved: the featured admin console now lives at /tournaments/sponsored/admin.
+export default function TournamentAdminRedirect() {
+  redirect('/tournaments/sponsored/admin')
 }

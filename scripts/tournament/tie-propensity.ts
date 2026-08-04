@@ -58,10 +58,10 @@ function simOne(n: number, rounds: number) {
     for (const [a, b] of pairings) {
       mnum++
       if (b == null) {
-        matches.push({ id: `m${mnum}`, roundId: `r${r}`, tournamentId: 't', number: mnum, player1Id: a, player2Id: null, status: 'bye', player1Report: null, player2Report: null, winnerId: a, scheduledAt: null, reportedAt: null, resolvedAt: null })
+        matches.push({ id: `m${mnum}`, roundId: `r${r}`, tournamentId: 't', number: mnum, player1Id: a, player2Id: null, status: 'bye', player1Report: null, player2Report: null, winnerId: a, scheduledAt: null, reportedAt: null, resolvedAt: null, disputeLogUrl: null, disputeLogText: null, disputeLogBy: null, disputeLogAt: null })
       } else {
         const winner = Math.random() < 0.5 ? a : b
-        matches.push({ id: `m${mnum}`, roundId: `r${r}`, tournamentId: 't', number: mnum, player1Id: a, player2Id: b, status: 'confirmed', player1Report: null, player2Report: null, winnerId: winner, scheduledAt: null, reportedAt: null, resolvedAt: null })
+        matches.push({ id: `m${mnum}`, roundId: `r${r}`, tournamentId: 't', number: mnum, player1Id: a, player2Id: b, status: 'confirmed', player1Report: null, player2Report: null, winnerId: winner, scheduledAt: null, reportedAt: null, resolvedAt: null, disputeLogUrl: null, disputeLogText: null, disputeLogBy: null, disputeLogAt: null })
       }
     }
   }

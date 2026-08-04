@@ -417,8 +417,16 @@ export function PaidNeedsAttentionCard({
   const [confirmPause, setConfirmPause] = useState(false)
   const busyAny = busy || localBusy
 
-  const { disputes, settleStuck, cancelled, ownerKeyConfigured, operatorConfigured, lowGas } =
-    attention
+  const {
+    disputes,
+    settleStuck,
+    cancelled,
+    ownerKeyConfigured,
+    operatorConfigured,
+    approverConfigured,
+    approverSameAsOperator,
+    lowGas,
+  } = attention
   const clear = disputes.length === 0 && settleStuck.length === 0 && cancelled.length === 0
 
   async function call(body: Record<string, unknown>, okMsg: string) {
@@ -530,6 +538,29 @@ export function PaidNeedsAttentionCard({
           the operator key is set.
         </p>
       )}
+
+      {!approverConfigured ? (
+        <p
+          className="text-xs flex items-start gap-1.5 rounded-md px-3 py-2"
+          style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}
+          role="alert"
+        >
+          <AlertTriangle size={13} style={{ color: '#f87171', flexShrink: 0, marginTop: 1 }} />
+          Winner-approval key is NOT configured. Player approvals will not reach the chain, and
+          settlement will revert. Set TOURNAMENT_ESCROW_APPROVER_KEY (a wallet distinct from the
+          operator) before approving anyone.
+        </p>
+      ) : approverSameAsOperator ? (
+        <p
+          className="text-xs flex items-start gap-1.5 rounded-md px-3 py-2"
+          style={{ background: 'rgba(245,179,1,0.12)', border: '1px solid rgba(245,179,1,0.4)', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}
+          role="alert"
+        >
+          <AlertTriangle size={13} style={{ color: '#f5b301', flexShrink: 0, marginTop: 1 }} />
+          Approver key equals the operator key. The anti-self-pay protection is disabled. Use a
+          distinct approver wallet.
+        </p>
+      ) : null}
 
       {lowGas.length > 0 && (
         <div className="flex flex-col gap-1">

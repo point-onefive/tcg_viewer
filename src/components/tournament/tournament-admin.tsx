@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Award, Check, ChevronDown, Clock, Coins, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
+import { AlertTriangle, Award, Check, ChevronDown, Clock, Coins, Copy, Crown, ExternalLink, Gift, Hourglass, ImagePlus, KeyRound, ListChecks, Loader2, LogOut, Medal, Palette, PieChart, Plus, Search, Swords, Trash2, Trophy, Upload, Users, X } from 'lucide-react'
 import { computeStandings } from '@/lib/tournament/pairing'
 import { TournamentShell } from './tournament-shell'
 import {
@@ -173,9 +173,9 @@ const ROUND_PRESETS: { label: string; value: number; unit: 'min' | 'hour' }[] = 
 
 /**
  * Two-mode admin console, one component, two routes:
- *  - `featured` (/tournaments/admin): the sponsored/featured event. Start-fresh
- *    form + featured-event management + the next-event waitlist.
- *  - `paid` (/tournaments/play/admin): the always-on paid lobbies. Create-paid
+ *  - `featured` (/tournaments/sponsored/admin): the sponsored/featured event.
+ *    Start-fresh form + featured-event management + the next-event waitlist.
+ *  - `paid` (/tournaments/paid/admin): the always-on paid lobbies. Create-paid
  *    form + a switcher over open paid games + management of the selected one.
  * The two surfaces are deliberately separate so the sponsored flow and the
  * paid flow never get mixed up. All the shared management chrome (approvals,
@@ -215,7 +215,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
   const [themeId, setThemeId] = useState<string>('')
   const [formError, setFormError] = useState<string | null>(null)
 
-  // Create-paid-game form (always-on /tournaments/play surface). Independent of
+  // Create-paid-game form (always-on /tournaments/paid surface). Independent of
   // the featured event, so creating one never touches the live tournament.
   const [paidName, setPaidName] = useState('')
   const [paidEntry, setPaidEntry] = useState('10') // dollars
@@ -228,6 +228,8 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
   const [paidRoundUnit, setPaidRoundUnit] = useState<'min' | 'hour'>('hour')
   // Optional per-lobby region lock. '' = Open (no requirement).
   const [paidLobbyRegion, setPaidLobbyRegion] = useState<'' | Region>('')
+  // Optional shared join code (room passcode). '' = open lobby (no code).
+  const [paidJoinCode, setPaidJoinCode] = useState('')
   const [paidThemeId, setPaidThemeId] = useState<string>('')
   const [paidFormError, setPaidFormError] = useState<string | null>(null)
   const [paidBusy, setPaidBusy] = useState(false)
@@ -434,6 +436,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
     roundMinutes: number
     theme?: string
     lobbyRegion?: Region | null
+    joinPassword?: string | null
   }) {
     setPaidBusy(true)
     setPaidFormError(null)
@@ -442,6 +445,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
       setPaidCreatedCode(r.code ?? null)
       setMsg(`Paid game created: ${r.code}`)
       setPaidName('')
+      setPaidJoinCode('')
     } catch (e) {
       setPaidFormError(e instanceof Error ? e.message : 'Could not create paid game.')
     } finally {
@@ -477,6 +481,11 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
   // tab; dropped fall out of the roster entirely (they're out of the event).
   const pending = players.filter((p) => p.approvalStatus === 'pending' && !p.dropped)
   const approved = players.filter((p) => p.approvalStatus === 'approved' && !p.dropped)
+  // Paid events only seat funded entrants, so gate "Start round 1" on funded
+  // approved players (not just approved) to avoid a server error for
+  // approved-but-unfunded rosters. Featured events have no funding step.
+  const fundedApproved = approved.filter((p) => p.funded)
+  const canStartRound1 = isPaidMode ? fundedApproved.length >= 2 : approved.length >= 2
   const rejected = players.filter((p) => p.approvalStatus === 'rejected')
   const active = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
   // Approved players still owing a deck list block the bracket start.
@@ -757,7 +766,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
         {/* Cross-link to the other admin surface, so the sponsored and paid
             consoles stay clearly separate but one hop apart. */}
         <Link
-          href={isPaidMode ? '/tournaments/admin' : '/tournaments/play/admin'}
+          href={isPaidMode ? '/tournaments/sponsored/admin' : '/tournaments/paid/admin'}
           className="inline-flex items-center gap-1.5 self-start text-xs font-bold"
           style={{ color: 'var(--tcw-accent)' }}
         >
@@ -999,7 +1008,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
             </form>
             )}
 
-            {/* Create paid game - paid console only. Always-on /tournaments/play
+            {/* Create paid game - paid console only. Always-on /tournaments/paid
                 surface, separate from the featured event: creating one never
                 takes the live event offline, and you can open as many as you
                 want. Swiss only (the hard-deadline autopilot is built for it). */}
@@ -1045,6 +1054,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                   roundMinutes,
                   theme: paidThemeId || undefined,
                   lobbyRegion: paidLobbyRegion || null,
+                  joinPassword: paidJoinCode.trim() || null,
                 })
               }}
             >
@@ -1053,7 +1063,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                 <h3 className="font-display font-bold">Create paid game</h3>
               </div>
               <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                Opens an always-on entry-fee game on the /tournaments/play lobby. Players
+                Opens an always-on entry-fee game on the /tournaments/paid lobby. Players
                 register and pay; you approve them, then start it and it runs on autopilot
                 (hard round deadlines, auto-payout). Does not affect the featured event.
               </p>
@@ -1061,7 +1071,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
 
               <div className="grid grid-cols-2 gap-2">
                 <PositiveIntInput label="Entry ($ USDC)" value={paidEntry} onChange={setPaidEntry} placeholder="10" />
-                <PositiveIntInput label="Rake (%)" value={paidRakePct} onChange={setPaidRakePct} placeholder="15" />
+                <PositiveIntInput label="Platform fee (%)" value={paidRakePct} onChange={setPaidRakePct} placeholder="15" />
               </div>
 
               <div>
@@ -1165,6 +1175,25 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                 </div>
               </div>
 
+              {/* Optional shared join code (a room passcode). Leave blank for an
+                  open lobby; set a code to share the lobby privately. */}
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Join code (optional)
+                </span>
+                <input
+                  style={inputStyle}
+                  value={paidJoinCode}
+                  onChange={(e) => setPaidJoinCode(e.target.value)}
+                  placeholder="e.g. APAC-2024"
+                  autoComplete="off"
+                />
+                <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                  Leave blank for an open lobby. Set a code to share privately (e.g. with your
+                  APAC group) - only players who enter it can register.
+                </p>
+              </div>
+
               <div>
                 <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                   <Palette size={12} style={{ color: 'var(--tcw-accent)' }} /> Page theme (optional)
@@ -1190,7 +1219,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
 
               {paidCreatedCode && (
                 <p className="text-xs" style={{ color: '#22c55e' }}>
-                  Created <strong>{paidCreatedCode}</strong> - live at /tournaments/play/{paidCreatedCode}
+                  Created <strong>{paidCreatedCode}</strong> - live at /tournaments/paid/{paidCreatedCode}
                 </p>
               )}
               {paidFormError && (
@@ -1399,7 +1428,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                           Approve all pending
                         </AdminBtn>
                         <AdminBtn
-                          disabled={busy || approved.length < 2}
+                          disabled={busy || !canStartRound1}
                           primary
                           onClick={() => run(() => adminApi(adminKey, { action: 'start-bracket', code }).then(() => setMsg('Round 1 started')))}
                         >
@@ -1426,6 +1455,7 @@ export function TournamentAdmin({ mode = 'featured' }: { mode?: 'featured' | 'pa
                           )
                         }
                       />
+                      {isPaidMode && <JoinCodeEditor key={`jc-${code}`} adminKey={adminKey} code={code} />}
                     </>
                   )}
 
@@ -3752,6 +3782,104 @@ function MaxPlayersEditor({
   )
 }
 
+/**
+ * Paid-lobby "Join code" control. A join code is a SHARED room passcode (like a
+ * Zoom passcode) that players must enter to register for this specific lobby -
+ * it is NOT a per-user password. Fetches the current raw code (admin-only, via
+ * get-join-password) on load so the operator can re-share it, and lets them set
+ * a new code or clear it (reopen the lobby). Self-contained: does its own admin
+ * calls and messaging so it never fights the parent's shared busy/error state.
+ */
+function JoinCodeEditor({ adminKey, code }: { adminKey: string; code: string }) {
+  const [value, setValue] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setErr(null)
+    try {
+      const r = await adminApi(adminKey, { action: 'get-join-password', code })
+      setValue(r.joinPassword ?? '')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not load the join code.')
+    } finally {
+      setLoaded(true)
+    }
+  }, [adminKey, code])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  async function save(next: string | null) {
+    setSaving(true)
+    setErr(null)
+    setMsg(null)
+    try {
+      const r = await adminApi(adminKey, { action: 'set-join-password', code, password: next })
+      setMsg(
+        r.joinProtected
+          ? 'Join code set - share it privately with your group.'
+          : 'Join code cleared - the lobby is open to everyone.',
+      )
+      if (!r.joinProtected) setValue('')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not update the join code.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const trimmed = value.trim()
+
+  return (
+    <div
+      className="mt-4 px-3 py-3"
+      style={{ background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: 6 }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <KeyRound size={15} style={{ color: 'var(--tcw-accent)', flexShrink: 0 }} />
+        <span className="text-sm font-semibold">Join code</span>
+        <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+          {loaded ? (trimmed ? 'private lobby' : 'open lobby') : 'loading…'}
+        </span>
+      </div>
+      <input
+        style={inputStyle}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="No code (open lobby)"
+        autoComplete="off"
+        disabled={saving || !loaded}
+      />
+      <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)', lineHeight: 1.45 }}>
+        A shared passcode players must enter to register (e.g. share it with your APAC group).
+        Clear it to reopen the lobby to everyone.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <AdminBtn disabled={saving || !loaded} primary onClick={() => save(trimmed || null)}>
+          {trimmed ? 'Save code' : 'Save (open lobby)'}
+        </AdminBtn>
+        <AdminBtn disabled={saving || !loaded || !trimmed} onClick={() => save(null)}>
+          Clear code
+        </AdminBtn>
+      </div>
+      {msg && (
+        <p className="text-[11px] mt-2" style={{ color: '#22c55e' }}>
+          {msg}
+        </p>
+      )}
+      {err && (
+        <p className="text-[11px] mt-2" style={{ color: '#ef4444' }} role="alert">
+          {err}
+        </p>
+      )}
+    </div>
+  )
+}
+
 /** "90" -> "1h 30m", "48" stays "48m", "120" -> "2h". */
 function formatDuration(totalMinutes: number): string {
   if (totalMinutes < 60) return `${totalMinutes}m`
@@ -4309,6 +4437,47 @@ function AdminMatchRow({
           <span className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>
             {reportStatus.text}
           </span>
+        </div>
+      )}
+
+      {/* Dispute battle-log evidence (any tournament): a participant attached an
+          OPTCG Sim log for the organizer to read before picking a winner. */}
+      {(match.disputeLogUrl || match.disputeLogText) && (
+        <div
+          className="flex flex-col gap-1.5 rounded-md px-2.5 py-2"
+          style={{
+            background: 'color-mix(in srgb, #f59e0b 8%, var(--bg))',
+            border: '1px solid color-mix(in srgb, #f59e0b 28%, transparent)',
+          }}
+        >
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#f59e0b' }}>
+            Battle-log evidence
+          </span>
+          {match.disputeLogUrl && (
+            <a
+              href={match.disputeLogUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold break-all"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              <ExternalLink size={12} style={{ flexShrink: 0 }} />
+              {match.disputeLogUrl}
+            </a>
+          )}
+          {match.disputeLogText && (
+            <pre
+              className="max-h-40 overflow-auto whitespace-pre-wrap rounded p-2 text-[11px]"
+              style={{
+                background: 'var(--bg)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                fontFamily: 'var(--font-mono, monospace)',
+              }}
+            >
+              {match.disputeLogText}
+            </pre>
+          )}
         </div>
       )}
 

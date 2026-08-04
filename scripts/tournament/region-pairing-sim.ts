@@ -33,6 +33,7 @@ function mkPlayers(n: number, regions: (Region | null)[]): Player[] {
     depositTx: null,
     deckList: 'x',
     hasDeckList: true,
+    deckLockedAt: null,
     leaderCardId: null,
     leaderName: null,
     leaderImage: null,

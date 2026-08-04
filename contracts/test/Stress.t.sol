@@ -48,6 +48,17 @@ contract StressTest is Test {
         }
     }
 
+    /// Approve players[0..n) as eligible winners. Signed by the owner (the
+    /// effective approver while `approver` is unset); the operator cannot.
+    function _approveFunded(bytes32 id, uint256 n) internal {
+        address[] memory ws = new address[](n);
+        for (uint256 i = 0; i < n; i++) {
+            ws[i] = players[i];
+        }
+        vm.prank(owner);
+        escrow.setApprovedMany(id, ws, true);
+    }
+
     function _invariant() internal view {
         assertEq(
             usdc.balanceOf(address(escrow)),
@@ -101,6 +112,10 @@ contract StressTest is Test {
                 escrow.deposit(ids[g]);
                 totalIn += FEE;
             }
+            // Approve every funded player as an eligible winner (owner is the
+            // effective approver; approver is unset). The operator can settle
+            // but cannot approve, so this must happen here.
+            _approveFunded(ids[g], funds[g]);
             _invariant();
         }
 
@@ -190,6 +205,7 @@ contract StressTest is Test {
                 escrow.deposit(ids[g]);
                 totalIn += FEE;
             }
+            _approveFunded(ids[g], f);
             _invariant();
         }
 

@@ -23,17 +23,27 @@ import { isEscrowConfigured, escrowAddress, escrowChainId, EscrowNotConfiguredEr
 // single pot. It is NOT fully non-custodial, though: because deposits are
 // permissionless and settle accepts ANY funded wallet as a winner, a
 // compromised operator that itself deposits into a game could settle its own
-// wallet as a winner and take a share of that game's pot. The pre-mainnet
-// mitigation (an on-chain approval allowlist plus a winners-must-be-approved
-// check) is tracked in docs/paid-tournaments-escrow.md (see contracts/README.md).
+// wallet as a winner. That mitigation is now IMPLEMENTED: the contract only
+// pays winners on the per-game approved allowlist, and only the SEPARATE
+// approver role can add to it (see approveWinnerOnchain below). For the
+// mitigation to actually hold, TOURNAMENT_ESCROW_APPROVER_KEY MUST be a
+// different key than TOURNAMENT_ESCROW_OPERATOR_KEY.
 //
 // Gated on env: if TOURNAMENT_ESCROW_OPERATOR_KEY (or the base escrow env) is
 // missing, isOperatorConfigured() is false and every write is a no-op that
 // returns null, so the whole feature degrades gracefully to "off-chain only".
+// The approver key is independently gated the same way: when it is unset,
+// isApproverConfigured() is false and the on-chain approve is skipped (logged),
+// so the off-chain approval still succeeds - it just isn't mirrored on-chain,
+// which means settle would have to be done manually until the key is set.
 //
 // Env:
 //   TOURNAMENT_ESCROW_OPERATOR_KEY   0x-prefixed private key of the operator
 //                                    wallet (needs a little Base ETH for gas)
+//   TOURNAMENT_ESCROW_APPROVER_KEY   0x-prefixed private key of the SEPARATE
+//                                    approver wallet that signs winner approvals
+//                                    (also needs a little Base ETH for gas).
+//                                    MUST differ from the operator key.
 // ─────────────────────────────────────────────────────────────────────────
 
 const WRITE_ABI = [
@@ -98,6 +108,31 @@ const WRITE_ABI = [
     inputs: [],
     outputs: [],
   },
+  // Winner allowlist (approver-gated). Adding a wallet here is what makes it an
+  // eligible settle target - the separate approver key signs these, never the
+  // operator key, so a compromised operator can't approve (and pay) itself.
+  {
+    type: 'function',
+    name: 'setApproved',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'gameId', type: 'bytes32' },
+      { name: 'wallet', type: 'address' },
+      { name: 'ok', type: 'bool' },
+    ],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'setApprovedMany',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'gameId', type: 'bytes32' },
+      { name: 'wallets', type: 'address[]' },
+      { name: 'ok', type: 'bool' },
+    ],
+    outputs: [],
+  },
 ] as const
 
 const OPERATOR_KEY = () => process.env.TOURNAMENT_ESCROW_OPERATOR_KEY as Hex | undefined
@@ -107,18 +142,50 @@ const OPERATOR_KEY = () => process.env.TOURNAMENT_ESCROW_OPERATOR_KEY as Hex | u
 // stop lever and the pause controls degrade to unavailable. Keep this key OUT
 // of the hot path in production (a Safe/hardware signer is the eventual home).
 const OWNER_KEY = () => process.env.TOURNAMENT_ESCROW_OWNER_KEY as Hex | undefined
+// SEPARATE from the operator key on purpose. This is the ONLY key that can add
+// a wallet to a game's winner allowlist, so a leaked operator key still cannot
+// pay itself. It MUST differ from the operator key for the mitigation to hold.
+const APPROVER_KEY = () => process.env.TOURNAMENT_ESCROW_APPROVER_KEY as Hex | undefined
 const RPC_URL = () => process.env.TOURNAMENT_ESCROW_RPC_URL
+
+const KEY_RE = /^0x[0-9a-fA-F]{64}$/
 
 /** True when the escrow is configured AND we hold the operator key to sign. */
 export function isOperatorConfigured(): boolean {
   const k = OPERATOR_KEY()
-  return isEscrowConfigured() && typeof k === 'string' && /^0x[0-9a-fA-F]{64}$/.test(k)
+  return isEscrowConfigured() && typeof k === 'string' && KEY_RE.test(k)
 }
 
 /** True when the OPTIONAL owner key is present, enabling global pause/unpause. */
 export function isOwnerKeyConfigured(): boolean {
   const k = OWNER_KEY()
-  return isEscrowConfigured() && typeof k === 'string' && /^0x[0-9a-fA-F]{64}$/.test(k)
+  return isEscrowConfigured() && typeof k === 'string' && KEY_RE.test(k)
+}
+
+/** True when the escrow is configured AND we hold the SEPARATE approver key. */
+export function isApproverConfigured(): boolean {
+  const k = APPROVER_KEY()
+  return isEscrowConfigured() && typeof k === 'string' && KEY_RE.test(k)
+}
+
+/**
+ * True when the approver key is set but equals the operator key. In that case
+ * the winners-must-be-approved mitigation is defeated (the hot key that settles
+ * can also approve), so callers should surface a loud warning. Best-effort:
+ * derives both addresses and compares.
+ */
+export function isApproverSameAsOperator(): boolean {
+  const a = APPROVER_KEY()
+  const o = OPERATOR_KEY()
+  if (!a || !o || !KEY_RE.test(a) || !KEY_RE.test(o)) return false
+  try {
+    return (
+      privateKeyToAccount(a).address.toLowerCase() ===
+      privateKeyToAccount(o).address.toLowerCase()
+    )
+  } catch {
+    return false
+  }
 }
 
 function chain(): Chain {
@@ -136,6 +203,7 @@ function makePublic() {
 
 let _wallet: ReturnType<typeof makeWallet> | null = null
 let _ownerWallet: ReturnType<typeof makeWallet> | null = null
+let _approverWallet: ReturnType<typeof makeWallet> | null = null
 let _public: ReturnType<typeof makePublic> | null = null
 
 function wallet() {
@@ -148,6 +216,12 @@ function ownerWallet() {
   if (!isOwnerKeyConfigured()) throw new EscrowNotConfiguredError()
   if (!_ownerWallet) _ownerWallet = makeWallet(OWNER_KEY() as Hex)
   return _ownerWallet
+}
+
+function approverWallet() {
+  if (!isApproverConfigured()) throw new EscrowNotConfiguredError()
+  if (!_approverWallet) _approverWallet = makeWallet(APPROVER_KEY() as Hex)
+  return _approverWallet
 }
 
 function pub() {
@@ -168,6 +242,19 @@ async function send(
 ): Promise<Hex>
 async function send(functionName: string, args: readonly unknown[]): Promise<Hex> {
   return sendWith(wallet(), functionName, args)
+}
+
+/** Send one APPROVER write (winner allowlist), signed by the separate approver key. */
+async function sendApprover(
+  functionName: 'setApproved',
+  args: readonly [Hex, Address, boolean],
+): Promise<Hex>
+async function sendApprover(
+  functionName: 'setApprovedMany',
+  args: readonly [Hex, readonly Address[], boolean],
+): Promise<Hex>
+async function sendApprover(functionName: string, args: readonly unknown[]): Promise<Hex> {
+  return sendWith(approverWallet(), functionName, args)
 }
 
 /** Same as send() but signed by whichever wallet client is passed (operator or owner). */
@@ -240,6 +327,36 @@ export async function refundPlayerOnchain(escrowId: Hex, player: Address): Promi
 }
 
 /**
+ * Add (or remove) a single wallet on a game's winner allowlist, signed by the
+ * SEPARATE approver key. This is what makes an approved+funded player an
+ * eligible settle target. No-op returning null when the approver key is unset,
+ * so the off-chain approval flow never crashes on a missing key - it just isn't
+ * mirrored on-chain (settle would then need a manual approve first).
+ */
+export async function approveWinnerOnchain(
+  escrowId: Hex,
+  wallet: Address,
+  ok = true,
+): Promise<Hex | null> {
+  if (!isApproverConfigured()) return null
+  return sendApprover('setApproved', [escrowId, getAddress(wallet), ok])
+}
+
+/**
+ * Batch form: approve (or revoke) many wallets on a game's winner allowlist in
+ * one tx, signed by the approver key. Empty list or unset key returns null.
+ */
+export async function approveWinnersOnchain(
+  escrowId: Hex,
+  wallets: Address[],
+  ok = true,
+): Promise<Hex | null> {
+  if (!isApproverConfigured()) return null
+  if (wallets.length === 0) return null
+  return sendApprover('setApprovedMany', [escrowId, wallets.map((w) => getAddress(w)), ok])
+}
+
+/**
  * Global halt (owner-only on the contract). No-op returning null unless the
  * OPTIONAL owner key is configured, so the feature degrades to "per-game
  * cancel only" when the backend holds just the operator key.
@@ -257,7 +374,7 @@ export async function unpauseOnchain(): Promise<Hex | null> {
 
 /** One signer wallet whose native (gas) balance is below the low-gas floor. */
 export interface LowGasSigner {
-  role: 'operator' | 'owner'
+  role: 'operator' | 'owner' | 'approver'
   address: string
   balanceWei: string
 }
@@ -273,9 +390,10 @@ const LOW_GAS_FLOOR_WEI = BigInt('1000000000000000') // 0.001 ETH
  */
 export async function readLowGasSigners(): Promise<LowGasSigner[]> {
   const out: LowGasSigner[] = []
-  const roles: { role: 'operator' | 'owner'; key: Hex | undefined; on: boolean }[] = [
+  const roles: { role: 'operator' | 'owner' | 'approver'; key: Hex | undefined; on: boolean }[] = [
     { role: 'operator', key: OPERATOR_KEY(), on: isOperatorConfigured() },
     { role: 'owner', key: OWNER_KEY(), on: isOwnerKeyConfigured() },
+    { role: 'approver', key: APPROVER_KEY(), on: isApproverConfigured() },
   ]
   for (const r of roles) {
     if (!r.on || !r.key) continue

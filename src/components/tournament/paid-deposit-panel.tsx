@@ -277,9 +277,9 @@ export function PaidDepositPanel({
   if (!tournament.isPaid) return null
 
   const box: React.CSSProperties = {
-    border: '1px solid rgba(255,255,255,0.14)',
+    border: '1px solid var(--border-subtle)',
     borderRadius: 14,
-    background: 'rgba(0,0,0,0.28)',
+    background: 'var(--bg-surface)',
     padding: 16,
     marginBottom: 24,
   }
@@ -335,11 +335,11 @@ export function PaidDepositPanel({
   } else if (tournament.status === 'complete') {
     if (claimable && claimable > BigInt(0)) {
       body = (
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p style={{ margin: 0 }}>
             You won <strong>{formatUsdc(Number(claimable))}</strong>. Claim it to your wallet.
           </p>
-          <button style={btn} onClick={doClaim} disabled={busy}>
+          <button style={{ ...btn, whiteSpace: 'nowrap' }} onClick={doClaim} disabled={busy}>
             {busy ? 'Claiming…' : 'Claim winnings'}
           </button>
         </div>
@@ -362,7 +362,7 @@ export function PaidDepositPanel({
         <div className="flex items-center gap-2">
           {pendingHash && (
             <button
-              style={{ ...btn, background: 'transparent', color: 'inherit', border: '1px solid rgba(255,255,255,0.3)' }}
+              style={{ ...btn, background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
               onClick={() => verify(pendingHash)}
               disabled={busy}
             >

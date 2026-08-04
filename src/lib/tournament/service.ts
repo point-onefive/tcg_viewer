@@ -27,11 +27,15 @@ import {
 import {
   isOperatorConfigured,
   isOwnerKeyConfigured,
+  isApproverConfigured,
+  isApproverSameAsOperator,
   createGameOnchain,
   lockOnchain,
   settleOnchain,
   cancelGameOnchain,
   refundPlayerOnchain,
+  approveWinnerOnchain,
+  approveWinnersOnchain,
   pauseOnchain,
   unpauseOnchain,
   readLowGasSigners,
@@ -74,6 +78,8 @@ import type {
   AwardedPrize,
   PaidGameSummary,
   PaidNeedsAttention,
+  PaidDeckAudit,
+  PaidDeckAuditEntry,
 } from './types'
 import { formatXLabel, isValidXHandle, normalizeXHandle } from './x-handle'
 import { type Region, sanitizeRegion, regionShort } from './region'
@@ -329,6 +335,8 @@ export async function enroll(
   deckListRaw?: string | null,
   walletAddress?: string | null,
   region?: Region | null,
+  joinPassword?: string,
+  opts?: { bypassJoinGate?: boolean },
 ): Promise<EnrollResult> {
   const sb = getServiceClient()
   const row = await fetchTournamentRowByCode(code)
@@ -338,6 +346,28 @@ export async function enroll(
   if (row.enroll_closes_at && new Date(row.enroll_closes_at) <= new Date()) {
     throw new TournamentError('The sign-up window has ended.')
   }
+
+  // Optional per-tournament join code (a shared room passcode, like a Zoom
+  // passcode - NOT a per-user password). When a non-empty join_password is set
+  // on the row, the enroller must present the matching code. The stored value
+  // is read directly from the row (server-side only) and never surfaced in any
+  // public response. A trimmed string equality is fine here: this is a shared
+  // room code, not a per-user secret, so a constant-time compare is not needed.
+  // The trusted operator add-player path bypasses this gate (it is already
+  // admin-secret-gated).
+  if (!opts?.bypassJoinGate) {
+    const storedJoin = typeof row.join_password === 'string' ? row.join_password.trim() : ''
+    if (storedJoin !== '') {
+      const provided = typeof joinPassword === 'string' ? joinPassword.trim() : ''
+      if (!provided) {
+        throw new TournamentError('This tournament needs a join code. Ask the organizer for it.')
+      }
+      if (provided !== storedJoin) {
+        throw new TournamentError('That join code is not correct.')
+      }
+    }
+  }
+
   const xHandle = normalizeXHandle(xHandleRaw)
   if (!isValidXHandle(xHandle)) {
     throw new TournamentError('Enter a valid X handle (letters, numbers, underscore - no @ needed).')
@@ -355,9 +385,19 @@ export async function enroll(
 
   const players = await fetchPlayers(row.id)
   const cap = row.max_players ?? MAX_PLAYERS
-  // Dropped and rejected sign-ups don't occupy a slot.
-  const activeSignups = players.filter((p) => !p.dropped && p.approvalStatus !== 'rejected')
-  if (activeSignups.length >= cap) {
+  const isPaid = Boolean(row.escrow_id)
+  // Cap accounting differs by mode:
+  //  - Free/featured (unchanged): every non-dropped, non-rejected sign-up
+  //    occupies a slot, including pending ones.
+  //  - Paid: ONLY approved seats occupy the cap. In an always-on, open paid
+  //    lobby with approve-then-pay, a pending/unapproved applicant has not
+  //    committed anything, so counting them would let spam pending sign-ups
+  //    block real entrants. (Funded implies approved, so counting approved
+  //    already covers funded seats.)
+  const occupiesSlot = isPaid
+    ? (p: (typeof players)[number]) => !p.dropped && p.approvalStatus === 'approved'
+    : (p: (typeof players)[number]) => !p.dropped && p.approvalStatus !== 'rejected'
+  if (players.filter(occupiesSlot).length >= cap) {
     throw new TournamentError('This tournament is full.')
   }
   if (players.some((p) => p.xHandle === xHandle && p.approvalStatus !== 'rejected')) {
@@ -374,7 +414,6 @@ export async function enroll(
 
   // PAID-only fairness gates (Decisions 2 + 4). Free/featured events are never
   // affected: both branches short-circuit unless this is an escrow-linked game.
-  const isPaid = Boolean(row.escrow_id)
   if (isPaid) {
     // Per-lobby region lock: an open lobby (lobby_region null) admits everyone;
     // a region-locked lobby only admits its region. Eligibility only, never a
@@ -682,7 +721,7 @@ async function enforceRoundDeadlines(targetTournamentId?: string): Promise<numbe
 }
 
 /**
- * List open paid games for the always-on lobby (/tournaments/play). These are
+ * List open paid games for the always-on lobby (/tournaments/paid). These are
  * escrow-linked tournaments that are NOT the featured live event: paid games
  * carry `escrow_id` and `is_live = false`, so this never surfaces (or depends
  * on) the single featured event at /tournaments. Newest first, with a live
@@ -1750,10 +1789,20 @@ export async function adminPaidNeedsAttention(): Promise<PaidNeedsAttention> {
   const result: PaidNeedsAttention = {
     ownerKeyConfigured: isOwnerKeyConfigured(),
     operatorConfigured: isOperatorConfigured(),
+    // Winner-approval key health. Best-effort like the other key flags: a read
+    // failure defaults to the safe/loud value so the payload never crashes.
+    approverConfigured: false,
+    approverSameAsOperator: false,
     disputes: [],
     settleStuck: [],
     cancelled: [],
     lowGas: [],
+  }
+  try {
+    result.approverConfigured = isApproverConfigured()
+    result.approverSameAsOperator = isApproverSameAsOperator()
+  } catch {
+    /* key read/derive failed; leave the safe defaults (approver "not configured") */
   }
 
   // Low-gas signal for the configured signer wallets. Best-effort: a failed
@@ -2586,6 +2635,168 @@ export async function getSnapshotByCode(code: string): Promise<TournamentSnapsho
   }
 }
 
+// ── Public deck audit (paid games) ─────────────────────────────────────────
+
+/**
+ * Read-only, UNAUTHENTICATED deck-audit payload for a PAID tournament. Lists
+ * every competitor with their identity, final result, and (once revealed) their
+ * registered decklist so anyone can compare the committed list against a match
+ * replay. Two hard guarantees:
+ *
+ *   1. PAID-ONLY. If the tournament is free/featured (no escrow link) this
+ *      throws a 404, so free-event decks can NEVER leak through this endpoint.
+ *   2. GATED REVEAL. Deck contents are attached only when `decksPublic` is true.
+ *      Before then every entry's `deckList` is null and the UI shows the
+ *      "revealed when this event concludes" message.
+ */
+export async function getPaidDeckAudit(code: string): Promise<PaidDeckAudit> {
+  const row = await fetchTournamentRowByCode(code)
+  const tournament = rowToTournament(row)
+
+  // PAID-ONLY gate: never expose this surface for free/featured events.
+  if (!tournament.isPaid) {
+    throw new TournamentError('Deck audit is only available for paid games.', 404)
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // THE REVEAL GATE. Decklists are public ONLY once the event has concluded.
+  // Flip this single line to `true` (or to `tournament.status !== 'enrolling'`,
+  // etc.) to change when decks are revealed - e.g. reveal-at-start. Nothing
+  // else in this file gates deck visibility for the audit view.
+  const decksPublic = tournament.status === 'complete'
+  // ───────────────────────────────────────────────────────────────────────
+
+  const [players, matches] = await Promise.all([
+    fetchPlayers(tournament.id),
+    fetchMatches(tournament.id),
+  ])
+
+  // Only real competitors: approved, non-rejected sign-ups. Leaders are public
+  // once play has begun (running/complete), matching the main snapshot rule.
+  const competitors = players.filter((p) => p.approvalStatus === 'approved')
+  const leadersPublic = tournament.status === 'running' || tournament.status === 'complete'
+  const standings = computeStandings(competitors, matches)
+  const standingById = new Map(standings.map((s) => [s.playerId, s]))
+
+  const sb = getServiceClient()
+  const withIdentity = await attachProfileIdentity(sb, competitors)
+
+  const entries: PaidDeckAuditEntry[] = withIdentity.map((p) => {
+    const leader = leadersPublic ? extractLeader(p.deckList) : null
+    const st = standingById.get(p.id)
+    return {
+      playerId: p.id,
+      xHandle: p.xHandle,
+      displayName: p.displayName,
+      username: p.username ?? null,
+      avatarUrl: p.avatarUrl ?? null,
+      country: p.country ?? null,
+      walletAddress: p.walletAddress,
+      rank: tournament.status === 'complete' && st ? st.rank : null,
+      wins: st?.wins ?? 0,
+      losses: st?.losses ?? 0,
+      draws: st?.draws ?? 0,
+      dropped: p.dropped,
+      leaderName: leader?.name ?? null,
+      leaderImage: leader?.image ?? null,
+      hasDeckList: p.hasDeckList,
+      // Contents attached ONLY behind the reveal gate.
+      deckList: decksPublic ? p.deckList : null,
+    }
+  })
+
+  // Stable, meaningful order: final placing once complete, else handle A→Z.
+  entries.sort((a, b) => {
+    if (a.rank != null && b.rank != null) return a.rank - b.rank
+    if (a.rank != null) return -1
+    if (b.rank != null) return 1
+    return a.xHandle.localeCompare(b.xHandle)
+  })
+
+  return {
+    code: tournament.code,
+    name: tournament.name,
+    game: tournament.game,
+    status: tournament.status,
+    theme: tournament.theme,
+    decksPublic,
+    entries,
+  }
+}
+
+// ── Dispute battle-log evidence (any tournament) ───────────────────────────
+
+/**
+ * Attach an OPTCG Sim battle log (a URL and/or pasted text) to a DISPUTED
+ * match, as evidence for the organizer to read before settling the winner.
+ * Available for ANY tournament (paid or free/featured). Gated hard on three
+ * things that must always hold: only a PARTICIPANT of the match, only while the
+ * match is 'disputed', and the same URL-scheme + length validation. Resolves
+ * the caller by wallet address first, then X handle, the same as match
+ * reporting.
+ */
+export async function attachDisputeLog(
+  code: string,
+  matchId: string,
+  walletAddress: string,
+  xHandle: string | null,
+  input: { url?: string | null; text?: string | null },
+): Promise<void> {
+  const sb = getServiceClient()
+  const row = await fetchTournamentRowByCode(code)
+
+  const player = await fetchPlayerByWalletOrHandle(row.id, walletAddress, xHandle)
+  if (!player) {
+    throw new TournamentError('You are not signed up for this tournament.', 403)
+  }
+
+  const { data: mRow, error } = await sb
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .eq('tournament_id', row.id)
+    .maybeSingle()
+  if (error) throw new TournamentError(error.message, 500)
+  if (!mRow) throw new TournamentError('Match not found.', 404)
+  const match = rowToMatch(mRow)
+
+  if (match.player1Id !== player.id && match.player2Id !== player.id) {
+    throw new TournamentError('You are not a participant in this match.', 403)
+  }
+  if (match.status !== 'disputed') {
+    throw new TournamentError('You can only attach a battle log to a disputed match.', 409)
+  }
+
+  const url = typeof input.url === 'string' ? input.url.trim() : ''
+  const text = typeof input.text === 'string' ? input.text.trim() : ''
+  if (!url && !text) {
+    throw new TournamentError('Add a battle-log link or paste the log text.', 422)
+  }
+  if (url && !/^https?:\/\//i.test(url)) {
+    throw new TournamentError('The battle-log link must start with http:// or https://', 422)
+  }
+  // Keep the pasted text bounded so a paste can't bloat the row.
+  const MAX_LOG_CHARS = 20000
+  if (text.length > MAX_LOG_CHARS) {
+    throw new TournamentError('That battle log is too long. Trim it or share a link instead.', 422)
+  }
+
+  const { error: upErr } = await sb
+    .from('matches')
+    .update({
+      dispute_log_url: url || null,
+      dispute_log_text: text || null,
+      dispute_log_by: walletAddress ? walletAddress.toLowerCase() : null,
+      dispute_log_at: nowIso(),
+    })
+    .eq('id', matchId)
+    .eq('tournament_id', row.id)
+    // Re-check status in the write so evidence can't land after an admin
+    // resolves the dispute in a race.
+    .eq('status', 'disputed')
+  if (upErr) throw new TournamentError(upErr.message, 500)
+}
+
 // ── Active (live) tournament ───────────────────────────────────────────────
 
 /** The one tournament shown at /tournaments - env override or is_live row. */
@@ -2818,7 +3029,7 @@ export async function adminStartFresh(input: {
 }
 
 /**
- * Spin up a new PAID game for the always-on /tournaments/play lobby. Unlike the
+ * Spin up a new PAID game for the always-on /tournaments/paid lobby. Unlike the
  * featured event this never sets is_live and never touches any live event, so
  * many paid games can run in parallel. Forced to Swiss (the format the
  * hard-deadline / double-forfeit autopilot is designed for). Enrollment stays
@@ -2841,6 +3052,12 @@ export async function adminCreatePaidGame(input: {
   contactUrl?: string | null
   /** Optional per-lobby region lock. null/undefined = open lobby (default). */
   lobbyRegion?: Region | null
+  /**
+   * Optional shared join code (a room passcode). When provided and non-empty it
+   * is persisted server-side; players must present it to enroll. Trimmed;
+   * empty/whitespace/undefined => null = open lobby (no code).
+   */
+  joinPassword?: string | null
 }): Promise<{ code: string }> {
   const sb = getServiceClient()
   const name = input.name?.trim()
@@ -2866,6 +3083,11 @@ export async function adminCreatePaidGame(input: {
     typeof input.theme === 'string' && TOURNAMENT_THEMES[input.theme] ? input.theme : null
   // Open lobby by default; sanitize anything else to a valid region or null.
   const lobbyRegion = sanitizeRegion(input.lobbyRegion)
+  // Optional shared join code. Trim; empty/whitespace => null (open lobby).
+  const joinPassword =
+    typeof input.joinPassword === 'string' && input.joinPassword.trim()
+      ? input.joinPassword.trim()
+      : null
 
   const escrowId = randomBytes32Hex()
   const contractAddress = isEscrowConfigured() ? escrowAddress() : null
@@ -2917,6 +3139,10 @@ export async function adminCreatePaidGame(input: {
     // cleanly before migration 021 is applied. A region-locked lobby created
     // pre-migration will surface a clear DB error (that feature needs the column).
     if (lobbyRegion) insertRow.lobby_region = lobbyRegion
+    // Only write join_password when a code was actually set, so an open lobby
+    // never references the new column and still creates cleanly before
+    // migration 024 is applied (mirrors the lobby_region handling above).
+    if (joinPassword) insertRow.join_password = joinPassword
     const { data, error } = await sb.from('tournaments').insert(insertRow).select('*').single()
     if (!error && data) return { code: data.code }
     lastErr = error
@@ -2926,6 +3152,40 @@ export async function adminCreatePaidGame(input: {
     `Could not create paid game: ${(lastErr as Error)?.message ?? 'unknown'}`,
     500,
   )
+}
+
+/**
+ * Set or clear the shared join code (room passcode) for an existing tournament.
+ * A null/empty/whitespace password CLEARS it (reopens the lobby). Stored
+ * server-side in plaintext; the raw value is never exposed publicly (only the
+ * derived `joinProtected` boolean is). Reachable only through the
+ * admin-secret-gated route.
+ */
+export async function adminSetJoinPassword({
+  code,
+  password,
+}: {
+  code: string
+  password: string | null
+}): Promise<{ joinProtected: boolean }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  const next = typeof password === 'string' && password.trim() ? password.trim() : null
+  const { error } = await sb.from('tournaments').update({ join_password: next }).eq('id', row.id)
+  if (error) throw new TournamentError(`Could not update the join code: ${error.message}`, 500)
+  return { joinProtected: next != null }
+}
+
+/**
+ * Read the current raw join code so the operator can re-share it. Returns null
+ * when no code is set. This is the ONLY path that exposes the raw value and is
+ * reachable only through the admin-secret-gated route - never the public API.
+ */
+export async function adminGetJoinPassword(code: string): Promise<{ joinPassword: string | null }> {
+  const sb = getServiceClient()
+  const row = await requireHost(code)
+  const raw = typeof row.join_password === 'string' && row.join_password.trim() ? row.join_password : null
+  return { joinPassword: raw }
 }
 
 export async function adminExtendSignup(code: string, extraMinutes: number): Promise<void> {
@@ -3035,11 +3295,52 @@ export async function adminSetRoundMinutes(code: string, roundMinutes: number): 
 export async function adminApprovePlayer(code: string, playerId: string): Promise<void> {
   const sb = getServiceClient()
   const row = await requireHost(code)
-  await sb
+  const { data: updated } = await sb
     .from('players')
     .update({ approval_status: 'approved' })
     .eq('id', playerId)
     .eq('tournament_id', row.id)
+    .select('wallet_address')
+    .maybeSingle()
+  // Paid games only: approval freezes the decklist, so stamp deck_locked_at for
+  // auditability. Done as a separate, null-guarded write so a re-approve never
+  // rewrites the original lock time, and so free/featured approval behavior is
+  // completely unchanged (this block is a no-op for them).
+  if (Boolean(row.escrow_id)) {
+    await sb
+      .from('players')
+      .update({ deck_locked_at: nowIso() })
+      .eq('id', playerId)
+      .eq('tournament_id', row.id)
+      .is('deck_locked_at', null)
+    // Mirror the approval on-chain: add the player's wallet to the escrow's
+    // winner allowlist (signed by the SEPARATE approver key) so the contract
+    // will let them be paid at settle. Best-effort - the off-chain approval
+    // already succeeded above and must NOT be undone if this fails.
+    const wallet = (updated as { wallet_address?: string | null } | null)?.wallet_address
+    await approveWinnerOnchainBestEffort(row.escrow_id as Hex, wallet ?? null)
+  }
+}
+
+/**
+ * Add a wallet to a paid game's on-chain winner allowlist via the SEPARATE
+ * approver key. Best-effort by design: any failure (key unset, missing wallet,
+ * RPC error, or the escrow not created on-chain yet) is logged and swallowed so
+ * the off-chain approval is never rolled back. When the approver key is unset
+ * we skip quietly - the game then requires a manual on-chain approve before it
+ * can settle, mirroring how a missing operator key degrades to manual settle.
+ */
+async function approveWinnerOnchainBestEffort(
+  escrowId: Hex,
+  wallet: string | null,
+): Promise<void> {
+  if (!isApproverConfigured()) return // approver not configured: skip on-chain approve
+  if (!wallet || !/^0x[0-9a-fA-F]{40}$/.test(wallet)) return // no linked wallet to approve
+  try {
+    await approveWinnerOnchain(escrowId, wallet as Address, true)
+  } catch (err) {
+    console.warn('[escrow] on-chain winner approve failed (off-chain approval kept):', err)
+  }
 }
 
 export async function adminRejectPlayer(code: string, playerId: string): Promise<void> {
@@ -3117,6 +3418,19 @@ export async function submitDeckList(
   )
   if (!player) {
     throw new TournamentError('You are not signed up for this tournament.', 404)
+  }
+  // Decklist immutability (paid games): once an entrant is APPROVED in a paid
+  // (escrow-linked) event, their list is frozen and can never be re-submitted -
+  // the deck is the thing the public audit view checks against a replay, so it
+  // must not move after approval. This is belt-and-suspenders on top of the
+  // set-once guard below (which already blocks overwriting a submitted list for
+  // every event): it also covers the narrow case of an approved paid walk-in
+  // who somehow still had a null list. Free/featured events are untouched.
+  if (Boolean(row.escrow_id) && player.approvalStatus === 'approved') {
+    throw new TournamentError(
+      'Your deck list is locked. It was frozen when your entry was approved and cannot be changed.',
+      409,
+    )
   }
   if (player.deckList && player.deckList.trim() !== '') {
     throw new TournamentError('Your deck list is already locked and cannot be changed.', 409)
@@ -3477,7 +3791,32 @@ export async function adminApproveAllPending(code: string): Promise<number> {
     .update({ approval_status: 'approved' })
     .eq('tournament_id', row.id)
     .eq('approval_status', 'pending')
-    .select('id')
+    .select('id, wallet_address')
+  // Paid games only: stamp deck_locked_at on the rows we just approved (null-
+  // guarded so it never overwrites an existing lock). No-op for free/featured.
+  if (Boolean(row.escrow_id) && data && data.length > 0) {
+    await sb
+      .from('players')
+      .update({ deck_locked_at: nowIso() })
+      .eq('tournament_id', row.id)
+      .in(
+        'id',
+        data.map((r: { id: string }) => r.id),
+      )
+      .is('deck_locked_at', null)
+    // Mirror all these approvals on-chain in one batch (separate approver key).
+    // Best-effort: never roll back the off-chain approvals if this fails.
+    const wallets = (data as { wallet_address?: string | null }[])
+      .map((r) => r.wallet_address)
+      .filter((w): w is string => Boolean(w) && /^0x[0-9a-fA-F]{40}$/.test(w as string))
+    if (isApproverConfigured() && wallets.length > 0) {
+      try {
+        await approveWinnersOnchain(row.escrow_id as Hex, wallets as Address[], true)
+      } catch (err) {
+        console.warn('[escrow] on-chain batch winner approve failed (off-chain kept):', err)
+      }
+    }
+  }
   return data?.length ?? 0
 }
 

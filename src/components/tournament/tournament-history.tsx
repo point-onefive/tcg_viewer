@@ -65,7 +65,7 @@ export function TournamentHistory() {
       <div className="mx-auto" style={{ maxWidth: 880 }}>
         <div className="mb-4">
           <Link
-            href="/tournaments"
+            href="/tournaments/sponsored"
             className="inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
             style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
           >

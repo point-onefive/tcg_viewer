@@ -166,6 +166,13 @@ export interface Tournament {
    * Always null for free events. null when the column is absent (pre-migration).
    */
   lobbyRegion: Region | null
+  /**
+   * Whether this tournament requires a shared "join code" to enroll (like a
+   * Zoom passcode, NOT a per-user password). True when a non-empty join code is
+   * set server-side; the raw code is NEVER exposed here or in any public
+   * response - only this derived boolean. false = open lobby (default / legacy).
+   */
+  joinProtected: boolean
   createdAt: string
 }
 
@@ -236,6 +243,15 @@ export interface Player {
   /** Whether a deck list is on file. Safe to expose publicly (no contents). */
   hasDeckList: boolean
   /**
+   * Paid tournaments only: when this player's decklist became immutable, set on
+   * the pending -> approved transition for a paid (escrow-linked) event. null
+   * for free/featured events and for any paid entrant not yet approved. The
+   * decklist is already effectively locked in code (self-submit is set-once);
+   * this timestamp is the auditable "locked at approval" marker. Never null-safe
+   * to treat as "editable" - it is purely a record.
+   */
+  deckLockedAt: string | null
+  /**
    * The deck's Leader card, resolved from the (private) deck list. The Leader
    * is public during play (it sits face-up on the table; the metagame is
    * tracked by leader), so these are exposed in the public snapshot even while
@@ -276,6 +292,20 @@ export interface Match {
   /** When the single-sided report landed (drives the confirm window). */
   reportedAt: string | null
   resolvedAt: string | null
+  /**
+   * Dispute battle-log evidence (PAID disputed matches only). Either participant
+   * of a match that went 'disputed' can attach an OPTCG Sim battle log so the
+   * organizer can read it before settling the winner. All null when nothing was
+   * attached, and never populated for free/featured tournaments (the attach path
+   * is gated to paid disputed matches).
+   */
+  disputeLogUrl: string | null
+  /** Pasted battle-log text (optional companion to the URL). */
+  disputeLogText: string | null
+  /** Wallet address (lowercased) of the participant who attached the evidence. */
+  disputeLogBy: string | null
+  /** When the evidence was attached (ISO); null until an attach happens. */
+  disputeLogAt: string | null
 }
 
 /**
@@ -306,9 +336,9 @@ export interface StandingRow {
   draws: number
   /** Match points: win = 3, draw = 1, loss = 0 (Swiss convention). */
   points: number
-  /** Opponent win % tiebreak (0–1); 0 for single-elim. */
+  /** Opponent win % tiebreak (0 to 1); 0 for single-elim. */
   oppWinPct: number
-  /** Opponents' opponents' win % (deeper strength-of-schedule tiebreak; 0–1). */
+  /** Opponents' opponents' win % (deeper strength-of-schedule tiebreak; 0 to 1). */
   oppOppWinPct: number
   rank: number
   /**
@@ -409,7 +439,7 @@ export interface TournamentSnapshot {
 }
 
 /**
- * Compact card shown in the always-on paid tournaments lobby (/tournaments/play).
+ * Compact card shown in the always-on paid tournaments lobby (/tournaments/paid).
  * One row per open paid game (escrow-linked, not the featured live event).
  */
 export interface PaidGameSummary {
@@ -461,15 +491,89 @@ export interface PaidAttentionItem {
 export interface PaidNeedsAttention {
   ownerKeyConfigured: boolean
   operatorConfigured: boolean
+  /**
+   * Whether the SEPARATE winner-approval key is configured. When false, player
+   * approvals never reach the on-chain allowlist, so settle would revert later.
+   */
+  approverConfigured: boolean
+  /**
+   * Whether the approver key resolves to the same wallet as the operator key.
+   * When true the anti-self-pay protection is defeated and the panel warns.
+   */
+  approverSameAsOperator: boolean
   disputes: { code: string; name: string; count: number }[]
   settleStuck: PaidAttentionItem[]
   cancelled: PaidAttentionItem[]
   /**
-   * Signer wallets (operator, and owner when its key is set) whose native gas
-   * balance is under the low-gas floor. Best-effort: empty when balances are
-   * healthy or the read failed. Drives a "top up gas" warning in the panel.
+   * Signer wallets (operator, the approver, and owner when its key is set) whose
+   * native gas balance is under the low-gas floor. Best-effort: empty when
+   * balances are healthy or the read failed. Drives a "top up gas" warning in
+   * the panel.
    */
-  lowGas: { role: 'operator' | 'owner'; address: string; balanceWei: string }[]
+  lowGas: { role: 'operator' | 'owner' | 'approver'; address: string; balanceWei: string }[]
+}
+
+/**
+ * One competitor row in the public paid deck-audit view. Identity + final
+ * result are always present; `deckList` is only ever populated once the event
+ * is complete (the reveal gate). Before completion the audit endpoint returns
+ * `decksPublic: false` and every `deckList` is null, so no contents leak.
+ */
+export interface PaidDeckAuditEntry {
+  /** Stable player id (for React keys / linking). */
+  playerId: string
+  /** X handle (normalized, no @). */
+  xHandle: string
+  /** Display name / label shown when there is no profile username. */
+  displayName: string
+  /** Profile username, when the wallet linked one; null otherwise. */
+  username: string | null
+  /** Profile avatar url, when set. */
+  avatarUrl: string | null
+  /** Self-declared country (ISO 3166-1 alpha-2) for the flag; null if unset. */
+  country: string | null
+  /** Owning wallet (for the profile link); null for handle-only entries. */
+  walletAddress: string | null
+  /** Final placement (1 = champion) once complete; null while still running. */
+  rank: number | null
+  /** Win/loss/draw tallies for the "result" column. */
+  wins: number
+  losses: number
+  draws: number
+  /** Whether the player dropped from the event. */
+  dropped: boolean
+  /** The deck's Leader card (public once play begins), for a quick visual. */
+  leaderName: string | null
+  leaderImage: string | null
+  /** Whether a decklist is on file (safe to show in any phase; no contents). */
+  hasDeckList: boolean
+  /**
+   * The registered decklist (OPTCG Sim text). ONLY populated when the tournament
+   * is complete (see `PaidDeckAudit.decksPublic`); null before then so the
+   * pre-completion audit page never exposes deck contents.
+   */
+  deckList: string | null
+}
+
+/**
+ * Public, unauthenticated payload for the paid deck-audit view. Served only for
+ * PAID (escrow-linked) tournaments. `decksPublic` is the single reveal gate: it
+ * is true only when the event is complete, and deck contents are attached to the
+ * entries only when it is true.
+ */
+export interface PaidDeckAudit {
+  code: string
+  name: string
+  game: TournamentGame
+  status: TournamentStatus
+  theme: string | null
+  /**
+   * THE reveal gate. true = the event has concluded and decklists are public;
+   * false = decklists are hidden and the UI shows the "revealed when this event
+   * concludes" message. Mirrors the server-side gate in `getPaidDeckAudit`.
+   */
+  decksPublic: boolean
+  entries: PaidDeckAuditEntry[]
 }
 
 /**

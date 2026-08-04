@@ -14,6 +14,7 @@ import {
   apiOwnDeck,
   apiSubmitDeckList,
   apiReportResult,
+  apiAttachDisputeLog,
   apiDropSelf,
   loadVotedChoice,
   loadVoterId,
@@ -29,7 +30,7 @@ import { DiscordLogo } from '@/components/tournament/discord-logo'
 import { BonkModuleHeader, BonkSceneBody, BonkHeaderMascot, BonkModalClose, PrizePoolPoweredBy } from '@/components/tournament/bonk-ui'
 import type { PrizePoolLockup } from '@/lib/tournament/theme'
 import { getTournamentTheme, HOUSE_THEME_ID, type TournamentTheme } from '@/lib/tournament/theme'
-import { formatUsdc, isPayoutPreset, PAYOUT_PRESET_LABELS } from '@/lib/tournament/paid'
+import { DEFAULT_RAKE_BPS, formatUsdc, isPayoutPreset, PAYOUT_PRESET_LABELS } from '@/lib/tournament/paid'
 import { useTournamentTheme } from '@/components/tournament/theme-context'
 import { DeckListBlock } from '@/components/tournament/deck-list-block'
 import { Leaderboard } from '@/components/wallet/leaderboard'
@@ -37,6 +38,7 @@ import { ModalPortal } from '@/components/ui/modal-portal'
 import { WaitlistCard } from '@/components/tournament/waitlist-card'
 import { PaidDepositPanel } from '@/components/tournament/paid-deposit-panel'
 import { PaidProgressBar } from '@/components/tournament/paid-progress-bar'
+import { CombatLogHelpLink } from '@/components/tournament/combat-log-help'
 import { RegionPicker } from '@/components/tournament/region-picker'
 import { type Region, regionShort } from '@/lib/tournament/region'
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button'
@@ -1117,7 +1119,9 @@ function MyMatchCard({
     ))
   }
 
-  // Reports conflict - admin review.
+  // Reports conflict - admin review. Any tournament (paid or free/featured)
+  // lets either player attach an OPTCG Sim battle log as evidence for the
+  // organizer.
   if (match.status === 'disputed') {
     return shell('#f59e0b', (
       <>
@@ -1125,8 +1129,9 @@ function MyMatchCard({
         {vsLine}
         <p className="mt-3 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           Your reports don&rsquo;t match, so an admin will review and finalize this
-          match. No further action needed for now.
+          match.
         </p>
+        <DisputeEvidence code={code} match={match} onAttached={onReported} />
       </>
     ))
   }
@@ -1184,6 +1189,151 @@ function MyMatchCard({
       {error && <p className="mt-2 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
     </>
   ))
+}
+
+/**
+ * Dispute battle-log evidence attach (any tournament). Shown inside the
+ * "Your match" card when a match is disputed, so either participant can
+ * hand the organizer an OPTCG Sim battle log (a link and/or pasted text) to
+ * read before they settle the winner. Set-and-refresh: submitting shows the
+ * attached state on the next snapshot poll.
+ */
+function DisputeEvidence({
+  code,
+  match,
+  onAttached,
+}: {
+  code: string
+  match: Match
+  onAttached: () => Promise<void> | void
+}) {
+  const [open, setOpen] = useState(false)
+  const [url, setUrl] = useState('')
+  const [text, setText] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
+
+  const alreadyAttached = Boolean(match.disputeLogUrl || match.disputeLogText)
+
+  const submit = useCallback(async () => {
+    setError(null)
+    if (!url.trim() && !text.trim()) {
+      setError('Add a battle-log link or paste the log text.')
+      return
+    }
+    setBusy(true)
+    try {
+      await apiAttachDisputeLog(code, match.id, { url: url.trim() || null, text: text.trim() || null })
+      setDone(true)
+      setOpen(false)
+      setUrl('')
+      setText('')
+      await onAttached()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not attach evidence.')
+    } finally {
+      setBusy(false)
+    }
+  }, [code, match.id, url, text, onAttached])
+
+  const fieldStyle: React.CSSProperties = {
+    width: '100%',
+    background: 'var(--bg)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 8,
+    color: 'var(--text-primary)',
+    fontSize: 13,
+    padding: '8px 10px',
+  }
+
+  return (
+    <div
+      className="mt-4 rounded-lg p-3"
+      style={{
+        background: 'color-mix(in srgb, #f59e0b 8%, var(--bg))',
+        border: '1px solid color-mix(in srgb, #f59e0b 26%, transparent)',
+      }}
+    >
+      {alreadyAttached || done ? (
+        <div className="flex items-start gap-2 text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <Check size={14} style={{ color: '#22c55e', flexShrink: 0, marginTop: 1 }} />
+          <span>
+            <strong style={{ color: 'var(--text-primary)' }}>Evidence attached.</strong> The
+            organizer can see it and will settle the match. You can add more below if needed.
+          </span>
+        </div>
+      ) : (
+        <p className="flex items-start gap-2 text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <ListChecks size={14} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} />
+          <span>
+            Attach evidence when you and your opponent reported different results, or you believe the
+            deck played doesn&rsquo;t match what was registered. An organizer reviews it and settles
+            the match.
+          </span>
+        </p>
+      )}
+
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold"
+          style={{ background: '#f59e0b', color: '#0a0a0a' }}
+        >
+          {alreadyAttached || done ? 'Add more evidence' : 'Attach Combat Log'}
+        </button>
+      ) : (
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Press <strong style={{ color: 'var(--text-primary)' }}>Download Combat Log</strong> in the
+            game, then attach the file link or paste its text here.{' '}
+            <CombatLogHelpLink />
+          </p>
+          <input
+            type="url"
+            inputMode="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Combat Log link (https://...)"
+            style={fieldStyle}
+          />
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Or paste the Combat Log text"
+            rows={4}
+            style={{ ...fieldStyle, resize: 'vertical', fontFamily: 'var(--font-mono, monospace)' }}
+          />
+          {error && <p className="text-xs" style={{ color: '#ef4444' }}>{error}</p>}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={submit}
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold"
+              style={{ background: '#f59e0b', color: '#0a0a0a', opacity: busy ? 0.6 : 1 }}
+            >
+              {busy ? <Loader2 size={13} className="animate-spin" /> : null}
+              Submit evidence
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setOpen(false)
+                setError(null)
+              }}
+              className="rounded-md px-3 py-2 text-xs font-semibold"
+              style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 /**
@@ -1332,11 +1482,114 @@ function LinkOut({ href, children }: { href: string; children: React.ReactNode }
 }
 
 /** Punchy "how the event runs" explainer so there are no surprises. */
-export function HowItWorks({ theme }: { theme: TournamentTheme }) {
+export function HowItWorks({
+  theme,
+  paid = false,
+  entryFeeUsdc = null,
+  rakeBps = null,
+  payoutPreset = null,
+  lobbyRegion = null,
+}: {
+  theme: TournamentTheme
+  /** Paid (on-chain / escrow) game: swap in the paid-specific playbook. */
+  paid?: boolean
+  entryFeeUsdc?: number | null
+  rakeBps?: number | null
+  payoutPreset?: string | null
+  lobbyRegion?: Region | null
+}) {
   const [deckHelp, setDeckHelp] = useState(false)
   const payout = theme.playbook.payout
   type StepTone = 'default' | 'danger' | 'success'
-  const steps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
+  // Platform fee as a human percent (rakeBps is basis points; default 15%).
+  const feeBps = rakeBps ?? DEFAULT_RAKE_BPS
+  const feePct = feeBps / 100
+  const feePctLabel = Number.isInteger(feePct) ? String(feePct) : feePct.toFixed(1)
+  const entryFeeLabel = entryFeeUsdc != null ? formatUsdc(entryFeeUsdc) : null
+  const payoutLabel = isPayoutPreset(payoutPreset) ? PAYOUT_PRESET_LABELS[payoutPreset] : null
+  const regionLabel = lobbyRegion ? regionShort(lobbyRegion) : null
+
+  // Paid, on-chain events run on completely different rails (escrow, apply-then-pay,
+  // autopilot, hard deadlines, reliability). Keep the exact same visual component
+  // and swap only the numbered steps when the game is paid.
+  const paidSteps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
+    {
+      lead: 'Paid, on-chain play',
+      body: (
+        <>
+          These are paid tournaments that run on-chain. Your entry fee is locked in an{' '}
+          <strong style={{ color: '#fff' }}>escrow smart contract</strong> (USDC on Base), never
+          held by us. The contract pays out the winners directly.
+        </>
+      ),
+    },
+    {
+      lead: 'Apply, then pay',
+      body: (
+        <>
+          Register first and wait for an organizer to approve you. Only after you&rsquo;re approved
+          do you pay the {entryFeeLabel ? <strong style={{ color: '#fff' }}>{entryFeeLabel} USDC</strong> : 'USDC'}{' '}
+          entry to lock your seat. Applicants who aren&rsquo;t approved never have anything taken
+          from their wallet.
+        </>
+      ),
+    },
+    {
+      lead: 'Runs on autopilot',
+      body: 'Once the organizer starts the event, pairings, round advancement, and prize payouts all happen automatically. An organizer only steps in for genuine disputes or edge cases.',
+    },
+    {
+      lead: 'Hard round deadlines',
+      body: 'Every round has a strict time limit and there are no extensions. Play your match and report the result before the clock runs out.',
+    },
+    {
+      lead: 'Miss your match, get dropped',
+      body: (
+        <>
+          Not reporting in time counts as a{' '}
+          <strong style={{ color: '#ff8a8a' }}>no-show</strong>: you&rsquo;re auto-dropped from the
+          event, and repeat no-shows lower your reliability score, which can block you from future
+          paid lobbies. If neither player reports, both take the loss (double forfeit). Conflicting
+          reports are held for an organizer to resolve.
+        </>
+      ),
+      tone: 'danger',
+    },
+    {
+      lead: 'Report honestly',
+      body: 'Both players confirm the result. Any dispute is settled by an organizer.',
+    },
+    {
+      lead: 'Prize pool + fee',
+      body: (
+        <>
+          The prize pool is every entry combined, minus a{' '}
+          <strong style={{ color: '#fff' }}>{feePctLabel}% platform fee</strong>, split among the
+          top finishers by the payout structure shown for this lobby
+          {payoutLabel ? <> (<strong style={{ color: '#fff' }}>{payoutLabel}</strong>)</> : null}.
+          Winners claim their payout from their own wallet once the event settles.
+        </>
+      ),
+      tone: 'success',
+    },
+    {
+      lead: 'Refunds',
+      body: 'If a lobby is cancelled before it starts, or you\'re removed before play begins, your escrowed entry is refundable straight back to your wallet.',
+    },
+    ...(regionLabel
+      ? [{
+          lead: `${regionLabel}-only lobby`,
+          body: (
+            <>
+              This lobby is region-locked so matches happen in overlapping time zones. Join only if
+              you play from <strong style={{ color: '#fff' }}>{regionLabel}</strong>.
+            </>
+          ),
+        }]
+      : []),
+  ]
+
+  const freeSteps: { lead: React.ReactNode; body: React.ReactNode; tone?: StepTone; cta?: boolean }[] = [
     {
       lead: 'Join the waitlist',
       body: 'No event running yet? Connect your wallet to get in line. When the next tournament opens, players are added in the order they joined, up to the roster cap - so the earlier you join, the better your chances of a seat. Once Round 1 of a live event starts, you can join the waitlist for the next one.',
@@ -1441,6 +1694,7 @@ export function HowItWorks({ theme }: { theme: TournamentTheme }) {
       tone: 'danger',
     },
   ]
+  const steps = paid ? paidSteps : freeSteps
   return (
     <div id="tournament-playbook" className="relative mb-6 scroll-mt-24 overflow-hidden" style={{ ...card, borderRadius: 16, border: 'none' }}>
       {/* Full-bleed BONK scene + wash, swapped per theme: the warm bonkcoin.com
@@ -1567,11 +1821,12 @@ export function HowItWorks({ theme }: { theme: TournamentTheme }) {
                 Heads up
               </span>
               <div className="mt-0.5 font-display font-bold" style={{ color: '#fff', fontSize: 15, lineHeight: 1.25 }}>
-                Save your battle logs
+                Save your Combat Log
               </div>
               <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.74)', lineHeight: 1.5 }}>
-                Screenshot and keep the game log from each match. If a result or deck is disputed,
-                your own record makes it quick for an admin to sort out.
+                After each match, press <strong style={{ color: '#fff' }}>Download Combat Log</strong> in
+                OPTCG Sim and keep the file. If a result or deck is disputed, you&rsquo;ll attach it as
+                evidence.
               </p>
             </div>
           </div>
@@ -2062,6 +2317,9 @@ export function TournamentLive({ code }: { code?: string } = {}) {
   // Region the player will play from (required at sign-up). Pre-filled from the
   // wallet profile's saved region so a returning player doesn't re-pick.
   const [regionDraft, setRegionDraft] = useState<Region | null>(null)
+  // Optional shared join code (room passcode). Only used when the tournament
+  // has one set (tournament.joinProtected); the organizer shares it privately.
+  const [joinCodeDraft, setJoinCodeDraft] = useState('')
   // Post-entry deck submission (waitlist conversions who entered without one)
   // and viewing one's own locked list during the event.
   const [submitDeckBusy, setSubmitDeckBusy] = useState(false)
@@ -2397,7 +2655,12 @@ export function TournamentLive({ code }: { code?: string } = {}) {
       return
     }
     try {
-      await apiEnroll(tournament.code, deck, regionDraft)
+      await apiEnroll(
+        tournament.code,
+        deck,
+        regionDraft,
+        tournament.joinProtected ? joinCodeDraft.trim() : undefined,
+      )
       setSignedUpCode(tournament.code)
       try {
         localStorage.setItem(SIGNED_UP_KEY, tournament.code)
@@ -2799,6 +3062,25 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                       {regionShort(tournament.lobbyRegion)} above to join.
                     </p>
                   )}
+                {tournament.joinProtected && (
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+                      Join code
+                    </span>
+                    <input
+                      value={joinCodeDraft}
+                      onChange={(e) => setJoinCodeDraft(e.target.value)}
+                      disabled={busy}
+                      placeholder="Enter the code from the organizer"
+                      autoComplete="off"
+                      className="w-full"
+                      style={{ background: 'var(--bg)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: 6, padding: '9px 12px', fontSize: 14 }}
+                    />
+                    <span className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                      This is a private lobby. Ask the organizer for the code to join.
+                    </span>
+                  </label>
+                )}
                 {actionError && <p className="text-sm" style={{ color: '#ef4444' }}>{actionError}</p>}
                 <button
                   onClick={() => void doEnroll()}
@@ -2930,6 +3212,23 @@ export function TournamentLive({ code }: { code?: string } = {}) {
         />
       )}
 
+      {/* Public deck audit (paid games): anyone can compare registered lists
+          against replays. Decklists reveal once the event completes. */}
+      {tournament.isPaid && tournament.status !== 'enrolling' && (
+        <div className="mt-4 flex justify-center">
+          <Link
+            href={`/tournaments/paid/${encodeURIComponent(tournament.code)}/audit`}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}
+          >
+            <ListChecks size={14} style={{ color: 'var(--tcw-accent)' }} />
+            {tournament.status === 'complete'
+              ? 'View the public deck audit'
+              : 'Deck audit (lists reveal when the event ends)'}
+          </Link>
+        </div>
+      )}
+
       {/* Final standings for single-elim: the bracket has no standings list, so
           add the same table the past-events page shows. Swiss already renders
           its final standings inside the round board above. */}
@@ -2970,7 +3269,16 @@ export function TournamentLive({ code }: { code?: string } = {}) {
         onVoted={refresh}
       />
 
-      {theme && <HowItWorks theme={theme} />}
+      {theme && (
+        <HowItWorks
+          theme={theme}
+          paid={tournament.isPaid}
+          entryFeeUsdc={tournament.entryFeeUsdc}
+          rakeBps={tournament.rakeBps}
+          payoutPreset={tournament.payoutPreset}
+          lobbyRegion={tournament.lobbyRegion}
+        />
+      )}
 
       {/* Closing co-brand strip */}
       {theme && <BonkFooter theme={theme} />}

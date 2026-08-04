@@ -26,6 +26,7 @@ function mkPlayers(n: number): Player[] {
     depositTx: null,
     deckList: 'x',
     hasDeckList: true,
+    deckLockedAt: null,
     leaderCardId: null,
     leaderName: null,
     leaderImage: null,
@@ -92,6 +93,10 @@ function mkMatch(
     scheduledAt: null,
     reportedAt: null,
     resolvedAt: null,
+    disputeLogUrl: null,
+    disputeLogText: null,
+    disputeLogBy: null,
+    disputeLogAt: null,
   }
 }
 

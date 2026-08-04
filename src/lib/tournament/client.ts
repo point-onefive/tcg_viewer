@@ -2,6 +2,7 @@
 
 import type {
   CompletedTournamentSummary,
+  PaidDeckAudit,
   PaidGameSummary,
   PaidNeedsAttention,
   Player,
@@ -122,6 +123,39 @@ export async function apiVerifyDeposit(code: string, txHash: string): Promise<Pl
   return data.player
 }
 
+/**
+ * Public, unauthenticated deck-audit feed for a PAID game. Returns each
+ * competitor's identity, final result, and (only once the event is complete)
+ * their registered decklist. Throws for a free/featured tournament (the server
+ * refuses to serve one), so callers should scope this to paid games.
+ */
+export async function apiPaidDeckAudit(code: string): Promise<PaidDeckAudit> {
+  const res = await fetch(`/api/tournaments/${encodeURIComponent(code)}/audit`, {
+    cache: 'no-store',
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error((data as { error?: string }).error || 'Not found')
+  return data as PaidDeckAudit
+}
+
+/**
+ * Attach an OPTCG Sim battle log to a disputed paid match as evidence for the
+ * organizer. Wallet-backed: the server identifies you from the signed-in wallet
+ * session, so only the match id + the link/text are sent. Gated server-side to
+ * participants of a disputed paid match.
+ */
+export async function apiAttachDisputeLog(
+  code: string,
+  matchId: string,
+  evidence: { url?: string | null; text?: string | null },
+): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/dispute-log`, {
+    matchId,
+    url: evidence.url ?? null,
+    text: evidence.text ?? null,
+  })
+}
+
 /** Public archive of completed events, newest first. Never throws. */
 export async function apiTournamentHistory(): Promise<CompletedTournamentSummary[]> {
   try {
@@ -150,8 +184,19 @@ export async function apiActiveStatus(): Promise<{ live: boolean; status?: strin
  * wallet's X handle from its profile. The deck list is the one required
  * payload - the player commits to it for the whole event.
  */
-export async function apiEnroll(code: string, deckList: string, region?: string | null): Promise<void> {
-  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, { deckList, region })
+export async function apiEnroll(
+  code: string,
+  deckList: string,
+  region?: string | null,
+  joinPassword?: string,
+): Promise<void> {
+  await post(`/api/tournaments/${encodeURIComponent(code)}/enroll`, {
+    deckList,
+    region,
+    // Only send when the player entered a code; harmless (ignored) when the
+    // tournament has no join code set.
+    ...(joinPassword ? { joinPassword } : {}),
+  })
 }
 
 /**
@@ -238,6 +283,10 @@ export async function adminApi(
   awarded?: number
   ok?: boolean
   deckList?: string | null
+  /** Raw shared join code, returned only by the admin `get-join-password` action. */
+  joinPassword?: string | null
+  /** Whether a join code is set, returned by `set-join-password`. */
+  joinProtected?: boolean
   check?: { ok: boolean; leaderCount: number; deckCount: number; unknownIds: string[]; issues: string[] } | null
   results?: { playerId: string; hasDeck: boolean; ok: boolean; issues: string[] }[]
   matches?: { playerId: string; matchedLines: string[] }[]

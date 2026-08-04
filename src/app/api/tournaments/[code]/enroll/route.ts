@@ -3,6 +3,7 @@ import { enroll, TournamentError } from '@/lib/tournament/service'
 import { getSession } from '@/lib/wallet/session'
 import { getProfile } from '@/lib/wallet/db'
 import { sanitizeRegion } from '@/lib/tournament/region'
+import { checkAndRecordEnroll, clientIpFromRequest } from '@/lib/tournament/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,6 +28,16 @@ export async function POST(
     if (!session) {
       throw new TournamentError('Connect your wallet to sign up.', 401)
     }
+    // Per-wallet + per-IP rate limit (best-effort, DB-backed). Blocks spammy
+    // bursts against the open lobby with a clear 429 while never blocking a
+    // legitimate single sign-up. No-ops if the ledger table isn't present.
+    const rate = await checkAndRecordEnroll({
+      wallet: session.address,
+      ip: clientIpFromRequest(request),
+    })
+    if (!rate.ok) {
+      throw new TournamentError(rate.reason ?? 'Too many requests. Please wait and try again.', 429)
+    }
     const profile = await getProfile(session.address)
     if (!profile?.xHandle) {
       throw new TournamentError(
@@ -34,7 +45,12 @@ export async function POST(
         422,
       )
     }
-    const body = await readJson<{ deckList?: string; region?: string | null }>(request)
+    const body = await readJson<{
+      deckList?: string
+      region?: string | null
+      joinPassword?: string
+      joinCode?: string
+    }>(request)
     if (!body?.deckList || String(body.deckList).trim() === '') {
       throw new TournamentError('Paste your deck list to sign up.', 422)
     }
@@ -44,7 +60,10 @@ export async function POST(
     if (!region) {
       throw new TournamentError('Pick the region you\u2019ll be playing from.', 422)
     }
-    const result = await enroll(code, profile.xHandle, body.deckList, session.address, region)
+    // Optional shared join code (room passcode). Accept either key; the service
+    // only enforces it when the tournament actually has a code set.
+    const joinPassword = body.joinPassword ?? body.joinCode
+    const result = await enroll(code, profile.xHandle, body.deckList, session.address, region, joinPassword)
     return ok(result, 201)
   })
 }

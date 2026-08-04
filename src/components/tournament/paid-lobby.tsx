@@ -12,8 +12,8 @@ import { getTournamentTheme, HOUSE_THEME_ID } from '@/lib/tournament/theme'
 import { regionLabel, regionShort } from '@/lib/tournament/region'
 import type { PaidGameSummary } from '@/lib/tournament/types'
 
-// Always-on paid tournaments lobby (/tournaments/play). A SEPARATE surface from
-// the featured-events page at /tournaments: it lists open paid games (players
+// Always-on paid tournaments lobby (/tournaments/paid). A SEPARATE surface from
+// the featured-events page at /tournaments/sponsored: it lists open paid games (players
 // fund the pot in USDC on Base, the escrow pays out, the platform takes a rake)
 // and is available whether or not a featured event is live. It reuses the
 // neutral "house" theme + the same shell/section chrome as the live tournament
@@ -72,7 +72,7 @@ function GameCard({ g }: { g: PaidGameSummary }) {
   const countLabel = fundingPhase ? 'funded' : 'applied'
   return (
     <Link
-      href={`/tournaments/play/${encodeURIComponent(g.code)}`}
+      href={`/tournaments/paid/${encodeURIComponent(g.code)}`}
       className="group block w-full max-w-[380px] overflow-hidden transition-transform hover:-translate-y-0.5 sm:w-[340px]"
       style={{
         background: 'var(--bg-surface)',
@@ -164,7 +164,7 @@ function Notice({ title, body }: { title: string; body: string }) {
       <h2 className="mb-2 text-xl font-extrabold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
       <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{body}</p>
       <Link
-        href="/tournaments"
+        href="/tournaments/sponsored"
         className="mt-6 inline-flex items-center gap-1 text-sm font-bold"
         style={{ color: 'var(--bonk-ui-yellow)' }}
       >
@@ -230,7 +230,7 @@ function NeedsActionCard({ stakes }: { stakes: { code: string; name: string }[] 
           {stakes.map((s) => (
             <li key={s.code}>
               <Link
-                href={`/tournaments/play/${encodeURIComponent(s.code)}`}
+                href={`/tournaments/paid/${encodeURIComponent(s.code)}`}
                 className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-transform hover:-translate-y-0.5"
                 style={{
                   background: 'color-mix(in srgb, var(--bg) 70%, transparent)',

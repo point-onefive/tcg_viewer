@@ -114,6 +114,9 @@ export function rowToTournament(r: any): Tournament {
     // sanitizeRegion(undefined) === null, so pre-migration rows (no column) and
     // open lobbies (null) both resolve to null.
     lobbyRegion: sanitizeRegion(r.lobby_region),
+    // Only expose a derived boolean; the raw join_password is server-side only
+    // and must never be copied into the public domain object / API responses.
+    joinProtected: r.join_password != null && String(r.join_password).trim() !== '',
     createdAt: r.created_at,
   }
 }
@@ -136,6 +139,9 @@ export function rowToPlayer(r: any): Player {
     depositTx: r.deposit_tx ?? null,
     deckList: r.deck_list ?? null,
     hasDeckList: Boolean(r.deck_list),
+    // null when the column is absent (pre-migration) or the player was never
+    // approved into a paid event.
+    deckLockedAt: r.deck_locked_at ?? null,
     // Leader is derived from the deck list in the snapshot layer (it needs the
     // card index); default null here so the raw mapper stays pure.
     leaderCardId: null,
@@ -171,6 +177,11 @@ export function rowToMatch(r: any): Match {
     scheduledAt: r.scheduled_at ?? null,
     reportedAt: r.reported_at ?? null,
     resolvedAt: r.resolved_at ?? null,
+    // Dispute battle-log evidence; all null pre-migration / when never attached.
+    disputeLogUrl: r.dispute_log_url ?? null,
+    disputeLogText: r.dispute_log_text ?? null,
+    disputeLogBy: r.dispute_log_by ?? null,
+    disputeLogAt: r.dispute_log_at ?? null,
   }
 }
 

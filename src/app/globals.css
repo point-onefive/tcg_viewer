@@ -2721,6 +2721,31 @@ html.lenis, html.lenis body {
   }
 }
 
+/* Chooser (/tournaments) hero: blurred arena backdrop. Mirrors the sponsored
+   hero's faded, right-weighted scene but is theme-independent, since the neutral
+   house theme zeroes out --bonk-hero-scene-opacity. Left edge fades to keep the
+   headline crisp; mobile fades from the top instead so it reads full-bleed. */
+.tcw-hero-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center 40%;
+  opacity: 0.6;
+  filter: blur(4px);
+  transform: scale(1.06);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 46%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 46%, #000 100%);
+}
+@media (max-width: 1023.98px) {
+  .tcw-hero-scene {
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000 42%, #000 100%);
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000 42%, #000 100%);
+  }
+}
+
 /* Faded container scene: two layers, one per theme, so light mode can show a
    warmer daytime image while dark mode keeps its cosmic/night scene. */
 .bonk-scene-layer { transition: opacity 200ms ease; }

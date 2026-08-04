@@ -31,6 +31,8 @@ import {
   adminStartBracket,
   adminStartFresh,
   adminCreatePaidGame,
+  adminSetJoinPassword,
+  adminGetJoinPassword,
   adminCancelPaidGame,
   adminRefundPlayer,
   adminManualSettlePaid,
@@ -51,7 +53,9 @@ export const dynamic = 'force-dynamic'
 type Body =
   | { action: 'ping' }
   | { action: 'start-fresh'; name: string; signupMinutes: number; roundMinutes: number; format?: 'swiss' | 'single-elim'; maxPlayers?: number; rules?: string; contactUrl?: string; theme?: string }
-  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string; lobbyRegion?: import('@/lib/tournament/region').Region | null }
+  | { action: 'create-paid-game'; name: string; payoutPreset: string; maxPlayers: number; roundMinutes: number; entryFeeUsdc?: number; rakeBps?: number; game?: import('@/lib/tournament/types').TournamentGame; rules?: string; contactUrl?: string; theme?: string; lobbyRegion?: import('@/lib/tournament/region').Region | null; joinPassword?: string | null }
+  | { action: 'set-join-password'; code: string; password: string | null }
+  | { action: 'get-join-password'; code: string }
   | { action: 'cancel-paid-game'; code: string }
   | { action: 'refund-player'; code: string; playerId: string }
   | { action: 'manual-settle'; code: string; orderedPlayerIds: string[] }
@@ -105,8 +109,17 @@ export async function POST(request: Request) {
         return ok(result, 201)
       }
       case 'create-paid-game': {
+        // `body` carries the optional `joinPassword` through to the service.
         const result = await adminCreatePaidGame(body)
         return ok(result, 201)
+      }
+      case 'set-join-password': {
+        const res = await adminSetJoinPassword({ code: body.code, password: body.password })
+        return ok({ ok: true, ...res })
+      }
+      case 'get-join-password': {
+        const res = await adminGetJoinPassword(body.code)
+        return ok({ ok: true, ...res })
       }
       case 'cancel-paid-game': {
         const result = await adminCancelPaidGame(body.code)
@@ -136,7 +149,17 @@ export async function POST(request: Request) {
         // Operator path for seeding / walk-in entries (the public
         // /:code/enroll endpoint is wallet-gated). Routes through the
         // same enroll service so all window / cap / dup guards still apply.
-        const result = await enroll(body.code, body.xHandle, body.deckList ?? null)
+        // The join-code gate is bypassed here: this operator path is already
+        // admin-secret-gated, a stronger check than the shared room code.
+        const result = await enroll(
+          body.code,
+          body.xHandle,
+          body.deckList ?? null,
+          null,
+          null,
+          undefined,
+          { bypassJoinGate: true },
+        )
         return ok(result, 201)
       }
       case 'extend-signup':

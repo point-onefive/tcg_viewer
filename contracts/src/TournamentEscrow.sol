@@ -88,13 +88,14 @@ contract TournamentEscrow is
     ///         only pays addresses that actually funded the game, and never more
     ///         than a game's pot, so a compromised operator cannot drain to an
     ///         arbitrary external address or exceed a single pot. It is NOT fully
-    ///         non-custodial, though: because deposits are permissionless and
-    ///         settle accepts ANY funded wallet as a winner, a compromised
-    ///         operator that itself deposits into a game could settle its own
-    ///         wallet as a winner and take a share of that game's pot. The
-    ///         pre-mainnet mitigation (an on-chain approval allowlist plus a
-    ///         winners-must-be-approved check) is tracked in the docs.
-    ///         `owner` always retains every operator power too.
+    ///         non-custodial, but the pre-mainnet mitigation is now IN PLACE:
+    ///         `settle` requires every winner to be on the per-game approved
+    ///         allowlist (`approvedWinner`), and only the SEPARATE `approver`
+    ///         role can add to that allowlist. So even though deposits are
+    ///         permissionless, a compromised operator that deposits into a game
+    ///         still cannot settle its own wallet: it cannot approve itself,
+    ///         because approving is not an operator power. `owner` always
+    ///         retains every operator power too.
     address public operator;
 
     /// @notice Total USDC this contract owes to games (pots) and recipients
@@ -113,9 +114,33 @@ contract TournamentEscrow is
     /// @dev game id => recipient => pending pull balance (winners + platform).
     mapping(bytes32 => mapping(address => uint256)) public credit;
 
+    // ── Storage appended in the pre-mainnet hardening upgrade ────────────────
+    // APPEND-ONLY: these two vars were added AFTER `credit` and the `__gap`
+    // below was shrunk from 43 to 41 (2 new slots), so the layout stays
+    // compatible with the already-deployed testnet proxy. Never reorder or
+    // insert storage above this line.
+
+    /// @notice The APPROVE authority: the only key allowed to add a wallet to a
+    ///         game's winner allowlist (`setApproved`). It is deliberately
+    ///         SEPARATE from `operator`. A compromised operator key (which can
+    ///         create / lock / settle) still cannot pay itself, because it
+    ///         cannot approve itself as a winner - that requires this distinct
+    ///         approver key. When `approver == address(0)` the role falls back
+    ///         to `owner()` (see `_effectiveApprover`), so an upgraded proxy is
+    ///         safe by default until the owner points it at a dedicated key via
+    ///         `setApprover`. Slot appended in the hardening upgrade.
+    address public approver;
+
+    /// @dev game id => wallet => eligible to be named a winner in `settle`.
+    ///      Only the effective approver can set this. `settle` reverts unless
+    ///      every ordered winner is approved here. Slot appended in the
+    ///      hardening upgrade.
+    mapping(bytes32 => mapping(address => bool)) public approvedWinner;
+
     /// @dev Storage gap for future upgrades (UUPS). Do not remove; shrink when
-    ///      adding new storage vars so the layout stays compatible.
-    uint256[43] private __gap;
+    ///      adding new storage vars so the layout stays compatible. Shrunk from
+    ///      43 to 41 when `approver` + `approvedWinner` were appended above.
+    uint256[41] private __gap;
 
     // ── Events ─────────────────────────────────────────────────────────────
 
@@ -133,6 +158,9 @@ contract TournamentEscrow is
     event Claimed(bytes32 indexed id, address indexed recipient, uint256 amount);
     event PlatformUpdated(address indexed previous, address indexed next);
     event OperatorUpdated(address indexed previous, address indexed next);
+    event ApproverChanged(address indexed previous, address indexed next);
+    /// @notice A wallet's winner-eligibility for a game was set (or cleared).
+    event WinnerApprovalSet(bytes32 indexed id, address indexed wallet, bool approved);
     event StrayTokensRescued(address indexed token, address indexed to, uint256 amount);
 
     // ── Errors ─────────────────────────────────────────────────────────────
@@ -154,10 +182,14 @@ contract TournamentEscrow is
     error WinnerCountMismatch();
     error DuplicateWinner();
     error WinnerNotFunded();
+    /// @notice A named winner is not on the game's approved-winner allowlist.
+    error WinnerNotApproved(address winner);
     error NothingToClaim();
     error InsufficientPermitValue();
     error ProtectedFunds();
     error NotOperator();
+    /// @notice Caller is not the effective approver (the separate approve role).
+    error NotApprover();
 
     // ── Modifiers ────────────────────────────────────────────────────────────
 
@@ -165,6 +197,25 @@ contract TournamentEscrow is
     modifier onlyOperator() {
         if (msg.sender != operator && msg.sender != owner()) revert NotOperator();
         _;
+    }
+
+    /// @dev The separate APPROVE authority (see `approver`). Gated on the
+    ///      EFFECTIVE approver so that once the owner assigns a dedicated
+    ///      approver key, neither the operator nor the owner can add winners to
+    ///      the allowlist - only that approver key can. This separation is the
+    ///      whole point: it removes a compromised operator's ability to pay
+    ///      itself. When `approver` is unset it falls back to `owner()`.
+    modifier onlyApprover() {
+        if (msg.sender != _effectiveApprover()) revert NotApprover();
+        _;
+    }
+
+    /// @notice The address currently allowed to approve winners: the dedicated
+    ///         `approver` when set, otherwise the `owner`. Falling back to the
+    ///         owner keeps an upgraded proxy safe (no null-approver window)
+    ///         until the owner calls `setApprover`.
+    function _effectiveApprover() internal view returns (address) {
+        return approver == address(0) ? owner() : approver;
     }
 
     // ── Init ───────────────────────────────────────────────────────────────
@@ -200,6 +251,53 @@ contract TournamentEscrow is
         if (next == address(0)) revert ZeroAddress();
         emit OperatorUpdated(operator, next);
         operator = next;
+    }
+
+    /// @notice Assign the dedicated APPROVE authority. Owner only. Pass
+    ///         `address(0)` to fall back to the owner as the approver. Keep
+    ///         this key DISTINCT from the operator key: the mitigation only
+    ///         holds if the key that can settle games cannot also approve
+    ///         winners. There is no re-init on upgrade, so an upgraded proxy
+    ///         starts with `approver == address(0)` (owner is the effective
+    ///         approver) and stays safe until the owner calls this.
+    function setApprover(address next) external onlyOwner {
+        emit ApproverChanged(approver, next);
+        approver = next;
+    }
+
+    // ── Approver: winner allowlist ───────────────────────────────────────────
+
+    /// @notice Add or remove a wallet from a game's approved-winner allowlist.
+    ///         Only the effective approver may call this (NOT the operator).
+    ///         `settle` reverts unless every named winner is approved here, so
+    ///         a compromised operator that deposited into a game cannot settle
+    ///         its own wallet: it cannot approve itself.
+    function setApproved(bytes32 gameId, address wallet, bool ok) external onlyApprover {
+        _setApproved(gameId, wallet, ok);
+    }
+
+    /// @notice Batch form of `setApproved` for a whole approved roster at once.
+    function setApprovedMany(bytes32 gameId, address[] calldata wallets, bool ok)
+        external
+        onlyApprover
+    {
+        uint256 n = wallets.length;
+        for (uint256 i = 0; i < n; i++) {
+            _setApproved(gameId, wallets[i], ok);
+        }
+    }
+
+    function _setApproved(bytes32 gameId, address wallet, bool ok) private {
+        approvedWinner[gameId][wallet] = ok;
+        // Explicit re-approval also lifts a prior refund block, so a wallet that
+        // was refunded (e.g. kicked in error, or re-admitted) can deposit again.
+        // This is the ONLY documented bypass of the `!refunded` re-deposit
+        // guard: a refunded wallet cannot silently re-fund itself, but the
+        // approver can deliberately re-admit it.
+        if (ok && refunded[gameId][wallet]) {
+            refunded[gameId][wallet] = false;
+        }
+        emit WinnerApprovalSet(gameId, wallet, ok);
     }
 
     // ── Operator: game lifecycle ─────────────────────────────────────────────
@@ -273,6 +371,11 @@ contract TournamentEscrow is
         for (uint256 i = 0; i < depth; i++) {
             address w = orderedWinners[i];
             if (!funded[id][w] || refunded[id][w]) revert WinnerNotFunded();
+            // Winners-must-be-approved: a funded wallet can only be paid if the
+            // separate approver added it to this game's allowlist. This is the
+            // mitigation that stops a compromised operator (which can settle)
+            // from paying its own deposited wallet - it cannot approve itself.
+            if (!approvedWinner[id][w]) revert WinnerNotApproved(w);
             for (uint256 j = 0; j < i; j++) {
                 if (orderedWinners[j] == w) revert DuplicateWinner();
             }
@@ -318,6 +421,8 @@ contract TournamentEscrow is
         uint256 fee = g.entryFee;
         funded[id][player] = false;
         refunded[id][player] = true;
+        // A refunded player is no longer an eligible winner.
+        approvedWinner[id][player] = false;
         g.fundedCount -= 1;
         g.pot -= fee;
         usdcObligations -= fee;
@@ -395,6 +500,11 @@ contract TournamentEscrow is
     function _deposit(bytes32 id, Game storage g) private {
         if (g.state != GameState.Funding) revert WrongState();
         if (funded[id][msg.sender]) revert AlreadyFunded();
+        // A refunded seat cannot silently re-fund. This closes an edge flow
+        // where a wallet that was refunded (kicked pre-lock, or self-withdrew)
+        // could deposit again. The approver can deliberately re-admit it by
+        // calling setApproved(id, wallet, true), which clears this flag.
+        if (refunded[id][msg.sender]) revert AlreadyRefunded();
         if (g.fundedCount >= g.cap) revert GameFull();
 
         uint256 fee = g.entryFee;
@@ -419,6 +529,8 @@ contract TournamentEscrow is
         uint256 fee = g.entryFee;
         funded[id][msg.sender] = false;
         refunded[id][msg.sender] = true;
+        // A refunded player is no longer an eligible winner.
+        approvedWinner[id][msg.sender] = false;
         // Reduce the pot when it is still meaningful (funding/locked). Post-Paid
         // withdraw is impossible (settle zeroes funded->credit path), so pot is
         // only ever decremented here for pre-settlement refund states.

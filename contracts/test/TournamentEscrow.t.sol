@@ -96,6 +96,17 @@ contract TournamentEscrowTest is Test {
         }
     }
 
+    /// Approve players[0..n) as eligible winners for a game. Approver defaults
+    /// to the owner (approver unset), so we sign these as the owner.
+    function _approveN(bytes32 id, uint256 n) internal {
+        address[] memory ws = new address[](n);
+        for (uint256 i = 0; i < n; i++) {
+            ws[i] = players[i];
+        }
+        vm.prank(owner);
+        escrow.setApprovedMany(id, ws, true);
+    }
+
     // ── createGame ─────────────────────────────────────────────────────────
 
     function test_createGame_ok() public {
@@ -317,6 +328,7 @@ contract TournamentEscrowTest is Test {
     function _lockedWith(uint256 n) internal returns (address[] memory winners) {
         _createTop8(GAME, 16);
         _depositN(GAME, n);
+        _approveN(GAME, n);
         vm.prank(owner);
         escrow.lock(GAME);
         winners = new address[](8);
@@ -329,6 +341,7 @@ contract TournamentEscrowTest is Test {
         // 16 x $10 = $160 pot, 15% rake => $24 platform, $136 prize pool.
         _createTop8(GAME, 16);
         _depositN(GAME, 16);
+        _approveN(GAME, 16);
         vm.prank(owner);
         escrow.lock(GAME);
 
@@ -360,6 +373,7 @@ contract TournamentEscrowTest is Test {
         vm.prank(owner);
         escrow.createGame(GAME, 333_333, 16, 1500, split); // weird fee -> dust
         _depositN(GAME, 7);
+        _approveN(GAME, 7);
         uint256 pot = 333_333 * 7;
         vm.prank(owner);
         escrow.lock(GAME);
@@ -622,6 +636,9 @@ contract TournamentEscrowTest is Test {
         vm.prank(op);
         escrow.createGame(GAME, FEE, 16, 1500, _top8());
         _depositN(GAME, 16);
+        // The SEPARATE approver (owner by default) approves the winners; the
+        // operator itself cannot do this. Then the operator settles.
+        _approveN(GAME, 16);
         vm.prank(op);
         escrow.lock(GAME);
 
@@ -688,6 +705,210 @@ contract TournamentEscrowTest is Test {
         vm.stopPrank();
     }
 
+    // ── approver role + winner allowlist (hardening) ─────────────────────────
+
+    function test_approver_defaultsToZeroAndFallsBackToOwner() public {
+        // Unset by default; the effective approver is the owner, so the owner
+        // can approve winners without an explicit setApprover.
+        assertEq(escrow.approver(), address(0));
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(owner);
+        escrow.setApproved(GAME, players[0], true);
+        assertTrue(escrow.approvedWinner(GAME, players[0]));
+    }
+
+    function test_setApprover_onlyOwner() public {
+        address appr = makeAddr("approver");
+        vm.prank(stranger);
+        vm.expectRevert(
+            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger)
+        );
+        escrow.setApprover(appr);
+    }
+
+    function test_setApprover_setsRole() public {
+        address appr = makeAddr("approver");
+        vm.prank(owner);
+        escrow.setApprover(appr);
+        assertEq(escrow.approver(), appr);
+    }
+
+    /// Once a dedicated approver is assigned, the owner is NO LONGER the
+    /// effective approver and cannot add winners - only the approver key can.
+    function test_dedicatedApprover_isExclusive() public {
+        address appr = makeAddr("approver");
+        vm.prank(owner);
+        escrow.setApprover(appr);
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+
+        // Owner can no longer approve.
+        vm.prank(owner);
+        vm.expectRevert(TournamentEscrow.NotApprover.selector);
+        escrow.setApproved(GAME, players[0], true);
+
+        // The approver key can.
+        vm.prank(appr);
+        escrow.setApproved(GAME, players[0], true);
+        assertTrue(escrow.approvedWinner(GAME, players[0]));
+    }
+
+    /// The whole mitigation: a compromised OPERATOR key cannot approve winners
+    /// (so it cannot pay a wallet it deposited into a game with).
+    function test_operator_cannotSetApproved() public {
+        address op = makeAddr("operator");
+        vm.prank(owner);
+        escrow.setOperator(op);
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(op);
+        vm.expectRevert(TournamentEscrow.NotApprover.selector);
+        escrow.setApproved(GAME, players[0], true);
+    }
+
+    function test_setApproved_strangerCannot() public {
+        _createTop8(GAME, 16);
+        vm.prank(stranger);
+        vm.expectRevert(TournamentEscrow.NotApprover.selector);
+        escrow.setApproved(GAME, players[0], true);
+    }
+
+    function test_setApprovedMany_batch() public {
+        _createTop8(GAME, 16);
+        address[] memory ws = new address[](3);
+        ws[0] = players[0];
+        ws[1] = players[1];
+        ws[2] = players[2];
+        vm.prank(owner);
+        escrow.setApprovedMany(GAME, ws, true);
+        assertTrue(escrow.approvedWinner(GAME, players[0]));
+        assertTrue(escrow.approvedWinner(GAME, players[1]));
+        assertTrue(escrow.approvedWinner(GAME, players[2]));
+        // And can be revoked in a batch.
+        vm.prank(owner);
+        escrow.setApprovedMany(GAME, ws, false);
+        assertFalse(escrow.approvedWinner(GAME, players[1]));
+    }
+
+    /// settle must revert if ANY named winner is funded but not approved, even
+    /// when the operator is otherwise allowed to settle.
+    function test_settle_revertsWhenWinnerNotApproved() public {
+        _createTop8(GAME, 16);
+        _depositN(GAME, 16); // funded, but deliberately NOT approved
+        vm.prank(owner);
+        escrow.lock(GAME);
+        address[] memory winners = new address[](8);
+        for (uint256 i = 0; i < 8; i++) {
+            winners[i] = players[i];
+        }
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(TournamentEscrow.WinnerNotApproved.selector, players[0])
+        );
+        escrow.settle(GAME, winners);
+    }
+
+    /// Approving only SOME winners still reverts (the unapproved one is caught).
+    function test_settle_revertsWhenOneWinnerNotApproved() public {
+        _createTop8(GAME, 16);
+        _depositN(GAME, 16);
+        _approveN(GAME, 7); // approve first 7, leave players[7] unapproved
+        vm.prank(owner);
+        escrow.lock(GAME);
+        address[] memory winners = new address[](8);
+        for (uint256 i = 0; i < 8; i++) {
+            winners[i] = players[i];
+        }
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(TournamentEscrow.WinnerNotApproved.selector, players[7])
+        );
+        escrow.settle(GAME, winners);
+    }
+
+    /// Happy path: fully approved winners settle and are credited.
+    function test_settle_succeedsWhenWinnersApproved() public {
+        address[] memory winners = _lockedWith(16);
+        vm.prank(owner);
+        escrow.settle(GAME, winners);
+        (TournamentEscrow.GameState state,,,,,,,) = escrow.getGame(GAME);
+        assertEq(uint256(state), uint256(TournamentEscrow.GameState.Paid));
+        assertGt(escrow.claimable(GAME, players[0]), 0);
+    }
+
+    // ── !refunded re-deposit guard (hardening) ───────────────────────────────
+
+    function test_deposit_revertsAfterRefundPlayer() public {
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(owner);
+        escrow.refundPlayer(GAME, players[0]);
+        // The refunded seat cannot silently re-fund.
+        vm.prank(players[0]);
+        vm.expectRevert(TournamentEscrow.AlreadyRefunded.selector);
+        escrow.deposit(GAME);
+    }
+
+    function test_deposit_revertsAfterWithdraw() public {
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(owner);
+        escrow.cancelGame(GAME);
+        vm.prank(players[0]);
+        escrow.withdraw(GAME);
+        // Even if the game were somehow back in Funding, a refunded wallet is
+        // blocked. Here withdraw set refunded, and re-depositing must revert
+        // (cancelled state also blocks, but AlreadyRefunded is the guard).
+        vm.prank(players[0]);
+        vm.expectRevert();
+        escrow.deposit(GAME);
+    }
+
+    /// Explicit re-approval is the documented bypass: it clears the refund flag
+    /// so a re-admitted wallet can deposit again.
+    function test_reapprove_clearsRefundAndAllowsRedeposit() public {
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(owner);
+        escrow.refundPlayer(GAME, players[0]);
+        assertTrue(escrow.refunded(GAME, players[0]));
+
+        vm.prank(owner);
+        escrow.setApproved(GAME, players[0], true);
+        assertFalse(escrow.refunded(GAME, players[0]));
+
+        // Now the wallet can deposit again.
+        vm.prank(players[0]);
+        escrow.deposit(GAME);
+        assertTrue(escrow.funded(GAME, players[0]));
+    }
+
+    /// A refunded player is no longer an eligible winner even if they were
+    /// approved before the refund.
+    function test_refund_clearsApproval() public {
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(owner);
+        escrow.setApproved(GAME, players[0], true);
+        assertTrue(escrow.approvedWinner(GAME, players[0]));
+        vm.prank(owner);
+        escrow.refundPlayer(GAME, players[0]);
+        assertFalse(escrow.approvedWinner(GAME, players[0]));
+    }
+
+    function test_withdraw_clearsApproval() public {
+        _createTop8(GAME, 16);
+        _deposit(GAME, 0);
+        vm.prank(owner);
+        escrow.setApproved(GAME, players[0], true);
+        vm.prank(owner);
+        escrow.cancelGame(GAME);
+        vm.prank(players[0]);
+        escrow.withdraw(GAME);
+        assertFalse(escrow.approvedWinner(GAME, players[0]));
+    }
+
     // ── per-game isolation (highest priority) ────────────────────────────────
 
     function test_perGameIsolation_settleDoesNotDrainOtherGame() public {
@@ -707,6 +928,7 @@ contract TournamentEscrowTest is Test {
         uint256 totalHeld = usdc.balanceOf(address(escrow));
         assertEq(totalHeld, FEE * 24);
 
+        _approveN(A, 16);
         vm.startPrank(owner);
         escrow.lock(A);
         address[] memory winners = new address[](8);
@@ -736,6 +958,7 @@ contract TournamentEscrowTest is Test {
     function test_conservation_settleThenClaimAll() public {
         _createTop8(GAME, 16);
         _depositN(GAME, 16);
+        _approveN(GAME, 16);
         vm.prank(owner);
         escrow.lock(GAME);
         address[] memory winners = new address[](8);

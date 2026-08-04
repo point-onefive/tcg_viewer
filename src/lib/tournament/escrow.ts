@@ -20,7 +20,9 @@ import { base, baseSepolia } from 'viem/chains'
 //   TOURNAMENT_ESCROW_ADDRESS            escrow proxy address (0x...)
 //   TOURNAMENT_ESCROW_CHAIN_ID           8453 (base) | 84532 (base sepolia)
 //   TOURNAMENT_ESCROW_RPC_URL            Base RPC endpoint
-//   TOURNAMENT_ESCROW_MIN_CONFIRMATIONS  blocks before a deposit counts (default 10)
+//   TOURNAMENT_ESCROW_MIN_CONFIRMATIONS  blocks before a deposit counts
+//     (defaults: 12 on Base mainnet, 5 on Base Sepolia; mainnet is floored at
+//      10 regardless of this value - see minConfirmations)
 // ─────────────────────────────────────────────────────────────────────────
 
 export class EscrowNotConfiguredError extends Error {
@@ -119,10 +121,24 @@ const ADDRESS = () => process.env.TOURNAMENT_ESCROW_ADDRESS
 const CHAIN_ID = () => Number(process.env.TOURNAMENT_ESCROW_CHAIN_ID)
 const RPC_URL = () => process.env.TOURNAMENT_ESCROW_RPC_URL
 
-/** ~10 Base confirmations before a deposit seats a player (reorg safety). */
+// Confirmation depth before a deposit flips `funded` (reorg safety). The env
+// var TOURNAMENT_ESCROW_MIN_CONFIRMATIONS overrides the default, but on Base
+// MAINNET we also enforce a hard floor: seating an unpaid player because of a
+// reorg is a fund-safety bug, so a too-shallow env value can never apply there.
+// Testnet stays flexible (fast blocks, throwaway funds) so testers aren't slowed.
+const MAINNET_MIN_CONFIRMATIONS = 10 // recommended + enforced floor on Base mainnet
+const DEFAULT_MAINNET_CONFIRMATIONS = 12 // safer default when the env var is unset
+const DEFAULT_TESTNET_CONFIRMATIONS = 5 // reasonable default for Base Sepolia
+
+/** Confirmations required before a deposit seats a player (reorg safety). */
 export function minConfirmations(): bigint {
+  const isMainnet = CHAIN_ID() === base.id
   const raw = Number(process.env.TOURNAMENT_ESCROW_MIN_CONFIRMATIONS)
-  return BigInt(Number.isFinite(raw) && raw > 0 ? raw : 10)
+  const fallback = isMainnet ? DEFAULT_MAINNET_CONFIRMATIONS : DEFAULT_TESTNET_CONFIRMATIONS
+  let n = Number.isFinite(raw) && raw > 0 ? raw : fallback
+  // Never go below the reorg-safety floor on mainnet, even if the env is lower.
+  if (isMainnet && n < MAINNET_MIN_CONFIRMATIONS) n = MAINNET_MIN_CONFIRMATIONS
+  return BigInt(n)
 }
 
 /** True when the escrow has the env it needs to run. */
