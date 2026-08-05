@@ -78,6 +78,18 @@ export const ESCROW_DEPOSIT_ABI = [
     ],
     outputs: [{ name: '', type: 'uint256' }],
   },
+  // Per-account funded flag: lets the client short-circuit a redundant deposit
+  // (and never send a second one that the contract would revert).
+  {
+    type: 'function',
+    name: 'funded',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'id', type: 'bytes32' },
+      { name: 'account', type: 'address' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
   // Refund path: pull your entry back when the game is refundable (cancelled,
   // globally paused, or the dead-man window elapsed on a stuck locked game).
   {

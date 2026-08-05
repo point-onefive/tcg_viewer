@@ -33,6 +33,39 @@ function addressesEqual(a?: string | null, b?: string | null): boolean {
 }
 
 /**
+ * Map a raw wallet/contract error to a short, human message. Never surfaces
+ * viem's multi-line "Raw Call Arguments" blob or low-level revert text to a
+ * host mid-tournament.
+ */
+function friendlyError(err: unknown): string {
+  const raw =
+    err instanceof Error
+      ? err.message
+      : typeof err === 'string'
+        ? err
+        : ''
+  const msg = raw.toLowerCase()
+  const code = (err as { code?: unknown })?.code
+  if (
+    code === 4001 ||
+    msg.includes('user rejected') ||
+    msg.includes('rejected') ||
+    msg.includes('denied')
+  ) {
+    return 'Request cancelled in your wallet.'
+  }
+  if (
+    msg.includes('execution reverted') ||
+    msg.includes('wrongstate') ||
+    msg.includes('reverted') ||
+    msg.includes('already funded')
+  ) {
+    return 'You are already paid in. Nothing more to do.'
+  }
+  return 'Something went wrong. Your funds are safe. Refresh to check your status.'
+}
+
+/**
  * Entry-fee deposit + winnings-claim widget for paid games. Rendered by
  * TournamentLive only when the tournament is paid. Everything here is client
  * wallet action (deposit, claim); the backend runs the rest of the money
@@ -63,6 +96,10 @@ export function PaidDepositPanel({
   // paused, or a locked-but-never-settled game past its dead-man window).
   const [refundable, setRefundable] = useState(false)
   const [withdrawn, setWithdrawn] = useState(false)
+  // Optimistic latch: flips true the instant a deposit is confirmed on-chain so
+  // the paid state shows immediately, closing the click window before the
+  // parent snapshot refetch lands and me.funded catches up.
+  const [justFunded, setJustFunded] = useState(false)
 
   const chainId = tournament.chainId
   const escrow = tournament.contractAddress
@@ -117,6 +154,10 @@ export function PaidDepositPanel({
     return players.find((p) => Boolean(p.xHandle) && p.xHandle.toLowerCase() === h) ?? null
   }, [players, profile?.xHandle])
 
+  // Treat a just-confirmed local deposit as funded even before the parent
+  // snapshot refetch flips me.funded.
+  const isFunded = Boolean(me?.funded) || justFunded
+
   // Read the caller's claimable balance for a settled game.
   useEffect(() => {
     let cancelled = false
@@ -147,7 +188,7 @@ export function PaidDepositPanel({
   // already pulled its refund (keeps the extra RPC reads off everyone else).
   useEffect(() => {
     let cancelled = false
-    const shouldCheck = onchainReady && Boolean(me?.funded) && !me?.refunded && !withdrawn
+    const shouldCheck = onchainReady && isFunded && !me?.refunded && !withdrawn
     if (!shouldCheck) {
       setRefundable(false)
       return
@@ -186,7 +227,7 @@ export function PaidDepositPanel({
     return () => {
       cancelled = true
     }
-  }, [onchainReady, me?.funded, me?.refunded, withdrawn, escrow, escrowId, chainId, tournament.status])
+  }, [onchainReady, isFunded, me?.refunded, withdrawn, escrow, escrowId, chainId, tournament.status])
 
   const ensureChain = useCallback(async () => {
     if (connectedChainId !== chainId) {
@@ -194,8 +235,36 @@ export function PaidDepositPanel({
     }
   }, [connectedChainId, chainId])
 
+  // Read the escrow's per-account funded flag on-chain. Used both to
+  // short-circuit a redundant deposit and to recover from a revert that only
+  // happened because the wallet is in fact already funded.
+  const readFunded = useCallback(
+    async (owner: Hex): Promise<boolean> => {
+      try {
+        return (await readContract(wagmiConfig, {
+          address: escrow as Hex,
+          abi: ESCROW_DEPOSIT_ABI,
+          functionName: 'funded',
+          args: [escrowId as Hex, owner],
+          chainId: chainId as 8453 | 84532,
+        })) as boolean
+      } catch {
+        return false
+      }
+    },
+    [escrow, escrowId, chainId],
+  )
+
   const doDeposit = useCallback(async () => {
     if (!onchainReady || !address) return
+    // Already funded (either the snapshot or our optimistic latch says so):
+    // there is nothing to pay, so never send a second deposit.
+    if (isFunded) {
+      setJustFunded(true)
+      setNote('Entry paid. You are in.')
+      onFunded()
+      return
+    }
     setBusy(true)
     setError(null)
     setNote(null)
@@ -204,6 +273,16 @@ export function PaidDepositPanel({
       const owner = getAddress(address)
       const spender = getAddress(escrow as string)
       const amount = BigInt(fee as number)
+
+      // Defense in depth against the exact double-deposit revert: confirm the
+      // wallet isn't already funded on-chain before spending gas on approve +
+      // deposit.
+      if (await readFunded(owner)) {
+        setJustFunded(true)
+        setNote('Entry paid. You are in.')
+        onFunded()
+        return
+      }
 
       const allowance = (await readContract(wagmiConfig, {
         address: usdc as Hex,
@@ -232,14 +311,26 @@ export function PaidDepositPanel({
         chainId: chainId as 8453 | 84532,
       })
       await waitForTransactionReceipt(wagmiConfig, { hash: depositHash, chainId: chainId as 8453 | 84532 })
+      setJustFunded(true)
       setPendingHash(depositHash)
       await verify(depositHash)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Deposit failed.')
+      // A revert here often means the wallet is already funded (a redundant
+      // deposit the contract correctly rejected). Never scare a paid host: if
+      // we can confirm funded on-chain, treat it as success.
+      const owner = getAddress(address)
+      if (await readFunded(owner)) {
+        setJustFunded(true)
+        setError(null)
+        setNote('Entry paid. You are in.')
+        onFunded()
+      } else {
+        setError(friendlyError(err))
+      }
     } finally {
       setBusy(false)
     }
-  }, [onchainReady, address, escrow, escrowId, fee, usdc, chainId, ensureChain])
+  }, [onchainReady, address, escrow, escrowId, fee, usdc, chainId, ensureChain, isFunded, readFunded, onFunded])
 
   const verify = useCallback(
     async (hash: Hex) => {
@@ -274,7 +365,7 @@ export function PaidDepositPanel({
       setClaimable(BigInt(0))
       setNote('Winnings claimed to your wallet.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Claim failed.')
+      setError(friendlyError(err))
     } finally {
       setBusy(false)
     }
@@ -301,7 +392,7 @@ export function PaidDepositPanel({
       // Let the sweep reconcile the funded/refunded mirror; refresh the view.
       onFunded()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Withdraw failed.')
+      setError(friendlyError(err))
     } finally {
       setBusy(false)
     }
@@ -399,7 +490,7 @@ export function PaidDepositPanel({
     } else {
       body = null
     }
-  } else if (me?.funded) {
+  } else if (isFunded) {
     body = <p style={{ margin: 0, color: '#22c55e' }}>Entry paid. You are in. ✓</p>
   } else if (
     expected &&
@@ -452,7 +543,7 @@ export function PaidDepositPanel({
       <div style={{ fontWeight: 800, marginBottom: 8, letterSpacing: 0.2 }}>Entry &amp; payout</div>
       {body}
       {note && <p style={{ marginTop: 10, marginBottom: 0, opacity: 0.85, fontSize: 13 }}>{note}</p>}
-      {error && (
+      {error && !isFunded && (
         <p style={{ marginTop: 10, marginBottom: 0, color: '#f87171', fontSize: 13 }}>{error}</p>
       )}
     </div>
