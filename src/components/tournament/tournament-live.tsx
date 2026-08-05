@@ -2583,7 +2583,14 @@ export function TournamentLive({ code }: { code?: string } = {}) {
   // They still owe a deck list, so keep the entry panel available (it collapses
   // to just the deck-submission prompt) whenever a signed-up player owes one,
   // even when sign-ups are otherwise closed.
-  const showSignupPanel = signupOpen || (signedUp && owesDeckList)
+  const showSignupPanel =
+    signupOpen ||
+    (signedUp && owesDeckList) ||
+    Boolean(
+      tournament?.isPaid &&
+        signedUp &&
+        (tournament.status === 'complete' || tournament.status === 'cancelled'),
+    )
 
   const myActiveMatch = useMemo(() => {
     if (!myPlayer || !activeRound) return null
@@ -2909,9 +2916,6 @@ export function TournamentLive({ code }: { code?: string } = {}) {
         </div>
       )}
 
-      {/* Paid game: entry-fee deposit + winnings claim. No-op for free events. */}
-      {tournament.isPaid && <PaidDepositPanel snapshot={snapshot} onFunded={refresh} />}
-
       {/* Event hero */}
       <div className="mb-6 overflow-hidden" style={{ ...card, borderRadius: 16 }}>
         <BonkModuleHeader
@@ -3033,8 +3037,14 @@ export function TournamentLive({ code }: { code?: string } = {}) {
 
       {/* Sign-up form + roster. Once the bracket is live the roster is
           redundant (everyone shows in the bracket/standings), so the whole
-          block only renders while the event is still enrolling. */}
-      {tournament.status === 'enrolling' && (
+          block only renders while the event is still enrolling. Paid games
+          keep it around through complete/cancelled so a signed-up player's
+          money action (claim winnings / withdraw refund) stays right where
+          they registered. */}
+      {(tournament.status === 'enrolling' ||
+        (tournament.isPaid &&
+          signedUp &&
+          (tournament.status === 'complete' || tournament.status === 'cancelled'))) && (
       <div className={showSignupPanel ? 'mb-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]' : 'mb-6'}>
         {/* Sign up */}
         {showSignupPanel && (
@@ -3047,28 +3057,39 @@ export function TournamentLive({ code }: { code?: string } = {}) {
             <div className="p-5">
             {signedUp ? (
               <div className="flex flex-col gap-3">
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  You&rsquo;re in the queue
-                  {profile?.xHandle ? ` as @${profile.xHandle}` : ''}. Your handle
-                  will be verified before the bracket is posted.
-                </p>
-                {tournament.isPaid && !myPlayer?.funded && (
-                  <p
-                    className="rounded-md p-3 text-sm"
-                    style={{
-                      background: 'color-mix(in srgb, var(--bonk-ui-yellow) 12%, var(--bg))',
-                      border: '1px solid color-mix(in srgb, var(--bonk-ui-yellow) 30%, transparent)',
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    This is a paid game. Once an organizer approves you, you&rsquo;ll pay the{' '}
-                    <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
-                      {formatUsdc(tournament.entryFeeUsdc)} USDC
-                    </span>{' '}
-                    entry here to lock your seat.
+                {/* Money action lives right where the player registered: the
+                    deposit panel renders the real Pay / Entry-paid / Claim /
+                    Refund CTA per state, and returns null while still pending. */}
+                {tournament.isPaid && (
+                  <PaidDepositPanel snapshot={snapshot} onFunded={refresh} />
+                )}
+                {tournament.status === 'enrolling' && (
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    You&rsquo;re in the queue
+                    {profile?.xHandle ? ` as @${profile.xHandle}` : ''}. Your handle
+                    will be verified before the bracket is posted.
                   </p>
                 )}
+                {tournament.isPaid &&
+                  myPlayer &&
+                  myPlayer.approvalStatus !== 'approved' &&
+                  !myPlayer.funded && (
+                    <p
+                      className="rounded-md p-3 text-sm"
+                      style={{
+                        background: 'color-mix(in srgb, var(--bonk-ui-yellow) 12%, var(--bg))',
+                        border: '1px solid color-mix(in srgb, var(--bonk-ui-yellow) 30%, transparent)',
+                        color: 'var(--text-secondary)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Once an organizer approves you, the button to pay your{' '}
+                      <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                        {formatUsdc(tournament.entryFeeUsdc)} USDC
+                      </span>{' '}
+                      entry appears right here.
+                    </p>
+                  )}
                 {owesDeckList ? (
                   <div className="flex flex-col gap-2 rounded-md p-3" style={{ background: 'var(--bg)', border: '1px solid rgba(232,93,42,0.4)' }}>
                     <p className="text-xs font-bold" style={{ color: 'var(--tcw-accent)' }}>
