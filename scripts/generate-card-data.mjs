@@ -82,6 +82,16 @@ const SET_META = {
   // window yet). Cards from it land in the bundle tagged regions: ['JP']
   // and are hidden behind the "JP" header toggle by default.
   'ST30': { name: 'Starter Deck EX - Luffy & Ace', date: '2026-04-25', order: 49 },
+  // ST-31 through ST-36: the 2026 mono-color starter-deck refresh
+  // (ingested from the Bandai cardlist + product pages). Dates left
+  // empty until Bandai publishes confirmed release windows; names
+  // follow the existing "Starter - <Color> <Leader>" convention.
+  'ST31': { name: 'Starter - Red Monkey.D.Luffy',   date: '', order: 49.1 },
+  'ST32': { name: 'Starter - Green Roronoa Zoro',   date: '', order: 49.2 },
+  'ST33': { name: 'Starter - Blue Kuzan',           date: '', order: 49.3 },
+  'ST34': { name: 'Starter - Purple Charlotte Katakuri', date: '', order: 49.4 },
+  'ST35': { name: 'Starter - Red/Black Sabo',       date: '', order: 49.5 },
+  'ST36': { name: 'Starter - Yellow Eustass Kid',   date: '', order: 49.6 },
   'EB01': { name: 'Extra - Memorial Collection',date: '2024-01-26', order: 50 },
   'EB02': { name: 'Extra - Anime 25th Collection',date: '2025-01-24', order: 51 },
   'EB03': { name: 'Extra - One Piece Heroines',date: '2025-09-12', order: 52 },

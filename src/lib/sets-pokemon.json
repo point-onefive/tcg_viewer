@@ -914,7 +914,7 @@
     "setName": "Shining Fates",
     "releaseDate": "2021-02-19",
     "releaseOrder": 730,
-    "cardCount": 195
+    "cardCount": 73
   },
   {
     "setCode": "swsh45sv",
@@ -970,7 +970,7 @@
     "setName": "Brilliant Stars",
     "releaseDate": "2022-02-25",
     "releaseOrder": 738,
-    "cardCount": 216
+    "cardCount": 186
   },
   {
     "setCode": "swsh9tg",
@@ -984,7 +984,7 @@
     "setName": "Astral Radiance",
     "releaseDate": "2022-05-27",
     "releaseOrder": 740,
-    "cardCount": 246
+    "cardCount": 216
   },
   {
     "setCode": "swsh10tg",
@@ -1012,7 +1012,7 @@
     "setName": "Lost Origin",
     "releaseDate": "2022-09-09",
     "releaseOrder": 744,
-    "cardCount": 247
+    "cardCount": 217
   },
   {
     "setCode": "swsh11tg",
@@ -1026,7 +1026,7 @@
     "setName": "Silver Tempest",
     "releaseDate": "2022-11-11",
     "releaseOrder": 746,
-    "cardCount": 245
+    "cardCount": 215
   },
   {
     "setCode": "swsh12tg",
@@ -1047,7 +1047,7 @@
     "setName": "Crown Zenith",
     "releaseDate": "2023-01-20",
     "releaseOrder": 749,
-    "cardCount": 230
+    "cardCount": 160
   },
   {
     "setCode": "swsh12pt5gg",
@@ -1209,5 +1209,12 @@
     "releaseDate": "2026-05-22",
     "releaseOrder": 772,
     "cardCount": 122
+  },
+  {
+    "setCode": "me5",
+    "setName": "Pitch Black",
+    "releaseDate": "2026-07-17",
+    "releaseOrder": 773,
+    "cardCount": 120
   }
 ]

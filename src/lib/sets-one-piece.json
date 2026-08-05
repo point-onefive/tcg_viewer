@@ -322,6 +322,48 @@
     "cardCount": 17
   },
   {
+    "setCode": "ST31",
+    "setName": "Starter - Red Monkey.D.Luffy",
+    "releaseDate": "",
+    "releaseOrder": 49.1,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST32",
+    "setName": "Starter - Green Roronoa Zoro",
+    "releaseDate": "",
+    "releaseOrder": 49.2,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST33",
+    "setName": "Starter - Blue Kuzan",
+    "releaseDate": "",
+    "releaseOrder": 49.3,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST34",
+    "setName": "Starter - Purple Charlotte Katakuri",
+    "releaseDate": "",
+    "releaseOrder": 49.4,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST35",
+    "setName": "Starter - Red/Black Sabo",
+    "releaseDate": "",
+    "releaseOrder": 49.5,
+    "cardCount": 5
+  },
+  {
+    "setCode": "ST36",
+    "setName": "Starter - Yellow Eustass Kid",
+    "releaseDate": "",
+    "releaseOrder": 49.6,
+    "cardCount": 5
+  },
+  {
     "setCode": "EB01",
     "setName": "Extra - Memorial Collection",
     "releaseDate": "2024-01-26",
@@ -368,7 +410,7 @@
     "setName": "Promo Cards",
     "releaseDate": "",
     "releaseOrder": 98,
-    "cardCount": 97
+    "cardCount": 101
   },
   {
     "setCode": "EXCLUSIVES",
@@ -382,6 +424,6 @@
     "setName": "P",
     "releaseDate": "",
     "releaseOrder": 900,
-    "cardCount": 37
+    "cardCount": 51
   }
 ]
