@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { AlertTriangle, Ban, HandCoins, PauseCircle, PlayCircle, ShieldAlert, Trophy } from 'lucide-react'
+import { AlertTriangle, Ban, ChevronDown, HandCoins, PauseCircle, PlayCircle, ShieldAlert, Trophy } from 'lucide-react'
 import { adminApi } from '@/lib/tournament/client'
 import { computeStandings } from '@/lib/tournament/pairing'
 import type { PaidNeedsAttention, Player, TournamentSnapshot } from '@/lib/tournament/types'
@@ -29,14 +29,21 @@ const label: React.CSSProperties = {
   letterSpacing: '0.12em',
   color: 'var(--text-muted)',
 }
+// Mirror the admin console's dropdowns exactly: appearance-none select with
+// room on the right for a positioned ChevronDown (see SelectField below), so
+// the arrow is consistent instead of the browser's native control.
 const selectStyle: React.CSSProperties = {
   background: 'var(--bg)',
   color: 'var(--text-primary)',
   border: '1px solid var(--border-subtle)',
   borderRadius: 6,
-  padding: '8px 10px',
+  padding: '9px 36px 9px 12px',
   fontSize: 14,
   width: '100%',
+  cursor: 'pointer',
+  WebkitAppearance: 'none',
+  MozAppearance: 'none',
+  appearance: 'none',
 }
 const btn: React.CSSProperties = {
   borderRadius: 6,
@@ -50,6 +57,28 @@ const btn: React.CSSProperties = {
 }
 const dangerBtn: React.CSSProperties = { ...btn, background: '#dc2626', color: '#fff', border: 'none' }
 const goldBtn: React.CSSProperties = { ...btn, background: '#f5b301', color: '#1a1a1a', border: 'none' }
+
+/** Styled select that matches the admin console: appearance-none control with a
+ *  positioned chevron. `className` sizes the wrapper (e.g. flex-1 in a row). */
+function SelectField({
+  className,
+  children,
+  ...rest
+}: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className={`relative ${className ?? 'w-full'}`}>
+      <select {...rest} className="w-full appearance-none" style={selectStyle}>
+        {children}
+      </select>
+      <ChevronDown
+        size={16}
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
+        style={{ color: 'var(--text-muted)' }}
+      />
+    </div>
+  )
+}
 
 function shortHash(h: string): string {
   return h.length > 12 ? `${h.slice(0, 6)}…${h.slice(-4)}` : h
@@ -239,9 +268,9 @@ export function PaidEscrowControls({
             </p>
           ) : (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <select
+              <SelectField
                 aria-label="Player to refund"
-                style={selectStyle}
+                className="w-full sm:flex-1"
                 value={refundId}
                 onChange={(e) => {
                   setRefundId(e.target.value)
@@ -254,7 +283,7 @@ export function PaidEscrowControls({
                     {playerLabel(p)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
               {!confirmRefund ? (
                 <button
                   type="button"
@@ -357,9 +386,9 @@ export function PaidEscrowControls({
                       #{i + 1}
                       {share}
                     </span>
-                    <select
+                    <SelectField
                       aria-label={`Placement ${i + 1}`}
-                      style={selectStyle}
+                      className="flex-1"
                       value={order[i] ?? ''}
                       onChange={(e) => {
                         const next = [...order]
@@ -373,7 +402,7 @@ export function PaidEscrowControls({
                           {playerLabel(p)}
                         </option>
                       ))}
-                    </select>
+                    </SelectField>
                   </div>
                 )
               })}
