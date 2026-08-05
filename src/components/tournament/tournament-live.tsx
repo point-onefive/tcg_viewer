@@ -2536,16 +2536,31 @@ export function TournamentLive({ code }: { code?: string } = {}) {
     [rosterCols, rosterMin],
   )
 
+  // A player the organizer removed (refunded + dropped) has no active row in
+  // visiblePlayers, but a stale local sign-up latch would still read as "you're
+  // in". Detect the removed case (a dropped record with no active one for this
+  // handle) so we fall back to the normal sign-up CTA.
+  const removedFromField = useMemo(() => {
+    const handle = profile?.xHandle?.toLowerCase()
+    if (!handle) return false
+    const roster = snapshot?.players ?? []
+    const hasActive = roster.some((p) => !p.dropped && p.xHandle.toLowerCase() === handle)
+    const hasDropped = roster.some((p) => p.dropped && p.xHandle.toLowerCase() === handle)
+    return hasDropped && !hasActive
+  }, [profile?.xHandle, snapshot?.players])
+
   // Signed up if this browser recorded it for the current event, OR the
   // signed-in wallet's X handle already appears in the roster. The second
   // check makes "you're in" survive across devices and cleared storage now
-  // that sign-up is wallet-backed.
+  // that sign-up is wallet-backed. A removed player is never signed up, even
+  // with a stale local latch.
   const signedUp = Boolean(
-    (tournament && signedUpCode === tournament.code) ||
+    ((tournament && signedUpCode === tournament.code) ||
       (profile?.xHandle &&
         visiblePlayers.some(
           (p) => p.xHandle.toLowerCase() === profile.xHandle!.toLowerCase(),
-        )),
+        ))) &&
+      !removedFromField,
   )
 
   // Who may line up for the NEXT-event waitlist:

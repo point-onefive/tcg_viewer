@@ -140,7 +140,7 @@ export function PaidDepositPanel({
   const me = useMemo(() => {
     if (!address) return null
     const a = address.toLowerCase()
-    return players.find((p) => (p.walletAddress ?? '').toLowerCase() === a) ?? null
+    return players.find((p) => !p.dropped && (p.walletAddress ?? '').toLowerCase() === a) ?? null
   }, [address, players])
 
   // Who the logged-in session says this visitor is, matched by X handle. This
@@ -151,7 +151,7 @@ export function PaidDepositPanel({
     const handle = profile?.xHandle
     if (!handle) return null
     const h = handle.toLowerCase()
-    return players.find((p) => Boolean(p.xHandle) && p.xHandle.toLowerCase() === h) ?? null
+    return players.find((p) => !p.dropped && Boolean(p.xHandle) && p.xHandle.toLowerCase() === h) ?? null
   }, [players, profile?.xHandle])
 
   // Treat a just-confirmed local deposit as funded even before the parent
