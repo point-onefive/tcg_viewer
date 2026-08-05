@@ -517,19 +517,24 @@ export function PaidDepositPanel({
         <p style={{ margin: 0 }}>
           You&apos;re approved. Pay the <strong>{feeLabel}</strong> entry (USDC) to lock your seat.
         </p>
-        <div className="flex items-center gap-2">
-          {pendingHash && (
-            <button
-              style={{ ...btn, background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
-              onClick={() => verify(pendingHash)}
-              disabled={busy}
-            >
-              Check status
+        <div className="flex flex-col gap-1 sm:items-end">
+          <div className="flex items-center gap-2">
+            {pendingHash && (
+              <button
+                style={{ ...btn, background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+                onClick={() => verify(pendingHash)}
+                disabled={busy}
+              >
+                Check status
+              </button>
+            )}
+            <button style={btn} onClick={doDeposit} disabled={busy}>
+              {busy ? 'Processing…' : `Pay ${feeLabel} entry`}
             </button>
-          )}
-          <button style={btn} onClick={doDeposit} disabled={busy}>
-            {busy ? 'Processing…' : `Pay ${feeLabel} entry`}
-          </button>
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>
+            Entries are final once paid. Only pay when you are sure you can play.
+          </p>
         </div>
       </div>
     )

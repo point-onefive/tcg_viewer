@@ -1542,6 +1542,17 @@ export function HowItWorks({
       ),
     },
     {
+      lead: 'Entries are final',
+      body: (
+        <>
+          Leaving is free before you pay. Once you fund your entry it is{' '}
+          <strong style={{ color: '#fff' }}>final</strong> - only pay when you are sure you can play
+          and finish inside the round deadlines. If the organizer cancels or removes you, your USDC
+          is refunded on-chain.
+        </>
+      ),
+    },
+    {
       lead: 'Runs on autopilot',
       body: 'Once the organizer starts the event, pairings, round advancement, and prize payouts all happen automatically. An organizer only steps in for genuine disputes or edge cases.',
     },
