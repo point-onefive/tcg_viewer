@@ -14,6 +14,23 @@ import type { TournamentSnapshot } from '@/lib/tournament/types'
 import { formatUsdc } from '@/lib/tournament/paid'
 import { apiVerifyDeposit } from '@/lib/tournament/client'
 import { ERC20_ABI, ESCROW_DEPOSIT_ABI, usdcAddressForChain } from '@/lib/tournament/usdc'
+import { useWalletAuth } from '@/lib/wallet/wallet-auth-context'
+
+/** Short display form for an address: 0x1234…5678. */
+function shortAddr(a?: string | null): string {
+  if (!a) return 'your wallet'
+  return `${a.slice(0, 6)}…${a.slice(-4)}`
+}
+
+/** Checksum-safe equality for two addresses; false when either is missing. */
+function addressesEqual(a?: string | null, b?: string | null): boolean {
+  if (!a || !b) return false
+  try {
+    return getAddress(a) === getAddress(b)
+  } catch {
+    return false
+  }
+}
 
 /**
  * Entry-fee deposit + winnings-claim widget for paid games. Rendered by
@@ -31,6 +48,11 @@ export function PaidDepositPanel({
 }) {
   const { tournament, players } = snapshot
   const { address, isConnected, chainId: connectedChainId } = useAccount()
+  // The logged-in SIWE session identifies the user by X handle, independent of
+  // whichever wallet wagmi currently has connected. TournamentLive uses the
+  // same signal to decide "you're signed up", so we mirror it here to avoid the
+  // two panels disagreeing about who the visitor is.
+  const { profile } = useWalletAuth()
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,6 +105,17 @@ export function PaidDepositPanel({
     const a = address.toLowerCase()
     return players.find((p) => (p.walletAddress ?? '').toLowerCase() === a) ?? null
   }, [address, players])
+
+  // Who the logged-in session says this visitor is, matched by X handle. This
+  // is stable across wallet disconnects and address switches, so we can still
+  // tell an approved-but-unfunded player exactly what to do even when their
+  // browser wallet isn't the one they registered with.
+  const expected = useMemo(() => {
+    const handle = profile?.xHandle
+    if (!handle) return null
+    const h = handle.toLowerCase()
+    return players.find((p) => Boolean(p.xHandle) && p.xHandle.toLowerCase() === h) ?? null
+  }, [players, profile?.xHandle])
 
   // Read the caller's claimable balance for a settled game.
   useEffect(() => {
@@ -346,14 +379,48 @@ export function PaidDepositPanel({
       )
     }
   } else if (!isConnected) {
-    body = null
+    // No wallet connected. Normally there's nothing to show, but if the
+    // logged-in session says this visitor is an approved, unfunded entrant we
+    // must not leave them with a blank panel - point them at the wallet they
+    // registered with so they can actually pay.
+    if (expected && expected.approvalStatus === 'approved' && !expected.funded) {
+      body = (
+        <div className="flex flex-col gap-1">
+          <p style={{ margin: 0 }}>
+            Connect the wallet you registered with (
+            <strong>{shortAddr(expected.walletAddress)}</strong>) on Base to pay your{' '}
+            <strong>{feeLabel}</strong> entry.
+          </p>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 13 }}>
+            Use the Connect Wallet button at the top of the page.
+          </p>
+        </div>
+      )
+    } else {
+      body = null
+    }
   } else if (me?.funded) {
     body = <p style={{ margin: 0, color: '#22c55e' }}>Entry paid. You are in. ✓</p>
+  } else if (
+    expected &&
+    expected.approvalStatus === 'approved' &&
+    !expected.funded &&
+    !addressesEqual(address, expected.walletAddress)
+  ) {
+    // Connected, but with a different account than the one this player
+    // registered with. Tell them exactly which account to switch to.
+    body = (
+      <p style={{ margin: 0 }}>
+        You&apos;re connected as <strong>{shortAddr(address)}</strong>, but you registered with{' '}
+        <strong>{shortAddr(expected.walletAddress)}</strong>. Switch to that account in your wallet
+        to pay your <strong>{feeLabel}</strong> entry.
+      </p>
+    )
   } else if (!me || me.approvalStatus !== 'approved') {
     // Not registered, awaiting approval, or declined - nothing to pay yet.
     body = null
   } else {
-    // approved + not funded
+    // approved + not funded, connected with the matching wallet
     body = (
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p style={{ margin: 0 }}>
