@@ -3126,7 +3126,10 @@ export async function adminCreatePaidGame(input: {
       game,
       format: 'swiss',
       status: 'enrolling',
-      swiss_rounds: null,
+      // Store the round count up front (derived from the cap) so the schedule
+      // shows a definite "N rounds" instead of a "~" estimate. Paid fields fill
+      // to the cap, so this is the planned structure players sign up against.
+      swiss_rounds: recommendedSwissRounds(cap),
       round_minutes: roundMinutes,
       enroll_closes_at: null, // manual start; no signup timer
       rules: input.rules?.trim() || null,
