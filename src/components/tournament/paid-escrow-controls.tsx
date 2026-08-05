@@ -97,8 +97,15 @@ function formatEther(wei: string): string {
 }
 
 function playerLabel(p: Player): string {
-  const handle = p.xHandle ? ` @${p.xHandle}` : ''
-  return `${p.displayName}${handle}`
+  const name = (p.displayName ?? '').trim()
+  const handle = (p.xHandle ?? '').trim()
+  if (!handle) return name || 'Player'
+  // displayName often already IS the handle (with or without a leading @), so
+  // only append the @handle when it adds something new. Avoids "@x @x".
+  if (!name || name.replace(/^@/, '').toLowerCase() === handle.toLowerCase()) {
+    return `@${handle}`
+  }
+  return `${name} @${handle}`
 }
 
 // ── Per-lobby escrow controls ──────────────────────────────────────────────
