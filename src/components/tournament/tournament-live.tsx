@@ -370,28 +370,18 @@ function ScheduleNote({
   }
   return (
     <div
-      className="mt-5 flex flex-col gap-3 rounded-md p-3.5"
+      className="mt-4 flex flex-col gap-3 rounded-md p-3.5"
       style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
-          <Clock size={15} style={{ color: 'var(--bonk-purple)', flexShrink: 0 }} aria-hidden />
-          <span>
-            {formatDuration(roundMinutes)} per round
-            {roundsLabel && (
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
-            )}
-          </span>
+      <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
+        <Clock size={15} style={{ color: 'var(--bonk-purple)', flexShrink: 0 }} aria-hidden />
+        <span>
+          {formatDuration(roundMinutes)} per round
+          {roundsLabel && (
+            <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {roundsLabel}</span>
+          )}
         </span>
-        <span
-          aria-hidden
-          className="hidden sm:block shrink-0"
-          style={{ width: 1, height: 12, background: 'var(--border-subtle)' }}
-        />
-        <span className="text-xs leading-snug" style={{ color: 'var(--text-secondary)' }}>
-          Generous round limits to fit a global schedule.
-        </span>
-      </div>
+      </span>
       {isPaid && (
         <div
           className="flex items-start gap-2 rounded-md px-3 py-2.5 text-xs"
@@ -404,8 +394,8 @@ function ScheduleNote({
         >
           <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
           <span>
-            Rounds have a hard deadline. Miss your match and you&apos;re dropped (counts as a
-            no-show and can lower your reliability).
+            Rounds have a hard deadline. Miss your match and you&apos;re dropped as a no-show, which
+            can lower your reliability.
           </span>
         </div>
       )}
@@ -2953,43 +2943,59 @@ export function TournamentLive({ code }: { code?: string } = {}) {
               <CountdownStat label={`Round ${activeRound.number} ends in`} value={roundCountdown} />
             )}
           </div>
-          {/* Prize on the line. Prominent, projected-at-full-field headline so
-              it never reads "$0" while enrolling, plus the amount already
-              locked in escrow once anyone has paid in. */}
+          {/* Prize on the line. The headline is the real, current pot (what the
+              winner would take right now); it grows as entrants fund. Before
+              anyone funds we show a muted "fills as players pay in" line instead
+              of a literal $0. */}
           {paidPrize && (
             <div
-              className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg px-3.5 py-3"
+              className="mt-4 rounded-2xl p-4 sm:p-5"
               style={{
                 background: 'color-mix(in srgb, var(--bonk-ui-yellow) 12%, var(--bg))',
                 border: '1px solid color-mix(in srgb, var(--bonk-ui-yellow) 34%, var(--border-subtle))',
               }}
             >
-              <Trophy size={18} style={{ color: 'var(--bonk-ui-yellow)' }} aria-hidden />
-              <span
-                className="bonk-mono text-base font-extrabold tabular-nums sm:text-lg"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {paidPrize.isWta
-                  ? `Winner takes up to ${formatUsdc(paidPrize.topPrizeAtCap)}`
-                  : `Prize pool up to ${formatUsdc(paidPrize.distributableAtCap)}`}
-              </span>
-              {!paidPrize.isWta && (
-                <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                  {PAYOUT_PRESET_LABELS[paidPrize.preset]}
-                </span>
-              )}
-              {paidPrize.hasNow && (
-                <span
-                  className="bonk-mono shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums"
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div
+                  className="flex shrink-0 items-center justify-center rounded-full"
                   style={{
-                    background: 'color-mix(in srgb, #22c55e 15%, var(--bg))',
-                    border: '1px solid color-mix(in srgb, #22c55e 35%, transparent)',
-                    color: '#22c55e',
+                    width: 40,
+                    height: 40,
+                    background: 'color-mix(in srgb, var(--bonk-ui-yellow) 22%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--bonk-ui-yellow) 48%, transparent)',
                   }}
+                  aria-hidden
                 >
-                  {formatUsdc(paidPrize.distributableNow)} in the pool now
-                </span>
-              )}
+                  <Trophy size={20} style={{ color: 'var(--bonk-ui-yellow)' }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div
+                    className="text-[11px] font-bold uppercase tracking-[0.16em]"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    {PAYOUT_PRESET_LABELS[paidPrize.preset]}
+                  </div>
+                  {paidPrize.hasNow ? (
+                    <>
+                      <div
+                        className="bonk-mono mt-1 text-3xl font-black leading-none tabular-nums sm:text-[2.5rem]"
+                        style={{ color: 'var(--bonk-ui-yellow)' }}
+                      >
+                        {formatUsdc(paidPrize.isWta ? paidPrize.topPrizeNow : paidPrize.distributableNow)}
+                      </div>
+                      {tournament.status === 'enrolling' && (
+                        <div className="mt-1 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                          grows as players pay in
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mt-1 text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
+                      Prize pool fills as players pay in
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           {/* Paid field tracker, tucked into the hero next to the counts.
@@ -2999,16 +3005,15 @@ export function TournamentLive({ code }: { code?: string } = {}) {
             <PaidProgressBar
               phase={fundingPhase ? 'funded' : 'applied'}
               filled={fundingPhase ? fundedCount : visiblePlayers.length}
-              total={fundingPhase ? approvedCount : tournament.maxPlayers ?? visiblePlayers.length}
+              total={tournament.maxPlayers ?? visiblePlayers.length}
               inline
             />
           )}
           {/* "When do I get paid?" - always visible for a live paid game so
               players never wonder about payout timing or who releases funds. */}
           {tournament.isPaid && tournament.status !== 'complete' && tournament.status !== 'cancelled' && (
-            <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Winners are paid automatically on-chain the moment the event finalizes. Your USDC
-              becomes claimable right here on this page, no waiting on an organizer.
+            <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Winners are paid on-chain automatically when the event ends. Claim your USDC right here.
             </p>
           )}
           {tournament.status !== 'complete' && (
@@ -3318,7 +3323,7 @@ export function TournamentLive({ code }: { code?: string } = {}) {
                 }
               >
                 {(rosterExpanded ? visiblePlayers : visiblePlayers.slice(0, rosterCap)).map((p, i) => (
-                  <PlayerRow key={p.id} player={p} index={i} />
+                  <PlayerRow key={p.id} player={p} index={i} isPaid={tournament.isPaid} />
                 ))}
               </ul>
               {visiblePlayers.length > rosterCap && (
@@ -4968,7 +4973,7 @@ function BracketSlot({
   )
 }
 
-function PlayerRow({ player, index }: { player: Player; index: number }) {
+function PlayerRow({ player, index, isPaid = false }: { player: Player; index: number; isPaid?: boolean }) {
   return (
     <li
       className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-2.5 py-2 text-sm"
@@ -4999,14 +5004,33 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
           Pending
         </span>
       )}
-      {player.approvalStatus === 'approved' && (
-        <span
-          className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold"
-          style={{ color: '#22c55e', background: 'rgba(34,197,94,0.12)', padding: '2px 7px', borderRadius: 5 }}
-        >
-          <Check size={11} strokeWidth={3} /> Verified
-        </span>
-      )}
+      {player.approvalStatus === 'approved' &&
+        (isPaid ? (
+          player.funded ? (
+            <span
+              className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold"
+              style={{ color: '#22c55e', background: 'rgba(34,197,94,0.12)', padding: '2px 7px', borderRadius: 5 }}
+              title="Entry paid into escrow"
+            >
+              <Check size={11} strokeWidth={3} /> Funded
+            </span>
+          ) : (
+            <span
+              className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold"
+              style={{ color: '#f5b301', background: 'rgba(245,179,1,0.14)', padding: '2px 7px', borderRadius: 5 }}
+              title="Approved. Waiting on the entry payment."
+            >
+              Approved
+            </span>
+          )
+        ) : (
+          <span
+            className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold"
+            style={{ color: '#22c55e', background: 'rgba(34,197,94,0.12)', padding: '2px 7px', borderRadius: 5 }}
+          >
+            <Check size={11} strokeWidth={3} /> Verified
+          </span>
+        ))}
     </li>
   )
 }

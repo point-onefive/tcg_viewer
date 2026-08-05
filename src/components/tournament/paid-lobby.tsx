@@ -69,7 +69,9 @@ function GameCard({ g }: { g: PaidGameSummary }) {
   const fundingPhase =
     g.status !== 'enrolling' || g.fundedCount > 0 || (g.approvedCount > 0 && queued === 0)
   const countValue = fundingPhase ? g.fundedCount : g.appliedCount
-  const countTotal = fundingPhase ? g.approvedCount : cap
+  // Always measure against the total field (cap) so the bar and the numeric
+  // "X / Y" row track the whole pool, matching the detail page's registered chip.
+  const countTotal = cap
   const countLabel = fundingPhase ? 'funded' : 'applied'
   return (
     <Link
