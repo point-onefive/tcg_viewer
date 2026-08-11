@@ -25,6 +25,31 @@ const Sparkline = dynamic(
 )
 
 /**
+ * Self-hosted box art keyed by TCGPlayer product id. Overrides the
+ * pipeline's imageUrl for products whose CDN image is missing or
+ * unusable. This lives in code (not the bundle) on purpose: the box
+ * bundle is regenerated and force-committed nightly by the VPS pricing
+ * cron, so any manual edit to pricing-boxes-one-piece.json would be
+ * wiped on the next run. A code-side override survives that.
+ *
+ *   704752 = OP17 "The World's Strongest Warriors". TCGPlayer had no
+ *            product photo at release (every size 403/404s), so we ship
+ *            the official Bandai box render. Safe to remove this entry
+ *            once TCGPlayer serves the image, but harmless to keep.
+ */
+const BOX_IMAGE_OVERRIDES: Record<number, string> = {
+  704752: '/images/boxes/op17.jpg',
+}
+
+/**
+ * Resolve the best image source for a box: a self-hosted override when
+ * we have one, otherwise the pipeline URL upgraded to hi-res (below).
+ */
+function boxImageSrc(box: BoxPricing): string | null {
+  return BOX_IMAGE_OVERRIDES[box.tcgplayerId] ?? hiResBoxImage(box.imageUrl)
+}
+
+/**
  * Upgrade a product image URL to its high-resolution square source.
  * The op_hub pricing pipeline stores a `_200w` thumbnail (~200px wide,
  * soft/blurry on retina tiles and the detail panel), and since July
@@ -450,7 +475,7 @@ function BoxTile({
   // placeholder on load error instead of leaving a broken <img>.
   const [imgFailed, setImgFailed] = useState(false)
 
-  const imageUrl = imgFailed ? null : hiResBoxImage(box.imageUrl)
+  const imageUrl = imgFailed ? null : boxImageSrc(box)
   const shortName = box.name.replace(/^[^:]+:\s*/, '').replace(/\s*-\s*Booster Box.*$/i, '')
 
   return (
@@ -519,7 +544,7 @@ function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
   const [imgFailed, setImgFailed] = useState(false)
   if (!box) return null
 
-  const imageUrl = imgFailed ? null : hiResBoxImage(box.imageUrl)
+  const imageUrl = imgFailed ? null : boxImageSrc(box)
 
   return (
     <div
