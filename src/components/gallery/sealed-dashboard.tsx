@@ -25,18 +25,27 @@ const Sparkline = dynamic(
 )
 
 /**
- * Upgrade a TCGPlayer product image URL to its high-resolution square
- * source. The op_hub pricing pipeline stores the `_200w` thumbnail
- * (~200px wide → soft/blurry on retina tiles and the detail panel). The
- * same product ID also serves an `_in_1000x1000` original, which Next's
- * image optimizer downscales to crisp WebP at whatever size each spot
- * requests - so a single uniform source covers tiles AND the modal.
+ * Upgrade a product image URL to its high-resolution square source.
+ * The op_hub pricing pipeline stores a `_200w` thumbnail (~200px wide,
+ * soft/blurry on retina tiles and the detail panel), and since July
+ * 2026 it emits `cdn.tcgtracking.com` URLs (a TCGPlayer mirror keyed by
+ * the same product IDs) instead of `tcgplayer-cdn.tcgplayer.com`.
+ *
+ * Two reasons to normalize every URL back to the TCGPlayer CDN here:
+ *   1. tcgtracking only mirrors the `_200w` thumbnail; the crisp
+ *      `_in_1000x1000` original exists only on tcgplayer-cdn. Next's
+ *      optimizer downscales it to whatever size each spot requests,
+ *      so one uniform source covers tiles AND the modal.
+ *   2. The bundle is data, not code: when its host changed, every URL
+ *      fell off the next.config.js image allowlist and the optimizer
+ *      400'd all box art. Pinning the render host in code decouples
+ *      the UI from pipeline-side host churn.
  */
 function hiResBoxImage(url: string | null): string | null {
   if (!url) return url
   return url.replace(
-    /(tcgplayer-cdn\.tcgplayer\.com\/product\/\d+)_[^/.]+\.(?:jpg|jpeg|png|webp)/i,
-    '$1_in_1000x1000.jpg',
+    /(?:cdn\.tcgtracking\.com|tcgplayer-cdn\.tcgplayer\.com)\/product\/(\d+)_[^/.]+\.(?:jpg|jpeg|png|webp)/i,
+    'tcgplayer-cdn.tcgplayer.com/product/$1_in_1000x1000.jpg',
   )
 }
 
@@ -414,7 +423,8 @@ export function SealedDashboard() {
           </div>
         )}
 
-        {activeId && <BoxDetail boxId={activeId} onClose={() => setActiveId(null)} />}
+        {/* key resets the detail panel's image-error state per box */}
+        {activeId && <BoxDetail key={activeId} boxId={activeId} onClose={() => setActiveId(null)} />}
       </main>
 
       <Footer />
@@ -435,8 +445,12 @@ function BoxTile({
     const delta = boxTrendPct(box)
     return delta == null ? null : { delta }
   }, [box])
+  // Brand-new products (e.g. OP17 at release) can have NO image on the
+  // CDN yet even though the bundle carries a URL. Swap to the setAbbr
+  // placeholder on load error instead of leaving a broken <img>.
+  const [imgFailed, setImgFailed] = useState(false)
 
-  const imageUrl = hiResBoxImage(box.imageUrl)
+  const imageUrl = imgFailed ? null : hiResBoxImage(box.imageUrl)
   const shortName = box.name.replace(/^[^:]+:\s*/, '').replace(/\s*-\s*Booster Box.*$/i, '')
 
   return (
@@ -456,6 +470,7 @@ function BoxTile({
               sizes="(max-width: 640px) 45vw, (max-width: 1280px) 25vw, 220px"
               className="sb-tile__img object-contain"
               quality={75}
+              onError={() => setImgFailed(true)}
             />
           ) : (
             <div className="sb-tile__image-fallback" aria-hidden>
@@ -501,9 +516,10 @@ function BoxTile({
 
 function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
   const box = useMemo(() => getBoxes().find((b) => String(b.tcgplayerId) === boxId), [boxId])
+  const [imgFailed, setImgFailed] = useState(false)
   if (!box) return null
 
-  const imageUrl = hiResBoxImage(box.imageUrl)
+  const imageUrl = imgFailed ? null : hiResBoxImage(box.imageUrl)
 
   return (
     <div
@@ -535,6 +551,7 @@ function BoxDetail({ boxId, onClose }: { boxId: string; onClose: () => void }) {
                   sizes="(max-width: 768px) 80vw, 360px"
                   className="object-contain"
                   quality={75}
+                  onError={() => setImgFailed(true)}
                 />
               </div>
             ) : null}

@@ -514,6 +514,28 @@ function wallImageSources(
   return { primary, fallbacks: rest }
 }
 
+/**
+ * Ordered image sources for one print (base card or a specific
+ * variant): the print's own URL first, then every language-appropriate
+ * alternative from imagesByLanguage / regionalIds.
+ *
+ * Exists so the lightbox can run the same onError fallback chain the
+ * wall tiles get from buildWallEntries. A slice of our R2 mirror is
+ * incomplete (variant arts whose upload never ran), and the wall
+ * silently recovers through Bandai's regional CDNs while a
+ * fallback-less lightbox would show an empty card frame for the exact
+ * same print.
+ */
+export function printImageSources(
+  card: Card,
+  variant: CardVariant | null,
+  language: LanguagePickerValue,
+): string[] {
+  const bucket = LANGUAGE_GROUPS[language] ?? LANGUAGE_GROUPS.EN
+  const { primary, fallbacks } = wallImageSources(card, variant, bucket)
+  return [primary, ...fallbacks]
+}
+
 export function buildWallEntries(
   cards: Card[],
   opts: {

@@ -128,6 +128,17 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'tcgplayer-cdn.tcgplayer.com',
       },
+      {
+        // TCGTracking mirror of TCGPlayer product images. Since July
+        // 2026 the op_hub pipeline emits this host in
+        // pricing-boxes-one-piece.json. The UI rewrites known product
+        // URLs back to tcgplayer-cdn (see hiResBoxImage in
+        // sealed-dashboard.tsx); this entry is the safety net so any
+        // URL shape the rewrite doesn't recognize still renders
+        // instead of 400ing at the optimizer.
+        protocol: 'https',
+        hostname: 'cdn.tcgtracking.com',
+      },
     ],
   },
 }

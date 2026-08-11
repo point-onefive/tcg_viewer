@@ -8,7 +8,7 @@ import { Bookmark, Layers, WalletCards } from 'lucide-react'
 import { Card } from '@/lib/types'
 import { useStore } from '@/lib/store'
 import { baseCardId } from '@/lib/deck-types'
-import { filterAndBuildWall } from '@/lib/card-filter'
+import { filterAndBuildWall, printImageSources } from '@/lib/card-filter'
 import { isErrataCode } from '@/lib/cards-one-piece-errata'
 
 // PricePanel pulls in @/lib/pricing (which lazy-loads the pricing JSON
@@ -151,11 +151,17 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
   // itself, and showing the distribution context tells the user
   // "this isn't a duplicate of the base; it's the tournament-prize
   // version with the same art."
+  // `src` stays the print's canonical URL (pins / tier pool / deck
+  // entries persist it). `srcs` is the ordered fallback chain the fan
+  // <Image> walks on load errors - same candidates the wall tiles use,
+  // so a print whose R2 mirror is missing recovers through Bandai's
+  // regional CDNs here too instead of rendering an empty card frame.
   const images = useMemo(() => {
     if (!card) return []
     const base = {
       id: card.id,
       src: card.imageLarge || card.imageSmall,
+      srcs: printImageSources(card, null, language),
       label: 'base',
       distribution: card.distribution,
       stamp: null as string | null,
@@ -165,6 +171,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
     const variants = (card.variants ?? []).map((v) => ({
       id: v.id,
       src: v.imageUrl,
+      srcs: printImageSources(card, v, language),
       label: v.label,
       distribution: v.distribution,
       stamp: v.stamp ?? null,
@@ -172,7 +179,7 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
       artist: v.limitless_artist ?? card.artist ?? null,
     }))
     return [base, ...variants]
-  }, [card])
+  }, [card, language])
 
   const hasMultiple = images.length > 1
 
@@ -631,12 +638,9 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
                         </div>
                       </div>
                     ) : isInLoadWindow ? (
-                      <Image
-                        src={img.src}
+                      <FanImage
+                        srcs={img.srcs}
                         alt={img.label}
-                        fill
-                        sizes="(max-width: 640px) 80vw, (max-width: 1024px) 55vw, 460px"
-                        className="object-cover rounded-xl"
                         priority={isActive}
                       />
                     ) : (
@@ -876,5 +880,37 @@ export function LightboxViewer({ cards }: LightboxViewerProps) {
         </motion.div>
       )}
     </AnimatePresence>
+  )
+}
+
+/**
+ * Fan card image with the same onError fallback chain as CardTile:
+ * starts at the print's canonical URL and steps through the language-
+ * appropriate alternates (Bandai regional CDNs) when a source 404s.
+ * Mounted inside the per-print keyed motion.div, so the index resets
+ * naturally when the fan switches cards.
+ */
+function FanImage({
+  srcs,
+  alt,
+  priority,
+}: {
+  srcs: string[]
+  alt: string
+  priority: boolean
+}) {
+  const [srcIndex, setSrcIndex] = useState(0)
+  const src = srcs[srcIndex] ?? srcs[0]
+  if (!src) return null
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 55vw, 460px"
+      className="object-cover rounded-xl"
+      priority={priority}
+      onError={() => setSrcIndex((i) => (i + 1 < srcs.length ? i + 1 : i))}
+    />
   )
 }

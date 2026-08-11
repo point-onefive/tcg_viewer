@@ -15,6 +15,7 @@
     "cards:all": "npm run cards:fetch && npm run cards:generate",
     "cards:scan": "node scripts/scan-for-new-cards.mjs",
     "cards:scan:full": "node scripts/scan-for-new-cards.mjs --full",
+    "images:audit": "node scripts/audit-r2-images.mjs",
     "r2:upload": "node scripts/upload-to-r2.mjs",
     "gundam:fetch": "node scripts/fetch-gundam-data.mjs",
     "gundam:generate": "node scripts/generate-gundam-data.mjs",
