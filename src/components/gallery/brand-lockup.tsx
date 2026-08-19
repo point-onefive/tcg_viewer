@@ -1,5 +1,5 @@
 // Canonical Card Wall brand lockup: mascot chip + wordmark (with the
-// italic lowercase "the" prefix) and the italic orange "beta" tag.
+// italic lowercase "the" prefix).
 //
 // This is the SINGLE source of truth for the logo. Every page header
 // (gallery + tier-list + chart-race + tournaments) renders this exact
@@ -8,33 +8,21 @@
 // (smaller weight, missing "the" prefix) - don't reintroduce that.
 
 /**
- * The clickable logo (links home) plus the beta tag, wrapped together so
- * they read as one identity unit. Drop it straight into a header's left
+ * The clickable logo (links home). Drop it straight into a header's left
  * cluster; it renders its own `flex items-center gap-2` wrapper.
  *
  * `mobileCompact` collapses the lockup to just the mascot chip below the
- * `sm` breakpoint (the wordmark + beta tag hide), so a cramped mobile
- * header (e.g. the tournaments bar) stays on a single row.
+ * `sm` breakpoint (the wordmark hides), so a cramped mobile header (e.g.
+ * the tournaments bar) stays on a single row.
  */
 export function BrandLockup({
   mobileCompact = false,
-  hideBetaMobile = false,
 }: {
   mobileCompact?: boolean
-  /**
-   * Hide just the "beta" tag below `sm` (keeping the full wordmark). Used
-   * by the tournament bar, where the BONK co-brand lockup needs the extra
-   * horizontal room on phones.
-   */
-  hideBetaMobile?: boolean
 }) {
-  // When compact, the wordmark + beta only appear at >= sm; below that the
+  // When compact, the wordmark only appears at >= sm; below that the
   // mark is the mascot chip alone.
   const wordmarkCls = mobileCompact ? 'hidden sm:inline-flex' : 'inline-flex'
-  const betaCls =
-    mobileCompact || hideBetaMobile
-      ? 'hidden select-none sm:inline-flex'
-      : 'inline-flex select-none'
   return (
     <div className="flex items-center gap-2">
       <a
@@ -128,27 +116,6 @@ export function BrandLockup({
           <span>Card Wall</span>
         </span>
       </a>
-      <span
-        aria-label="Beta release"
-        title="Beta release"
-        className={betaCls}
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 10,
-          fontStyle: 'italic',
-          fontWeight: 700,
-          letterSpacing: '0.18em',
-          textTransform: 'lowercase',
-          color: '#E85D2A',
-          opacity: 0.78,
-          lineHeight: 1,
-          // Tiny optical lift so the italic descender sits on the
-          // same baseline as the wordmark inside the lockup.
-          transform: 'translateY(1px)',
-        }}
-      >
-        beta
-      </span>
     </div>
   )
 }

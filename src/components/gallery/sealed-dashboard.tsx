@@ -303,7 +303,6 @@ export function SealedDashboard() {
                 <span>Card Wall</span>
               </span>
             </Link>
-            <span className="sb-brand__beta" aria-label="Beta release">beta</span>
           </div>
 
           <div

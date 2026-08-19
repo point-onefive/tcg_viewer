@@ -59,7 +59,7 @@ export function TournamentShell({
       >
         <div className="mx-auto flex items-center justify-between gap-3 px-4" style={{ maxWidth: 1800, height: 56 }}>
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <BrandLockup hideBetaMobile />
+            <BrandLockup />
             {theme?.navLockup && (
               // Co-brand partnership lockup: Card Wall  x  <partner>. The "x"
               // separator + partner mark sit immediately after the Card Wall
