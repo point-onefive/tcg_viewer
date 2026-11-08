@@ -1,6 +1,6 @@
 {
-  "status": "partial",
-  "startedAt": "2026-11-07T03:00:01Z",
-  "finishedAt": "2026-11-07T03:22:02Z",
-  "failures": ["Pokémon pricing failed (exit 1)"]
+  "status": "ok",
+  "startedAt": "2026-11-08T03:00:01Z",
+  "finishedAt": "2026-11-08T04:06:13Z",
+  "failures": []
 }
