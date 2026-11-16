@@ -1,6 +1,6 @@
 {
-  "status": "partial",
-  "startedAt": "2026-11-15T03:00:01Z",
-  "finishedAt": "2026-11-15T04:07:46Z",
-  "failures": ["Lorcana pricing failed (exit 1)"]
+  "status": "ok",
+  "startedAt": "2026-11-16T03:00:01Z",
+  "finishedAt": "2026-11-16T04:02:50Z",
+  "failures": []
 }
